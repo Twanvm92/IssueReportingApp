@@ -1,13 +1,18 @@
 package com.example.justin.verbeterjegemeente;
 
+import com.example.justin.verbeterjegemeente.domain.Service;
+import com.example.justin.verbeterjegemeente.domain.PostServiceRequestResponse;
+
+import java.util.ArrayList;
 import java.util.List;
 
-import io.victoralbertos.mockery.api.built_in_interceptor.Rx2Retrofit;
+import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.http.GET;
+import retrofit2.http.Multipart;
 import retrofit2.http.POST;
+import retrofit2.http.Part;
 import retrofit2.http.Query;
-import rx.Single;
 
 /**
  * Created by twanv on 5-5-2017.
@@ -18,13 +23,24 @@ import rx.Single;
 //@Rx2Retrofit(delay = 2500, failurePercent = 15)
 public interface ServiceClient {
 
+    public static final String LANG_EN = "en";
+    public static final String LANG_NL = "nl";
+
 
     /**
      * @param Language
      * @return List of Service objects
      */
 @GET ("services.json")
-Single<List<Service>> getServices(@Query("Locale") String Language);
+Call<List<Service>> getServices(@Query("Locale") String Language);
+
+@Multipart
+@POST("requests.json")
+Call<ArrayList<PostServiceRequestResponse>> postServiceRequest(@Part("api_key") RequestBody apiK,
+                                                              @Part("description") RequestBody desc,
+                                                              @Part("service_code") RequestBody sc);
 }
+
+
 
 

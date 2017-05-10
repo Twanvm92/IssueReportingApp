@@ -7,15 +7,11 @@ import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.util.Log;
 
-import java.util.ArrayList;
+import com.example.justin.verbeterjegemeente.domain.Service;
+
 import java.util.List;
 
 import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import rx.SingleSubscriber;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -40,42 +36,6 @@ public class MainActivity extends AppCompatActivity {
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
 
-
-        ServiceClient client = ServiceGenerator.createService(ServiceClient.class);
-        /*final Call<List<Service>> serviceCall = client.getServices("en");
-
-        serviceCall.enqueue(new Callback<List<Service>>() {
-            @Override
-            public void onResponse(Call<List<Service>> call, Response<List<Service>> response) {
-                List<Service> serviceList = response.body();
-
-                if (serviceList != null) {
-                    Log.i("Response: ", "" + serviceList.get(0).getService_name());
-                } else {
-                    Log.i("Response: ", "List was empty");
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<Service>> call, Throwable t) {
-
-            }
-        });*/
-
-        client.getServices("en")
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new SingleSubscriber<List<Service>>() {
-                    @Override
-                    public void onSuccess(List<Service> value) {
-                        Log.i("Service: ", value.get(0).getService_name());
-                    }
-
-                    @Override
-                    public void onError(Throwable error) {
-
-                    }
-                });
 
         tabLayout.getTabAt(0).setIcon(R.drawable.mapicon);
         tabLayout.getTabAt(1).setIcon(R.drawable.listicon);

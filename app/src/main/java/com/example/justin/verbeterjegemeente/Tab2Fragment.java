@@ -3,6 +3,7 @@ package com.example.justin.verbeterjegemeente;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.database.DatabaseUtilsCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,6 +12,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.Database.DatabaseAccess;
+import com.example.justin.verbeterjegemeente.Database.DatabaseHanlder;
 
 import java.util.List;
 
@@ -33,16 +35,8 @@ public class Tab2Fragment extends Fragment {
             public void onClick(View view) {
                 //Toast.makeText(getActivity(), "TESTING BUTTON CLICK 2",Toast.LENGTH_SHORT).show();
 
-                try{
-                    DatabaseAccess databaseAccess = DatabaseAccess.getInstance(getContext());
-                    databaseAccess.open();
-                    List<String> ids = databaseAccess.getIds();
-                    databaseAccess.close();
-                    Log.i("RESULT", "RESULTS: ");
-                    Log.i("RESULT", ids.toString());
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
+                Log.i("DATABASE", "creating database");
+                DatabaseHanlder databaseHanlder = new DatabaseHanlder(getContext());
 
             }
         });

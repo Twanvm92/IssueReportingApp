@@ -35,8 +35,8 @@
             android:backgroundTint="#FF6FDA7F"
             android:drawableLeft="@drawable/mapicon"
             android:text="@string/locatieWijzigen"
-            android:textAppearance="@android:style/TextAppearance.Material.Small"
-            android:textSize="20sp"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:textSize="21sp"
             android:textStyle="bold" />
 
         <RelativeLayout
@@ -79,6 +79,7 @@
             android:layout_marginLeft="5dp"
             android:layout_marginTop="5dp"
             android:text="@string/beschrijving"
+            android:textColor="@android:color/background_light"
             android:textSize="20sp"
             android:textStyle="bold" />
 
@@ -91,25 +92,45 @@
             android:background="@drawable/round"
             android:ems="10"
             android:hint="@string/beschrijvingHint"
+            android:textColor="@android:color/background_light"
             android:inputType="textMultiLine"
             android:nextFocusLeft="@id/beschrijving"
             android:nextFocusUp="@id/beschrijving"
             android:padding="8dp"
             android:textSize="18sp" />
 
-        <Button
-            android:id="@+id/fotoButton"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:backgroundTint="#FF6FDA7F"
-            android:layout_marginLeft="5dp"
-            android:drawableLeft="@drawable/cameraicon"
-            android:layout_marginRight="5dp"
-            android:layout_marginTop="5dp"
-            android:textAppearance="@android:style/TextAppearance.Material.Small"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:text="@string/foto" />
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/fotoButton"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:layout_marginTop="15dp"
+                android:layout_weight="1"
+                android:backgroundTint="#FF6FDA7F"
+                android:drawableBottom="@drawable/cameraicon"
+                android:text="@string/foto"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                android:textSize="21sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/imageView"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:paddingTop="10dp"
+                android:layout_marginTop="5dp"
+                android:layout_weight="1"
+                app:srcCompat="@drawable/imageicon" />
+
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -121,6 +142,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="5dp"
+                android:textColor="@android:color/background_light"
                 android:layout_weight="1"
                 android:text="@string/email"
                 android:textSize="20sp"
@@ -129,11 +151,11 @@
             <TextView
                 android:id="@+id/optioneeltextview"
                 android:layout_width="match_parent"
+                android:textColor="@android:color/background_light"
                 android:layout_height="wrap_content"
                 android:layout_marginRight="10dp"
                 android:layout_weight="1"
                 android:text="@string/optioneel"
-                android:textAlignment="textEnd"
                 android:textSize="16sp" />
         </LinearLayout>
 
@@ -155,6 +177,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="5dp"
+            android:textColor="@android:color/background_light"
             android:text="@string/voornaam"
             android:textSize="20sp"
             android:textStyle="bold" />
@@ -178,6 +201,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="5dp"
+            android:textColor="@android:color/background_light"
             android:text="@string/achternaam"
             android:textSize="20sp"
             android:textStyle="bold" />
@@ -200,6 +224,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="15dp"
+            android:textColor="@android:color/background_light"
+            android:buttonTint="@android:color/background_light"
             android:layout_marginTop="10dp"
             android:text="@string/update"
             android:textSize="18sp" />
@@ -214,12 +240,12 @@
             android:id="@+id/terugButton"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:backgroundTint="#FF6FDA7F"
             android:layout_weight="1"
-            android:textAppearance="@android:style/TextAppearance.Material.Small"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:text="@string/terug" />
+            android:backgroundTint="#FF6FDA7F"
+            android:text="@string/terug"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:textSize="21sp"
+            android:textStyle="bold" />
 
         <Button
             android:id="@+id/plaatsButton"
@@ -227,8 +253,8 @@
             android:layout_height="wrap_content"
             android:backgroundTint="#FF6FDA7F"
             android:layout_weight="1"
-            android:textAppearance="@android:style/TextAppearance.Material.Small"
-            android:textSize="20sp"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:textSize="21sp"
             android:textStyle="bold"
             android:text="@string/meldingplaatsen" />
     </LinearLayout>

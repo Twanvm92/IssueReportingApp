@@ -1,5 +1,6 @@
 package com.example.justin.verbeterjegemeente;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -26,7 +27,8 @@ public class Tab2Fragment extends Fragment {
         btnTEST.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(getActivity(), "TESTING BUTTON CLICK 2",Toast.LENGTH_SHORT).show();
+                Intent i = new Intent(getContext(), MeldingActivity.class);
+                startActivity(i);
             }
         });
 

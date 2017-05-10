@@ -89,11 +89,11 @@ public class MeldingActivity extends AppCompatActivity {
 
 
         fotoButton.setEnabled(false);
-        fotoButton.setText("Foto toevoegen");
+
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED){
             fotoButton.setEnabled(true);
-            fotoButton.setText("foto toevoegen");
+
         }
 
         fotoButton.setOnClickListener(new View.OnClickListener() {

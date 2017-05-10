@@ -1,5 +1,9 @@
 package com.example.justin.verbeterjegemeente;
 
+import android.location.Location;
+
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
@@ -8,14 +12,12 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
 
-/**
- * Created by thijs on 5/8/17.
- */
-
 public class MarkerHandler {
 
     private GoogleMap mMap;
     private ArrayList<Marker> markerCategory = new ArrayList<>();
+    private GoogleApiClient mApiClient;
+    private LocationRequest mLocationRequest;
 
     //constructor
     public MarkerHandler(GoogleMap map) {
@@ -30,7 +32,6 @@ public class MarkerHandler {
                     m.setVisible(true);
                 }
                 break;
-
         }
     }
 
@@ -46,4 +47,5 @@ public class MarkerHandler {
     public void getData() {
 
     }
+
 }

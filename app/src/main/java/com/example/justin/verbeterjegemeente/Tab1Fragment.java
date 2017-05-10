@@ -1,20 +1,29 @@
 package com.example.justin.verbeterjegemeente;
 
 
+import android.Manifest;
 import android.content.Intent;
 
+import android.content.pm.PackageManager;
 import android.location.Location;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -32,12 +41,19 @@ import br.com.bloder.magic.view.MagicButton;
  * Created by Justin on 27-4-2017.
  */
 
-public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallback {
+public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener,
+        com.google.android.gms.location.LocationListener {
     private GoogleMap mMap;
     private Marker marker;
     private Button button;
     private MarkerHandler mHandler;
     private MagicButton btnTEST;
+    private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 2;
+    LatLng currentLocation;
+    private GoogleApiClient mApiClient;
+
+
 
     /*@Nullable
     @Override
@@ -55,6 +71,32 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
         return view;
     }*/
+
+    public void onCreate(Bundle savedInstaceState) {
+        super.onCreate(savedInstaceState);
+        mApiClient = new GoogleApiClient.Builder(this.getContext())
+                .addApi(LocationServices.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this).build();
+
+    }
+
+    public void onStart() {
+        super.onStart();
+
+        mApiClient.connect();
+    }
+
+    public void onStop() {
+        LocationServices.FusedLocationApi.removeLocationUpdates(mApiClient, this);
+
+        if (mApiClient != null) {
+            mApiClient.disconnect();
+        }
+
+        super.onStop();
+    }
+
 
     //set up map on resume
     public void onResume() {
@@ -77,16 +119,17 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         setUpMap();
     }
 
+
     //set up map
     private void setUpMap() {
         //setup map settings
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         mMap.getUiSettings().setMapToolbarEnabled(false);
-        mMap.setPadding(150,150,300,300);
-        
+        mMap.setPadding(150, 150, 300, 300);
+
 
         //locatie voorziening
-
+        initLocation();
 
 
         //markerHandler stuff
@@ -110,10 +153,64 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         });
     }
 
+    //locatie voorziening
+    private void initLocation() {
+        if (ContextCompat.checkSelfPermission(this.getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this.getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)) {
+
+            } else {
+                ActivityCompat.requestPermissions(this.getActivity(),
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                        MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+            }
+        }
+    }
+
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                } else {
+
+                }
+                return;
+            }
+        }
+    }
 
 
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        if (ActivityCompat.checkSelfPermission(this.getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this.getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        Location currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
+        LatLng currentLatLng = new LatLng(currentLocation.getLatitude(),currentLocation.getLongitude());
+        mMap.addMarker(new MarkerOptions().position(currentLatLng)
+                .title("current location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)).visible(true)
+        );
+        CameraUpdate center=
+                CameraUpdateFactory.newLatLng(currentLatLng);
+        CameraUpdate zoom=CameraUpdateFactory.zoomTo(15);
 
+        mMap.moveCamera(center);
+        mMap.animateCamera(zoom);
+    }
 
+    @Override
+    public void onConnectionSuspended(int i) {
 
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+
+    }
 }
 

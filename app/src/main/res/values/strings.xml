@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">Verbeter Je Gemeente</string>
+    <string name="action_settings">Settings</string>
+    <string name="section_format">Hello World from section: %1$d</string>
+
+    <string name="title_activity_maps">Map</string>
+    <string name="title_activity_button_handler">ButtonHandler</string>
+
+    <string name="locatie">Locatie</string>
+    <string name="locatieWijzigen">Locatie wijzigen</string>
+    <string name="beschrijving">Beschrijving</string>
+    <string name="beschrijvingHint">Beschrijf uw probleem</string>
+    <string name="email">Email</string>
+    <string name="optioneel">Optioneel</string>
+    <string name="emailHint">Vul hier uw email adress in</string>
+    <string name="voornaam">Voornaam</string>
+    <string name="voornaamHint">Vul hier uw voornaam in</string>
+    <string name="achternaam">Achternaam</string>
+    <string name="achternaamHint">Vul hier uw achternaam in</string>
+    <string name="foto">Foto toevoegen</string>
+    <string name="update">Houd mij NIET op de hoogte via email</string>
+    <string name="terug">Terug</string>
+    <string name="meldingplaatsen">Plaats melding</string>
+
+</resources>

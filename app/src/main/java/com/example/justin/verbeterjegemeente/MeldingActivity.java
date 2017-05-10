@@ -4,12 +4,15 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -32,6 +35,9 @@ import com.example.justin.verbeterjegemeente.domain.Melding;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
+
+import static android.R.id.list;
 
 public class MeldingActivity extends AppCompatActivity {
 
@@ -50,6 +56,8 @@ public class MeldingActivity extends AppCompatActivity {
     private static final int FOTO_MAKEN = 1;
     private static final int FOTO_KIEZEN = 2;
     private Uri selectedImage;
+
+    private android.app.AlertDialog.Builder builder;
 
 
 
@@ -102,6 +110,8 @@ public class MeldingActivity extends AppCompatActivity {
             fotoButton.setText("foto toevoegen");
         }
 
+        builder = new android.app.AlertDialog.Builder(this);
+
         fotoButton.setOnClickListener(new View.OnClickListener() {
 
 
@@ -109,21 +119,25 @@ public class MeldingActivity extends AppCompatActivity {
             @Override
 
             public void onClick(View v) {
+                final CharSequence[] items = {"Foto maken", "Kies bestaande foto", "Terug"};
+                builder.setTitle("Foto toevoegen");
+                builder.setItems(items, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int item) {
 
-                ArrayList<String> fotoArray = new ArrayList<String>();
-                fotoArray.add("take picture");
-                fotoArray.add("chose picture");
-
-                if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-//                    foto maken
-                    Intent makePhoto = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    startActivityForResult(makePhoto, FOTO_MAKEN);
-
-//                    Foto uit storage kiezen
-//                    Intent pickPhoto = new Intent(Intent.ACTION_PICK,
-//                    android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-//                    startActivityForResult(pickPhoto, FOTO_KIEZEN);
-                }
+                        if (items[item].equals("Foto maken")) {
+                            Intent makePhoto = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                            startActivityForResult(makePhoto, FOTO_MAKEN);
+                        } else if (items[item].equals("Kies bestaande foto")) {
+                            Intent pickPhoto = new Intent(Intent.ACTION_PICK,
+                                    android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                            startActivityForResult(pickPhoto, FOTO_KIEZEN);
+                        } else if (items[item].equals("Terug")) {
+                            dialog.dismiss();
+                        }
+                    }
+                });
+                builder.show();
                }
 
             }
@@ -293,8 +307,7 @@ public class MeldingActivity extends AppCompatActivity {
                     image_path = getRealPathFromURI(selectedImage);
 
                     fotoButton.setText(image_path);
-
-//                  imageview.setImageURI(fileUri);
+//                  imageview.setImageURI(selectedImage);
                 }
                 break;
         }
@@ -322,5 +335,4 @@ public class MeldingActivity extends AppCompatActivity {
             return uri.getPath();
         }
     }
-
 }

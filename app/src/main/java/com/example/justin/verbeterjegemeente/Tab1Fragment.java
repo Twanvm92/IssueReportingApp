@@ -52,6 +52,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 2;
     LatLng currentLocation;
     private GoogleApiClient mApiClient;
+    public Marker currentMarker;
 
 
 
@@ -170,7 +171,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
+                    getLocation();
                 } else {
 
                 }
@@ -182,16 +183,22 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
+        getLocation();
+    }
+
+    public void getLocation() {
         if (ActivityCompat.checkSelfPermission(this.getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this.getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
+        if(currentMarker != null)
+            currentMarker.remove();
+        
         Location currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
         LatLng currentLatLng = new LatLng(currentLocation.getLatitude(),currentLocation.getLongitude());
-        mMap.addMarker(new MarkerOptions().position(currentLatLng)
+        currentMarker = mMap.addMarker(new MarkerOptions().position(currentLatLng)
                 .title("current location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)).visible(true)
         );
-        CameraUpdate center=
-                CameraUpdateFactory.newLatLng(currentLatLng);
+        CameraUpdate center= CameraUpdateFactory.newLatLng(currentLatLng);
         CameraUpdate zoom=CameraUpdateFactory.zoomTo(15);
 
         mMap.moveCamera(center);
@@ -210,7 +217,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
     @Override
     public void onLocationChanged(Location location) {
-
+        getLocation();
     }
 }
 

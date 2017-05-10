@@ -10,7 +10,7 @@ public class Melding  {
 
     private String categorie, beschrijving, voornaam, achternaam, email;
     private boolean update;
-    private Uri foto;
+    private String fotoUrl;
     private Locatie locatie;
 
     public void Melding(){
@@ -73,9 +73,6 @@ public class Melding  {
         this.update = update;
     }
 
-    public Uri getFoto() {
-        return foto;
-    }
 
     @Override
     public String toString() {
@@ -86,14 +83,16 @@ public class Melding  {
                 ", achternaam='" + achternaam + '\'' +
                 ", email='" + email + '\'' +
                 ", update=" + update +
-                ", foto=" + foto +
+                ", fotoUrl='" + fotoUrl + '\'' +
                 ", locatie=" + locatie +
                 '}';
     }
 
-    public void setFoto(Uri foto) {
-        this.foto = foto;
+    public String getFotoUrl() {
+        return fotoUrl;
     }
 
-
+    public void setFotoUrl(String fotoUrl) {
+        this.fotoUrl = fotoUrl;
+    }
 }

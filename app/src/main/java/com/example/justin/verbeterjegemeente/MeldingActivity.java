@@ -59,6 +59,8 @@ public class MeldingActivity extends AppCompatActivity {
 
     private android.app.AlertDialog.Builder builder;
 
+    private String imageUri = null;
+
 
 
     @Override
@@ -102,13 +104,9 @@ public class MeldingActivity extends AppCompatActivity {
         fotoButton = (Button) findViewById(R.id.fotoButton);
 
 
-        fotoButton.setEnabled(false);
-        fotoButton.setText("Geen permissie");
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED ){
-            fotoButton.setEnabled(true);
-            fotoButton.setText("foto toevoegen");
-        }
+
+
 
         builder = new android.app.AlertDialog.Builder(this);
 
@@ -120,7 +118,7 @@ public class MeldingActivity extends AppCompatActivity {
 
             public void onClick(View v) {
                 final CharSequence[] items = {"Foto maken", "Kies bestaande foto", "Terug"};
-                builder.setTitle("Foto toevoegen");
+                //builder.setTitle("Foto toevoegen");
                 builder.setItems(items, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int item) {
@@ -139,6 +137,8 @@ public class MeldingActivity extends AppCompatActivity {
                 });
                 builder.show();
                }
+
+
 
             }
         );
@@ -175,14 +175,14 @@ public class MeldingActivity extends AppCompatActivity {
                 Melding melding = new Melding();
                 melding.setLocatie(locatie);
                 melding.setCategorie(catagorySpinner.getSelectedItem().toString());
-                //melding.setFoto();
+                melding.setFotoUrl(imageUri.toString());
                 melding.setBeschrijving(beschrijvingEditText.getText().toString());
                 melding.setEmail(emailEditText.getText().toString());
                 melding.setVoornaam(voornaamEditText.getText().toString());
                 melding.setAchternaam(achternaamEditText.getText().toString());
                 melding.setUpdate(checked);
 
-              //  Log.i("MELDING", "" + melding.toString());
+                Log.i("MELDING", "" + melding.toString());
             }
         });
 
@@ -202,11 +202,13 @@ public class MeldingActivity extends AppCompatActivity {
                     // contacts-related task you need to do.
 
                     Log.i("MDGK", "granted");
+                    fotoButton.setEnabled(true);
 
                 } else {
 
                     // permission denied, boo! Disable the
                     Log.i("MDGK", "not granted");
+                    fotoButton.setEnabled(false);
                     // functionality that depends on this permission.
                 }
             }
@@ -219,12 +221,13 @@ public class MeldingActivity extends AppCompatActivity {
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
 
+                    fotoButton.setEnabled(true);
                     Log.i("MDGK", "granted");
-
                 } else {
 
                     // permission denied, boo! Disable the
                     Log.i("MDGK", "not granted");
+                    fotoButton.setEnabled(false);
                     // functionality that depends on this permission.
                 }
                 return;
@@ -296,6 +299,8 @@ public class MeldingActivity extends AppCompatActivity {
                     File finalFile = new File(getRealPathFromURI(selectedImage));
 //                  test of image_path correct gepakt wordt
                     fotoButton.setText(finalFile.toString());
+                    imageUri = finalFile.toString();
+
 
 //                  indien foto getoond moet worden
 //                  imageView.setImageBitmap(photo);
@@ -307,6 +312,7 @@ public class MeldingActivity extends AppCompatActivity {
                     image_path = getRealPathFromURI(selectedImage);
 
                     fotoButton.setText(image_path);
+                    imageUri = image_path;
 //                  imageview.setImageURI(selectedImage);
                 }
                 break;

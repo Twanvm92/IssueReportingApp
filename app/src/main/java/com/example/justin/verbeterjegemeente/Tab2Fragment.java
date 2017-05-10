@@ -3,11 +3,16 @@ package com.example.justin.verbeterjegemeente;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
+
+import com.example.justin.verbeterjegemeente.Database.DatabaseAccess;
+
+import java.util.List;
 
 /**
  * Created by Justin on 27-4-2017.
@@ -26,7 +31,19 @@ public class Tab2Fragment extends Fragment {
         btnTEST.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(getActivity(), "TESTING BUTTON CLICK 2",Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getActivity(), "TESTING BUTTON CLICK 2",Toast.LENGTH_SHORT).show();
+
+                try{
+                    DatabaseAccess databaseAccess = DatabaseAccess.getInstance(getContext());
+                    databaseAccess.open();
+                    List<String> ids = databaseAccess.getIds();
+                    databaseAccess.close();
+                    Log.i("RESULT", "RESULTS: ");
+                    Log.i("RESULT", ids.toString());
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+
             }
         });
 

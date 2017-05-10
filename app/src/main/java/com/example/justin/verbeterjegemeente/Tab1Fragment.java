@@ -192,17 +192,19 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         }
         if(currentMarker != null)
             currentMarker.remove();
-        
-        Location currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
-        LatLng currentLatLng = new LatLng(currentLocation.getLatitude(),currentLocation.getLongitude());
-        currentMarker = mMap.addMarker(new MarkerOptions().position(currentLatLng)
-                .title("current location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)).visible(true)
-        );
-        CameraUpdate center= CameraUpdateFactory.newLatLng(currentLatLng);
-        CameraUpdate zoom=CameraUpdateFactory.zoomTo(15);
 
-        mMap.moveCamera(center);
-        mMap.animateCamera(zoom);
+        Location currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
+        if(currentLocation != null) {
+            LatLng currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+            currentMarker = mMap.addMarker(new MarkerOptions().position(currentLatLng)
+                    .title("current location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)).visible(true)
+            );
+            CameraUpdate center = CameraUpdateFactory.newLatLng(currentLatLng);
+            CameraUpdate zoom = CameraUpdateFactory.zoomTo(15);
+
+            mMap.moveCamera(center);
+            mMap.animateCamera(zoom);
+        }
     }
 
     @Override

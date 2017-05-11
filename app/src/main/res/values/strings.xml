@@ -22,5 +22,8 @@
     <string name="update">Houd mij NIET op de hoogte via email</string>
     <string name="terug">Terug</string>
     <string name="meldingplaatsen">Plaats melding</string>
+    <string name="fotoWijzigen">Foto wijzigen</string>
+    <string name="fotoMaken">Maak foto</string>
+    <string name="fotoKiezen">Kies foto uit galerij</string>
 
 </resources>

@@ -10,6 +10,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.Path;
 import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
@@ -41,6 +42,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static android.R.id.list;
+import static com.example.justin.verbeterjegemeente.R.string.fotoWijzigen;
 
 public class MeldingActivity extends AppCompatActivity {
 
@@ -71,9 +73,9 @@ public class MeldingActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_melding);
+        fotoButton = (Button) findViewById(R.id.fotoButton);
 
-        reqCameraPermission();
-        reqWriteStoragePermission();
+
 
         locatieTextView = (TextView) findViewById(R.id.locatieTextView);
         beschrijvingTextView = (TextView) findViewById(R.id.beschrijving);
@@ -91,7 +93,7 @@ public class MeldingActivity extends AppCompatActivity {
             }
         });
 
-        catagoryList = new ArrayList<String>();
+        catagoryList = new ArrayList<>();
 
         //tijdelijk voorbeeld
         catagoryList.add("Kies een categorie");
@@ -105,7 +107,7 @@ public class MeldingActivity extends AppCompatActivity {
 
 
 
-        fotoButton = (Button) findViewById(R.id.fotoButton);
+
         fotoImageView = (ImageView) findViewById(R.id.fotoImageView);
 
         builder = new android.app.AlertDialog.Builder(this);
@@ -114,11 +116,18 @@ public class MeldingActivity extends AppCompatActivity {
             @Override
 
             public void onClick(View v) {
-                final CharSequence[] items = {"Foto maken", "Kies bestaande foto", "Terug"};
+
+                Log.i("CAMERA", "ASKING PERMISSION");
+                reqCameraPermission();
+
+
+                final CharSequence[] items = {"Foto maken", "Foto kiezen uit galerij"};
                 //builder.setTitle("Foto toevoegen");
                 builder.setItems(items, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int item) {
+
+
 
                         if (items[item].equals("Foto maken")) {
                             Intent makePhoto = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -127,8 +136,6 @@ public class MeldingActivity extends AppCompatActivity {
                             Intent pickPhoto = new Intent(Intent.ACTION_PICK,
                                     android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                             startActivityForResult(pickPhoto, FOTO_KIEZEN);
-                        } else if (items[item].equals("Terug")) {
-                            dialog.dismiss();
                         }
                     }
                 });
@@ -164,23 +171,46 @@ public class MeldingActivity extends AppCompatActivity {
                 Locatie locatie = new Locatie();
                 Boolean checked = false;
 
+
+                // Check if checkbox is checked or not
                 if( updateCheckBox.isChecked()){
                     checked = true;
                 }else if(!updateCheckBox.isChecked()){
                     checked = false;
                 }
 
+                // Put al the information from the issue from into an object
                 Melding melding = new Melding();
                 melding.setLocatie(locatie);
                 melding.setCategorie(catagorySpinner.getSelectedItem().toString());
-                melding.setFotoUrl(imagePath.toString());
+                melding.setFotoUrl(imagePath);
                 melding.setBeschrijving(beschrijvingEditText.getText().toString());
                 melding.setEmail(emailEditText.getText().toString());
                 melding.setVoornaam(voornaamEditText.getText().toString());
                 melding.setAchternaam(achternaamEditText.getText().toString());
                 melding.setUpdate(checked);
 
-                Log.i("MELDING", "" + melding.toString());
+                boolean emailNull = true;
+
+                if(beschrijvingEditText.equals("")){
+                    emailNull = false;
+                }else{
+                    emailNull = true;
+                }
+
+                Log.i("EMAIL", "" + emailNull );
+                Log.i("EMAIL", "ksjh" );
+
+                // Inform the user the issue has been submitted
+                Toast toast = Toast.makeText(getApplicationContext(), "melding geplaatst", Toast.LENGTH_SHORT);
+                toast.show();
+
+
+                // Intent back to the Home screen
+                Intent i = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(i);
+
+
             }
         });
 
@@ -199,14 +229,20 @@ public class MeldingActivity extends AppCompatActivity {
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
 
-                    Log.i("PERMISSION", "granted");
+                    Log.i("PERMISSION", "camera granted");
                     fotoButton.setEnabled(true);
+
+                    Log.i("STORAGE", "ASKING PERMISSION");
+                    reqWriteStoragePermission();
 
                 } else {
 
                     // permission denied, boo! Disable the
-                    Log.i("PERMISSION", "not granted");
+                    Log.i("PERMISSION", "camera not granted");
                     fotoButton.setEnabled(false);
+
+                    Log.i("STORAGE", "ASKING PERMISSION");
+                    reqWriteStoragePermission();
                     // functionality that depends on this permission.
                 }
             }
@@ -220,11 +256,11 @@ public class MeldingActivity extends AppCompatActivity {
                     // contacts-related task you need to do.
 
                     fotoButton.setEnabled(true);
-                    Log.i("PERMISSION", "granted");
+                    Log.i("PERMISSION", "storage granted");
                 } else {
 
                     // permission denied, boo! Disable the
-                    Log.i("PERMISSION", "not granted");
+                    Log.i("PERMISSION", "storage not granted");
                     fotoButton.setEnabled(false);
                     // functionality that depends on this permission.
                 }
@@ -297,6 +333,7 @@ public class MeldingActivity extends AppCompatActivity {
                     File finalFile = new File(getRealPathFromURI(selectedImage));
 //                  test of image_path correct gepakt wordt
                     fotoImageView.setImageURI(selectedImage);
+                    fotoButton.setText(R.string.fotoWijzigen);
                     imagePath = finalFile.toString();
 
 
@@ -308,6 +345,7 @@ public class MeldingActivity extends AppCompatActivity {
                     selectedImage = data.getData();
                     image_path = getRealPathFromURI(selectedImage);
                     fotoImageView.setImageURI(selectedImage);
+                    fotoButton.setText(R.string.fotoWijzigen);
                     imagePath = image_path;
 
            }

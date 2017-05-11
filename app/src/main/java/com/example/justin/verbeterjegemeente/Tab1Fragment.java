@@ -199,11 +199,8 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
             currentMarker = mMap.addMarker(new MarkerOptions().position(currentLatLng)
                     .title("current location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)).visible(true)
             );
-            CameraUpdate center = CameraUpdateFactory.newLatLng(currentLatLng);
-            CameraUpdate zoom = CameraUpdateFactory.zoomTo(15);
-
+            CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 17.0f);
             mMap.moveCamera(center);
-            mMap.animateCamera(zoom);
         }
     }
 

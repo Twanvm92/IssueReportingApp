@@ -57,8 +57,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Intent i = new Intent();
                 i.putExtra("long", currentLocation.getLongitude());
                 i.putExtra("lat", currentLocation.getLatitude());
-                Log.i("Long: ", String.valueOf(currentLocation.getLongitude()));
-                Log.i("Lat: ", String.valueOf(currentLocation.getLatitude()));
+                Log.i("before Long: ", String.valueOf(currentLocation.getLongitude()));
+                Log.i("before Lat: ", String.valueOf(currentLocation.getLatitude()));
                 setResult(RESULT_OK, i);
                 finish();
             }

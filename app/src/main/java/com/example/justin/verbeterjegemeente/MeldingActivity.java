@@ -58,6 +58,7 @@ public class MeldingActivity extends AppCompatActivity {
     private CheckBox updateCheckBox;
     private ImageView fotoImageView;
     private List<Service> serviceList;
+    ArrayAdapter<String> catagoryAdapter;
 
     private String image_path = "";
     private static final int MY_PERMISSIONS_CAMERA = 1;
@@ -100,18 +101,9 @@ public class MeldingActivity extends AppCompatActivity {
             }
         });
 
-        catagoryList = new ArrayList<String>();
 
-        //tijdelijk voorbeeld
-        catagoryList.add("Kies een categorie");
-        catagoryList.add("Afval");
-        catagoryList.add("Geluidsoverlast");
 
-        catagorySpinner = (Spinner) findViewById(R.id.spinner2);
-        ArrayAdapter<String> catagoryAdapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_spinner_item, catagoryList);
-        catagoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        catagorySpinner.setAdapter(catagoryAdapter);
+
 
         builder = new android.app.AlertDialog.Builder(this);
 
@@ -187,81 +179,97 @@ public class MeldingActivity extends AppCompatActivity {
 
                 Log.i("MELDING", "" + melding.toString());*/
 
-                String descr = beschrijvingEditText.getText().toString();
-                Log.e("Tekst uit beschrijvingV", descr);
-                String lon = "4.784283";
-                String lat = "51.591193";
-                RequestBody pLon = RequestBody.create(MediaType.parse("text/plain"), lon);
-                RequestBody pLat = RequestBody.create(MediaType.parse("text/plain"), lat);
-                RequestBody pDescr = RequestBody.create(MediaType.parse("text/plain"), descr);
-                RequestBody sc = RequestBody.create(MediaType.parse("text/plain"), "172");
-                RequestBody apiK = RequestBody.create(MediaType.parse("text/plain"), ServiceGenerator.TEST_API_KEY);
 
-
-                ServiceClient client = ServiceGenerator.createService(ServiceClient.class);
-                Call<ArrayList<PostServiceRequestResponse>> serviceRequestResponseCall =
-                        client.postServiceRequest(apiK, pDescr, sc, pLat, pLon);
-
-                serviceRequestResponseCall.enqueue(new Callback<ArrayList<PostServiceRequestResponse>>() {
-                    @Override
-                    public void onResponse(Call<ArrayList<PostServiceRequestResponse>> call,
-                                           Response<ArrayList<PostServiceRequestResponse>> response) {
-                        if(response.isSuccessful()) {
-
-                            ArrayList<PostServiceRequestResponse> pRespList = response.body();
-
-                            for (PostServiceRequestResponse psrr : pRespList) {
-                                Log.e("Service response: ", psrr.getId());
-                            }
-
-                        } else {
-
-                            try {
-                                JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
-                                JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
-
-                                Toast.makeText(getApplicationContext(), jObjError.getString("description"),
-                                        Toast.LENGTH_SHORT).show();
-                                Log.e("Error message: ", jObjError.getString("description"));
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<ArrayList<PostServiceRequestResponse>> call, Throwable t) {
-                        Toast.makeText(getApplicationContext(), t.getMessage(),Toast.LENGTH_SHORT).show();
-                    }
-                });
-
-                Call<List<Service>> serviceCall = client.getServices(ServiceClient.LANG_EN);
-
-                serviceCall.enqueue(new Callback<List<Service>>() {
-                    @Override
-                    public void onResponse(Call<List<Service>> call, Response<List<Service>> response) {
-                        serviceList.clear();
-                        serviceList = response.body();
-
-                        if (serviceList != null) {
-                            for (Service s : serviceList) {
-                                Log.e("Response: ", "" + s.getService_name());
-                            }
-
-                        } else {
-                            Log.e("Response: ", "List was empty");
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<List<Service>> call, Throwable t) {
-                        Toast.makeText(getApplicationContext(), t.getMessage(),Toast.LENGTH_SHORT).show();
-                    }
-                });
             }
         });
+
+        String descr = beschrijvingEditText.getText().toString();
+        Log.e("Tekst uit beschrijvingV", descr);
+        String lon = "4.784283";
+        String lat = "51.591193";
+        RequestBody pLon = RequestBody.create(MediaType.parse("text/plain"), lon);
+        RequestBody pLat = RequestBody.create(MediaType.parse("text/plain"), lat);
+        RequestBody pDescr = RequestBody.create(MediaType.parse("text/plain"), descr);
+        RequestBody sc = RequestBody.create(MediaType.parse("text/plain"), "172");
+        RequestBody apiK = RequestBody.create(MediaType.parse("text/plain"), ServiceGenerator.TEST_API_KEY);
+
+
+        ServiceClient client = ServiceGenerator.createService(ServiceClient.class);
+        Call<ArrayList<PostServiceRequestResponse>> serviceRequestResponseCall =
+                client.postServiceRequest(apiK, pDescr, sc, pLat, pLon);
+
+        serviceRequestResponseCall.enqueue(new Callback<ArrayList<PostServiceRequestResponse>>() {
+            @Override
+            public void onResponse(Call<ArrayList<PostServiceRequestResponse>> call,
+                                   Response<ArrayList<PostServiceRequestResponse>> response) {
+                if(response.isSuccessful()) {
+
+                    ArrayList<PostServiceRequestResponse> pRespList = response.body();
+
+                    for (PostServiceRequestResponse psrr : pRespList) {
+                        Log.e("Service response: ", psrr.getId());
+                    }
+
+                } else {
+
+                    try {
+                        JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
+                        JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
+
+                        Toast.makeText(getApplicationContext(), jObjError.getString("description"),
+                                Toast.LENGTH_SHORT).show();
+                        Log.e("Error message: ", jObjError.getString("description"));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ArrayList<PostServiceRequestResponse>> call, Throwable t) {
+                Toast.makeText(getApplicationContext(), t.getMessage(),Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        Call<List<Service>> serviceCall = client.getServices(ServiceClient.LANG_EN);
+
+        serviceCall.enqueue(new Callback<List<Service>>() {
+            @Override
+            public void onResponse(Call<List<Service>> call, Response<List<Service>> response) {
+                //serviceList.clear();
+                serviceList = response.body();
+
+                if (serviceList != null) {
+                    for (Service s : serviceList) {
+                        Log.e("Response: ", "" + s.getService_name());
+                    }
+
+                } else {
+                    Log.e("Response: ", "List was empty");
+                }
+
+                for ( int i =0; i < serviceList.size(); i++){
+                    catagoryList.add(serviceList.get(i).getService_name());
+                }
+                   catagoryAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onFailure(Call<List<Service>> call, Throwable t) {
+                Toast.makeText(getApplicationContext(), t.getMessage(),Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
+        catagoryList = new ArrayList<String>();
+        catagorySpinner = (Spinner) findViewById(R.id.spinner2);
+        catagoryAdapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_spinner_item, catagoryList);
+        catagoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        catagorySpinner.setAdapter(catagoryAdapter);
 
 
     }

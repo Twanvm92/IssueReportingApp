@@ -3,10 +3,16 @@ package com.example.justin.verbeterjegemeente;
 import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -27,8 +33,12 @@ import com.example.justin.verbeterjegemeente.domain.Locatie;
 import com.example.justin.verbeterjegemeente.domain.Melding;
 import com.mifmif.common.regex.Main;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
+
+import static android.R.id.list;
 
 public class MeldingActivity extends AppCompatActivity {
 
@@ -40,9 +50,17 @@ public class MeldingActivity extends AppCompatActivity {
     private EditText beschrijvingEditText, emailEditText, voornaamEditText, achternaamEditText;
     private CheckBox updateCheckBox;
 
+    private String image_path = "";
     private static final int MY_PERMISSIONS_CAMERA = 1;
-    File destination;
-    Uri selectedImage;
+    private static final int MY_PERMISSIONS_STORAGE = 2;
+
+    private static final int FOTO_MAKEN = 1;
+    private static final int FOTO_KIEZEN = 2;
+    private Uri selectedImage;
+
+    private android.app.AlertDialog.Builder builder;
+
+    private String imageUri = null;
 
 
 
@@ -51,10 +69,8 @@ public class MeldingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_melding);
 
-
-
         reqCameraPermission();
-
+        reqWriteStoragePermission();
 
         locatieTextView = (TextView) findViewById(R.id.locatieTextView);
         beschrijvingTextView = (TextView) findViewById(R.id.beschrijving);
@@ -88,14 +104,7 @@ public class MeldingActivity extends AppCompatActivity {
 
         fotoButton = (Button) findViewById(R.id.fotoButton);
 
-
-        fotoButton.setEnabled(false);
-
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED){
-            fotoButton.setEnabled(true);
-
-        }
+        builder = new android.app.AlertDialog.Builder(this);
 
         fotoButton.setOnClickListener(new View.OnClickListener() {
 
@@ -104,23 +113,30 @@ public class MeldingActivity extends AppCompatActivity {
             @Override
 
             public void onClick(View v) {
+                final CharSequence[] items = {"Foto maken", "Kies bestaande foto", "Terug"};
+                //builder.setTitle("Foto toevoegen");
+                builder.setItems(items, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int item) {
 
-                ArrayList<String> fotoArray = new ArrayList<String>();
-                fotoArray.add("take picture");
-                fotoArray.add("chose picture");
-
-                
-
-
-//                if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED){
-//                    Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-//                    startActivity(cameraIntent);
-//                }
-
+                        if (items[item].equals("Foto maken")) {
+                            Intent makePhoto = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                            startActivityForResult(makePhoto, FOTO_MAKEN);
+                        } else if (items[item].equals("Kies bestaande foto")) {
+                            Intent pickPhoto = new Intent(Intent.ACTION_PICK,
+                                    android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                            startActivityForResult(pickPhoto, FOTO_KIEZEN);
+                        } else if (items[item].equals("Terug")) {
+                            dialog.dismiss();
+                        }
+                    }
+                });
+                builder.show();
                }
 
-            }
 
+
+            }
         );
 
 
@@ -156,14 +172,14 @@ public class MeldingActivity extends AppCompatActivity {
                 Melding melding = new Melding();
                 melding.setLocatie(locatie);
                 melding.setCategorie(catagorySpinner.getSelectedItem().toString());
-                //melding.setFoto();
+                melding.setFotoUrl(imageUri.toString());
                 melding.setBeschrijving(beschrijvingEditText.getText().toString());
                 melding.setEmail(emailEditText.getText().toString());
                 melding.setVoornaam(voornaamEditText.getText().toString());
                 melding.setAchternaam(achternaamEditText.getText().toString());
                 melding.setUpdate(checked);
 
-              //  Log.i("MELDING", "" + melding.toString());
+                Log.i("MELDING", "" + melding.toString());
             }
         });
 
@@ -183,11 +199,32 @@ public class MeldingActivity extends AppCompatActivity {
                     // contacts-related task you need to do.
 
                     Log.i("MDGK", "granted");
+                    fotoButton.setEnabled(true);
 
                 } else {
 
                     // permission denied, boo! Disable the
                     Log.i("MDGK", "not granted");
+                    fotoButton.setEnabled(false);
+                    // functionality that depends on this permission.
+                }
+            }
+            break;
+            case MY_PERMISSIONS_STORAGE: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+
+                    fotoButton.setEnabled(true);
+                    Log.i("MDGK", "granted");
+                } else {
+
+                    // permission denied, boo! Disable the
+                    Log.i("MDGK", "not granted");
+                    fotoButton.setEnabled(false);
                     // functionality that depends on this permission.
                 }
                 return;
@@ -231,5 +268,74 @@ public class MeldingActivity extends AppCompatActivity {
         }
     }
 
+    public void reqWriteStoragePermission() {
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
 
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+
+            } else {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        MY_PERMISSIONS_STORAGE);
+            }
+        }
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        switch(requestCode) {
+            case FOTO_MAKEN:
+                if (resultCode == RESULT_OK) {
+                    Bitmap photo = (Bitmap) data.getExtras().get("data");
+                    selectedImage = getImageUri(getApplicationContext(), photo);
+
+                    File finalFile = new File(getRealPathFromURI(selectedImage));
+//                  test of image_path correct gepakt wordt
+                    fotoButton.setText(finalFile.toString());
+                    imageUri = finalFile.toString();
+
+
+//                  indien foto getoond moet worden
+//                  imageView.setImageBitmap(photo);
+                }
+                break;
+            case FOTO_KIEZEN:
+                if(resultCode == RESULT_OK){
+                    selectedImage = data.getData();
+                    image_path = getRealPathFromURI(selectedImage);
+
+                    fotoButton.setText(image_path);
+                    imageUri = image_path;
+//                  imageview.setImageURI(selectedImage);
+                }
+                break;
+        }
+    }
+
+    public Uri getImageUri(Context inContext, Bitmap inImage) {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+        String path = MediaStore.Images.Media.insertImage(inContext.getContentResolver(), inImage, "Title", null);
+        return Uri.parse(path);
+    }
+
+    public String getRealPathFromURI(Uri uri)
+    {
+        try
+        {
+            String[] proj = {MediaStore.Images.Media.DATA};
+            Cursor cursor = getContentResolver().query(uri, proj, null, null, null);
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
+            return cursor.getString(column_index);
+        }
+        catch (Exception e)
+        {
+            return uri.getPath();
+        }
+    }
 }

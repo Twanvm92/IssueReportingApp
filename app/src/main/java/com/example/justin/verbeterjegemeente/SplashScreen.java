@@ -11,7 +11,7 @@ import java.util.TimerTask;
  * Created by uno on 12/04/2016.
  */
 public class SplashScreen extends AppCompatActivity {
-    private static final long SPLASH_TIME=3000;
+    private static final long SPLASH_TIME=500;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -20,7 +20,7 @@ public class SplashScreen extends AppCompatActivity {
         TimerTask task = new TimerTask() {
             @Override
             public void run() {
-                Intent mainIntent=new Intent().setClass(SplashScreen.this,MainActivity.class);
+                Intent mainIntent=new Intent().setClass(SplashScreen.this, MainActivity.class);
                 startActivity(mainIntent);
                 finish();
             }

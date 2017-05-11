@@ -3,10 +3,17 @@ package com.example.justin.verbeterjegemeente;
 import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -18,6 +25,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -25,9 +33,27 @@ import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.domain.Locatie;
 import com.example.justin.verbeterjegemeente.domain.Melding;
+import com.example.justin.verbeterjegemeente.domain.PostServiceRequestResponse;
+import com.example.justin.verbeterjegemeente.domain.Service;
+import com.mifmif.common.regex.Main;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
+
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+import static android.R.id.list;
 
 public class MeldingActivity extends AppCompatActivity {
 
@@ -38,10 +64,19 @@ public class MeldingActivity extends AppCompatActivity {
     private TextView locatieTextView, beschrijvingTextView, emailTextView, voornaamTextView, achternaamTextView,optioneelTextView;
     private EditText beschrijvingEditText, emailEditText, voornaamEditText, achternaamEditText;
     private CheckBox updateCheckBox;
+    private ImageView fotoImageView;
 
+    private String image_path = "";
     private static final int MY_PERMISSIONS_CAMERA = 1;
-    File destination;
-    Uri selectedImage;
+    private static final int MY_PERMISSIONS_STORAGE = 2;
+
+    private static final int FOTO_MAKEN = 1;
+    private static final int FOTO_KIEZEN = 2;
+    private Uri selectedImage;
+
+    private android.app.AlertDialog.Builder builder;
+
+    private String imagePath = null;
 
 
 
@@ -50,10 +85,11 @@ public class MeldingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_melding);
 
-
+        fotoButton = (Button) findViewById(R.id.fotoButton);
+        fotoImageView = (ImageView) findViewById(R.id.fotoImageView);
 
         reqCameraPermission();
-
+        reqWriteStoragePermission();
 
         locatieTextView = (TextView) findViewById(R.id.locatieTextView);
         beschrijvingTextView = (TextView) findViewById(R.id.beschrijving);
@@ -83,43 +119,36 @@ public class MeldingActivity extends AppCompatActivity {
         catagoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         catagorySpinner.setAdapter(catagoryAdapter);
 
-
-
-        fotoButton = (Button) findViewById(R.id.fotoButton);
-
-
-        fotoButton.setEnabled(false);
-        fotoButton.setText("Foto toevoegen");
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED){
-            fotoButton.setEnabled(true);
-            fotoButton.setText("foto toevoegen");
-        }
+        builder = new android.app.AlertDialog.Builder(this);
 
         fotoButton.setOnClickListener(new View.OnClickListener() {
-
-
-
             @Override
 
             public void onClick(View v) {
+                final CharSequence[] items = {"Foto maken", "Kies bestaande foto", "Terug"};
+                //builder.setTitle("Foto toevoegen");
+                builder.setItems(items, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int item) {
 
-                ArrayList<String> fotoArray = new ArrayList<String>();
-                fotoArray.add("take picture");
-                fotoArray.add("chose picture");
-
-                
-
-
-//                if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED){
-//                    Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-//                    startActivity(cameraIntent);
-//                }
-
+                        if (items[item].equals("Foto maken")) {
+                            Intent makePhoto = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                            startActivityForResult(makePhoto, FOTO_MAKEN);
+                        } else if (items[item].equals("Kies bestaande foto")) {
+                            Intent pickPhoto = new Intent(Intent.ACTION_PICK,
+                                    android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                            startActivityForResult(pickPhoto, FOTO_KIEZEN);
+                        } else if (items[item].equals("Terug")) {
+                            dialog.dismiss();
+                        }
+                    }
+                });
+                builder.show();
                }
 
-            }
 
+
+            }
         );
 
 
@@ -133,8 +162,9 @@ public class MeldingActivity extends AppCompatActivity {
         terugButton = (Button) findViewById(R.id.terugButton);
         terugButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-
+            public void onClick(View view) {
+                Intent i = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(i);
             }
         });
 
@@ -142,7 +172,7 @@ public class MeldingActivity extends AppCompatActivity {
         plaatsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Locatie locatie = new Locatie();
+                /*Locatie locatie = new Locatie();
                 Boolean checked = false;
 
                 if( updateCheckBox.isChecked()){
@@ -154,14 +184,78 @@ public class MeldingActivity extends AppCompatActivity {
                 Melding melding = new Melding();
                 melding.setLocatie(locatie);
                 melding.setCategorie(catagorySpinner.getSelectedItem().toString());
-                //melding.setFoto();
+                melding.setFotoUrl(imagePath.toString());
                 melding.setBeschrijving(beschrijvingEditText.getText().toString());
                 melding.setEmail(emailEditText.getText().toString());
                 melding.setVoornaam(voornaamEditText.getText().toString());
                 melding.setAchternaam(achternaamEditText.getText().toString());
                 melding.setUpdate(checked);
 
-              //  Log.i("MELDING", "" + melding.toString());
+                Log.i("MELDING", "" + melding.toString());*/
+
+                RequestBody description = RequestBody.create(MediaType.parse("text/plain"), "Dit");
+                RequestBody sc = RequestBody.create(MediaType.parse("text/plain"), "172");
+                RequestBody apiK = RequestBody.create(MediaType.parse("text/plain"), ServiceGenerator.TEST_API_KEY);
+
+
+                ServiceClient client = ServiceGenerator.createService(ServiceClient.class);
+                Call<ArrayList<PostServiceRequestResponse>> serviceRequestResponseCall = client.postServiceRequest(apiK, description, sc);
+
+                serviceRequestResponseCall.enqueue(new Callback<ArrayList<PostServiceRequestResponse>>() {
+                    @Override
+                    public void onResponse(Call<ArrayList<PostServiceRequestResponse>> call, Response<ArrayList<PostServiceRequestResponse>> response) {
+                        if(response.isSuccessful()) {
+
+                            ArrayList<PostServiceRequestResponse> pRespList = response.body();
+
+                            for (PostServiceRequestResponse psrr : pRespList) {
+                                Log.e("Service response: ", psrr.getId());
+                            }
+
+                        } else {
+
+                            try {
+                                JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
+                                JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
+
+                                Toast.makeText(getApplicationContext(), jObjError.getString("description"),Toast.LENGTH_SHORT).show();
+                                Log.e("Error message: ", jObjError.getString("description"));
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ArrayList<PostServiceRequestResponse>> call, Throwable t) {
+                        Toast.makeText(getApplicationContext(), t.getMessage(),Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+                Call<List<Service>> serviceCall = client.getServices("en");
+
+                serviceCall.enqueue(new Callback<List<Service>>() {
+                    @Override
+                    public void onResponse(Call<List<Service>> call, Response<List<Service>> response) {
+                        List<Service> serviceList = response.body();
+
+                        if (serviceList != null) {
+                            for (Service s : serviceList) {
+                                Log.e("Response: ", "" + s.getService_name());
+                            }
+
+                        } else {
+                            Log.e("Response: ", "List was empty");
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<Service>> call, Throwable t) {
+                        Toast.makeText(getApplicationContext(), t.getMessage(),Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         });
 
@@ -180,12 +274,33 @@ public class MeldingActivity extends AppCompatActivity {
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
 
-                    Log.i("MDGK", "granted");
+                    Log.i("PERMISSION", "granted");
+                    fotoButton.setEnabled(true);
 
                 } else {
 
                     // permission denied, boo! Disable the
-                    Log.i("MDGK", "not granted");
+                    Log.i("PERMISSION", "not granted");
+                    fotoButton.setEnabled(false);
+                    // functionality that depends on this permission.
+                }
+            }
+            break;
+            case MY_PERMISSIONS_STORAGE: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+
+                    fotoButton.setEnabled(true);
+                    Log.i("PERMISSION", "granted");
+                } else {
+
+                    // permission denied, boo! Disable the
+                    Log.i("PERMISSION", "not granted");
+                    fotoButton.setEnabled(false);
                     // functionality that depends on this permission.
                 }
                 return;
@@ -229,5 +344,72 @@ public class MeldingActivity extends AppCompatActivity {
         }
     }
 
+    public void reqWriteStoragePermission() {
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
 
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+
+            } else {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        MY_PERMISSIONS_STORAGE);
+            }
+        }
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        switch(requestCode) {
+            case FOTO_MAKEN:
+                if (resultCode == RESULT_OK) {
+                    Bitmap photo = (Bitmap) data.getExtras().get("data");
+                    selectedImage = getImageUri(getApplicationContext(), photo);
+
+                    File finalFile = new File(getRealPathFromURI(selectedImage));
+//                  test of image_path correct gepakt wordt
+                    fotoImageView.setImageURI(selectedImage);
+                    imagePath = finalFile.toString();
+
+
+
+                }
+                break;
+            case FOTO_KIEZEN:
+                if(resultCode == RESULT_OK){
+                    selectedImage = data.getData();
+                    image_path = getRealPathFromURI(selectedImage);
+                    fotoImageView.setImageURI(selectedImage);
+                    imagePath = image_path;
+
+           }
+                break;
+        }
+    }
+
+    public Uri getImageUri(Context inContext, Bitmap inImage) {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+        String path = MediaStore.Images.Media.insertImage(inContext.getContentResolver(), inImage, "Title", null);
+        return Uri.parse(path);
+    }
+
+    public String getRealPathFromURI(Uri uri)
+    {
+        try
+        {
+            String[] proj = {MediaStore.Images.Media.DATA};
+            Cursor cursor = getContentResolver().query(uri, proj, null, null, null);
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
+            return cursor.getString(column_index);
+        }
+        catch (Exception e)
+        {
+            return uri.getPath();
+        }
+    }
 }

@@ -1,20 +1,16 @@
 package com.example.justin.verbeterjegemeente;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.database.DatabaseUtilsCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.Toast;
 
-import com.example.justin.verbeterjegemeente.Database.DatabaseAccess;
 import com.example.justin.verbeterjegemeente.Database.DatabaseHanlder;
-
-import java.util.List;
 
 /**
  * Created by Justin on 27-4-2017.
@@ -33,10 +29,9 @@ public class Tab2Fragment extends Fragment {
         btnTEST.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //Toast.makeText(getActivity(), "TESTING BUTTON CLICK 2",Toast.LENGTH_SHORT).show();
 
-                Log.i("DATABASE", "creating database");
-                DatabaseHanlder databaseHanlder = new DatabaseHanlder(getContext());
+                Intent i = new Intent(getContext(), MeldingActivity.class);
+                startActivity(i);
 
             }
         });

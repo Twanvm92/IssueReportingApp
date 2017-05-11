@@ -31,6 +31,7 @@ import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.domain.Locatie;
 import com.example.justin.verbeterjegemeente.domain.Melding;
+import com.mifmif.common.regex.Main;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -103,11 +104,6 @@ public class MeldingActivity extends AppCompatActivity {
 
         fotoButton = (Button) findViewById(R.id.fotoButton);
 
-
-
-
-
-
         builder = new android.app.AlertDialog.Builder(this);
 
         fotoButton.setOnClickListener(new View.OnClickListener() {
@@ -154,8 +150,9 @@ public class MeldingActivity extends AppCompatActivity {
         terugButton = (Button) findViewById(R.id.terugButton);
         terugButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-
+            public void onClick(View view) {
+                Intent i = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(i);
             }
         });
 

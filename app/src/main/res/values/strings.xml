@@ -18,6 +18,7 @@
     <string name="achternaam">Achternaam</string>
     <string name="achternaamHint">Vul hier uw achternaam in</string>
     <string name="foto">Foto toevoegen</string>
+    <string name="info">Optioneel: U bent niet verplicht om dit in te vullen, dit maakt het wel makkelijker om u op de hoogte te kunnen stellen van veranderingen</string>
     <string name="update">Houd mij NIET op de hoogte via email</string>
     <string name="terug">Terug</string>
     <string name="meldingplaatsen">Plaats melding</string>

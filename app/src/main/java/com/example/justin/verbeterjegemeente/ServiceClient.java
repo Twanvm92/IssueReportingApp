@@ -20,7 +20,7 @@ import retrofit2.http.Query;
 
 
 
-//@Rx2Retrofit(delay = 2500, failurePercent = 15)
+
 public interface ServiceClient {
 
     public static final String LANG_EN = "en";

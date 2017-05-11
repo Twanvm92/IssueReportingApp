@@ -77,6 +77,10 @@ public class MeldingActivity extends AppCompatActivity {
 
 
 
+        fotoImageView = (ImageView) findViewById(R.id.fotoImageView);
+
+
+
         locatieTextView = (TextView) findViewById(R.id.locatieTextView);
         beschrijvingTextView = (TextView) findViewById(R.id.beschrijving);
         emailTextView = (TextView) findViewById(R.id.emailtextview);
@@ -104,6 +108,7 @@ public class MeldingActivity extends AppCompatActivity {
         ArrayAdapter<String> catagoryAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, catagoryList);
         catagoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         catagorySpinner.setAdapter(catagoryAdapter);
+
 
 
 

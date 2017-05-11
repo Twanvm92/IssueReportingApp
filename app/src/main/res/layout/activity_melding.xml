@@ -120,14 +120,14 @@
                 android:textStyle="bold" />
 
             <ImageView
-                android:id="@+id/imageView"
+                android:id="@+id/fotoImageView"
                 android:layout_width="match_parent"
                 android:layout_height="100dp"
                 android:layout_marginLeft="5dp"
                 android:layout_marginRight="5dp"
-                android:paddingTop="10dp"
                 android:layout_marginTop="5dp"
                 android:layout_weight="1"
+                android:paddingTop="10dp"
                 app:srcCompat="@drawable/imageicon" />
 
         </LinearLayout>

@@ -10,6 +10,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -24,6 +25,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -49,6 +51,7 @@ public class MeldingActivity extends AppCompatActivity {
     private TextView locatieTextView, beschrijvingTextView, emailTextView, voornaamTextView, achternaamTextView,optioneelTextView;
     private EditText beschrijvingEditText, emailEditText, voornaamEditText, achternaamEditText;
     private CheckBox updateCheckBox;
+    private ImageView fotoImageView;
 
     private String image_path = "";
     private static final int MY_PERMISSIONS_CAMERA = 1;
@@ -60,7 +63,7 @@ public class MeldingActivity extends AppCompatActivity {
 
     private android.app.AlertDialog.Builder builder;
 
-    private String imageUri = null;
+    private String imagePath = null;
 
 
 
@@ -70,6 +73,7 @@ public class MeldingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_melding);
 
         fotoButton = (Button) findViewById(R.id.fotoButton);
+        fotoImageView = (ImageView) findViewById(R.id.fotoImageView);
 
         reqCameraPermission();
         reqWriteStoragePermission();
@@ -102,16 +106,9 @@ public class MeldingActivity extends AppCompatActivity {
         catagoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         catagorySpinner.setAdapter(catagoryAdapter);
 
-
-
-
-
         builder = new android.app.AlertDialog.Builder(this);
 
         fotoButton.setOnClickListener(new View.OnClickListener() {
-
-
-
             @Override
 
             public void onClick(View v) {
@@ -174,7 +171,7 @@ public class MeldingActivity extends AppCompatActivity {
                 Melding melding = new Melding();
                 melding.setLocatie(locatie);
                 melding.setCategorie(catagorySpinner.getSelectedItem().toString());
-                melding.setFotoUrl(imageUri.toString());
+                melding.setFotoUrl(imagePath.toString());
                 melding.setBeschrijving(beschrijvingEditText.getText().toString());
                 melding.setEmail(emailEditText.getText().toString());
                 melding.setVoornaam(voornaamEditText.getText().toString());
@@ -200,13 +197,13 @@ public class MeldingActivity extends AppCompatActivity {
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
 
-                    Log.i("MDGK", "granted");
+                    Log.i("PERMISSION", "granted");
                     fotoButton.setEnabled(true);
 
                 } else {
 
                     // permission denied, boo! Disable the
-                    Log.i("MDGK", "not granted");
+                    Log.i("PERMISSION", "not granted");
                     fotoButton.setEnabled(false);
                     // functionality that depends on this permission.
                 }
@@ -221,11 +218,11 @@ public class MeldingActivity extends AppCompatActivity {
                     // contacts-related task you need to do.
 
                     fotoButton.setEnabled(true);
-                    Log.i("MDGK", "granted");
+                    Log.i("PERMISSION", "granted");
                 } else {
 
                     // permission denied, boo! Disable the
-                    Log.i("MDGK", "not granted");
+                    Log.i("PERMISSION", "not granted");
                     fotoButton.setEnabled(false);
                     // functionality that depends on this permission.
                 }
@@ -297,23 +294,21 @@ public class MeldingActivity extends AppCompatActivity {
 
                     File finalFile = new File(getRealPathFromURI(selectedImage));
 //                  test of image_path correct gepakt wordt
-                    fotoButton.setText(finalFile.toString());
-                    imageUri = finalFile.toString();
+                    fotoImageView.setImageURI(selectedImage);
+                    imagePath = finalFile.toString();
 
 
-//                  indien foto getoond moet worden
-//                  imageView.setImageBitmap(photo);
+
                 }
                 break;
             case FOTO_KIEZEN:
                 if(resultCode == RESULT_OK){
                     selectedImage = data.getData();
                     image_path = getRealPathFromURI(selectedImage);
+                    fotoImageView.setImageURI(selectedImage);
+                    imagePath = image_path;
 
-                    fotoButton.setText(image_path);
-                    imageUri = image_path;
-//                  imageview.setImageURI(selectedImage);
-                }
+           }
                 break;
         }
     }

@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -25,6 +26,7 @@ import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.domain.Locatie;
 import com.example.justin.verbeterjegemeente.domain.Melding;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -38,6 +40,8 @@ public class MeldingActivity extends AppCompatActivity {
     private TextView locatieTextView, beschrijvingTextView, emailTextView, voornaamTextView, achternaamTextView,optioneelTextView;
     private EditText beschrijvingEditText, emailEditText, voornaamEditText, achternaamEditText;
     private CheckBox updateCheckBox;
+
+    private Location location;
 
     private static final int MY_PERMISSIONS_CAMERA = 1;
     File destination;
@@ -67,7 +71,8 @@ public class MeldingActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View v) {
-
+                Intent intent = new Intent(getApplicationContext(), MapsActivity.class);
+                startActivityForResult(intent, 1);
             }
         });
 
@@ -227,6 +232,11 @@ public class MeldingActivity extends AppCompatActivity {
                 // result of the request.
             }
         }
+    }
+
+    public void onActivityResult(int requestCode,int resultCode, Intent data) {
+        location.setLongitude(data.getDoubleExtra("long", 1));
+        location.setLongitude(data.getDoubleExtra("lat", 1));
     }
 
 

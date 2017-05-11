@@ -1,23 +1,17 @@
 package com.example.justin.verbeterjegemeente;
 
 import android.Manifest;
-import android.app.Activity;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -26,16 +20,14 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.justin.verbeterjegemeente.domain.Locatie;
-import com.example.justin.verbeterjegemeente.domain.Melding;
+import com.example.justin.verbeterjegemeente.API.ServiceClient;
+import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.domain.PostServiceRequestResponse;
 import com.example.justin.verbeterjegemeente.domain.Service;
-import com.mifmif.common.regex.Main;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -53,18 +45,19 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-import static android.R.id.list;
-
 public class MeldingActivity extends AppCompatActivity {
 
 
     private Spinner catagorySpinner;
     private ArrayList<String> catagoryList;
     private Button locatieButton, fotoButton, terugButton, plaatsButton;
-    private TextView locatieTextView, beschrijvingTextView, emailTextView, voornaamTextView, achternaamTextView,optioneelTextView;
-    private EditText beschrijvingEditText, emailEditText, voornaamEditText, achternaamEditText;
+    private TextView locatieTextView, beschrijvingTextView, emailTextView,
+            voornaamTextView, achternaamTextView,optioneelTextView;
+    private EditText beschrijvingEditText, emailEditText,
+            voornaamEditText, achternaamEditText;
     private CheckBox updateCheckBox;
     private ImageView fotoImageView;
+    private List<Service> serviceList;
 
     private String image_path = "";
     private static final int MY_PERMISSIONS_CAMERA = 1;
@@ -115,7 +108,8 @@ public class MeldingActivity extends AppCompatActivity {
         catagoryList.add("Geluidsoverlast");
 
         catagorySpinner = (Spinner) findViewById(R.id.spinner2);
-        ArrayAdapter<String> catagoryAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, catagoryList);
+        ArrayAdapter<String> catagoryAdapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_spinner_item, catagoryList);
         catagoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         catagorySpinner.setAdapter(catagoryAdapter);
 
@@ -193,17 +187,25 @@ public class MeldingActivity extends AppCompatActivity {
 
                 Log.i("MELDING", "" + melding.toString());*/
 
-                RequestBody description = RequestBody.create(MediaType.parse("text/plain"), "Dit");
+                String descr = beschrijvingEditText.getText().toString();
+                Log.e("Tekst uit beschrijvingV", descr);
+                String lon = "4.784283";
+                String lat = "51.591193";
+                RequestBody pLon = RequestBody.create(MediaType.parse("text/plain"), lon);
+                RequestBody pLat = RequestBody.create(MediaType.parse("text/plain"), lat);
+                RequestBody pDescr = RequestBody.create(MediaType.parse("text/plain"), descr);
                 RequestBody sc = RequestBody.create(MediaType.parse("text/plain"), "172");
                 RequestBody apiK = RequestBody.create(MediaType.parse("text/plain"), ServiceGenerator.TEST_API_KEY);
 
 
                 ServiceClient client = ServiceGenerator.createService(ServiceClient.class);
-                Call<ArrayList<PostServiceRequestResponse>> serviceRequestResponseCall = client.postServiceRequest(apiK, description, sc);
+                Call<ArrayList<PostServiceRequestResponse>> serviceRequestResponseCall =
+                        client.postServiceRequest(apiK, pDescr, sc, pLat, pLon);
 
                 serviceRequestResponseCall.enqueue(new Callback<ArrayList<PostServiceRequestResponse>>() {
                     @Override
-                    public void onResponse(Call<ArrayList<PostServiceRequestResponse>> call, Response<ArrayList<PostServiceRequestResponse>> response) {
+                    public void onResponse(Call<ArrayList<PostServiceRequestResponse>> call,
+                                           Response<ArrayList<PostServiceRequestResponse>> response) {
                         if(response.isSuccessful()) {
 
                             ArrayList<PostServiceRequestResponse> pRespList = response.body();
@@ -218,7 +220,8 @@ public class MeldingActivity extends AppCompatActivity {
                                 JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
                                 JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
 
-                                Toast.makeText(getApplicationContext(), jObjError.getString("description"),Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getApplicationContext(), jObjError.getString("description"),
+                                        Toast.LENGTH_SHORT).show();
                                 Log.e("Error message: ", jObjError.getString("description"));
                             } catch (IOException e) {
                                 e.printStackTrace();
@@ -234,12 +237,13 @@ public class MeldingActivity extends AppCompatActivity {
                     }
                 });
 
-                Call<List<Service>> serviceCall = client.getServices("en");
+                Call<List<Service>> serviceCall = client.getServices(ServiceClient.LANG_EN);
 
                 serviceCall.enqueue(new Callback<List<Service>>() {
                     @Override
                     public void onResponse(Call<List<Service>> call, Response<List<Service>> response) {
-                        List<Service> serviceList = response.body();
+                        serviceList.clear();
+                        serviceList = response.body();
 
                         if (serviceList != null) {
                             for (Service s : serviceList) {

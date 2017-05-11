@@ -1,5 +1,8 @@
 package com.example.justin.verbeterjegemeente.API;
 
+import com.example.justin.verbeterjegemeente.API.APIError;
+import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
+
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 
@@ -28,6 +31,5 @@ public class ErrorUtils {
         }
 
         return new APIError();
-//        return new APIError(12,"ja","ja");
     }
 }

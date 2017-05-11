@@ -12,6 +12,7 @@ import retrofit2.http.GET;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.Part;
+import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 /**
@@ -37,8 +38,10 @@ Call<List<Service>> getServices(@Query("Locale") String Language);
 @Multipart
 @POST("requests.json")
 Call<ArrayList<PostServiceRequestResponse>> postServiceRequest(@Part("api_key") RequestBody apiK,
-                                                              @Part("description") RequestBody desc,
-                                                              @Part("service_code") RequestBody sc);
+                                                               @Part("description") RequestBody desc,
+                                                               @Part("service_code") RequestBody sc,
+                                                               @Part("lat") RequestBody lat,
+                                                               @Part("long") RequestBody lon);
 }
 
 

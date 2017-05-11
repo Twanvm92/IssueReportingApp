@@ -69,6 +69,8 @@ public class MeldingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_melding);
 
+        fotoButton = (Button) findViewById(R.id.fotoButton);
+
         reqCameraPermission();
         reqWriteStoragePermission();
 
@@ -102,7 +104,7 @@ public class MeldingActivity extends AppCompatActivity {
 
 
 
-        fotoButton = (Button) findViewById(R.id.fotoButton);
+
 
         builder = new android.app.AlertDialog.Builder(this);
 

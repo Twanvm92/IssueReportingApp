@@ -41,6 +41,10 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Deze klasse zorgt ervoor dat de gebruiker een meldingsformulier kan invullen en deze informatie aan de database connectie klasse geeft
+ * Alle benodigde informatie moet hier ingevuld worden en zijn er enkele optionele opties die de gebruiker kan kiezen
+ */
 public class MeldingActivity extends AppCompatActivity {
 
 
@@ -72,11 +76,7 @@ public class MeldingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_melding);
         fotoButton = (Button) findViewById(R.id.fotoButton);
 
-
-
         fotoImageView = (ImageView) findViewById(R.id.fotoImageView);
-
-
 
         locatieTextView = (TextView) findViewById(R.id.locatieTextView);
         beschrijvingTextView = (TextView) findViewById(R.id.beschrijving);
@@ -107,9 +107,6 @@ public class MeldingActivity extends AppCompatActivity {
         catagorySpinner.setAdapter(catagoryAdapter);
 
 
-
-
-
         fotoImageView = (ImageView) findViewById(R.id.fotoImageView);
 
         builder = new android.app.AlertDialog.Builder(this);
@@ -124,14 +121,11 @@ public class MeldingActivity extends AppCompatActivity {
                     reqCameraPermission();
                 }
 
-
                 final CharSequence[] items = {getString(R.string.fotoMaken), getString(R.string.fotoKiezen)};
                 //builder.setTitle("Foto toevoegen");
                 builder.setItems(items, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int item) {
-
-
 
                         if (items[item].equals(getString(R.string.fotoMaken))) {
                             Intent makePhoto = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -150,7 +144,6 @@ public class MeldingActivity extends AppCompatActivity {
 
             }
         );
-
 
         beschrijvingEditText = (EditText) findViewById(R.id.beschrijving);
         emailEditText = (EditText) findViewById(R.id.email);
@@ -196,11 +189,7 @@ public class MeldingActivity extends AppCompatActivity {
 
                 boolean emailNull = true;
 
-                if(beschrijvingEditText.equals("")){
-                    emailNull = false;
-                }else{
-                    emailNull = true;
-                }
+                emailNull = !beschrijvingEditText.equals("");
 
                 Log.i("EMAIL", "" + emailNull );
                 Log.i("EMAIL", "ksjh" );
@@ -213,14 +202,16 @@ public class MeldingActivity extends AppCompatActivity {
                 // Intent back to the Home screen
                 Intent i = new Intent(getApplicationContext(), MainActivity.class);
                 startActivity(i);
-
-
             }
         });
-
-
     }
 
+    /**
+     * Controleren of permissies goed gekeurd zijn door de gebruiker
+     * @param requestCode meegegeven activiteit nummer die gedaan is
+     * @param permissions permissies die aangevraagd worden
+     * @param grantResults hoeveelheid permissies die goed gekeurd zijn door de gebruiker
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
@@ -276,6 +267,9 @@ public class MeldingActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Vragen om permissie voor het gebruik van de camera
+     */
     public void reqCameraPermission() {
         // Here, thisActivity is the current activity
         if (ContextCompat.checkSelfPermission(this,
@@ -309,6 +303,9 @@ public class MeldingActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Vragen om permissie voor het aanpassen van de opslagruimte van de gebruiker
+     */
     public void reqWriteStoragePermission() {
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -325,6 +322,12 @@ public class MeldingActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Resultaat ophalen uit de activiteit die uitgevoerd is
+     * @param requestCode meegegeven activiteit nummer die gedaan is
+     * @param resultCode controle of er een result uit voortgekomen is
+     * @param data het resultaat
+     */
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
@@ -339,8 +342,6 @@ public class MeldingActivity extends AppCompatActivity {
                     fotoImageView.setImageURI(selectedImage);
                     fotoButton.setText(R.string.fotoWijzigen);
                     imagePath = finalFile.toString();
-
-
 
                 }
                 break;
@@ -357,6 +358,13 @@ public class MeldingActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Haalt de uri uit de bitmap, dit moet eerst gedaan worden als een foto gemaakt wordt (en dus niet gekozen wordt uit storage)
+     * Formateerd de bitmap waarna het pad van de image geparsed wordt naar een Uri
+     * @param inContext de context die gebruikt wordt
+     * @param inImage de bitmap van de foto die gemaakt is door de gebruiker
+     * @return geeft een Uri terug die verder gebruikt kan worden
+     */
     public Uri getImageUri(Context inContext, Bitmap inImage) {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
@@ -364,6 +372,11 @@ public class MeldingActivity extends AppCompatActivity {
         return Uri.parse(path);
     }
 
+    /**
+     * Pad ophalen van een image door middel van de uri
+     * @param uri de uri van de image die de gebruiker kiest
+     * @return het pad van de image als een String
+     */
     public String getRealPathFromURI(Uri uri)
     {
         try

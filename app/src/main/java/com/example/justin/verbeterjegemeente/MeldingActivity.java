@@ -24,6 +24,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -47,6 +48,7 @@ public class MeldingActivity extends AppCompatActivity {
     private ArrayList<String> catagoryList;
     private Button locatieButton, fotoButton, terugButton, plaatsButton;
     private TextView locatieTextView, beschrijvingTextView, emailTextView, voornaamTextView, achternaamTextView,optioneelTextView;
+    private ImageView fotoImageView;
     private EditText beschrijvingEditText, emailEditText, voornaamEditText, achternaamEditText;
     private CheckBox updateCheckBox;
 
@@ -78,6 +80,7 @@ public class MeldingActivity extends AppCompatActivity {
         optioneelTextView = (TextView) findViewById(R.id.optioneeltextview);
         voornaamTextView = (TextView) findViewById(R.id.voornaamtextview);
         achternaamTextView = (TextView) findViewById(R.id.achternaamtextview);
+        fotoImageView = (ImageView) findViewById(R.id.fotoImageView);
 
         locatieButton = (Button) findViewById(R.id.wijzigLocatieButton);
         locatieButton.setOnClickListener(new View.OnClickListener() {
@@ -300,7 +303,7 @@ public class MeldingActivity extends AppCompatActivity {
 
 
 //                  indien foto getoond moet worden
-//                  imageView.setImageBitmap(photo);
+                    fotoImageView.setImageBitmap(photo);
                 }
                 break;
             case FOTO_KIEZEN:
@@ -310,7 +313,7 @@ public class MeldingActivity extends AppCompatActivity {
 
                     fotoButton.setText(image_path);
                     imageUri = image_path;
-//                  imageview.setImageURI(selectedImage);
+                  fotoImageView.setImageURI(selectedImage);
                 }
                 break;
         }

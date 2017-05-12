@@ -6,6 +6,7 @@ import com.example.justin.verbeterjegemeente.domain.PostServiceRequestResponse;
 import java.util.ArrayList;
 import java.util.List;
 
+import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.http.GET;
@@ -41,7 +42,8 @@ Call<ArrayList<PostServiceRequestResponse>> postServiceRequest(@Part("api_key") 
                                                                @Part("description") RequestBody desc,
                                                                @Part("service_code") RequestBody sc,
                                                                @Part("lat") RequestBody lat,
-                                                               @Part("long") RequestBody lon);
+                                                               @Part("long") RequestBody lon,
+                                                               @Part MultipartBody.Part img);
 }
 
 

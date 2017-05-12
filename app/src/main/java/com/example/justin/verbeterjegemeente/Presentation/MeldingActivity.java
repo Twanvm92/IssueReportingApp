@@ -8,7 +8,8 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.net.ConnectivityManager;
+import android.graphics.Path;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -45,12 +46,19 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
+
 import okhttp3.MediaType;
+import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+
+/**
+ * Deze klasse zorgt ervoor dat de gebruiker een meldingsformulier kan invullen en deze informatie aan de database connectie klasse geeft
+ * Alle benodigde informatie moet hier ingevuld worden en zijn er enkele optionele opties die de gebruiker kan kiezen
+ */
 public class MeldingActivity extends AppCompatActivity {
 
 
@@ -69,27 +77,19 @@ public class MeldingActivity extends AppCompatActivity {
     private String image_path = "";
     private static final int MY_PERMISSIONS_CAMERA = 1;
     private static final int MY_PERMISSIONS_STORAGE = 2;
-
     private static final int FOTO_MAKEN = 1;
     private static final int FOTO_KIEZEN = 2;
     private Uri selectedImage;
-
     private android.app.AlertDialog.Builder builder;
-
     private String imagePath = null;
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_melding);
-
         fotoButton = (Button) findViewById(R.id.fotoButton);
-        fotoImageView = (ImageView) findViewById(R.id.fotoImageView);
 
-        reqCameraPermission();
-        reqWriteStoragePermission();
+        fotoImageView = (ImageView) findViewById(R.id.fotoImageView);
 
         locatieTextView = (TextView) findViewById(R.id.locatieTextView);
         beschrijvingTextView = (TextView) findViewById(R.id.beschrijving);
@@ -107,9 +107,7 @@ public class MeldingActivity extends AppCompatActivity {
             }
         });
 
-
-
-
+        fotoImageView = (ImageView) findViewById(R.id.fotoImageView);
 
         builder = new android.app.AlertDialog.Builder(this);
 
@@ -117,21 +115,26 @@ public class MeldingActivity extends AppCompatActivity {
             @Override
 
             public void onClick(View v) {
-                final CharSequence[] items = {"Foto maken", "Kies bestaande foto", "Terug"};
+
+                if (ContextCompat.checkSelfPermission(getApplicationContext(),
+                        Manifest.permission.CAMERA)!= PackageManager.PERMISSION_GRANTED) {
+                    Log.i("CAMERA", "ASKING PERMISSION");
+                    reqCameraPermission();
+                }
+
+                final CharSequence[] items = {getString(R.string.fotoMaken), getString(R.string.fotoKiezen)};
                 //builder.setTitle("Foto toevoegen");
                 builder.setItems(items, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int item) {
 
-                        if (items[item].equals("Foto maken")) {
+                        if (items[item].equals(getString(R.string.fotoMaken))) {
                             Intent makePhoto = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                             startActivityForResult(makePhoto, FOTO_MAKEN);
-                        } else if (items[item].equals("Kies bestaande foto")) {
+                        } else if (items[item].equals(getString(R.string.fotoKiezen))) {
                             Intent pickPhoto = new Intent(Intent.ACTION_PICK,
                                     android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                             startActivityForResult(pickPhoto, FOTO_KIEZEN);
-                        } else if (items[item].equals("Terug")) {
-                            dialog.dismiss();
                         }
                     }
                 });
@@ -142,7 +145,6 @@ public class MeldingActivity extends AppCompatActivity {
 
             }
         );
-
 
         beschrijvingEditText = (EditText) findViewById(R.id.beschrijving);
         emailEditText = (EditText) findViewById(R.id.email);
@@ -168,8 +170,12 @@ public class MeldingActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 String selecIt = "";
-                if(catagorySpinner != null && catagorySpinner.getSelectedItem() !=null) {
+                if(catagorySpinner != null && catagorySpinner.getSelectedItem() !=null
+                        && !catagorySpinner.getSelectedItem().equals("")) {
                     selecIt = catagorySpinner.getSelectedItem().toString();
+                } else {
+                    Toast.makeText(getApplicationContext(),
+                            getResources().getString(R.string.kiesCategory),Toast.LENGTH_SHORT).show();
                 }
 
                 String sc = "";
@@ -182,6 +188,14 @@ public class MeldingActivity extends AppCompatActivity {
                     }
                 }
 
+                MultipartBody.Part imgBody = null;
+                if (imagePath != null) {
+                    File imgFile = new File(imagePath);
+                    RequestBody requestFile =
+                            RequestBody.create(MediaType.parse("multipart/form-data"), imgFile);
+                    imgBody = MultipartBody.Part.createFormData("image", imgFile.getName(), requestFile);
+                }
+
                 String descr = beschrijvingEditText.getText().toString();
                 Log.e("Tekst uit beschrijvingV", descr);
                 String lon = "4.784283";
@@ -192,8 +206,9 @@ public class MeldingActivity extends AppCompatActivity {
                 RequestBody pSc = RequestBody.create(MediaType.parse("text/plain"), sc);
                 RequestBody apiK = RequestBody.create(MediaType.parse("text/plain"), ServiceGenerator.TEST_API_KEY);
 
+
                 Call<ArrayList<PostServiceRequestResponse>> serviceRequestResponseCall =
-                        client.postServiceRequest(apiK, pDescr, pSc, pLat, pLon);
+                        client.postServiceRequest(apiK, pDescr, pSc, pLat, pLon, imgBody);
 
                 serviceRequestResponseCall.enqueue(new Callback<ArrayList<PostServiceRequestResponse>>() {
                     @Override
@@ -286,9 +301,14 @@ public class MeldingActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-
     }
 
+    /**
+     * Controleren of permissies goed gekeurd zijn door de gebruiker
+     * @param requestCode meegegeven activiteit nummer die gedaan is
+     * @param permissions permissies die aangevraagd worden
+     * @param grantResults hoeveelheid permissies die goed gekeurd zijn door de gebruiker
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
@@ -301,14 +321,20 @@ public class MeldingActivity extends AppCompatActivity {
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
 
-                    Log.i("PERMISSION", "granted");
+                    Log.i("PERMISSION", "camera granted");
                     fotoButton.setEnabled(true);
+
+                    Log.i("STORAGE", "ASKING PERMISSION");
+                    reqWriteStoragePermission();
 
                 } else {
 
                     // permission denied, boo! Disable the
-                    Log.i("PERMISSION", "not granted");
+                    Log.i("PERMISSION", "camera not granted");
                     fotoButton.setEnabled(false);
+
+                    Log.i("STORAGE", "ASKING PERMISSION");
+                    reqWriteStoragePermission();
                     // functionality that depends on this permission.
                 }
             }
@@ -322,11 +348,11 @@ public class MeldingActivity extends AppCompatActivity {
                     // contacts-related task you need to do.
 
                     fotoButton.setEnabled(true);
-                    Log.i("PERMISSION", "granted");
+                    Log.i("PERMISSION", "storage granted");
                 } else {
 
                     // permission denied, boo! Disable the
-                    Log.i("PERMISSION", "not granted");
+                    Log.i("PERMISSION", "storage not granted");
                     fotoButton.setEnabled(false);
                     // functionality that depends on this permission.
                 }
@@ -338,6 +364,9 @@ public class MeldingActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Vragen om permissie voor het gebruik van de camera
+     */
     public void reqCameraPermission() {
         // Here, thisActivity is the current activity
         if (ContextCompat.checkSelfPermission(this,
@@ -371,6 +400,9 @@ public class MeldingActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Vragen om permissie voor het aanpassen van de opslagruimte van de gebruiker
+     */
     public void reqWriteStoragePermission() {
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -387,6 +419,12 @@ public class MeldingActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Resultaat ophalen uit de activiteit die uitgevoerd is
+     * @param requestCode meegegeven activiteit nummer die gedaan is
+     * @param resultCode controle of er een result uit voortgekomen is
+     * @param data het resultaat
+     */
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
@@ -399,9 +437,8 @@ public class MeldingActivity extends AppCompatActivity {
                     File finalFile = new File(getRealPathFromURI(selectedImage));
 //                  test of image_path correct gepakt wordt
                     fotoImageView.setImageURI(selectedImage);
+                    fotoButton.setText(R.string.fotoWijzigen);
                     imagePath = finalFile.toString();
-
-
 
                 }
                 break;
@@ -410,6 +447,7 @@ public class MeldingActivity extends AppCompatActivity {
                     selectedImage = data.getData();
                     image_path = getRealPathFromURI(selectedImage);
                     fotoImageView.setImageURI(selectedImage);
+                    fotoButton.setText(R.string.fotoWijzigen);
                     imagePath = image_path;
 
            }
@@ -417,6 +455,13 @@ public class MeldingActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Haalt de uri uit de bitmap, dit moet eerst gedaan worden als een foto gemaakt wordt (en dus niet gekozen wordt uit storage)
+     * Formateerd de bitmap waarna het pad van de image geparsed wordt naar een Uri
+     * @param inContext de context die gebruikt wordt
+     * @param inImage de bitmap van de foto die gemaakt is door de gebruiker
+     * @return geeft een Uri terug die verder gebruikt kan worden
+     */
     public Uri getImageUri(Context inContext, Bitmap inImage) {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
@@ -424,6 +469,11 @@ public class MeldingActivity extends AppCompatActivity {
         return Uri.parse(path);
     }
 
+    /**
+     * Pad ophalen van een image door middel van de uri
+     * @param uri de uri van de image die de gebruiker kiest
+     * @return het pad van de image als een String
+     */
     public String getRealPathFromURI(Uri uri)
     {
         try

@@ -92,7 +92,6 @@
             android:background="@drawable/round"
             android:ems="10"
             android:hint="@string/beschrijvingHint"
-            android:textColor="@android:color/background_light"
             android:inputType="textMultiLine"
             android:nextFocusLeft="@id/beschrijving"
             android:nextFocusUp="@id/beschrijving"

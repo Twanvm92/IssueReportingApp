@@ -2,11 +2,14 @@ package com.example.justin.verbeterjegemeente;
 
 
 import android.Manifest;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 
 import android.content.pm.PackageManager;
 import android.location.Location;
 
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -14,6 +17,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,6 +39,9 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.io.IOException;
+import java.net.InetAddress;
 
 import br.com.bloder.magic.view.MagicButton;
 
@@ -76,17 +83,28 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
     public void onCreate(Bundle savedInstaceState) {
         super.onCreate(savedInstaceState);
-        mApiClient = new GoogleApiClient.Builder(this.getContext())
-                .addApi(LocationServices.API)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this).build();
-
+        initApi();
     }
 
     public void onStart() {
         super.onStart();
+        try {
+            if (isConnected()) {
+                mApiClient.connect();
+            } else {
+                new AlertDialog.Builder(this.getContext())
+                        .setTitle("No Internet Connection")
+                        .setMessage("It looks like your internet connection is off. Please turn it " +
+                                "on and try again")
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                            }
+                        }).setIcon(android.R.drawable.ic_dialog_alert).show();
+            }
+        } catch (Exception e) {
+            Log.i("Exception: ", e.getLocalizedMessage());
+        }
 
-        mApiClient.connect();
     }
 
     public void onStop() {
@@ -155,6 +173,20 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         });
     }
 
+    public void initApi() {
+        mApiClient = new GoogleApiClient.Builder(this.getContext())
+                .addApi(LocationServices.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this).build();
+        mApiClient.connect();
+    }
+
+    public boolean isConnected() throws InterruptedException, IOException
+    {
+        String command = "ping -c 1 google.com";
+        return (Runtime.getRuntime().exec (command).waitFor() == 0);
+    }
+
     //locatie voorziening
     private void initLocation() {
         if (ContextCompat.checkSelfPermission(this.getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -202,7 +234,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
             );
             CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
             mMap.moveCamera(center);
-        } 
+        }
     }
 
     @Override

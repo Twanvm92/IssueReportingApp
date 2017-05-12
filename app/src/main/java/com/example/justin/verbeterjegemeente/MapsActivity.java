@@ -11,6 +11,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
@@ -27,6 +28,13 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+/**
+ * MapsActivity
+ * Laat een map zien met daarop de huidige locatie. door op de kaart te klikken wordt de opgegeven locatie aangepast.
+ * met de knop rechtsonderin keer je terug naar het meldingscherm en wordt de locatie meegegeven.
+ */
+
+
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         com.google.android.gms.location.LocationListener {
@@ -37,6 +45,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleApiClient mApiClient;
     private FloatingActionButton saveButton;
 
+    /**
+     * onCreate wordt opgeroepen wanneer de klasse wordt gemaakt. hierbij wordt de map opgeroepen,
+     * een GoogleApiCLient aangemaakt en de savebutton gemaakt.
+     *
+     * de savebutton linked terug naar de meldingAcitivity en geeft de longitude en latitude mee.
+     *
+     */
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,35 +62,34 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        //maak apiclient
         mApiClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this).build();
+
+        //maak saveButton
         saveButton = (FloatingActionButton) findViewById(R.id.maps_saveButton);
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent i = new Intent();
-                i.putExtra("long", currentLocation.getLongitude());
-                i.putExtra("lat", currentLocation.getLatitude());
-                Log.i("before Long: ", String.valueOf(currentLocation.getLongitude()));
+                i.putExtra("long", currentLocation.getLongitude()); //post longitude
+                i.putExtra("lat", currentLocation.getLatitude()); //post latitude
+                Log.i("before Long: ", String.valueOf(currentLocation.getLongitude())); //log values
                 Log.i("before Lat: ", String.valueOf(currentLocation.getLatitude()));
-                setResult(RESULT_OK, i);
+                setResult(RESULT_OK, i); //set result and return
                 finish();
             }
         });
     }
 
-
     /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
+     * onMapReady wordt opgeroepen wanneer de map geladen is. dan wordt er ook een onclicklistener aan de
+     * kaart toegevoegd die de marker verplaatst op de kaart.
+     *
      */
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -119,17 +134,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onLocationChanged(Location location) {
-
+        getLocation();
     }
+
+    /**
+     * getLocation checkt of er toestemming is gegeven.
+     * vervolgens wordt de locatie opgehaaldt en in een variabele gezet
+     * aan de hand van die variabele wordt de marker op de map gezet.
+     */
 
     public void getLocation() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-        if(marker != null)
+        if(marker != null)//verwijder de oude marker
             marker.remove();
 
-        currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
+        currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient); //haal locatie op
 
         //Toast.makeText(this, "Long: " + currentLocation.getLongitude() + " Lat: " + currentLocation.getLatitude(),Toast.LENGTH_SHORT).show();
 
@@ -137,9 +158,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             LatLng currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
             marker = mMap.addMarker(new MarkerOptions().position(currentLatLng)
                     .title("current location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)).visible(true)
-            );
+            ); //maak nieuwe marker
             CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
-            mMap.moveCamera(center);
+            mMap.moveCamera(center); //update camera
         }
+    }
+
+    public void onBackPressed() {
+        Intent i = new Intent();
+        i.putExtra("long", currentLocation.getLongitude()); //post longitude
+        i.putExtra("lat", currentLocation.getLatitude()); //post latitude
+        Log.i("before Long: ", String.valueOf(currentLocation.getLongitude())); //log values
+        Log.i("before Lat: ", String.valueOf(currentLocation.getLatitude()));
+        setResult(RESULT_OK, i); //set result and return
+        finish();
     }
 }

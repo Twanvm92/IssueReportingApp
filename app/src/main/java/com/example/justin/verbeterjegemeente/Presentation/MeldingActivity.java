@@ -197,6 +197,7 @@ public class MeldingActivity extends AppCompatActivity {
                 } else {
                     Toast.makeText(getApplicationContext(),
                             getResources().getString(R.string.kiesCategory),Toast.LENGTH_SHORT).show();
+                    return;
                 }
 
                 String sc = "";
@@ -217,7 +218,42 @@ public class MeldingActivity extends AppCompatActivity {
                     imgBody = MultipartBody.Part.createFormData("image", imgFile.getName(), requestFile);
                 }
 
-                String descr = beschrijvingEditText.getText().toString();
+                String descr = "";
+                if(beschrijvingEditText != null || !beschrijvingEditText.getText().equals("")) {
+                    if (beschrijvingEditText.getText().toString().length() >= 10) {
+                        descr = beschrijvingEditText.getText().toString();
+                    } else {
+                        Toast.makeText(getApplicationContext(),
+                                getResources().getString(R.string.kBeschrijving),Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                }else {
+                    Toast.makeText(getApplicationContext(),
+                            getResources().getString(R.string.geenBeschrijving),Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                String email = "";
+                RequestBody pEmail = null;
+                if(emailEditText != null || !emailEditText.getText().equals("")) {
+                    email = emailEditText.getText().toString();
+                    pEmail = RequestBody.create(MediaType.parse("text/plain"), email);
+                }
+
+                String fName = "";
+                RequestBody pFName = null;
+                if(voornaamEditText != null || !voornaamEditText.getText().equals("")) {
+                    fName = voornaamEditText.getText().toString();
+                    pFName = RequestBody.create(MediaType.parse("text/plain"), fName);
+                }
+
+                String lName = "";
+                RequestBody pLName = null;
+                if(achternaamEditText != null || !achternaamEditText.getText().equals("")) {
+                    lName = achternaamEditText.getText().toString();
+                    pLName = RequestBody.create(MediaType.parse("text/plain"), lName);
+                }
+
                 Log.e("Tekst uit beschrijvingV", descr);
                 String lon = "4.784283";
                 String lat = "51.591193";
@@ -227,9 +263,9 @@ public class MeldingActivity extends AppCompatActivity {
                 RequestBody pSc = RequestBody.create(MediaType.parse("text/plain"), sc);
                 RequestBody apiK = RequestBody.create(MediaType.parse("text/plain"), ServiceGenerator.TEST_API_KEY);
 
-
                 Call<ArrayList<PostServiceRequestResponse>> serviceRequestResponseCall =
-                        client.postServiceRequest(apiK, pDescr, pSc, pLat, pLon, imgBody);
+                        client.postServiceRequest(apiK, pDescr, pSc, pLat, pLon,
+                                imgBody, pEmail, pFName, pLName);
 
                 serviceRequestResponseCall.enqueue(new Callback<ArrayList<PostServiceRequestResponse>>() {
                     @Override

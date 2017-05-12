@@ -30,5 +30,7 @@
     <string name="fotoKiezen">Kies foto uit galerij</string>
     <string name="kiesCategory">Selecteer eerst een categorie.</string>
     <string name="kiesProblemen">Kies uit lijst van problemen</string>
+    <string name="geenBeschrijving">Voeg een beschrijving toe</string>
+    <string name="kBeschrijving">Beschrijving moet minimaal 10 karakters bevatten</string>
 
 </resources>

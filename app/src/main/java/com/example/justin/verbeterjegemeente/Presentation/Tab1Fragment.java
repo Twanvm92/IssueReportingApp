@@ -26,23 +26,6 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     private MarkerHandler mHandler;
     private MagicButton btnTEST;
 
-    /*@Nullable
-    @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.tab1_fragment,container,false);
-        btnTEST = (MagicButton) view.findViewById(R.id.meldingmakenbutton);
-        btnTEST.setMagicButtonClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent i = new Intent(getContext(), MeldingActivity.class);
-                startActivity(i);
-            }
-
-        });
-
-        return view;
-    }*/
-
     //set up map on resume
     public void onResume() {
         super.onResume();

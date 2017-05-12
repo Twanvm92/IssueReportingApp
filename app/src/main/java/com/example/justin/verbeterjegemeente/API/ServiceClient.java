@@ -43,7 +43,10 @@ Call<ArrayList<PostServiceRequestResponse>> postServiceRequest(@Part("api_key") 
                                                                @Part("service_code") RequestBody sc,
                                                                @Part("lat") RequestBody lat,
                                                                @Part("long") RequestBody lon,
-                                                               @Part MultipartBody.Part img);
+                                                               @Part MultipartBody.Part img,
+                                                               @Part("email") RequestBody email,
+                                                               @Part("first_name") RequestBody fName,
+                                                               @Part("last_name") RequestBody lName);
 }
 
 

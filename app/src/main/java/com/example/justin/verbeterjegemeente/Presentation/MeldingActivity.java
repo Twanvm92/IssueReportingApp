@@ -13,6 +13,7 @@ import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.annotation.StringRes;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
@@ -111,6 +112,25 @@ public class MeldingActivity extends AppCompatActivity {
 
         builder = new android.app.AlertDialog.Builder(this);
 
+        catagoryList = new ArrayList<String>();
+        catagoryList.add(getResources().getString(R.string.kiesProblemen));
+        catagorySpinner = (Spinner) findViewById(R.id.spinner2);
+        catagoryAdapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_spinner_item, catagoryList){
+            @Override //pakt de positions van elements in catagoryList en disabled the element dat postion null staat zodat we het kunnen gebruiken als een hint.
+            public boolean isEnabled(int position){
+                if (position == 0)
+                {
+                    return false;
+                }else{
+                    return true;
+                }
+            }
+        };
+        catagoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        catagorySpinner.setAdapter(catagoryAdapter);
+
         fotoButton.setOnClickListener(new View.OnClickListener() {
             @Override
 
@@ -171,7 +191,8 @@ public class MeldingActivity extends AppCompatActivity {
 
                 String selecIt = "";
                 if(catagorySpinner != null && catagorySpinner.getSelectedItem() !=null
-                        && !catagorySpinner.getSelectedItem().equals("")) {
+                        && !catagorySpinner.getSelectedItem()
+                        .equals(getResources().getString(R.string.kiesProblemen))) {
                     selecIt = catagorySpinner.getSelectedItem().toString();
                 } else {
                     Toast.makeText(getApplicationContext(),
@@ -269,7 +290,9 @@ public class MeldingActivity extends AppCompatActivity {
                         } else {
                             Log.i("Response: ", "List was empty");
                         }
+
                         if(serviceList != null) {
+
                             for (int i = 0; i < serviceList.size(); i++) {
                                 catagoryList.add(serviceList.get(i).getService_name());
                             }
@@ -283,14 +306,6 @@ public class MeldingActivity extends AppCompatActivity {
                     }
                 });
 
-
-                catagoryList = new ArrayList<String>();
-                catagorySpinner = (Spinner) findViewById(R.id.spinner2);
-                catagoryAdapter = new ArrayAdapter<String>(this,
-                        android.R.layout.simple_spinner_item, catagoryList);
-                catagoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
-                catagorySpinner.setAdapter(catagoryAdapter);
             } else {
                 Toast.makeText(getApplicationContext(), getResources().getString(R.string.FoutOphalenProblemen),
                         Toast.LENGTH_SHORT).show();

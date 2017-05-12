@@ -263,46 +263,60 @@ public class MeldingActivity extends AppCompatActivity {
                 RequestBody pSc = RequestBody.create(MediaType.parse("text/plain"), sc);
                 RequestBody apiK = RequestBody.create(MediaType.parse("text/plain"), ServiceGenerator.TEST_API_KEY);
 
-                Call<ArrayList<PostServiceRequestResponse>> serviceRequestResponseCall =
-                        client.postServiceRequest(apiK, pDescr, pSc, pLat, pLon,
-                                imgBody, pEmail, pFName, pLName);
+                try {
+                    if(isConnected()) {
+                        Call<ArrayList<PostServiceRequestResponse>> serviceRequestResponseCall =
+                                client.postServiceRequest(apiK, pDescr, pSc, pLat, pLon,
+                                        imgBody, pEmail, pFName, pLName);
 
-                serviceRequestResponseCall.enqueue(new Callback<ArrayList<PostServiceRequestResponse>>() {
-                    @Override
-                    public void onResponse(Call<ArrayList<PostServiceRequestResponse>> call,
-                                           Response<ArrayList<PostServiceRequestResponse>> response) {
-                        if(response.isSuccessful()) {
+                        serviceRequestResponseCall.enqueue(new Callback<ArrayList<PostServiceRequestResponse>>() {
+                            @Override
+                            public void onResponse(Call<ArrayList<PostServiceRequestResponse>> call,
+                                                   Response<ArrayList<PostServiceRequestResponse>> response) {
+                                if(response.isSuccessful()) {
 
-                            ArrayList<PostServiceRequestResponse> pRespList = response.body();
+                                    ArrayList<PostServiceRequestResponse> pRespList = response.body();
 
-                            for (PostServiceRequestResponse psrr : pRespList) {
-                                Log.i("Service response: ", psrr.getId());
-                                Toast.makeText(getApplicationContext(), psrr.getId(),
-                                        Toast.LENGTH_SHORT).show();
+                                    for (PostServiceRequestResponse psrr : pRespList) {
+                                        Log.i("Service response: ", psrr.getId());
+                                        Toast.makeText(getApplicationContext(), psrr.getId(),
+                                                Toast.LENGTH_SHORT).show();
+                                    }
+
+                                } else {
+
+                                    try {
+                                        JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
+                                        JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
+
+                                        Toast.makeText(getApplicationContext(), jObjError.getString("description"),
+                                                Toast.LENGTH_SHORT).show();
+                                        Log.i("Error message: ", jObjError.getString("description"));
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
                             }
 
-                        } else {
-
-                            try {
-                                JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
-                                JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
-
-                                Toast.makeText(getApplicationContext(), jObjError.getString("description"),
-                                        Toast.LENGTH_SHORT).show();
-                                Log.i("Error message: ", jObjError.getString("description"));
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            } catch (JSONException e) {
-                                e.printStackTrace();
+                            @Override
+                            public void onFailure(Call<ArrayList<PostServiceRequestResponse>> call, Throwable t) {
+                                Toast.makeText(getApplicationContext(), t.getMessage(),Toast.LENGTH_SHORT).show();
                             }
-                        }
-                    }
+                        });
 
-                    @Override
-                    public void onFailure(Call<ArrayList<PostServiceRequestResponse>> call, Throwable t) {
-                        Toast.makeText(getApplicationContext(), t.getMessage(),Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getApplicationContext(), getResources().getString(R.string.ePostRequest),
+                                Toast.LENGTH_SHORT).show();
                     }
-                });
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+
 
 
             }

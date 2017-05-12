@@ -4,14 +4,17 @@ import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -38,6 +41,7 @@ import org.json.JSONObject;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,7 +65,7 @@ public class MeldingActivity extends AppCompatActivity {
     private ImageView fotoImageView;
     private List<Service> serviceList;
     ArrayAdapter<String> catagoryAdapter;
-
+    private ServiceClient client;
     private String image_path = "";
     private static final int MY_PERMISSIONS_CAMERA = 1;
     private static final int MY_PERMISSIONS_STORAGE = 2;
@@ -156,122 +160,115 @@ public class MeldingActivity extends AppCompatActivity {
             }
         });
 
+        client = ServiceGenerator.createService(ServiceClient.class);
+
         plaatsButton = (Button) findViewById(R.id.plaatsButton);
         plaatsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                /*Locatie locatie = new Locatie();
-                Boolean checked = false;
 
-                if( updateCheckBox.isChecked()){
-                    checked = true;
-                }else if(!updateCheckBox.isChecked()){
-                    checked = false;
-                }
+                String descr = beschrijvingEditText.getText().toString();
+                Log.e("Tekst uit beschrijvingV", descr);
+                String lon = "4.784283";
+                String lat = "51.591193";
+                RequestBody pLon = RequestBody.create(MediaType.parse("text/plain"), lon);
+                RequestBody pLat = RequestBody.create(MediaType.parse("text/plain"), lat);
+                RequestBody pDescr = RequestBody.create(MediaType.parse("text/plain"), descr);
+                RequestBody sc = RequestBody.create(MediaType.parse("text/plain"), "172");
+                RequestBody apiK = RequestBody.create(MediaType.parse("text/plain"), ServiceGenerator.TEST_API_KEY);
 
-                Melding melding = new Melding();
-                melding.setLocatie(locatie);
-                melding.setCategorie(catagorySpinner.getSelectedItem().toString());
-                melding.setFotoUrl(imagePath.toString());
-                melding.setBeschrijving(beschrijvingEditText.getText().toString());
-                melding.setEmail(emailEditText.getText().toString());
-                melding.setVoornaam(voornaamEditText.getText().toString());
-                melding.setAchternaam(achternaamEditText.getText().toString());
-                melding.setUpdate(checked);
+                Call<ArrayList<PostServiceRequestResponse>> serviceRequestResponseCall =
+                        client.postServiceRequest(apiK, pDescr, sc, pLat, pLon);
 
-                Log.i("MELDING", "" + melding.toString());*/
+                serviceRequestResponseCall.enqueue(new Callback<ArrayList<PostServiceRequestResponse>>() {
+                    @Override
+                    public void onResponse(Call<ArrayList<PostServiceRequestResponse>> call,
+                                           Response<ArrayList<PostServiceRequestResponse>> response) {
+                        if(response.isSuccessful()) {
+
+                            ArrayList<PostServiceRequestResponse> pRespList = response.body();
+
+                            for (PostServiceRequestResponse psrr : pRespList) {
+                                Log.i("Service response: ", psrr.getId());
+                                Toast.makeText(getApplicationContext(), psrr.getId(),
+                                        Toast.LENGTH_SHORT).show();
+                            }
+
+                        } else {
+
+                            try {
+                                JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
+                                JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
+
+                                Toast.makeText(getApplicationContext(), jObjError.getString("description"),
+                                        Toast.LENGTH_SHORT).show();
+                                Log.i("Error message: ", jObjError.getString("description"));
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ArrayList<PostServiceRequestResponse>> call, Throwable t) {
+                        Toast.makeText(getApplicationContext(), t.getMessage(),Toast.LENGTH_SHORT).show();
+                    }
+                });
 
 
             }
         });
 
-        String descr = beschrijvingEditText.getText().toString();
-        Log.e("Tekst uit beschrijvingV", descr);
-        String lon = "4.784283";
-        String lat = "51.591193";
-        RequestBody pLon = RequestBody.create(MediaType.parse("text/plain"), lon);
-        RequestBody pLat = RequestBody.create(MediaType.parse("text/plain"), lat);
-        RequestBody pDescr = RequestBody.create(MediaType.parse("text/plain"), descr);
-        RequestBody sc = RequestBody.create(MediaType.parse("text/plain"), "172");
-        RequestBody apiK = RequestBody.create(MediaType.parse("text/plain"), ServiceGenerator.TEST_API_KEY);
+        try {
+            if(isConnected()) {
+                Call<List<Service>> serviceCall = client.getServices(ServiceClient.LANG_EN);
 
+                serviceCall.enqueue(new Callback<List<Service>>() {
+                    @Override
+                    public void onResponse(Call<List<Service>> call, Response<List<Service>> response) {
 
-        ServiceClient client = ServiceGenerator.createService(ServiceClient.class);
-        Call<ArrayList<PostServiceRequestResponse>> serviceRequestResponseCall =
-                client.postServiceRequest(apiK, pDescr, sc, pLat, pLon);
+                        serviceList = response.body();
 
-        serviceRequestResponseCall.enqueue(new Callback<ArrayList<PostServiceRequestResponse>>() {
-            @Override
-            public void onResponse(Call<ArrayList<PostServiceRequestResponse>> call,
-                                   Response<ArrayList<PostServiceRequestResponse>> response) {
-                if(response.isSuccessful()) {
+                        if (serviceList != null) {
+                            for (Service s : serviceList) {
+                                Log.i("Response: ", "" + s.getService_name());
+                            }
 
-                    ArrayList<PostServiceRequestResponse> pRespList = response.body();
+                        } else {
+                            Log.i("Response: ", "List was empty");
+                        }
 
-                    for (PostServiceRequestResponse psrr : pRespList) {
-                        Log.e("Service response: ", psrr.getId());
+                        for ( int i =0; i < serviceList.size(); i++){
+                            catagoryList.add(serviceList.get(i).getService_name());
+                        }
+                        catagoryAdapter.notifyDataSetChanged();
                     }
 
-                } else {
-
-                    try {
-                        JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
-                        JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
-
-                        Toast.makeText(getApplicationContext(), jObjError.getString("description"),
-                                Toast.LENGTH_SHORT).show();
-                        Log.e("Error message: ", jObjError.getString("description"));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+                    @Override
+                    public void onFailure(Call<List<Service>> call, Throwable t) {
+                        Toast.makeText(getApplicationContext(), t.getMessage(),Toast.LENGTH_SHORT).show();
                     }
-                }
+                });
+
+
+                catagoryList = new ArrayList<String>();
+                catagorySpinner = (Spinner) findViewById(R.id.spinner2);
+                catagoryAdapter = new ArrayAdapter<String>(this,
+                        android.R.layout.simple_spinner_item, catagoryList);
+                catagoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+                catagorySpinner.setAdapter(catagoryAdapter);
+            } else {
+                Toast.makeText(getApplicationContext(), getResources().getString(R.string.FoutOphalenProblemen),
+                        Toast.LENGTH_SHORT).show();
             }
-
-            @Override
-            public void onFailure(Call<ArrayList<PostServiceRequestResponse>> call, Throwable t) {
-                Toast.makeText(getApplicationContext(), t.getMessage(),Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        Call<List<Service>> serviceCall = client.getServices(ServiceClient.LANG_EN);
-
-        serviceCall.enqueue(new Callback<List<Service>>() {
-            @Override
-            public void onResponse(Call<List<Service>> call, Response<List<Service>> response) {
-                //serviceList.clear();
-                serviceList = response.body();
-
-                if (serviceList != null) {
-                    for (Service s : serviceList) {
-                        Log.e("Response: ", "" + s.getService_name());
-                    }
-
-                } else {
-                    Log.e("Response: ", "List was empty");
-                }
-
-                for ( int i =0; i < serviceList.size(); i++){
-                    catagoryList.add(serviceList.get(i).getService_name());
-                }
-                   catagoryAdapter.notifyDataSetChanged();
-            }
-
-            @Override
-            public void onFailure(Call<List<Service>> call, Throwable t) {
-                Toast.makeText(getApplicationContext(), t.getMessage(),Toast.LENGTH_SHORT).show();
-            }
-        });
-
-
-        catagoryList = new ArrayList<String>();
-        catagorySpinner = (Spinner) findViewById(R.id.spinner2);
-        catagoryAdapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_spinner_item, catagoryList);
-        catagoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
-        catagorySpinner.setAdapter(catagoryAdapter);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
 
     }
@@ -425,5 +422,11 @@ public class MeldingActivity extends AppCompatActivity {
         {
             return uri.getPath();
         }
+    }
+
+    public boolean isConnected() throws InterruptedException, IOException
+    {
+        String command = "ping -c 1 google.com";
+        return (Runtime.getRuntime().exec (command).waitFor() == 0);
     }
 }

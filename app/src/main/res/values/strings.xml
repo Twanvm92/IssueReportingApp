@@ -22,5 +22,6 @@
     <string name="update">Houd mij NIET op de hoogte via email</string>
     <string name="terug">Terug</string>
     <string name="meldingplaatsen">Plaats melding</string>
+    <string name="FoutOphalenProblemen">Kan op het moment geen categorieën ophalen. Probeer het later opnieuw</string>
 
 </resources>

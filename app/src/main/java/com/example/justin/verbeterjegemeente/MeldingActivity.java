@@ -67,6 +67,7 @@ public class MeldingActivity extends AppCompatActivity {
         locatieButton = (Button) findViewById(R.id.wijzigLocatieButton);
         locatieButton.setOnClickListener(new View.OnClickListener() {
 
+
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), MapsActivity.class);

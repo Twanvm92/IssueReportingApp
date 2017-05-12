@@ -219,7 +219,7 @@ public class MeldingActivity extends AppCompatActivity {
                 }
 
                 String descr = "";
-                if(beschrijvingEditText != null || !beschrijvingEditText.getText().equals("")) {
+                if(beschrijvingEditText != null && !beschrijvingEditText.getText().toString().equals("")) {
                     if (beschrijvingEditText.getText().toString().length() >= 10) {
                         descr = beschrijvingEditText.getText().toString();
                     } else {

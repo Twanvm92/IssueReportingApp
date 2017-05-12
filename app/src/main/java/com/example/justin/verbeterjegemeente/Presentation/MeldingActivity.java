@@ -239,7 +239,7 @@ public class MeldingActivity extends AppCompatActivity {
                         } else {
                             Log.i("Response: ", "List was empty");
                         }
-
+                        catagoryList.add("Kies uit lijst van problemen");
                         for ( int i =0; i < serviceList.size(); i++){
                             catagoryList.add(serviceList.get(i).getService_name());
                         }
@@ -256,7 +256,17 @@ public class MeldingActivity extends AppCompatActivity {
                 catagoryList = new ArrayList<String>();
                 catagorySpinner = (Spinner) findViewById(R.id.spinner2);
                 catagoryAdapter = new ArrayAdapter<String>(this,
-                        android.R.layout.simple_spinner_item, catagoryList);
+                        android.R.layout.simple_spinner_item, catagoryList){
+                    @Override //pakt de positions van elements in catagoryList en disabled the element dat postion null staat zodat we het kunnen gebruiken als een hint.
+                    public boolean isEnabled(int position){
+                        if (position == 0)
+                        {
+                            return false;
+                        }else{
+                            return true;
+                        }
+                    }
+                };
                 catagoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
                 catagorySpinner.setAdapter(catagoryAdapter);

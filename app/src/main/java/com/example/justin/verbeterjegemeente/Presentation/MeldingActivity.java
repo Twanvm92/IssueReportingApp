@@ -167,6 +167,21 @@ public class MeldingActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
+                String selecIt = "";
+                if(catagorySpinner != null && catagorySpinner.getSelectedItem() !=null) {
+                    selecIt = catagorySpinner.getSelectedItem().toString();
+                }
+
+                String sc = "";
+                if(serviceList != null) {
+                    for (Service s : serviceList) {
+                        if (s.getService_name().equals(selecIt)) {
+                            sc = s.getService_code();
+                            Log.i("Service code: ", sc);
+                        }
+                    }
+                }
+
                 String descr = beschrijvingEditText.getText().toString();
                 Log.e("Tekst uit beschrijvingV", descr);
                 String lon = "4.784283";
@@ -174,11 +189,11 @@ public class MeldingActivity extends AppCompatActivity {
                 RequestBody pLon = RequestBody.create(MediaType.parse("text/plain"), lon);
                 RequestBody pLat = RequestBody.create(MediaType.parse("text/plain"), lat);
                 RequestBody pDescr = RequestBody.create(MediaType.parse("text/plain"), descr);
-                RequestBody sc = RequestBody.create(MediaType.parse("text/plain"), "172");
+                RequestBody pSc = RequestBody.create(MediaType.parse("text/plain"), sc);
                 RequestBody apiK = RequestBody.create(MediaType.parse("text/plain"), ServiceGenerator.TEST_API_KEY);
 
                 Call<ArrayList<PostServiceRequestResponse>> serviceRequestResponseCall =
-                        client.postServiceRequest(apiK, pDescr, sc, pLat, pLon);
+                        client.postServiceRequest(apiK, pDescr, pSc, pLat, pLon);
 
                 serviceRequestResponseCall.enqueue(new Callback<ArrayList<PostServiceRequestResponse>>() {
                     @Override
@@ -239,11 +254,12 @@ public class MeldingActivity extends AppCompatActivity {
                         } else {
                             Log.i("Response: ", "List was empty");
                         }
-
-                        for ( int i =0; i < serviceList.size(); i++){
-                            catagoryList.add(serviceList.get(i).getService_name());
+                        if(serviceList != null) {
+                            for (int i = 0; i < serviceList.size(); i++) {
+                                catagoryList.add(serviceList.get(i).getService_name());
+                            }
+                            catagoryAdapter.notifyDataSetChanged();
                         }
-                        catagoryAdapter.notifyDataSetChanged();
                     }
 
                     @Override

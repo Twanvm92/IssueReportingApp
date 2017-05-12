@@ -38,9 +38,6 @@ public class MarkerHandler {
     //initialize data and markers
     public void init() {
 
-        //test data
-        Marker marker = mMap.addMarker(new MarkerOptions().position(new LatLng(10, 10)).visible(false).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-        markerCategory.add(marker);
     }
 
     //get Data from api and make markers

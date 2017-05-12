@@ -54,8 +54,6 @@ public class MeldingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_melding);
 
-
-
         reqCameraPermission();
 
 
@@ -235,11 +233,8 @@ public class MeldingActivity extends AppCompatActivity {
     }
 
     public void onActivityResult(int requestCode,int resultCode, Intent data) {
-        Toast.makeText(this, "Long: " + data.getDoubleExtra("long", 1) + " Lat: " + data.getDoubleExtra("lat", 1),Toast.LENGTH_SHORT).show();
-        /*
-        location.setLongitude(data.getDoubleExtra("long", 1));
-        location.setLongitude(data.getDoubleExtra("lat", 1));
-        */
+        //Toast.makeText(this, "Long: " + data.getDoubleExtra("long", 1) + " Lat: " + data.getDoubleExtra("lat", 1),Toast.LENGTH_SHORT).show();
+
         double lng = data.getDoubleExtra("long", 1);
         double lat = data.getDoubleExtra("lat", 1);
         location = new LatLng(lng, lat);

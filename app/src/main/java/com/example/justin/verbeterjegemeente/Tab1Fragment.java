@@ -14,6 +14,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -50,7 +51,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     private MarkerHandler mHandler;
     private MagicButton btnTEST;
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 2;
-    LatLng currentLocation;
+    public Location currentLocation;
     private GoogleApiClient mApiClient;
     public Marker currentMarker;
 
@@ -126,7 +127,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         //setup map settings
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         mMap.getUiSettings().setMapToolbarEnabled(false);
-        mMap.setPadding(150, 150, 300, 300);
+        mMap.setPadding(60, 100, 0, 180);
 
 
         //locatie voorziening
@@ -193,15 +194,15 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         if(currentMarker != null)
             currentMarker.remove();
 
-        Location currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
+        currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
         if(currentLocation != null) {
             LatLng currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
             currentMarker = mMap.addMarker(new MarkerOptions().position(currentLatLng)
-                    .title("current location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)).visible(true)
+                    .title("Huidige locatie").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)).visible(true)
             );
-            CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 17.0f);
+            CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
             mMap.moveCamera(center);
-        }
+        } 
     }
 
     @Override
@@ -216,6 +217,9 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
     @Override
     public void onLocationChanged(Location location) {
+        currentLocation.setLatitude(location.getLatitude());
+        currentLocation.setLongitude(location.getLongitude());
+
         getLocation();
     }
 }

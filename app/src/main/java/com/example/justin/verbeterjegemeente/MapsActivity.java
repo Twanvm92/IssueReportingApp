@@ -130,17 +130,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             marker.remove();
 
         currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
-        Toast.makeText(this, "Long: " + currentLocation.getLongitude() + " Lat: " + currentLocation.getLatitude(),Toast.LENGTH_SHORT).show();
+
+        //Toast.makeText(this, "Long: " + currentLocation.getLongitude() + " Lat: " + currentLocation.getLatitude(),Toast.LENGTH_SHORT).show();
+
         if(currentLocation != null) {
             LatLng currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
             marker = mMap.addMarker(new MarkerOptions().position(currentLatLng)
                     .title("current location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)).visible(true)
             );
-            CameraUpdate center = CameraUpdateFactory.newLatLng(currentLatLng);
-            CameraUpdate zoom = CameraUpdateFactory.zoomTo(15);
-
+            CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
             mMap.moveCamera(center);
-            mMap.animateCamera(zoom);
         }
     }
 }

@@ -41,9 +41,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import static android.R.id.list;
-import static com.example.justin.verbeterjegemeente.R.string.fotoWijzigen;
-
 public class MeldingActivity extends AppCompatActivity {
 
 
@@ -122,11 +119,13 @@ public class MeldingActivity extends AppCompatActivity {
 
             public void onClick(View v) {
 
-                Log.i("CAMERA", "ASKING PERMISSION");
-                reqCameraPermission();
+                if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA)!= PackageManager.PERMISSION_GRANTED) {
+                    Log.i("CAMERA", "ASKING PERMISSION");
+                    reqCameraPermission();
+                }
 
 
-                final CharSequence[] items = {"Foto maken", "Foto kiezen uit galerij"};
+                final CharSequence[] items = {getString(R.string.fotoMaken), getString(R.string.fotoKiezen)};
                 //builder.setTitle("Foto toevoegen");
                 builder.setItems(items, new DialogInterface.OnClickListener() {
                     @Override
@@ -134,10 +133,10 @@ public class MeldingActivity extends AppCompatActivity {
 
 
 
-                        if (items[item].equals("Foto maken")) {
+                        if (items[item].equals(getString(R.string.fotoMaken))) {
                             Intent makePhoto = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                             startActivityForResult(makePhoto, FOTO_MAKEN);
-                        } else if (items[item].equals("Kies bestaande foto")) {
+                        } else if (items[item].equals(getString(R.string.fotoKiezen))) {
                             Intent pickPhoto = new Intent(Intent.ACTION_PICK,
                                     android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                             startActivityForResult(pickPhoto, FOTO_KIEZEN);

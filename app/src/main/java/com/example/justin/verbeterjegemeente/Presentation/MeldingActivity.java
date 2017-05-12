@@ -1,4 +1,4 @@
-package com.example.justin.verbeterjegemeente;
+package com.example.justin.verbeterjegemeente.Presentation;
 
 import android.Manifest;
 import android.content.Context;
@@ -26,6 +26,8 @@ import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
+import com.example.justin.verbeterjegemeente.Presentation.MainActivity;
+import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.PostServiceRequestResponse;
 import com.example.justin.verbeterjegemeente.domain.Service;
 

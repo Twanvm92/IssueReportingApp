@@ -1,26 +1,13 @@
-package com.example.justin.verbeterjegemeente;
+package com.example.justin.verbeterjegemeente.Presentation;
 
 
-import android.content.Intent;
-
-import android.location.Location;
-
-import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 
-import com.google.android.gms.common.api.GoogleApiClient;
+import com.example.justin.verbeterjegemeente.Business.MarkerHandler;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;

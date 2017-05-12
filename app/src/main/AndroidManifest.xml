@@ -18,7 +18,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".SplashScreen"
+            android:name=".Presentation.SplashScreen"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -28,7 +28,7 @@
         </activity>
 
         <activity
-            android:name=".MainActivity"
+            android:name=".Presentation.MainActivity"
             android:theme="@style/AppTheme.NoActionBar"></activity>
 
 
@@ -45,7 +45,7 @@
             android:value="AIzaSyAuwLZcqLg394O8Ry0S4LpCgT599JBg_kQ" />
 
         <activity
-            android:name=".MapsActivity"
+            android:name=".Presentation.MapsActivity"
             android:label="@string/title_activity_maps" />
 
 
@@ -54,7 +54,7 @@
 
 
 
-        <activity android:name=".MeldingActivity"
+        <activity android:name=".Presentation.MeldingActivity"
             android:theme="@style/AppTheme.Meldingscherm"
             ></activity>
 

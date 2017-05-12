@@ -1,4 +1,4 @@
-package com.example.justin.verbeterjegemeente;
+package com.example.justin.verbeterjegemeente.Presentation;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -8,6 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
+
+import com.example.justin.verbeterjegemeente.R;
 
 /**
  * Created by Justin on 27-4-2017.

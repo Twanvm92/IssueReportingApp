@@ -1,4 +1,4 @@
-package com.example.justin.verbeterjegemeente;
+package com.example.justin.verbeterjegemeente.Business;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;

@@ -1,4 +1,4 @@
-package com.example.justin.verbeterjegemeente;
+package com.example.justin.verbeterjegemeente.Presentation;
 
 import android.support.design.widget.TabLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -7,11 +7,8 @@ import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.example.justin.verbeterjegemeente.domain.Service;
-
-import java.util.List;
-
-import retrofit2.Call;
+import com.example.justin.verbeterjegemeente.R;
+import com.example.justin.verbeterjegemeente.Adapters.SectionsPageAdapter;
 
 public class MainActivity extends AppCompatActivity {
 

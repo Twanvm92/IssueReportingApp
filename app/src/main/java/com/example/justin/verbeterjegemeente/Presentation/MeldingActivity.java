@@ -259,9 +259,39 @@ public class MeldingActivity extends AppCompatActivity {
                     pLName = RequestBody.create(MediaType.parse("text/plain"), lName);
                 }
 
+                String lon = "";
+                if(location != null) {
+                    if(location.getLongitude() != 0.0) {
+                        lon = "" + location.getLongitude();
+                        Log.e("Long after receive", lon);
+                    } else {
+                        Toast.makeText(getApplicationContext(),
+                                getResources().getString(R.string.geenLocatie),Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                } else {
+                    Toast.makeText(getApplicationContext(),
+                            getResources().getString(R.string.geenLocatie),Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                String lat = "";
+                if(location != null) {
+                    if(location.getLatitude() != 0.0) {
+                        lat = "" + location.getLatitude();
+                        Log.e("Lat after receive", lat);
+                    } else {
+                        Toast.makeText(getApplicationContext(),
+                                getResources().getString(R.string.geenLocatie),Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                } else {
+                    Toast.makeText(getApplicationContext(),
+                            getResources().getString(R.string.geenLocatie),Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 Log.e("Tekst uit beschrijvingV", descr);
-                String lon = "4.784283";
-                String lat = "51.591193";
                 RequestBody pLon = RequestBody.create(MediaType.parse("text/plain"), lon);
                 RequestBody pLat = RequestBody.create(MediaType.parse("text/plain"), lat);
                 RequestBody pDescr = RequestBody.create(MediaType.parse("text/plain"), descr);

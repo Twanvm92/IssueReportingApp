@@ -32,6 +32,7 @@
     <string name="kiesProblemen">Kies uit lijst van problemen</string>
     <string name="geenBeschrijving">Voeg een beschrijving toe</string>
     <string name="kBeschrijving">Beschrijving moet minimaal 10 karakters bevatten</string>
-    <string name="ePostRequest">Kan melding niet versturen. Verbind uw apparaat met het internet en probeer opnieuw</string>
+    <string name="ePostRequest">Kan melding niet versturen. Verbind uw apparaat met het internet en probeer opnieuw.</string>
+    <string name="geenLocatie">Geen locatie gevonden. Kies een locatie.</string>
 
 </resources>

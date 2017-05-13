@@ -61,6 +61,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     private MagicButton btnTEST;
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 2;
     public Location currentLocation;
+    private LatLng currentLatLng;
     private GoogleApiClient mApiClient;
     public Marker currentMarker;
 
@@ -160,21 +161,6 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         mHandler = new MarkerHandler(mMap);
         mHandler.init();
         mHandler.setVisible("category");
-
-        //click to add marker
-        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-            @Override
-            public void onMapClick(LatLng latLng) {
-                //remove marker if exists
-                if (marker != null)
-                    marker.remove();
-
-                //make new marker
-                marker = mMap.addMarker(new MarkerOptions().position(latLng).title("marker")
-                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-
-            }
-        });
     }
 
     public void initApi() {
@@ -232,13 +218,12 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
         currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
         if(currentLocation != null) {
-            LatLng currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-            currentMarker = mMap.addMarker(new MarkerOptions().position(currentLatLng)
-                    .title("Huidige locatie").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)).visible(true)
-            );
-            CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
-            mMap.moveCamera(center);
+            currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+        } else {
+            currentLatLng = new LatLng(51.58656, 4.77596);
         }
+        CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
+        mMap.moveCamera(center);
     }
 
     @Override
@@ -259,4 +244,5 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         getLocation();
     }
 }
+
 

@@ -44,7 +44,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Location currentLocation;
     private GoogleApiClient mApiClient;
     private FloatingActionButton saveButton;
-
+    private LatLng currentLatLng;
     /**
      * onCreate wordt opgeroepen wanneer de klasse wordt gemaakt. hierbij wordt de map opgeroepen,
      * een GoogleApiCLient aangemaakt en de savebutton gemaakt.
@@ -74,10 +74,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(View v) {
                 Intent i = new Intent();
-                i.putExtra("long", currentLocation.getLongitude()); //post longitude
-                i.putExtra("lat", currentLocation.getLatitude()); //post latitude
-                Log.i("before Long: ", String.valueOf(currentLocation.getLongitude())); //log values
-                Log.i("before Lat: ", String.valueOf(currentLocation.getLatitude()));
+                if(currentLatLng != null) {
+                    i.putExtra("long", currentLatLng.longitude); //post longitude
+                    i.putExtra("lat", currentLatLng.latitude); //post latitude
+                }
                 setResult(RESULT_OK, i); //set result and return
                 finish();
             }
@@ -99,10 +99,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onMapClick(LatLng latLng) {
                 //remove marker if exists
+
                 if (marker != null)
                     marker.remove();
-                currentLocation.setLongitude(latLng.longitude);
-                currentLocation.setLatitude(latLng.latitude);
+                currentLatLng = latLng;
                 //make new marker
                 marker = mMap.addMarker(new MarkerOptions().position(latLng).title("marker")
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
@@ -152,24 +152,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient); //haal locatie op
 
-        //Toast.makeText(this, "Long: " + currentLocation.getLongitude() + " Lat: " + currentLocation.getLatitude(),Toast.LENGTH_SHORT).show();
-
         if(currentLocation != null) {
-            LatLng currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-            marker = mMap.addMarker(new MarkerOptions().position(currentLatLng)
-                    .title("current location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)).visible(true)
-            ); //maak nieuwe marker
-            CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
-            mMap.moveCamera(center); //update camera
+            currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+            Toast.makeText(this, "Long: " + currentLocation.getLongitude() + " Lat: " + currentLocation.getLatitude(),Toast.LENGTH_SHORT).show();
+
+        } else {
+            currentLatLng = new LatLng(51.58656, 4.77596);
         }
+
+        marker = mMap.addMarker(new MarkerOptions().position(currentLatLng)
+                .title("current location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)).visible(true)
+        ); //maak nieuwe marker
+        CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
+        mMap.moveCamera(center); //update camera
     }
 
     public void onBackPressed() {
         Intent i = new Intent();
-        i.putExtra("long", currentLocation.getLongitude()); //post longitude
-        i.putExtra("lat", currentLocation.getLatitude()); //post latitude
-        Log.i("before Long: ", String.valueOf(currentLocation.getLongitude())); //log values
-        Log.i("before Lat: ", String.valueOf(currentLocation.getLatitude()));
+        if(currentLatLng != null) {
+            i.putExtra("long", currentLatLng.longitude); //post longitude
+            i.putExtra("lat", currentLatLng.latitude); //post latitude
+            Log.i("before Long: ", String.valueOf(currentLatLng.longitude)); //log values
+            Log.i("before Lat: ", String.valueOf(currentLatLng.latitude));
+        }
         setResult(RESULT_OK, i); //set result and return
         finish();
     }

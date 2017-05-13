@@ -1,21 +1,19 @@
-package com.example.justin.verbeterjegemeente;
+package com.example.justin.verbeterjegemeente.Presentation;
 
+import android.content.Intent;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v7.app.AppCompatActivity;
 
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.example.justin.verbeterjegemeente.*;
+import com.example.justin.verbeterjegemeente.Adapters.SectionsPageAdapter;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import rx.SingleSubscriber;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -24,6 +22,7 @@ public class MainActivity extends AppCompatActivity {
     private SectionsPageAdapter mSectionsPageAdapter;
 
     private ViewPager mViewPager;
+    private FloatingActionButton fab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,42 +39,51 @@ public class MainActivity extends AppCompatActivity {
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
 
-
-        ServiceClient client = ServiceGenerator.createService(ServiceClient.class);
-        /*final Call<List<Service>> serviceCall = client.getServices("en");
-
-        serviceCall.enqueue(new Callback<List<Service>>() {
+        fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onResponse(Call<List<Service>> call, Response<List<Service>> response) {
-                List<Service> serviceList = response.body();
+            public void onClick(View v) {
+                Intent in = new Intent(getApplicationContext(),
+                        com.example.justin.verbeterjegemeente.Presentation.MeldingActivity.class);
+                startActivity(in);
+            }
+        });
 
-                if (serviceList != null) {
-                    Log.i("Response: ", "" + serviceList.get(0).getService_name());
-                } else {
-                    Log.i("Response: ", "List was empty");
+        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                switch (position){
+                    case 0:
+                        fab.show();
+
+                        break;
+
+                    case 1:
+                        fab.show();
+                        break;
+
+                    case 2:
+                        fab.hide();
+                        break;
+
+                    default:
+                        fab.hide();
+                        break;
                 }
+
             }
 
             @Override
-            public void onFailure(Call<List<Service>> call, Throwable t) {
+            public void onPageScrollStateChanged(int state) {
 
             }
-        });*/
+        });
 
-        client.getServices("en")
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new SingleSubscriber<List<Service>>() {
-                    @Override
-                    public void onSuccess(List<Service> value) {
-                        Log.i("Service: ", value.get(0).getService_name());
-                    }
-
-                    @Override
-                    public void onError(Throwable error) {
-
-                    }
-                });
 
         tabLayout.getTabAt(0).setIcon(R.drawable.mapicon);
         tabLayout.getTabAt(1).setIcon(R.drawable.listicon);

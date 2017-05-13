@@ -3,14 +3,11 @@
     package="com.example.justin.verbeterjegemeente">
 
 
-
     <uses-permission android:name="android.permission.CAMERA" />
-
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-
-
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
 
@@ -22,8 +19,8 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".SplashScreen"
-            android:theme="@style/AppTheme.NoTitle">
+            android:name=".Presentation.SplashScreen"
+            android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -32,24 +29,15 @@
         </activity>
 
         <activity
-            android:name=".MainActivity"
+            android:name=".Presentation.MainActivity"
             android:theme="@style/AppTheme.NoActionBar"></activity>
 
-
-        <!--
-             The API key for Google Maps-based APIs is defined as a string resource.
-             (See the file "res/values/google_maps_api.xml").
-             Note that the API key is linked to the encryption key used to sign the APK.
-             You need a different API key for each encryption key, including the release key that is used to
-             sign the APK for publishing.
-             You can define the keys for the debug and release targets in src/debug/ and src/release/.
-        -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyAuwLZcqLg394O8Ry0S4LpCgT599JBg_kQ" />
 
         <activity
-            android:name=".MapsActivity"
+            android:name=".Presentation.MapsActivity"
             android:label="@string/title_activity_maps" />
 
 
@@ -58,8 +46,10 @@
 
 
 
-        <activity android:name=".MeldingActivity"
-            android:theme="@style/Theme.AppCompat.Light.DarkActionBar"
+
+        <activity android:name=".Presentation.MeldingActivity"
+            android:theme="@style/AppTheme.Meldingscherm"
+
             ></activity>
 
 

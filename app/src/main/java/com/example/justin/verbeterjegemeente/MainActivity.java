@@ -1,4 +1,4 @@
-package com.example.justin.verbeterjegemeente.Presentation;
+package com.example.justin.verbeterjegemeente;
 
 import android.content.Intent;
 import android.support.design.widget.FloatingActionButton;
@@ -10,17 +10,12 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 
-import com.example.justin.verbeterjegemeente.R;
-import com.example.justin.verbeterjegemeente.SectionsPageAdapter;
-import com.example.justin.verbeterjegemeente.Service;
-import com.example.justin.verbeterjegemeente.ServiceClient;
-import com.example.justin.verbeterjegemeente.ServiceGenerator;
-import com.example.justin.verbeterjegemeente.Tab1Fragment;
-import com.example.justin.verbeterjegemeente.Tab2Fragment;
-import com.example.justin.verbeterjegemeente.Tab3Fragment;
-
+import java.util.ArrayList;
 import java.util.List;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import rx.SingleSubscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;

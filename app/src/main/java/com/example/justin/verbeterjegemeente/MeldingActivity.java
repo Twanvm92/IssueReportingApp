@@ -1,4 +1,4 @@
-package com.example.justin.verbeterjegemeente.Presentation;
+package com.example.justin.verbeterjegemeente;
 
 import android.Manifest;
 import android.app.Activity;
@@ -24,8 +24,6 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.justin.verbeterjegemeente.MapsActivity;
-import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.Locatie;
 import com.example.justin.verbeterjegemeente.domain.Melding;
 import com.google.android.gms.maps.model.LatLng;

@@ -32,7 +32,7 @@
         </activity>
 
         <activity
-            android:name=".Presentation.MainActivity"
+            android:name=".MainActivity"
             android:theme="@style/AppTheme.NoActionBar"></activity>
 
         <meta-data
@@ -50,7 +50,7 @@
 
 
 
-        <activity android:name=".Presentation.MeldingActivity"
+        <activity android:name=".MeldingActivity"
             android:theme="@style/Theme.AppCompat.Light.DarkActionBar"
             ></activity>
 

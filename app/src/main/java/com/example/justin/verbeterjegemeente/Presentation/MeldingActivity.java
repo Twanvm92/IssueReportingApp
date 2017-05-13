@@ -33,8 +33,10 @@ import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.Presentation.MainActivity;
 import com.example.justin.verbeterjegemeente.R;
+import com.example.justin.verbeterjegemeente.domain.Locatie;
 import com.example.justin.verbeterjegemeente.domain.PostServiceRequestResponse;
 import com.example.justin.verbeterjegemeente.domain.Service;
+import com.google.android.gms.maps.model.LatLng;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -80,9 +82,11 @@ public class MeldingActivity extends AppCompatActivity {
     private static final int MY_PERMISSIONS_STORAGE = 2;
     private static final int FOTO_MAKEN = 1;
     private static final int FOTO_KIEZEN = 2;
+    private static final int LOCATIE_KIEZEN= 3;
     private Uri selectedImage;
     private android.app.AlertDialog.Builder builder;
     private String imagePath = null;
+    private Locatie location;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,7 +108,8 @@ public class MeldingActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View v) {
-
+                Intent intent = new Intent(getApplicationContext(), MapsActivity.class);
+                startActivityForResult(intent, LOCATIE_KIEZEN);
             }
         });
 
@@ -515,7 +520,20 @@ public class MeldingActivity extends AppCompatActivity {
                     fotoButton.setText(R.string.fotoWijzigen);
                     imagePath = image_path;
 
-           }
+                }
+                break;
+            case LOCATIE_KIEZEN:
+                if(resultCode == RESULT_OK){
+                    if(data.hasExtra("long")) {
+                        double lng = data.getDoubleExtra("long", 1);
+                        double lat = data.getDoubleExtra("lat", 1);
+                        location = new Locatie(lng, lat);
+                        Log.e("long: ", "" + location.getLongitude());
+                        Log.e("lat: ", "" + location.getLatitude());
+
+                    }
+
+                }
                 break;
         }
     }

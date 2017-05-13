@@ -6,13 +6,14 @@ package com.example.justin.verbeterjegemeente.domain;
 
 public class Locatie {
 
-    private int longitude, latitude;
+    private double longitude, latitude;
 
-    public Locatie() {
-
+    public Locatie(double longitude, double latitude) {
+        this.longitude = longitude;
+        this.latitude = latitude;
     }
 
-    public int getLongitude() {
+    public double getLongitude() {
         return longitude;
     }
 
@@ -20,7 +21,7 @@ public class Locatie {
         this.longitude = longitude;
     }
 
-    public int getLatitude() {
+    public double getLatitude() {
         return latitude;
     }
 

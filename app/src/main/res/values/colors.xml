@@ -2,10 +2,12 @@
 <resources>
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
+
     <color name="colorAccent">#FF4081</color>
     <color name="colorTab">#212121</color>
     <color name="colorTab2">#000000</color>
     <color name="colorBackground">#424242</color>
     <color name="colorBackground2">#616161</color>
     <color name="mooiGroen">#FF6FDA7F</color>
+
 </resources>

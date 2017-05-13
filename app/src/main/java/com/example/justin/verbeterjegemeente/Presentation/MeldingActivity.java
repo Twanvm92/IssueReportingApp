@@ -314,7 +314,8 @@ public class MeldingActivity extends AppCompatActivity {
 
                                     for (PostServiceRequestResponse psrr : pRespList) {
                                         Log.i("Service response: ", psrr.getId());
-                                        Toast.makeText(getApplicationContext(), psrr.getId(),
+                                        Toast.makeText(getApplicationContext(),
+                                                "service request is aangemaakt met id: " + psrr.getId(),
                                                 Toast.LENGTH_SHORT).show();
                                     }
 
@@ -337,7 +338,8 @@ public class MeldingActivity extends AppCompatActivity {
 
                             @Override
                             public void onFailure(Call<ArrayList<PostServiceRequestResponse>> call, Throwable t) {
-                                Toast.makeText(getApplicationContext(), t.getMessage(),Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getApplicationContext(), getResources().getString(R.string.ePostRequest),
+                                        Toast.LENGTH_SHORT).show();
                             }
                         });
 

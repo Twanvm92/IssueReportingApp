@@ -1,12 +1,14 @@
 package com.example.justin.verbeterjegemeente.Presentation;
 
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 
 import android.support.v4.view.ViewPager;
@@ -56,9 +58,9 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(tabFragment.currentLocation != null) {
-                    double longCor = tabFragment.currentLocation.getLongitude();
-                    double latCor = tabFragment.currentLocation.getLatitude();
+                if(tabFragment.currentLatLng != null) {
+                    double longCor = tabFragment.currentLatLng.longitude;
+                    double latCor = tabFragment.currentLatLng.latitude;
                     currentLatLng = new LatLng(longCor, latCor);
                 }
                 Intent in = new Intent(getApplicationContext(),
@@ -131,24 +133,28 @@ public class MainActivity extends AppCompatActivity {
                     if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                         return;
                     }
-                    currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
-                    if(currentLocation != null) {
-                        currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+
+                    if (mApiClient != null) {
+                        currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
+
+                        if (currentLocation != null) {
+                            currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+                        } else {
+                            currentLatLng = new LatLng(51.58656, 4.77596);
+                        }
+                        CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
+                        mMap.moveCamera(center);
                     } else {
                         currentLatLng = new LatLng(51.58656, 4.77596);
+                        CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
+                        mMap.moveCamera(center);
+
                     }
-                    CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
-                    mMap.moveCamera(center);
-                } else {
-                    currentLatLng = new LatLng(51.58656, 4.77596);
-                    CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
-                    mMap.moveCamera(center);
+                    return;
                 }
-                return;
             }
+
+
         }
-
-
     }
-
 }

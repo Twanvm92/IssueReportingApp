@@ -108,7 +108,7 @@ public class MeldingActivity extends AppCompatActivity {
             double lng = in.getDoubleExtra("long", 1);
             double lat = in.getDoubleExtra("lat", 1);
             location = new Locatie(lng, lat);
-            Toast.makeText(this, "Long: " + location.getLongitude() + " Lat: " + location.getLatitude(),Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "Long: " + location.getLongitude() + " Lat: " + location.getLatitude(),Toast.LENGTH_SHORT).show();
 
         }
 

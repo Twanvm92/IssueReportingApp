@@ -1,6 +1,7 @@
 package com.example.justin.verbeterjegemeente.Presentation;
 
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -10,6 +11,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -45,6 +47,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleApiClient mApiClient;
     private FloatingActionButton saveButton;
     private LatLng currentLatLng;
+
+    private boolean popupShown = false;
     /**
      * onCreate wordt opgeroepen wanneer de klasse wordt gemaakt. hierbij wordt de map opgeroepen,
      * een GoogleApiCLient aangemaakt en de savebutton gemaakt.
@@ -150,15 +154,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         if(marker != null)//verwijder de oude marker
             marker.remove();
-
-        currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient); //haal locatie op
-
+        if(mApiClient != null) {
+            currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient); //haal locatie op
+        }
         if(currentLocation != null) {
             currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
             Toast.makeText(this, "Long: " + currentLocation.getLongitude() + " Lat: " + currentLocation.getLatitude(),Toast.LENGTH_SHORT).show();
 
         } else {
             currentLatLng = new LatLng(51.58656, 4.77596);
+            Toast.makeText(this, "Locatie kon niet worden opgehaald", Toast.LENGTH_SHORT).show();
         }
 
         marker = mMap.addMarker(new MarkerOptions().position(currentLatLng)

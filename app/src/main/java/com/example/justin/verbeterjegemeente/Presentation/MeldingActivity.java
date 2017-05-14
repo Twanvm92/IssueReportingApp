@@ -11,6 +11,7 @@ import android.graphics.Bitmap;
 import android.graphics.Path;
 import android.media.Image;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.StringRes;
@@ -149,9 +150,14 @@ public class MeldingActivity extends AppCompatActivity {
             @Override
 
             public void onClick(View v) {
-//                permissies aanvragen gaat async, kan niet meerdere permissies tegelijk aanvragen of wachten tot gebruiker antwoord geeft op de aanvraag
-//                misschien later nog uitzoeken hoe dit moet.
+                int PERMISSION_ALL = 1;
+                String[] PERMISSIONS = {Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+                if(!hasPermissions(getApplicationContext(), PERMISSIONS)){
+                    ActivityCompat.requestPermissions(MeldingActivity.this, PERMISSIONS, PERMISSION_ALL);
+                }
 
+//                permissies aanvragen gaat async, kan niet wachten tot gebruiker antwoord geeft op de aanvraag
+//                misschien later nog uitzoeken hoe dit moet.
                 final CharSequence[] items = {getString(R.string.fotoMaken), getString(R.string.fotoKiezen)};
                 //builder.setTitle("Foto toevoegen");
                 builder.setItems(items, new DialogInterface.OnClickListener() {
@@ -436,6 +442,23 @@ public class MeldingActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+    }
+
+    /**
+     * controleren of alle permissies zijn gegeven die nodig zijn in dit scherm om alles uit te kunnen voeren
+     * @param context
+     * @param permissions permissies die gecontroleerd moeten worden
+     * @return boolean of ALLE permissies gegeven zijn
+     */
+    public static boolean hasPermissions(Context context, String... permissions) {
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && context != null && permissions != null) {
+            for (String permission : permissions) {
+                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     /**

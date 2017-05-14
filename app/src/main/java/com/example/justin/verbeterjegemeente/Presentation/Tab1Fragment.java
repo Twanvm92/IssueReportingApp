@@ -24,6 +24,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.Business.MarkerHandler;
 import com.google.android.gms.common.ConnectionResult;
@@ -41,6 +42,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.TileProvider;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -54,17 +56,18 @@ import br.com.bloder.magic.view.MagicButton;
 public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         com.google.android.gms.location.LocationListener {
-    private GoogleMap mMap;
+    public GoogleMap mMap;
     private Marker marker;
     private Button button;
     private MarkerHandler mHandler;
     private MagicButton btnTEST;
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 2;
-    public Location currentLocation;
-    private GoogleApiClient mApiClient;
+    private Location currentLocation;
+    public LatLng currentLatLng;
+    public GoogleApiClient mApiClient;
     public Marker currentMarker;
 
-
+    boolean popupShown = false;
 
 
     /*@Nullable
@@ -111,10 +114,16 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     }
 
     public void onStop() {
-        LocationServices.FusedLocationApi.removeLocationUpdates(mApiClient, this);
+        try {
+            if (!isConnected()) {
+                LocationServices.FusedLocationApi.removeLocationUpdates(mApiClient, this);
+                if (mApiClient != null) {
+                    mApiClient.disconnect();
 
-        if (mApiClient != null) {
-            mApiClient.disconnect();
+                }
+            }
+        } catch(Exception e) {
+            Log.i("EXCEPTION: ", e.getLocalizedMessage());
         }
 
         super.onStop();
@@ -160,21 +169,6 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         mHandler = new MarkerHandler(mMap);
         mHandler.init();
         mHandler.setVisible("category");
-
-        //click to add marker
-        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-            @Override
-            public void onMapClick(LatLng latLng) {
-                //remove marker if exists
-                if (marker != null)
-                    marker.remove();
-
-                //make new marker
-                marker = mMap.addMarker(new MarkerOptions().position(latLng).title("marker")
-                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-
-            }
-        });
     }
 
     public void initApi() {
@@ -204,18 +198,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         }
     }
 
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    getLocation();
-                } else {
 
-                }
-                return;
-            }
-        }
-    }
 
 
     @Override
@@ -227,18 +210,27 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         if (ActivityCompat.checkSelfPermission(this.getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this.getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-        if(currentMarker != null)
-            currentMarker.remove();
 
         currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
         if(currentLocation != null) {
-            LatLng currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-            currentMarker = mMap.addMarker(new MarkerOptions().position(currentLatLng)
-                    .title("Huidige locatie").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)).visible(true)
-            );
-            CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
-            mMap.moveCamera(center);
+            currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+        } else {
+            currentLatLng = new LatLng(51.58656, 4.77596);
+            if(!popupShown) {
+                new AlertDialog.Builder(this.getContext())
+                        .setTitle("Locatie bepalen mislukt")
+                        .setMessage("het is niet gelukt uw huidige locatie te bepalen, mogelijk staat locatie voorziening uit, of is er geen internetverbinding. probeer het later opnieuw.")
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                            }
+                        }).setIcon(android.R.drawable.ic_dialog_alert).show();
+                popupShown = !popupShown;
+            } else {
+                Toast.makeText(this.getContext(), "Locatie kon niet worden opgehaald", Toast.LENGTH_SHORT).show();
+            }
         }
+        CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
+        mMap.moveCamera(center);
     }
 
     @Override
@@ -253,10 +245,11 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
     @Override
     public void onLocationChanged(Location location) {
-        currentLocation.setLatitude(location.getLatitude());
-        currentLocation.setLongitude(location.getLongitude());
+        LatLng locationLatLng = new LatLng(location.getLongitude(), location.getLatitude());
+        currentLatLng = locationLatLng;
 
         getLocation();
     }
 }
+
 

@@ -103,6 +103,15 @@ public class MeldingActivity extends AppCompatActivity {
         voornaamTextView = (TextView) findViewById(R.id.voornaamtextview);
         achternaamTextView = (TextView) findViewById(R.id.achternaamtextview);
 
+        Intent in = getIntent();
+        if(in.hasExtra("long")) {
+            double lng = in.getDoubleExtra("long", 1);
+            double lat = in.getDoubleExtra("lat", 1);
+            location = new Locatie(lng, lat);
+            Toast.makeText(this, "Long: " + location.getLongitude() + " Lat: " + location.getLatitude(),Toast.LENGTH_SHORT).show();
+
+        }
+
         locatieButton = (Button) findViewById(R.id.wijzigLocatieButton);
         locatieButton.setOnClickListener(new View.OnClickListener() {
 

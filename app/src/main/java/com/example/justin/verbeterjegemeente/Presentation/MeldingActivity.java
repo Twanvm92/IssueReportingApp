@@ -140,12 +140,8 @@ public class MeldingActivity extends AppCompatActivity {
             @Override
 
             public void onClick(View v) {
-
-                if (ContextCompat.checkSelfPermission(getApplicationContext(),
-                        Manifest.permission.CAMERA)!= PackageManager.PERMISSION_GRANTED) {
-                    Log.i("CAMERA", "ASKING PERMISSION");
-                    reqCameraPermission();
-                }
+//                permissies aanvragen gaat async, kan niet meerdere permissies tegelijk aanvragen of wachten tot gebruiker antwoord geeft op de aanvraag
+//                misschien later nog uitzoeken hoe dit moet.
 
                 final CharSequence[] items = {getString(R.string.fotoMaken), getString(R.string.fotoKiezen)};
                 //builder.setTitle("Foto toevoegen");
@@ -154,20 +150,48 @@ public class MeldingActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int item) {
 
                         if (items[item].equals(getString(R.string.fotoMaken))) {
-                            Intent makePhoto = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                            startActivityForResult(makePhoto, FOTO_MAKEN);
+                            if (ContextCompat.checkSelfPermission(getApplicationContext(),
+                                    Manifest.permission.CAMERA)!= PackageManager.PERMISSION_GRANTED) {
+                                Log.i("CAMERA", "ASKING PERMISSION");
+                                reqCameraPermission();
+                            }
+                            if (ContextCompat.checkSelfPermission(getApplicationContext(),
+                                    Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                                try {
+                                    Intent makePhoto = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                                    startActivityForResult(makePhoto, FOTO_MAKEN);
+                                } catch (Exception e) {
+                                    Log.e("PERMISSION", "camera not granted");
+                                    reqCameraPermission();
+                                }
+                            } else {
+                                    builder.show();
+                            }
+
                         } else if (items[item].equals(getString(R.string.fotoKiezen))) {
-                            Intent pickPhoto = new Intent(Intent.ACTION_PICK,
-                                    android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                            startActivityForResult(pickPhoto, FOTO_KIEZEN);
+                            if (ContextCompat.checkSelfPermission(getApplicationContext(),
+                                    Manifest.permission.WRITE_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED) {
+                                Log.i("STORAGE", "ASKING PERMISSION");
+                                reqWriteStoragePermission();
+                            }
+                            if (ContextCompat.checkSelfPermission(getApplicationContext(),
+                                    Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                                try {
+                                    Intent pickPhoto = new Intent(Intent.ACTION_PICK,
+                                            android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                                    startActivityForResult(pickPhoto, FOTO_KIEZEN);
+                                } catch (Exception e) {
+                                    Log.e("PERMISSION", "storage not granted");
+                                    reqWriteStoragePermission();
+                                }
+                            } else {
+                                builder.show();
+                            }
                         }
                     }
                 });
                 builder.show();
                }
-
-
-
             }
         );
 
@@ -424,19 +448,19 @@ public class MeldingActivity extends AppCompatActivity {
                     // contacts-related task you need to do.
 
                     Log.i("PERMISSION", "camera granted");
-                    fotoButton.setEnabled(true);
+//                    fotoButton.setEnabled(true);
 
-                    Log.i("STORAGE", "ASKING PERMISSION");
-                    reqWriteStoragePermission();
+//                    Log.i("STORAGE", "ASKING PERMISSION");
+//                    reqWriteStoragePermission();
 
                 } else {
 
                     // permission denied, boo! Disable the
                     Log.i("PERMISSION", "camera not granted");
-                    fotoButton.setEnabled(false);
+//                    fotoButton.setEnabled(false);
 
-                    Log.i("STORAGE", "ASKING PERMISSION");
-                    reqWriteStoragePermission();
+//                    Log.i("STORAGE", "ASKING PERMISSION");
+//                    reqWriteStoragePermission();
                     // functionality that depends on this permission.
                 }
             }
@@ -449,13 +473,13 @@ public class MeldingActivity extends AppCompatActivity {
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
 
-                    fotoButton.setEnabled(true);
+//                    fotoButton.setEnabled(true);
                     Log.i("PERMISSION", "storage granted");
                 } else {
 
                     // permission denied, boo! Disable the
                     Log.i("PERMISSION", "storage not granted");
-                    fotoButton.setEnabled(false);
+//                    fotoButton.setEnabled(false);
                     // functionality that depends on this permission.
                 }
                 return;
@@ -513,6 +537,9 @@ public class MeldingActivity extends AppCompatActivity {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this,
                     Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
 
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        MY_PERMISSIONS_STORAGE);
             } else {
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},

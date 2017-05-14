@@ -54,7 +54,7 @@ import br.com.bloder.magic.view.MagicButton;
 public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         com.google.android.gms.location.LocationListener {
-    private GoogleMap mMap;
+    public GoogleMap mMap;
     private Marker marker;
     private Button button;
     private MarkerHandler mHandler;
@@ -62,7 +62,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 2;
     public Location currentLocation;
     private LatLng currentLatLng;
-    private GoogleApiClient mApiClient;
+    public GoogleApiClient mApiClient;
     public Marker currentMarker;
 
 
@@ -190,18 +190,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         }
     }
 
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    getLocation();
-                } else {
 
-                }
-                return;
-            }
-        }
-    }
 
 
     @Override
@@ -213,8 +202,6 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         if (ActivityCompat.checkSelfPermission(this.getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this.getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-        if(currentMarker != null)
-            currentMarker.remove();
 
         currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
         if(currentLocation != null) {

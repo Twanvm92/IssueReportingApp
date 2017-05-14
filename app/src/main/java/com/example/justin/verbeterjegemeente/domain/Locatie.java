@@ -1,7 +1,9 @@
 package com.example.justin.verbeterjegemeente.domain;
 
-/**
- * Created by Mika Krooswijk on 8-5-2017.
+/** <code>Locatie</code> is a class that saves the location of a user
+ * in longtitude and latitude.
+ * @author Mika Krooswijk
+ * @author Twan van Maastricht
  */
 
 public class Locatie {

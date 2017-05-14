@@ -4,19 +4,14 @@ import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.Path;
-import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.support.annotation.StringRes;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -31,12 +26,10 @@ import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
-import com.example.justin.verbeterjegemeente.Presentation.MainActivity;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.Locatie;
 import com.example.justin.verbeterjegemeente.domain.PostServiceRequestResponse;
 import com.example.justin.verbeterjegemeente.domain.Service;
-import com.google.android.gms.maps.model.LatLng;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -45,10 +38,8 @@ import org.json.JSONObject;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
-
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -61,6 +52,11 @@ import retrofit2.Response;
 /**
  * Deze klasse zorgt ervoor dat de gebruiker een meldingsformulier kan invullen en deze informatie aan de database connectie klasse geeft
  * Alle benodigde informatie moet hier ingevuld worden en zijn er enkele optionele opties die de gebruiker kan kiezen
+ * @author Twan van Maastricht
+ * @author Justin Kannekens
+ * @author Maikel Jacobs
+ * @author Thijs van Marle
+ * @author Mika Krooswijk
  */
 public class MeldingActivity extends AppCompatActivity {
 
@@ -117,6 +113,7 @@ public class MeldingActivity extends AppCompatActivity {
 
         builder = new android.app.AlertDialog.Builder(this);
 
+        // create an arraylist that will contain different categories fetched from an open311 interface
         catagoryList = new ArrayList<String>();
         catagoryList.add(getResources().getString(R.string.kiesProblemen));
         catagorySpinner = (Spinner) findViewById(R.id.spinner2);
@@ -187,6 +184,8 @@ public class MeldingActivity extends AppCompatActivity {
             }
         });
 
+        // create a Retrofit client by passing ServiceClient
+        // you can now start to enqueue requests
         client = ServiceGenerator.createService(ServiceClient.class);
 
         plaatsButton = (Button) findViewById(R.id.plaatsButton);
@@ -194,6 +193,7 @@ public class MeldingActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
+                // initialize selected category and check if selected category is actually a category
                 String selecIt = "";
                 if(catagorySpinner != null && catagorySpinner.getSelectedItem() !=null
                         && !catagorySpinner.getSelectedItem()
@@ -205,6 +205,8 @@ public class MeldingActivity extends AppCompatActivity {
                     return;
                 }
 
+                // checks which category is selected and initializes the service code tht matches
+                // the category
                 String sc = "";
                 if(serviceList != null) {
                     for (Service s : serviceList) {
@@ -215,6 +217,8 @@ public class MeldingActivity extends AppCompatActivity {
                     }
                 }
 
+                // create a new file part that contains an image, to send with a post service request.
+                // the image path has been provided by the user.
                 MultipartBody.Part imgBody = null;
                 if (imagePath != null) {
                     File imgFile = new File(imagePath);
@@ -223,6 +227,8 @@ public class MeldingActivity extends AppCompatActivity {
                     imgBody = MultipartBody.Part.createFormData("image", imgFile.getName(), requestFile);
                 }
 
+                // initializes a description that the user has provided
+                // to send with the post service request
                 String descr = "";
                 if(beschrijvingEditText != null && !beschrijvingEditText.getText().toString().equals("")) {
                     if (beschrijvingEditText.getText().toString().length() >= 10) {
@@ -238,6 +244,8 @@ public class MeldingActivity extends AppCompatActivity {
                     return;
                 }
 
+                // initializes an e-mailaddress that the user has provided
+                // to send with the post service request
                 String email = "";
                 RequestBody pEmail = null;
                 if(emailEditText != null || !emailEditText.getText().equals("")) {
@@ -245,6 +253,8 @@ public class MeldingActivity extends AppCompatActivity {
                     pEmail = RequestBody.create(MediaType.parse("text/plain"), email);
                 }
 
+                // initializes a last name that the user has provided
+                // to send with the post service request
                 String fName = "";
                 RequestBody pFName = null;
                 if(voornaamEditText != null || !voornaamEditText.getText().equals("")) {
@@ -252,6 +262,8 @@ public class MeldingActivity extends AppCompatActivity {
                     pFName = RequestBody.create(MediaType.parse("text/plain"), fName);
                 }
 
+                // initializes a last name that the user has provided
+                // to send with the post service request
                 String lName = "";
                 RequestBody pLName = null;
                 if(achternaamEditText != null || !achternaamEditText.getText().equals("")) {
@@ -259,6 +271,8 @@ public class MeldingActivity extends AppCompatActivity {
                     pLName = RequestBody.create(MediaType.parse("text/plain"), lName);
                 }
 
+                // initializes a longtitude of the user's current location or a longtitude that
+                // has been provided by the user
                 String lon = "";
                 if(location != null) {
                     if(location.getLongitude() != 0.0) {
@@ -275,6 +289,8 @@ public class MeldingActivity extends AppCompatActivity {
                     return;
                 }
 
+                // initializes a latitude of the user's current location or a latitude that
+                // has been provided by the user
                 String lat = "";
                 if(location != null) {
                     if(location.getLatitude() != 0.0) {
@@ -291,7 +307,8 @@ public class MeldingActivity extends AppCompatActivity {
                     return;
                 }
 
-                Log.e("Tekst uit beschrijvingV", descr);
+
+                // parse the data to multipart/form-data that has to be send with the post service request
                 RequestBody pLon = RequestBody.create(MediaType.parse("text/plain"), lon);
                 RequestBody pLat = RequestBody.create(MediaType.parse("text/plain"), lat);
                 RequestBody pDescr = RequestBody.create(MediaType.parse("text/plain"), descr);
@@ -299,19 +316,21 @@ public class MeldingActivity extends AppCompatActivity {
                 RequestBody apiK = RequestBody.create(MediaType.parse("text/plain"), ServiceGenerator.TEST_API_KEY);
 
                 try {
-                    if(isConnected()) {
+                    if(isConnected()) { // check if user is actually connected to the internet
+                        // create a callback
                         Call<ArrayList<PostServiceRequestResponse>> serviceRequestResponseCall =
                                 client.postServiceRequest(apiK, pDescr, pSc, pLat, pLon,
                                         imgBody, pEmail, pFName, pLName);
-
+                        // fire the get post request
                         serviceRequestResponseCall.enqueue(new Callback<ArrayList<PostServiceRequestResponse>>() {
                             @Override
                             public void onResponse(Call<ArrayList<PostServiceRequestResponse>> call,
                                                    Response<ArrayList<PostServiceRequestResponse>> response) {
                                 if(response.isSuccessful()) {
-
+                                    // if a response was successful get an arraylist of postservicerequestresponses
                                     ArrayList<PostServiceRequestResponse> pRespList = response.body();
 
+                                    // show the service code that was found in the respond as a toast
                                     for (PostServiceRequestResponse psrr : pRespList) {
                                         Log.i("Service response: ", psrr.getId());
                                         Toast.makeText(getApplicationContext(),
@@ -321,7 +340,7 @@ public class MeldingActivity extends AppCompatActivity {
 
                                 } else {
 
-                                    try {
+                                    try { //something went wrong. Show the user what went wrong
                                         JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
                                         JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
 
@@ -335,7 +354,7 @@ public class MeldingActivity extends AppCompatActivity {
                                     }
                                 }
                             }
-
+                            // a connection could not have been made. Tell the user.
                             @Override
                             public void onFailure(Call<ArrayList<PostServiceRequestResponse>> call, Throwable t) {
                                 Toast.makeText(getApplicationContext(), getResources().getString(R.string.ePostRequest),
@@ -343,7 +362,7 @@ public class MeldingActivity extends AppCompatActivity {
                             }
                         });
 
-                    } else {
+                    } else {// a connection could not have been made. Tell the user.
                         Toast.makeText(getApplicationContext(), getResources().getString(R.string.ePostRequest),
                                 Toast.LENGTH_SHORT).show();
                     }
@@ -360,15 +379,17 @@ public class MeldingActivity extends AppCompatActivity {
         });
 
         try {
-            if(isConnected()) {
+            if(isConnected()) { // check if user is actually connected to the internet
+                // create a callback
                 Call<List<Service>> serviceCall = client.getServices(ServiceClient.LANG_EN);
-
+                // fire the get request
                 serviceCall.enqueue(new Callback<List<Service>>() {
                     @Override
                     public void onResponse(Call<List<Service>> call, Response<List<Service>> response) {
-
+                        // if a response has been received create a list with Services with the responsebody
                         serviceList = response.body();
 
+                        // test what services have been caught in the response
                         if (serviceList != null) {
                             for (Service s : serviceList) {
                                 Log.i("Response: ", "" + s.getService_name());
@@ -381,6 +402,7 @@ public class MeldingActivity extends AppCompatActivity {
                         if(serviceList != null) {
 
                             for (int i = 0; i < serviceList.size(); i++) {
+                                // fill the category list with names of services from the open311 interface
                                 catagoryList.add(serviceList.get(i).getService_name());
                             }
                             catagoryAdapter.notifyDataSetChanged();
@@ -388,12 +410,13 @@ public class MeldingActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onFailure(Call<List<Service>> call, Throwable t) {
+                    public void onFailure(Call<List<Service>> call, Throwable t) { // something went wrong
+
                         Toast.makeText(getApplicationContext(), t.getMessage(),Toast.LENGTH_SHORT).show();
                     }
                 });
 
-            } else {
+            } else { // user is not connected to the internet
                 Toast.makeText(getApplicationContext(), getResources().getString(R.string.FoutOphalenProblemen),
                         Toast.LENGTH_SHORT).show();
             }
@@ -605,6 +628,14 @@ public class MeldingActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Method that pings to google.com to check if user is actually
+     * connected to the internet.
+     * @return True if user is connected to the internet
+     * and false if user cannot connect to google.com
+     * @throws InterruptedException
+     * @throws IOException
+     */
     public boolean isConnected() throws InterruptedException, IOException
     {
         String command = "ping -c 1 google.com";

@@ -17,7 +17,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
@@ -68,7 +67,6 @@ public class MeldingActivity extends AppCompatActivity {
             voornaamTextView, achternaamTextView,optioneelTextView;
     private EditText beschrijvingEditText, emailEditText,
             voornaamEditText, achternaamEditText;
-    private CheckBox updateCheckBox;
     private ImageView fotoImageView;
     private List<Service> serviceList;
     ArrayAdapter<String> catagoryAdapter;
@@ -172,8 +170,6 @@ public class MeldingActivity extends AppCompatActivity {
         emailEditText = (EditText) findViewById(R.id.email);
         voornaamEditText = (EditText) findViewById(R.id.voornaam);
         achternaamEditText = (EditText) findViewById(R.id.achternaam);
-
-        updateCheckBox = (CheckBox) findViewById(R.id.updateCheckBox);
 
         terugButton = (Button) findViewById(R.id.terugButton);
         terugButton.setOnClickListener(new View.OnClickListener() {

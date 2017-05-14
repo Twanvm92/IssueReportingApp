@@ -264,44 +264,33 @@
             android:textColor="@android:color/background_light"
             android:text="@string/info" />
 
-        <CheckBox
-            android:id="@+id/updateCheckBox"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="15dp"
-            android:textColor="@android:color/background_light"
-            android:buttonTint="@android:color/background_light"
-            android:layout_marginTop="10dp"
-            android:text="@string/update"
-            android:textSize="18sp" />
-
-    <LinearLayout
+        <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:baselineAligned="false"
         android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/terugButton"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:backgroundTint="#FF6FDA7F"
-            android:text="@string/terug"
-            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            android:textSize="21sp"
-            android:textStyle="bold" />
+            <Button
+                android:id="@+id/terugButton"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_weight="1"
+                android:backgroundTint="#FF6FDA7F"
+                android:text="@string/terug"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                android:textSize="21sp"
+                android:textStyle="bold" />
 
-        <Button
-            android:id="@+id/plaatsButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:backgroundTint="#FF6FDA7F"
-            android:layout_weight="1"
-            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            android:textSize="21sp"
-            android:textStyle="bold"
-            android:text="@string/meldingplaatsen" />
+            <Button
+                android:id="@+id/plaatsButton"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_weight="1"
+                android:backgroundTint="#FF6FDA7F"
+                android:text="@string/meldingplaatsen"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                android:textSize="21sp"
+                android:textStyle="bold" />
     </LinearLayout>
     </LinearLayout>
 </ScrollView>

@@ -159,11 +159,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         if(currentLocation != null) {
             currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-            Toast.makeText(this, "Long: " + currentLocation.getLongitude() + " Lat: " + currentLocation.getLatitude(),Toast.LENGTH_SHORT).show();
+
 
         } else {
             currentLatLng = new LatLng(51.58656, 4.77596);
-            Toast.makeText(this, "Locatie kon niet worden opgehaald", Toast.LENGTH_SHORT).show();
+
         }
 
         marker = mMap.addMarker(new MarkerOptions().position(currentLatLng)

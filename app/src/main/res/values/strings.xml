@@ -6,32 +6,33 @@
     <string name="title_activity_maps">Map</string>
     <string name="title_activity_button_handler">ButtonHandler</string>
 
-    <string name="locatie">Locatie</string>
-    <string name="locatieWijzigen">Locatie wijzigen</string>
-    <string name="beschrijving">Beschrijving</string>
-    <string name="beschrijvingHint">Beschrijf uw probleem</string>
+    <string name="locatie">Location</string>
+    <string name="locatieWijzigen">Change location</string>
+    <string name="beschrijving">Description</string>
+    <string name="beschrijvingHint">Describe your problem</string>
     <string name="email">Email</string>
-    <string name="optioneel">Optioneel</string>
-    <string name="emailHint">Vul hier uw email adress in</string>
-    <string name="voornaam">Voornaam</string>
-    <string name="voornaamHint">Vul hier uw voornaam in</string>
-    <string name="achternaam">Achternaam</string>
-    <string name="achternaamHint">Vul hier uw achternaam in</string>
-    <string name="foto">Foto toevoegen</string>
-    <string name="info">Optioneel: U bent niet verplicht om dit in te vullen, dit maakt het wel makkelijker om u op de hoogte te kunnen stellen van veranderingen</string>
-    <string name="terug">Terug</string>
-    <string name="meldingplaatsen">Plaats melding</string>
+    <string name="optioneel">Optional</string>
+    <string name="emailHint">Enter your email address here</string>
+    <string name="voornaam">First name</string>
+    <string name="voornaamHint">Enter your first name here</string>
+    <string name="achternaam">Last name</string>
+    <string name="achternaamHint">Enter your last name here</string>
+    <string name="foto">Add photo</string>
+    <string name="info">Optional: You are not required to enter this information, but it will make it easier to keep you informed of changes.</string>
+    <string name="terug">Back</string>
+    <string name="meldingplaatsen">Send notification</string>
 
-    <string name="FoutOphalenProblemen">Kan op het moment geen categorieën ophalen. Probeer het later opnieuw</string>
+    <string name="FoutOphalenProblemen">Can not retrieve categories at this time. Please try again later.</string>
 
-    <string name="fotoWijzigen">Foto wijzigen</string>
-    <string name="fotoMaken">Maak foto</string>
-    <string name="fotoKiezen">Kies foto uit galerij</string>
-    <string name="kiesCategory">Selecteer eerst een categorie.</string>
-    <string name="kiesProblemen">Kies uit lijst van problemen</string>
-    <string name="geenBeschrijving">Voeg een beschrijving toe</string>
-    <string name="kBeschrijving">Beschrijving moet minimaal 10 karakters bevatten</string>
-    <string name="ePostRequest">Kan melding niet versturen. Verbind uw apparaat met het internet en probeer opnieuw.</string>
-    <string name="geenLocatie">Geen locatie gevonden. Kies een locatie.</string>
-
+    <string name="fotoWijzigen">Change picture</string>
+    <string name="fotoMaken">Take photo</string>
+    <string name="fotoKiezen">Choose picture from gallery</string>
+    <string name="kiesCategory">Please select a category.</string>
+    <string name="kiesProblemen">Choose from list of issues</string>
+    <string name="geenBeschrijving">Add a description</string>
+    <string name="kBeschrijving">Description must contain at least 10 characters</string>
+    <string name="ePostRequest">Unable to send message. Connect your device to the internet and try again.</string>
+    <string name="geenLocatie">No location found. Please choose a location.</string>
+    <string name="update">I do NOT want to be updated by email</string>
+    <string name="eContactGegevens">Please enter your email to receive instant updates</string>
 </resources>

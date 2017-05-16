@@ -7,6 +7,7 @@ package com.example.justin.verbeterjegemeente.Database;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.renderscript.ScriptIntrinsicYuvToRGB;
 import android.util.Log;
 
 import com.readystatesoftware.sqliteasset.SQLiteAssetHelper;
@@ -20,8 +21,15 @@ public class DatabaseHanlder extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
 
     private static final String MELDING_TABLE_NAME = "melding";
-        private static final String MELDING_COLUMN_ID = "meldingId";
+        private static final String MELDING_COLUMN_ID = "_meldingId";
         private static final String MELDING_COLUMN_IDAPI = "meldingIdApi";
+
+    private static final String USER_TABLE_NAME = "user";
+        private static final String USER_COLUMN_EMAIL  = "email";
+        private static final String USER_COLUMN_FISTNAME = "firstname";
+        private static final String USER_COLUMN_LASTNAME = "lastname";
+        private static final String USER_COLUMN_PHONENUMBER = "phonenumber";
+        private static final String USER_COLUMN_USERID = "userid";
 
 
     // Constructor for the databse handler that will create the database if not already done.
@@ -35,6 +43,9 @@ public class DatabaseHanlder extends SQLiteOpenHelper {
         String CREATE_MELDING_TABLE = "CREATE TABLE " + MELDING_TABLE_NAME + "(" +
                 MELDING_COLUMN_ID + " INTEGER PRIMARY KEY," +
                 MELDING_COLUMN_IDAPI + " INTEGER";
+
+        String CREATE_USER_TABLE = "CREATE TABLE " + USER_TABLE_NAME + "(" +
+                USER_COLUMN_EMAIL +
 
         database.execSQL(CREATE_MELDING_TABLE);
     }

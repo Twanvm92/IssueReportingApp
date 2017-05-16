@@ -46,5 +46,7 @@ public class Tab2Fragment extends Fragment {
         meldingListView.setAdapter(new MeldingAdapter(this.getContext(), generator.getMeldingen()));
 
         return view;
+
+
     }
 }

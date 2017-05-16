@@ -26,6 +26,7 @@ import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
+import com.example.justin.verbeterjegemeente.Constants;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.Locatie;
 import com.example.justin.verbeterjegemeente.domain.PostServiceRequestResponse;
@@ -73,11 +74,6 @@ public class MeldingActivity extends AppCompatActivity {
     ArrayAdapter<String> catagoryAdapter;
     private ServiceClient client;
     private String image_path = "";
-    private static final int MY_PERMISSIONS_CAMERA = 1;
-    private static final int MY_PERMISSIONS_STORAGE = 2;
-    private static final int FOTO_MAKEN = 1;
-    private static final int FOTO_KIEZEN = 2;
-    private static final int LOCATIE_KIEZEN= 3;
     private Uri selectedImage;
     private android.app.AlertDialog.Builder builder;
     private String imagePath = null;
@@ -113,7 +109,7 @@ public class MeldingActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), MapsActivity.class);
-                startActivityForResult(intent, LOCATIE_KIEZEN);
+                startActivityForResult(intent, Constants.LOCATIE_KIEZEN);
             }
         });
 
@@ -169,7 +165,7 @@ public class MeldingActivity extends AppCompatActivity {
                                     Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                                 try {
                                     Intent makePhoto = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                                    startActivityForResult(makePhoto, FOTO_MAKEN);
+                                    startActivityForResult(makePhoto, Constants.FOTO_MAKEN);
                                 } catch (Exception e) {
                                     Log.e("PERMISSION", "camera not granted");
                                     reqCameraPermission();
@@ -189,7 +185,7 @@ public class MeldingActivity extends AppCompatActivity {
                                 try {
                                     Intent pickPhoto = new Intent(Intent.ACTION_PICK,
                                             android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                                    startActivityForResult(pickPhoto, FOTO_KIEZEN);
+                                    startActivityForResult(pickPhoto, Constants.FOTO_KIEZEN);
                                 } catch (Exception e) {
                                     Log.e("PERMISSION", "storage not granted");
                                     reqWriteStoragePermission();
@@ -348,7 +344,7 @@ public class MeldingActivity extends AppCompatActivity {
                 RequestBody pLat = RequestBody.create(MediaType.parse("text/plain"), lat);
                 RequestBody pDescr = RequestBody.create(MediaType.parse("text/plain"), descr);
                 RequestBody pSc = RequestBody.create(MediaType.parse("text/plain"), sc);
-                RequestBody apiK = RequestBody.create(MediaType.parse("text/plain"), ServiceGenerator.TEST_API_KEY);
+                RequestBody apiK = RequestBody.create(MediaType.parse("text/plain"), Constants.TEST_API_KEY);
 
                 try {
                     if(isConnected()) { // check if user is actually connected to the internet
@@ -416,7 +412,7 @@ public class MeldingActivity extends AppCompatActivity {
         try {
             if(isConnected()) { // check if user is actually connected to the internet
                 // create a callback
-                Call<List<Service>> serviceCall = client.getServices(ServiceClient.LANG_EN);
+                Call<List<Service>> serviceCall = client.getServices(Constants.LANG_EN);
                 // fire the get request
                 serviceCall.enqueue(new Callback<List<Service>>() {
                     @Override
@@ -490,7 +486,7 @@ public class MeldingActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
         switch (requestCode) {
-            case MY_PERMISSIONS_CAMERA: {
+            case Constants.MY_PERMISSIONS_CAMERA: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -516,7 +512,7 @@ public class MeldingActivity extends AppCompatActivity {
                 }
             }
             break;
-            case MY_PERMISSIONS_STORAGE: {
+            case Constants.MY_PERMISSIONS_STORAGE: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -556,7 +552,7 @@ public class MeldingActivity extends AppCompatActivity {
 
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.CAMERA},
-                        MY_PERMISSIONS_CAMERA);
+                        Constants.MY_PERMISSIONS_CAMERA);
 
                 // Show an explanation to the user *asynchronously* -- don't block
                 // this thread waiting for the user's response! After the user
@@ -568,7 +564,7 @@ public class MeldingActivity extends AppCompatActivity {
 
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.CAMERA},
-                        MY_PERMISSIONS_CAMERA);
+                        Constants.MY_PERMISSIONS_CAMERA);
 
                 // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
                 // app-defined int constant. The callback method gets the
@@ -590,11 +586,11 @@ public class MeldingActivity extends AppCompatActivity {
 
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                        MY_PERMISSIONS_STORAGE);
+                        Constants.MY_PERMISSIONS_STORAGE);
             } else {
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                        MY_PERMISSIONS_STORAGE);
+                        Constants.MY_PERMISSIONS_STORAGE);
             }
         }
     }
@@ -609,7 +605,7 @@ public class MeldingActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         switch(requestCode) {
-            case FOTO_MAKEN:
+            case Constants.FOTO_MAKEN:
                 if (resultCode == RESULT_OK) {
                     Bitmap photo = (Bitmap) data.getExtras().get("data");
                     selectedImage = getImageUri(getApplicationContext(), photo);
@@ -622,7 +618,7 @@ public class MeldingActivity extends AppCompatActivity {
 
                 }
                 break;
-            case FOTO_KIEZEN:
+            case Constants.FOTO_KIEZEN:
                 if(resultCode == RESULT_OK){
                     selectedImage = data.getData();
                     image_path = getRealPathFromURI(selectedImage);
@@ -632,7 +628,7 @@ public class MeldingActivity extends AppCompatActivity {
 
                 }
                 break;
-            case LOCATIE_KIEZEN:
+            case Constants.LOCATIE_KIEZEN:
                 if(resultCode == RESULT_OK){
                     if(data.hasExtra("long")) {
                         double lng = data.getDoubleExtra("long", 1);

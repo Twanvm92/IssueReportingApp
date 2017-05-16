@@ -139,7 +139,7 @@ public class DatabaseHanlder extends SQLiteOpenHelper {
     // Deletes a user from the database
     public void deleteUser(){
         String query = "DELETE FROM " + USER_TABLE_NAME;
-        SQLiteDatabase db = this.getWritableDatabase(); 
+        SQLiteDatabase db = this.getWritableDatabase();
         db.execSQL(query);
         Log.i("DELETE", "all records deleted");
     }

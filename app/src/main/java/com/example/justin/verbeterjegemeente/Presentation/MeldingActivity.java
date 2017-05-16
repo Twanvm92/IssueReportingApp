@@ -19,6 +19,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
@@ -85,6 +86,7 @@ public class MeldingActivity extends AppCompatActivity {
     private android.app.AlertDialog.Builder builder;
     private String imagePath = null;
     private Locatie location;
+    private CheckBox onthoudCheckbox;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,7 +102,7 @@ public class MeldingActivity extends AppCompatActivity {
         optioneelTextView = (TextView) findViewById(R.id.optioneeltextview);
         voornaamTextView = (TextView) findViewById(R.id.voornaamtextview);
         achternaamTextView = (TextView) findViewById(R.id.achternaamtextview);
-
+        onthoudCheckbox = (CheckBox) findViewById(R.id.onthoudCheckBox);
 
 
         Intent in = getIntent();
@@ -248,17 +250,21 @@ public class MeldingActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                if(!emailEditText.equals("") && !voornaamEditText.equals("") && !achternaamEditText.equals("")){
-                    final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
 
-                    User user = new User();
-                    user.setLastName(achternaamEditText.getText().toString());
-                    user.setFirstName(voornaamEditText.getText().toString());
-                    user.setEmail(emailEditText.getText().toString());
-                    db.deleteUser();
-                    db.addUser(user);
 
-                    db.close();
+                if(onthoudCheckbox.isChecked()) {
+                    if (!emailEditText.equals("") && !voornaamEditText.equals("") && !achternaamEditText.equals("")) {
+                        final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
+
+                        User user = new User();
+                        user.setLastName(achternaamEditText.getText().toString());
+                        user.setFirstName(voornaamEditText.getText().toString());
+                        user.setEmail(emailEditText.getText().toString());
+                        db.deleteUser();
+                        db.addUser(user);
+
+                        db.close();
+                    }
                 }
 
 

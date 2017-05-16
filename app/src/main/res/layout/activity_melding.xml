@@ -255,6 +255,15 @@
             android:padding="8dp"
             android:textSize="18sp" />
 
+        <CheckBox
+            android:id="@+id/onthoudCheckBox"
+            android:theme="@style/checkBoxStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/onthoudGegevens"
+            android:textColor="@android:color/white"
+            android:textColorLink="#FF6FDA7F" />
+
         <TextView
             android:id="@+id/textView3"
             android:layout_width="match_parent"

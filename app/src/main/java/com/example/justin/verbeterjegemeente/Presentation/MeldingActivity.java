@@ -10,6 +10,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -26,10 +27,12 @@ import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
+import com.example.justin.verbeterjegemeente.Database.DatabaseHanlder;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.Locatie;
 import com.example.justin.verbeterjegemeente.domain.PostServiceRequestResponse;
 import com.example.justin.verbeterjegemeente.domain.Service;
+import com.example.justin.verbeterjegemeente.domain.User;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -97,6 +100,8 @@ public class MeldingActivity extends AppCompatActivity {
         optioneelTextView = (TextView) findViewById(R.id.optioneeltextview);
         voornaamTextView = (TextView) findViewById(R.id.voornaamtextview);
         achternaamTextView = (TextView) findViewById(R.id.achternaamtextview);
+
+
 
         Intent in = getIntent();
         if(in.hasExtra("long")) {
@@ -210,6 +215,21 @@ public class MeldingActivity extends AppCompatActivity {
         voornaamEditText = (EditText) findViewById(R.id.voornaam);
         achternaamEditText = (EditText) findViewById(R.id.achternaam);
 
+        final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
+
+        User foundUser = db.getUser();
+
+        Log.i("FOUND USER", foundUser.toString());
+
+        if(foundUser != null){
+            emailEditText.setText(foundUser.getEmail());
+            voornaamEditText.setText(foundUser.getFirstName());
+            achternaamEditText.setText(foundUser.getLastName());
+        }
+
+        db.close();
+
+
         terugButton = (Button) findViewById(R.id.terugButton);
         terugButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -227,6 +247,21 @@ public class MeldingActivity extends AppCompatActivity {
         plaatsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                if(!emailEditText.equals("") && !voornaamEditText.equals("") && !achternaamEditText.equals("")){
+                    final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
+
+                    User user = new User();
+                    user.setLastName(achternaamEditText.getText().toString());
+                    user.setFirstName(voornaamEditText.getText().toString());
+                    user.setEmail(emailEditText.getText().toString());
+                    db.deleteUser();
+                    db.addUser(user);
+
+                    db.close();
+                }
+
+
 
                 // initialize selected category and check if selected category is actually a category
                 String selecIt = "";

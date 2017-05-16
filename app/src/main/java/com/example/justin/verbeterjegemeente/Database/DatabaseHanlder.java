@@ -12,8 +12,11 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.renderscript.ScriptIntrinsicYuvToRGB;
 import android.util.Log;
 
+import com.example.justin.verbeterjegemeente.domain.Melding;
 import com.example.justin.verbeterjegemeente.domain.User;
 import com.readystatesoftware.sqliteasset.SQLiteAssetHelper;
+
+import java.util.ArrayList;
 
 public class DatabaseHanlder extends SQLiteOpenHelper {
 
@@ -67,6 +70,7 @@ public class DatabaseHanlder extends SQLiteOpenHelper {
 
     }
 
+    // Adds a user to the database
     public void addUser(User user){
         ContentValues values = new ContentValues();
         values.put(USER_COLUMN_EMAIL, user.getEmail());
@@ -79,6 +83,18 @@ public class DatabaseHanlder extends SQLiteOpenHelper {
         db.close();
     }
 
+    // Adds a report to the database
+    public void addReport(String id){
+        ContentValues values = new ContentValues();
+        values.put(MELDING_COLUMN_ID, id);
+
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.insert(MELDING_TABLE_NAME, null,  values);
+        db.close();
+    }
+
+    // Gets the user stored in the database
     public User getUser(){
 
         User user = new User();
@@ -101,11 +117,39 @@ public class DatabaseHanlder extends SQLiteOpenHelper {
         return user;
     }
 
+
+    // Returns a list of all stored reports
+    public ArrayList<String> getReports(){
+
+       ArrayList<String> list = new ArrayList<>();
+
+        String query = "SELECT * FROM " + MELDING_TABLE_NAME;
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(query, null);
+
+        while (cursor.moveToNext()){
+            list.add(cursor.getString(cursor.getColumnIndex(MELDING_COLUMN_IDAPI)));
+        }
+
+        db.close();
+        return list;
+    }
+
+    // Deletes a user from the database
     public void deleteUser(){
         String query = "DELETE FROM " + USER_TABLE_NAME;
-        SQLiteDatabase db = this.getWritableDatabase();
+        SQLiteDatabase db = this.getWritableDatabase(); 
         db.execSQL(query);
         Log.i("DELETE", "all records deleted");
+    }
+
+    // Deletes a report from the database
+    public void deleteReport(String id){
+        String query = "DELETE FROM " + MELDING_TABLE_NAME + "WHERE " + MELDING_COLUMN_IDAPI + " = " + id;
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL(query);
+
     }
 
 

@@ -51,7 +51,7 @@ public class SplashScreen extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("CommonPrefs",
                 getApplicationContext().MODE_PRIVATE);
         String language = prefs.getString("Language", "");
-        if (!Locale.getDefault().getLanguage().equals(language)){
+        if (!language.equals("") && !Locale.getDefault().getLanguage().equals(language)){
             changeLang(language);
         }
     }
@@ -62,12 +62,13 @@ public class SplashScreen extends AppCompatActivity {
      */
     public void changeLang(String lang) {
         Locale myLocale;
-        if (lang.equalsIgnoreCase("en")) {
+        if (lang.equalsIgnoreCase("")) {
+            myLocale = new Locale("nl");
+        } else if (lang.equalsIgnoreCase("en")) {
             myLocale = new Locale("en");
         } else {
-//            als je NIET Engels als taal hebt ingesteld op je telefoon wordt de applicatie standaard in het Nederlands getoond
             myLocale = new Locale("nl");
-    }
+        }
         Locale.setDefault(myLocale);
         android.content.res.Configuration config = new android.content.res.Configuration();
         config.locale = myLocale;

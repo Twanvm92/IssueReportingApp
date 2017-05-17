@@ -706,14 +706,4 @@ public class MeldingActivity extends AppCompatActivity {
         String command = "ping -c 1 google.com";
         return (Runtime.getRuntime().exec (command).waitFor() == 0);
     }
-
-    /**
-     * Refreshing activity when restarted. (If user presses back button).
-     */
-    @Override
-    public void onRestart() {
-        super.onRestart();
-        finish();
-        startActivity(getIntent());
-    }
 }

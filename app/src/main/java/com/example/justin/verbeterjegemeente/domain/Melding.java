@@ -13,8 +13,9 @@ public class Melding  {
     private String fotoUrl;
     private Locatie locatie;
 
-    public void Melding(){
-
+    public Melding(String voornaam, String beschrijving) {
+        this.voornaam = voornaam;
+        this.beschrijving = beschrijving;
     }
 
     public String getCategorie() {

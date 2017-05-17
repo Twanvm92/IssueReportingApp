@@ -448,7 +448,7 @@ public class MeldingActivity extends AppCompatActivity {
 
                             for (int i = 0; i < serviceList.size(); i++) {
                                 // fill the category list with names of services from the open311 interface
-                                catagoryList.add(serviceList.get(i).getService_name());
+                                catagoryList.add(serviceList.get(i).getGroup());
                             }
                             catagoryAdapter.notifyDataSetChanged();
                         }

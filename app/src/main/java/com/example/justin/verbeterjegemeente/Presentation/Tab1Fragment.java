@@ -26,6 +26,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.example.justin.verbeterjegemeente.API.ServiceClient;
+import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.Business.MarkerHandler;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -90,6 +92,10 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     public void onCreate(Bundle savedInstaceState) {
         super.onCreate(savedInstaceState);
         initApi();
+
+        ServiceClient service = ServiceGenerator.createService(ServiceClient.class);
+//        service.getNearbyServiceRequests("")
+
     }
 
     public void onStart() {

@@ -64,6 +64,7 @@ public class MeldingActivity extends AppCompatActivity {
 
     private Spinner catagorySpinner;
     private ArrayList<String> catagoryList;
+    private ArrayList<String> subCategoryList;
     private Button locatieButton, fotoButton, terugButton, plaatsButton;
     private TextView locatieTextView, beschrijvingTextView, emailTextView,
             voornaamTextView, achternaamTextView,optioneelTextView;
@@ -73,6 +74,7 @@ public class MeldingActivity extends AppCompatActivity {
     private ImageView fotoImageView;
     private List<Service> serviceList;
     ArrayAdapter<String> catagoryAdapter;
+    ArrayAdapter<String> subCategoryAdapter;
     private ServiceClient client;
     private String image_path = "";
     private static final int MY_PERMISSIONS_CAMERA = 1;
@@ -141,8 +143,26 @@ public class MeldingActivity extends AppCompatActivity {
                 }
             }
         };
-        catagoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        subCategoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        catagorySpinner.setAdapter(subCategoryAdapter);
 
+        // create an arraylist that will contain different sub categories fetched from an open311 interface
+        subCategoryList = new ArrayList<String>();
+        subCategoryList.add(getResources().getString(R.string.kiesSubProblemen));
+        catagorySpinner = (Spinner) findViewById(R.id.spinner2);
+        catagoryAdapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_spinner_item, catagoryList){
+            @Override //pakt de positions van elements in catagoryList en disabled the element dat postion null staat zodat we het kunnen gebruiken als een hint.
+            public boolean isEnabled(int position){
+                if (position == 0)
+                {
+                    return false;
+                }else{
+                    return true;
+                }
+            }
+        };
+        catagoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         catagorySpinner.setAdapter(catagoryAdapter);
 
         fotoButton.setOnClickListener(new View.OnClickListener() {
@@ -445,11 +465,20 @@ public class MeldingActivity extends AppCompatActivity {
                         }
 
                         if(serviceList != null) {
-
+                            int x = 1; // set iterable separately for categoryList
                             for (int i = 0; i < serviceList.size(); i++) {
-                                // fill the category list with names of services from the open311 interface
-                                catagoryList.add(serviceList.get(i).getGroup());
+                                // first categoryList item is a default String
+                                if(catagoryList.size() > 1) { // do something if list already has 1 or more categories
+                                    // do something if previous category is not the same as new category in servicelist
+                                    if(!catagoryList.get(x).equals(serviceList.get(i).getGroup())) {
+                                        catagoryList.add(serviceList.get(i).getGroup()); // add new category
+                                        x++; // only up this iterable if new category is added
+                                    }
+                                } else {
+                                    catagoryList.add(serviceList.get(i).getGroup());
+                                }
                             }
+
                             catagoryAdapter.notifyDataSetChanged();
                         }
                     }

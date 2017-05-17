@@ -34,4 +34,5 @@
 <string name="geenLocatie">Geen locatie gevonden. Kies een locatie.</string>
 <string name="update">Houd mij NIET op de hoogte via email</string>
 <string name="eContactGegevens">Uw email is vereist om direct updates te kunnen ontvangen</string>
+    <string name="kiesSubProblemen">Kies uit lijst van subcategorieën</string>
 </resources>

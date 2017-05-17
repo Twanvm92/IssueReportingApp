@@ -51,7 +51,7 @@ public class SplashScreen extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("CommonPrefs",
                 getApplicationContext().MODE_PRIVATE);
         String language = prefs.getString("Language", "");
-        if (!language.equals("") && !Locale.getDefault().getLanguage().equals(language)){
+        if (!language.equals("")){
             changeLang(language);
         }
     }

@@ -172,6 +172,7 @@ public class MeldingActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 if (subCategoryList.size() > 1) { // check if list has more than just the default string
                     subCategoryList.clear(); // clear ist before filling it again
+                    subCategoryList.add(getResources().getString(R.string.kiesSubProblemen));
                 }
 
                 if (serviceList != null) {
@@ -182,6 +183,10 @@ public class MeldingActivity extends AppCompatActivity {
                         }
                     }
                     subCategoryAdapter.notifyDataSetChanged();
+                }
+
+                if(position != 0) {
+                    subCatagorySpinner.setSelection(0);
                 }
             }
 

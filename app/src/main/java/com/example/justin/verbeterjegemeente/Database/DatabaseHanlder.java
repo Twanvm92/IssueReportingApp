@@ -49,7 +49,7 @@ public class DatabaseHanlder extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase database){
         String CREATE_MELDING_TABLE = " CREATE TABLE " + MELDING_TABLE_NAME + " ( " +
                 MELDING_COLUMN_ID + " INTEGER PRIMARY KEY," +
-                MELDING_COLUMN_IDAPI + " INTEGER )";
+                MELDING_COLUMN_IDAPI + " TEXT )";
 
         String CREATE_USER_TABLE = "CREATE TABLE " + USER_TABLE_NAME + "(" +
                 USER_COLUMN_EMAIL + " TEXT, " +
@@ -86,7 +86,7 @@ public class DatabaseHanlder extends SQLiteOpenHelper {
     // Adds a report to the database
     public void addReport(String id){
         ContentValues values = new ContentValues();
-        values.put(MELDING_COLUMN_ID, id);
+        values.put(MELDING_COLUMN_IDAPI, id);
 
 
         SQLiteDatabase db = this.getWritableDatabase();

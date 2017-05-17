@@ -90,6 +90,8 @@ public class MeldingActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_melding);
         fotoButton = (Button) findViewById(R.id.fotoButton);
@@ -218,17 +220,13 @@ public class MeldingActivity extends AppCompatActivity {
         achternaamEditText = (EditText) findViewById(R.id.achternaam);
 
         final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
-
         User foundUser = db.getUser();
-
         Log.i("FOUND USER", foundUser.toString());
-
         if(foundUser != null){
             emailEditText.setText(foundUser.getEmail());
             voornaamEditText.setText(foundUser.getFirstName());
             achternaamEditText.setText(foundUser.getLastName());
         }
-
         db.close();
 
 
@@ -412,6 +410,10 @@ public class MeldingActivity extends AppCompatActivity {
                                         Toast.makeText(getApplicationContext(),
                                                 "service request is aangemaakt met id: " + psrr.getId(),
                                                 Toast.LENGTH_SHORT).show();
+
+                                        final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
+                                        db.addReport(psrr.getId());
+                                        db.close();
                                     }
 
                                 } else {

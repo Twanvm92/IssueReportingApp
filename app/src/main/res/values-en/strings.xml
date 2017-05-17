@@ -22,6 +22,11 @@
     <string name="terug">Back</string>
     <string name="meldingplaatsen">Send notification</string>
 
+    <string name="locatieTab2">Location:</string>
+    <string name="hoofdcategorieTab2">Main category:</string>
+    <string name="subcategorieTab2">Subcategory:</string>
+    <string name="laatsteupdateTab2">Latest update:</string>
+
     <string name="FoutOphalenProblemen">Can not retrieve categories at this time. Please try again later.</string>
 
     <string name="fotoWijzigen">Change picture</string>

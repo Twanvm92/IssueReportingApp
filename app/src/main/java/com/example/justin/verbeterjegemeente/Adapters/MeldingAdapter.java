@@ -27,7 +27,7 @@ public class MeldingAdapter extends ArrayAdapter<Melding> {
             convertview = LayoutInflater.from(getContext()).inflate(R.layout.tab2_listviewrow, parent, false);
         }
 
-        TextView hoofdcategorie = (TextView) convertview.findViewById(R.id.voornaamID);
+        TextView hoofdcategorie = (TextView) convertview.findViewById(R.id.hoofdcategorieID);
         hoofdcategorie.setText(melding.getHoofdcategorie());
 
         TextView subccategorie = (TextView) convertview.findViewById(R.id.subcategorieID);

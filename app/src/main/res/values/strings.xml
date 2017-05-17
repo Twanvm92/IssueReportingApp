@@ -21,6 +21,13 @@
 <string name="terug">Terug</string>
 <string name="meldingplaatsen">Plaats melding</string>
 
+<string name="locatieTab2">Locatie:</string>
+<string name="hoofdcategorieTab2">Hoofdcategorie:</string>
+<string name="subcategorieTab2">Subcategorie:</string>
+<string name="laatsteupdateTab2">Laatste update:</string>
+
+
+
 <string name="FoutOphalenProblemen">Kan op het moment geen categorieën ophalen. Probeer het later opnieuw.</string>
 
 <string name="fotoWijzigen">Foto wijzigen</string>

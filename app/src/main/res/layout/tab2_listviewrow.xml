@@ -1,11 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:paddingBottom="5dp"
-    android:paddingTop="5dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/colorBackground2"
     android:paddingLeft="10dp"
     android:paddingRight="10dp"
-    android:layout_height="match_parent">
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/locatieTV"
+            android:layout_width="130dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+
+            android:fontFamily="sans-serif-condensed"
+            android:text="Locatie:"
+            android:textAppearance="@style/TextAppearance.AppCompat.Light.Widget.PopupMenu.Large"
+            android:textColor="@android:color/holo_green_light"
+            android:textSize="19sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/locatieID"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="sans-serif-condensed"
+            android:text="Locatie"
+            android:textColor="@android:color/white"
+            android:textSize="20sp" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/voornaamtextview"
+            android:layout_width="250dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+
+            android:fontFamily="sans-serif-condensed"
+            android:text="Hoofdcategorie:"
+            android:textAppearance="@style/TextAppearance.AppCompat.Light.Widget.PopupMenu.Large"
+            android:textColor="@android:color/holo_green_light"
+            android:textSize="19sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/voornaamID"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="sans-serif-condensed"
+            android:text="naamCategorie"
+            android:textColor="@android:color/white"
+            android:textSize="20sp" />
+
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -13,24 +74,25 @@
         android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/voornaamtextview"
-            android:layout_width="190dp"
+            android:id="@+id/subcategorieTV"
+            android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@color/colorBackground2"
-            android:text="Categorie:"
-            android:textColor="@android:color/white"
-            android:textSize="18sp" />
+            android:fontFamily="sans-serif-condensed"
+            android:text="Subcategorie:"
+            android:textColor="@android:color/holo_green_dark"
+            android:textSize="18sp"
+            android:textStyle="bold|italic" />
 
         <TextView
-            android:id="@+id/voornaamID"
+            android:id="@+id/subcategorieID"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@color/colorBackground2"
-            android:text="TextView"
+            android:fontFamily="sans-serif-condensed"
+            android:text="naamCategorie"
             android:textColor="@android:color/white"
-            android:textSize="18sp" />
+            android:textSize="19sp" />
 
     </LinearLayout>
 
@@ -44,9 +106,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@color/colorBackground2"
-            android:text="TextView"
-            android:textColor="@android:color/white" />
+
+            android:fontFamily="sans-serif-condensed"
+            android:text="Beschrijving"
+            android:textColor="@android:color/white"
+            android:textSize="18sp" />
     </LinearLayout>
 
     <LinearLayout
@@ -55,20 +119,21 @@
         android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/statusID"
-            android:layout_width="95dp"
+            android:id="@+id/textView11"
+            android:layout_width="180dp"
             android:layout_height="wrap_content"
-            android:background="@color/colorBackground2"
-            android:text="TextView"
-            android:textColor="@android:color/white" />
+            android:layout_weight="1"
+            android:fontFamily="sans-serif-condensed"
+            android:text="Laatste update:"
+            android:textColor="@android:color/holo_green_light" />
 
         <TextView
             android:id="@+id/tijdID"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@color/colorBackground2"
-            android:text="TextView"
+            android:fontFamily="sans-serif-condensed"
+            android:text="Tijd"
             android:textColor="@android:color/white" />
 
     </LinearLayout>

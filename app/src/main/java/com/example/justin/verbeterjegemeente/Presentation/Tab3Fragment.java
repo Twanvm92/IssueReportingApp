@@ -1,5 +1,7 @@
 package com.example.justin.verbeterjegemeente.Presentation;
 
+import android.app.Activity;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -11,6 +13,8 @@ import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.R;
 
+import java.util.Locale;
+
 /**
  * Created by Justin on 27-4-2017.
  */
@@ -18,20 +22,61 @@ import com.example.justin.verbeterjegemeente.R;
 public class Tab3Fragment extends Fragment {
     private static final String TAG = "Tab3Fragment";
 
-    private Button btnTEST;
+    private Button btnNEDERLANDS, btnENGELS;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.tab3_fragment,container,false);
-        btnTEST = (Button) view.findViewById(R.id.button3);
-        btnTEST.setOnClickListener(new View.OnClickListener() {
+//        test buttons voor taal veranderen
+        btnNEDERLANDS = (Button) view.findViewById(R.id.buttonNEDERLANDS);
+        btnNEDERLANDS.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(getActivity(), "TESTING BUTTON CLICK 3",Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), "NEDERLANDSE TAAL AANGEZET",Toast.LENGTH_SHORT).show();
+
+                changeLang("nl");
+            }
+        });
+
+        btnENGELS = (Button) view.findViewById(R.id.buttonENGELS);
+        btnENGELS.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(getActivity(), "ENGELSE TAAL AANGEZET",Toast.LENGTH_SHORT).show();
+
+                changeLang("en");
             }
         });
 
         return view;
+    }
+
+    /**
+     * Changing language to user's choice
+     * @param lang language user is requesting
+     */
+    public void changeLang(String lang) {
+        if (lang.equalsIgnoreCase(""))
+            return;
+        Locale myLocale = new Locale(lang);
+        saveLocale(lang);
+        Locale.setDefault(myLocale);
+        android.content.res.Configuration config = new android.content.res.Configuration();
+        config.locale = myLocale;
+        getContext().getResources().updateConfiguration(config,getContext().getResources().getDisplayMetrics());
+    }
+
+    /**
+     * Saving preferred language
+     * @param lang language user is requesting
+     */
+    public void saveLocale(String lang) {
+        String langPref = "Language";
+        SharedPreferences prefs = getContext().getSharedPreferences("CommonPrefs",
+                Activity.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString(langPref, lang);
+        editor.commit();
     }
 }

@@ -167,7 +167,7 @@
             android:layout_marginRight="5dp"
             android:background="@drawable/round"
             android:ems="10"
-            android:hint="Vul hier uw e-mailadres in"
+            android:hint="@string/emailHint"
             android:inputType="textEmailAddress"
             android:padding="8dp"
             android:textSize="18sp" />
@@ -264,11 +264,22 @@
             android:textColor="@android:color/background_light"
             android:text="@string/info" />
 
+        <CheckBox
+            android:id="@+id/updateCheckBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="15dp"
+            android:textColor="@android:color/background_light"
+            android:buttonTint="@android:color/background_light"
+            android:layout_marginTop="10dp"
+            android:text="@string/update"
+            android:textSize="18sp" />
+
         <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:baselineAligned="false"
-        android:orientation="horizontal">
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
 
             <Button
                 android:id="@+id/terugButton"
@@ -291,6 +302,6 @@
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                 android:textSize="21sp"
                 android:textStyle="bold" />
-    </LinearLayout>
+        </LinearLayout>
     </LinearLayout>
 </ScrollView>

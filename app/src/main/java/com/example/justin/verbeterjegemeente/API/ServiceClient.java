@@ -39,6 +39,9 @@ public interface ServiceClient {
 @GET ("services.json")
 Call<List<Service>> getServices(@Query("Locale") String Language);
 
+
+
+
     /**
      * Sends a Multipart/form-data post request to an already specified endpoint
      * and returns an Arraylist of <code>PostServiceRequestResponse</code> objects

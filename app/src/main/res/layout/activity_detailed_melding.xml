@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.justin.verbeterjegemeente.Presentation.Tab2DetailedMeldingActivity">
+
+    <TextView
+        android:id="@+id/MeldDatum_Id"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="datum"
+        tools:layout_editor_absoluteX="310dp"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="8dp" />
+
+    <ImageView
+        android:id="@+id/DetailedFotoUrl"
+        android:layout_width="325dp"
+        android:layout_height="158dp"
+        app:srcCompat="@color/colorPrimaryDark"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="74dp"
+        android:layout_marginRight="8dp"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintLeft_toLeftOf="parent" />
+
+    <TextView
+        android:id="@+id/Place_Id"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Place"
+        tools:layout_editor_absoluteX="30dp"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="8dp" />
+
+    <TextView
+        android:id="@+id/date_lD"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Meldingdate:"
+        tools:layout_editor_absoluteX="221dp"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="8dp" />
+
+    <TextView
+        android:id="@+id/Large_descrip_Id"
+        android:layout_width="323dp"
+        android:layout_height="166dp"
+        android:text="descriptions"
+        android:layout_marginTop="23dp"
+        app:layout_constraintTop_toBottomOf="@+id/DetailedFotoUrl"
+        android:layout_marginLeft="29dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_marginRight="8dp"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintHorizontal_bias="0.083" />
+
+    <Button
+        android:id="@+id/button2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Button"
+        android:layout_marginTop="26dp"
+        app:layout_constraintTop_toBottomOf="@+id/Large_descrip_Id"
+        android:layout_marginLeft="32dp"
+        app:layout_constraintLeft_toLeftOf="parent" />
+
+    <Button
+        android:id="@+id/button4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Button"
+        android:layout_marginTop="26dp"
+        app:layout_constraintTop_toBottomOf="@+id/Large_descrip_Id"
+        android:layout_marginRight="32dp"
+        app:layout_constraintRight_toRightOf="parent" />
+
+    <TextView
+        android:id="@+id/Status_Id"
+        android:layout_width="130dp"
+        android:layout_height="21dp"
+        android:layout_marginRight="34dp"
+        android:layout_marginTop="9dp"
+        android:text="TextView"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/date_lD" />
+
+</android.support.constraint.ConstraintLayout>
+

@@ -16,6 +16,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -63,6 +64,7 @@ public class MeldingActivity extends AppCompatActivity {
 
 
     private Spinner catagorySpinner;
+    private Spinner subCatagorySpinner;
     private ArrayList<String> catagoryList;
     private ArrayList<String> subCategoryList;
     private Button locatieButton, fotoButton, terugButton, plaatsButton;
@@ -143,16 +145,16 @@ public class MeldingActivity extends AppCompatActivity {
                 }
             }
         };
-        subCategoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        catagorySpinner.setAdapter(subCategoryAdapter);
+        catagoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        catagorySpinner.setAdapter(catagoryAdapter);
 
         // create an arraylist that will contain different sub categories fetched from an open311 interface
         subCategoryList = new ArrayList<String>();
         subCategoryList.add(getResources().getString(R.string.kiesSubProblemen));
-        catagorySpinner = (Spinner) findViewById(R.id.spinner2);
-        catagoryAdapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_spinner_item, catagoryList){
-            @Override //pakt de positions van elements in catagoryList en disabled the element dat postion null staat zodat we het kunnen gebruiken als een hint.
+        subCatagorySpinner = (Spinner) findViewById(R.id.spinnerSub);
+        subCategoryAdapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_spinner_item, subCategoryList){
+            @Override //pakt de positions van elements in subCatagoryList en disabled the element dat postion null staat zodat we het kunnen gebruiken als een hint.
             public boolean isEnabled(int position){
                 if (position == 0)
                 {
@@ -162,8 +164,32 @@ public class MeldingActivity extends AppCompatActivity {
                 }
             }
         };
-        catagoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        catagorySpinner.setAdapter(catagoryAdapter);
+        subCategoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        subCatagorySpinner.setAdapter(subCategoryAdapter);
+
+        catagorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (subCategoryList.size() > 1) { // check if list has more than just the default string
+                    subCategoryList.clear(); // clear ist before filling it again
+                }
+
+                if (serviceList != null) {
+                    for (Service s : serviceList) {
+                        // check if selected main category is same as main category of service object
+                        if (parent.getSelectedItem().toString().equals(s.getGroup())) {
+                            subCategoryList.add(s.getService_name()); // add sub category to list
+                        }
+                    }
+                    subCategoryAdapter.notifyDataSetChanged();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
 
         fotoButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -254,13 +280,13 @@ public class MeldingActivity extends AppCompatActivity {
 
                 // initialize selected category and check if selected category is actually a category
                 String selecIt = "";
-                if(catagorySpinner != null && catagorySpinner.getSelectedItem() !=null
-                        && !catagorySpinner.getSelectedItem()
-                        .equals(getResources().getString(R.string.kiesProblemen))) {
-                    selecIt = catagorySpinner.getSelectedItem().toString();
+                if(subCatagorySpinner != null && subCatagorySpinner.getSelectedItem() !=null
+                        && !subCatagorySpinner.getSelectedItem()
+                        .equals(getResources().getString(R.string.kiesSubProblemen))) {
+                    selecIt = subCatagorySpinner.getSelectedItem().toString();
                 } else {
                     Toast.makeText(getApplicationContext(),
-                            getResources().getString(R.string.kiesCategory),Toast.LENGTH_SHORT).show();
+                            getResources().getString(R.string.kiesSubCategory),Toast.LENGTH_SHORT).show();
                     return;
                 }
 

@@ -20,7 +20,6 @@
             android:layout_gravity="center"
             android:layout_marginLeft="5dp"
             android:layout_marginTop="5dp"
-
             android:background="@android:color/transparent"
             android:gravity="center"
             android:spinnerMode="dropdown"
@@ -36,5 +35,11 @@
     <ListView
         android:id="@+id/meldingListView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="10.0sp"
+        android:layout_marginRight="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"/>
 </LinearLayout>

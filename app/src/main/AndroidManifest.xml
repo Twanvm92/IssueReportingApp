@@ -42,7 +42,13 @@
         <activity
             android:name=".Presentation.MeldingActivity"
             android:theme="@style/AppTheme.Meldingscherm" />
+<<<<<<< HEAD
         <activity android:name=".Presentation.FollowingActivity"></activity>
+=======
+        <activity android:name=".Presentation.DetailedMeldingActivity"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+
+>>>>>>> refs/remotes/origin/feature/meldingtab
     </application>
 
 </manifest>

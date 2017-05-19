@@ -76,6 +76,7 @@ public class MeldingActivity extends AppCompatActivity {
             voornaamTextView, achternaamTextView,optioneelTextView;
     private EditText beschrijvingEditText, emailEditText,
             voornaamEditText, achternaamEditText;
+    private CheckBox updateCheckBox;
     private ImageView fotoImageView;
     private List<Service> serviceList;
     ArrayAdapter<String> catagoryAdapter;
@@ -105,6 +106,8 @@ public class MeldingActivity extends AppCompatActivity {
         achternaamTextView = (TextView) findViewById(R.id.achternaamtextview);
         onthoudCheckbox = (CheckBox) findViewById(R.id.onthoudCheckBox);
 
+
+        updateCheckBox = (CheckBox) findViewById(R.id.updateCheckBox);
 
         Intent in = getIntent();
         if(in.hasExtra("long")) {
@@ -314,6 +317,12 @@ public class MeldingActivity extends AppCompatActivity {
                 }else {
                     Toast.makeText(getApplicationContext(),
                             getResources().getString(R.string.geenBeschrijving),Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (!updateCheckBox.isChecked() && emailEditText.getText().toString().equals("")) {
+                    Toast.makeText(getApplicationContext(),
+                            R.string.eContactGegevens, Toast.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -737,5 +746,15 @@ public class MeldingActivity extends AppCompatActivity {
     {
         String command = "ping -c 1 google.com";
         return (Runtime.getRuntime().exec (command).waitFor() == 0);
+    }
+
+    /**
+     * Refreshing activity when restarted. (If user presses back button).
+     */
+    @Override
+    public void onRestart() {
+        super.onRestart();
+        finish();
+        startActivity(getIntent());
     }
 }

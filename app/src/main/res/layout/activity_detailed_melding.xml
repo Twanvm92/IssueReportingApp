@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.justin.verbeterjegemeente.Presentation.DetailedMeldingActivity">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/DetailedFotoUrl"
+            android:layout_width="wrap_content"
+            android:layout_height="200dp"
+            android:layout_marginLeft="0dp"
+            android:layout_marginRight="0dp"
+            android:layout_marginTop="97dp"
+            android:background="@mipmap/fotodetail"
+            android:foreground="@drawable/imageborder" />
+
+        <TextView
+            android:id="@+id/Place_Id"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/beschrijvingTextView"
+            android:layout_alignStart="@+id/beschrijvingTextView"
+            android:layout_alignTop="@+id/star_button"
+            android:layout_marginTop="20dp"
+            android:fontFamily="sans-serif-condensed"
+            android:text="Raadhuisstraat 123"
+            android:textColor="@android:color/white"
+            android:textSize="30sp" />
+
+        <TextView
+            android:id="@+id/hoofdcategorieID"
+            android:layout_width="350dp"
+            android:foreground="@drawable/imageborder"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/beschrijvingTextView"
+            android:layout_below="@+id/DetailedFotoUrl"
+            android:layout_marginTop="20dp"
+            android:background="@color/colorBackground2"
+            android:fontFamily="sans-serif-condensed"
+            android:paddingLeft="10dp"
+            android:paddingTop="5px"
+            android:paddingBottom="5px"
+            android:paddingRight="10dp"
+            android:text="Hoofdcategorie: Afval"
+            android:textColor="@android:color/white"
+            android:textSize="19sp" />
+
+        <TextView
+            android:id="@+id/subcategorieID"
+            android:layout_width="350dp"
+            android:layout_height="wrap_content"
+            android:foreground="@drawable/imageborder"
+            android:layout_alignLeft="@+id/beschrijvingTextView"
+            android:layout_alignStart="@+id/beschrijvingTextView"
+            android:layout_below="@+id/hoofdcategorieID"
+            android:background="@color/colorBackground2"
+            android:fontFamily="sans-serif-condensed"
+            android:paddingLeft="10dp"
+            android:paddingTop="5px"
+            android:paddingBottom="5px"
+            android:layout_marginTop="10dp"
+            android:paddingRight="10dp"
+            android:text="Subcategorie: Straatafval"
+            android:textColor="@android:color/white"
+            android:textSize="19sp" />
+
+        <TextView
+            android:id="@+id/StatusID"
+            android:layout_width="350dp"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/beschrijvingTextView"
+            android:foreground="@drawable/imageborder"
+            android:layout_alignStart="@+id/beschrijvingTextView"
+            android:layout_below="@+id/subcategorieID"
+            android:background="@color/colorBackground2"
+            android:layout_marginTop="10dp"
+            android:paddingTop="5px"
+            android:paddingBottom="5px"
+            android:fontFamily="sans-serif-condensed"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:text="Status: Afval wordt vandaag opgeruimd."
+            android:textColor="@android:color/white"
+            android:textSize="19sp" />
+
+        <TextView
+            android:id="@+id/laatsteupdateID"
+            android:layout_width="350dp"
+            android:layout_height="wrap_content"
+            android:foreground="@drawable/imageborder"
+            android:layout_marginTop="10dp"
+            android:layout_alignLeft="@+id/beschrijvingTextView"
+            android:layout_alignStart="@+id/beschrijvingTextView"
+            android:layout_below="@+id/StatusID"
+            android:background="@color/colorBackground2"
+            android:fontFamily="sans-serif-condensed"
+            android:paddingLeft="10dp"
+            android:paddingTop="5px"
+            android:paddingBottom="5px"
+            android:paddingRight="10dp"
+            android:text="Laatste update: 12 minuten geleden"
+            android:textColor="@android:color/white"
+            android:textSize="19sp" />
+
+        <TextView
+            android:id="@+id/beschrijvingtextview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_alignLeft="@+id/beschrijvingTextView"
+            android:layout_alignStart="@+id/beschrijvingTextView"
+            android:layout_below="@id/laatsteupdateID"
+            android:text="@string/beschrijving2"
+            android:textColor="@android:color/background_light"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/beschrijvingTextView"
+            android:foreground="@drawable/imageborder"
+            android:layout_width="350dp"
+            android:layout_height="150dp"
+            android:layout_below="@+id/beschrijvingtextview"
+            android:layout_centerHorizontal="true"
+            android:background="@color/colorBackground2"
+            android:fontFamily="sans-serif-condensed"
+            android:paddingLeft="10dp"
+            android:paddingTop="5px"
+            android:paddingBottom="5px"
+            android:paddingRight="10dp"
+            android:text="The wise man therefore always holds in these matters to this principle of selection: he rejects pleasures to secure other greater pleasures, or else he endures pains to avoid worse pains"
+            android:textColor="@android:color/white"
+            android:textSize="19sp" />
+
+        <com.like.LikeButton
+            android:id="@+id/star_button"
+            android:layout_width="79dp"
+            android:layout_height="77dp"
+            android:layout_alignEnd="@+id/beschrijvingTextView"
+            android:layout_alignParentTop="true"
+            android:layout_alignRight="@+id/beschrijvingTextView"
+            android:layout_marginTop="11dp"
+            app:circle_end_color="#FF6FDA7F"
+            app:circle_start_color="#82b236"
+            app:icon_size="40dp"
+            app:icon_type="star" />
+
+        <Button
+            android:id="@+id/terugButton2"
+            android:layout_width="350dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_alignLeft="@+id/beschrijvingTextView"
+            android:layout_alignStart="@+id/beschrijvingTextView"
+            android:layout_below="@+id/beschrijvingTextView"
+            android:layout_centerHorizontal="true"
+            android:backgroundTint="#FF6FDA7F"
+            android:text="@string/terug"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:textSize="21sp"
+            android:textStyle="bold" />
+
+    </RelativeLayout>
+
+</ScrollView>

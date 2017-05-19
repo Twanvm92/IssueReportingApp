@@ -32,6 +32,7 @@ dependencies {
 
     // Retrofit & OkHttp
 
+
     // Required -- JUnit 4 framework
     // Optional -- Mockito framework
 
@@ -39,6 +40,7 @@ dependencies {
     //android apt plugin for Mockery
 
     testCompile 'junit:junit:4.12'
+
     compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.android.support:design:25.3.1'
     compile 'io.reactivex:rxandroid:1.2.1'
@@ -57,4 +59,6 @@ dependencies {
     provided 'com.github.VictorAlbertos.Mockery:test_runtime:1.0.2'
     provided 'org.glassfish:javax.annotation:10.0-b28'
     provided 'junit:junit:4.12'
+    compile 'com.github.jd-alexander:LikeButton:0.2.1'
+
 }

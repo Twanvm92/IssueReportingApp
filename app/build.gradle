@@ -61,4 +61,5 @@ dependencies {
     provided 'com.github.VictorAlbertos.Mockery:test_runtime:1.0.2'
     provided 'org.glassfish:javax.annotation:10.0-b28'
     provided 'junit:junit:4.12'
+    compile 'com.github.jd-alexander:LikeButton:0.2.1'
 }

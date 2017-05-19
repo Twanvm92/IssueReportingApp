@@ -42,7 +42,9 @@
         <activity
             android:name=".Presentation.MeldingActivity"
             android:theme="@style/AppTheme.Meldingscherm" />
-        <activity android:name=".Presentation.DetailedMeldingActivity"></activity>
+        <activity android:name=".Presentation.DetailedMeldingActivity"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+
     </application>
 
 </manifest>

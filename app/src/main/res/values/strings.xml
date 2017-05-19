@@ -8,6 +8,7 @@
 <string name="locatie">Locatie</string>
 <string name="locatieWijzigen">Locatie wijzigen</string>
 <string name="beschrijving">Beschrijving</string>
+    <string name="beschrijving2">Beschrijving van de melding:</string>
 <string name="beschrijvingHint">Beschrijf uw probleem</string>
 <string name="email">Email</string>
 <string name="optioneel">Optioneel</string>

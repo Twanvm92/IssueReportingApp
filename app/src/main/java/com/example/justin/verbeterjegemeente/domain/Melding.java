@@ -2,11 +2,13 @@ package com.example.justin.verbeterjegemeente.domain;
 
 import android.net.Uri;
 
+import java.io.Serializable;
+
 /**
  * Created by Mika Krooswijk on 8-5-2017.
  */
 
-public class Melding  {
+public class Melding implements Serializable {
 
     private String hoofdcategorie, subcategorie, beschrijving, voornaam, achternaam, email;
     private boolean update;

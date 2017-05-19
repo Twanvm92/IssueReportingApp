@@ -128,7 +128,7 @@
             android:textColor="@android:color/holo_green_light" />
 
         <TextView
-            android:id="@+id/tijdID"
+            android:id="@+id/laatsteupdateID"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"

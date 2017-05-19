@@ -4,6 +4,7 @@ import com.example.justin.verbeterjegemeente.domain.Service;
 import com.example.justin.verbeterjegemeente.domain.PostServiceRequestResponse;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -72,6 +73,11 @@ public interface ServiceClient {
                                                              @Query("long") String lng,
                                                              @Query("status") String status,
                                                              @Query("radius") String meters);
+
+
+
+    @GET ("requests/{id}.json")
+    Call<ArrayList<ServiceRequest>> getServiceById (@Path("id") String id);
 }
 
 

@@ -45,6 +45,11 @@ public class Tab2Fragment extends Fragment  {
         //dummyAutos();
         generator.generate();
 
+        
+
+
+
+
         // Listview UI referentie
         meldingListView = (ListView) view.findViewById(R.id.meldingListView);
         meldingListView.setAdapter(new MeldingAdapter(this.getContext(), generator.getMeldingen()));

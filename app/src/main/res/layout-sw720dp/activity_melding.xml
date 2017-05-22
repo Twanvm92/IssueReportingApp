@@ -15,7 +15,7 @@
         <TextView
             android:id="@+id/locatieTextView"
             android:layout_width="match_parent"
-            android:layout_height="40dp"
+            android:layout_height="60dp"
             android:layout_marginBottom="5dp"
             android:layout_marginLeft="5dp"
             android:layout_marginRight="5dp"
@@ -24,13 +24,13 @@
             android:padding="8dp"
             android:text="@string/locatie"
             android:textAlignment="center"
-            android:textSize="20sp" />
+            android:textSize="25sp" />
 
         <Button
             android:id="@+id/wijzigLocatieButton"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:layout_marginBottom="20dp"
+            android:layout_height="70dp"
+            android:layout_marginBottom="25dp"
             android:layout_marginLeft="5dp"
             android:layout_marginRight="5dp"
             android:backgroundTint="#FF6FDA7F"
@@ -78,10 +78,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="5dp"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="25dp"
             android:text="@string/beschrijving"
             android:textColor="@android:color/background_light"
-            android:textSize="20sp"
+            android:textSize="25sp"
             android:textStyle="bold" />
 
         <EditText
@@ -90,6 +90,7 @@
             android:layout_height="70dp"
             android:layout_marginLeft="5dp"
             android:layout_marginRight="5dp"
+            android:layout_marginBottom="25dp"
             android:background="@drawable/round"
             android:ems="10"
             android:hint="@string/beschrijvingHint"
@@ -97,7 +98,7 @@
             android:nextFocusLeft="@id/beschrijving"
             android:nextFocusUp="@id/beschrijving"
             android:padding="8dp"
-            android:textSize="30sp" />
+            android:textSize="25sp" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -107,7 +108,7 @@
             <Button
                 android:id="@+id/fotoButton"
                 android:layout_width="match_parent"
-                android:layout_height="80dp"
+                android:layout_height="120dp"
                 android:layout_marginLeft="5dp"
                 android:layout_marginRight="5dp"
                 android:layout_marginTop="15dp"
@@ -116,13 +117,13 @@
                 android:drawableBottom="@drawable/cameraicon"
                 android:text="@string/foto"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                android:textSize="21sp"
+                android:textSize="25sp"
                 android:textStyle="bold" />
 
             <ImageView
                 android:id="@+id/fotoImageView"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"
+                android:layout_height="140dp"
                 android:layout_marginLeft="5dp"
                 android:layout_marginRight="5dp"
                 android:layout_marginTop="5dp"
@@ -141,11 +142,12 @@
                 android:id="@+id/emailtextview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="25dp"
                 android:layout_marginLeft="5dp"
                 android:layout_weight="1"
                 android:text="@string/email"
                 android:textColor="@android:color/background_light"
-                android:textSize="20sp"
+                android:textSize="25sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -153,18 +155,19 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginRight="10dp"
+                android:layout_marginTop="25dp"
                 android:layout_weight="1"
                 android:text="@string/optioneel"
                 android:textAlignment="textEnd"
                 android:textColor="@android:color/background_light"
-                android:textSize="16sp" />
+                android:textSize="25sp" />
         </LinearLayout>
 
         <EditText
             android:id="@+id/email"
             android:layout_width="match_parent"
             android:layout_height="70dp"
-            android:layout_marginBottom="20dp"
+            android:layout_marginBottom="25dp"
             android:layout_marginLeft="5dp"
             android:layout_marginRight="5dp"
             android:background="@drawable/round"
@@ -172,7 +175,7 @@
             android:hint="@string/emailHint"
             android:inputType="textEmailAddress"
             android:padding="8dp"
-            android:textSize="20sp" />
+            android:textSize="25sp" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -187,7 +190,7 @@
                 android:layout_weight="1"
                 android:text="@string/voornaam"
                 android:textColor="@android:color/background_light"
-                android:textSize="20sp"
+                android:textSize="25sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -199,14 +202,14 @@
                 android:text="@string/optioneel"
                 android:textAlignment="textEnd"
                 android:textColor="@android:color/background_light"
-                android:textSize="16sp" />
+                android:textSize="25sp" />
         </LinearLayout>
 
         <EditText
             android:id="@+id/voornaam"
             android:layout_width="match_parent"
             android:layout_height="70dp"
-            android:layout_marginBottom="20dp"
+            android:layout_marginBottom="25dp"
             android:layout_marginLeft="5dp"
             android:layout_marginRight="5dp"
             android:background="@drawable/round"
@@ -215,7 +218,7 @@
             android:inputType="text"
             android:maxLines="1"
             android:padding="8dp"
-            android:textSize="20sp" />
+            android:textSize="25sp" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -230,7 +233,7 @@
                 android:layout_weight="1"
                 android:text="@string/achternaam"
                 android:textColor="@android:color/background_light"
-                android:textSize="20sp"
+                android:textSize="25sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -242,7 +245,7 @@
                 android:text="@string/optioneel"
                 android:textAlignment="textEnd"
                 android:textColor="@android:color/background_light"
-                android:textSize="16sp" />
+                android:textSize="25sp" />
         </LinearLayout>
 
         <EditText
@@ -256,7 +259,7 @@
             android:inputType="text"
             android:maxLines="1"
             android:padding="8dp"
-            android:textSize="20sp" />
+            android:textSize="25sp" />
 
         <TextView
             android:id="@+id/textView3"
@@ -266,18 +269,18 @@
             android:layout_marginRight="5dp"
             android:text="@string/info"
             android:textColor="@android:color/background_light"
-            android:textSize="18sp" />
+            android:textSize="25sp" />
 
         <CheckBox
             android:id="@+id/updateCheckBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="15dp"
-            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="25dp"
             android:buttonTint="@android:color/background_light"
             android:text="@string/update"
             android:textColor="@android:color/background_light"
-            android:textSize="18sp" />
+            android:textSize="25sp" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -288,7 +291,7 @@
             <Button
                 android:id="@+id/terugButton"
                 android:layout_width="match_parent"
-                android:layout_height="80dp"
+                android:layout_height="110dp"
                 android:layout_weight="1"
                 android:backgroundTint="#FF6FDA7F"
                 android:text="@string/terug"
@@ -299,7 +302,7 @@
             <Button
                 android:id="@+id/plaatsButton"
                 android:layout_width="match_parent"
-                android:layout_height="80dp"
+                android:layout_height="110dp"
                 android:layout_weight="1"
                 android:backgroundTint="#FF6FDA7F"
                 android:text="@string/meldingplaatsen"

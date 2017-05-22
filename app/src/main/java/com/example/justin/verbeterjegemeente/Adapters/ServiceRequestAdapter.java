@@ -13,6 +13,8 @@ import android.widget.TextView;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
 
 /**
@@ -32,10 +34,13 @@ public class ServiceRequestAdapter extends ArrayAdapter<ServiceRequest> {
             convertview = LayoutInflater.from(getContext()).inflate(R.layout.tab2_listviewrow, parent, false);
         }
 
-        TextView voornaam = (TextView) convertview.findViewById(R.id.voornaamID);
-        voornaam.setText(serviceRequest.getAddress());
+        TextView voornaam = (TextView) convertview.findViewById(R.id.beschrijvingID);
+        voornaam.setText(serviceRequest.getDescription());
 
-        TextView beschrijving = (TextView) convertview.findViewById(R.id.beschrijvingID);
+        TextView MainCatagory = (TextView) convertview.findViewById(R.id.hoofdcategorieID);
+        MainCatagory.setText(serviceRequest.getServiceCode());
+
+        TextView beschrijving = (TextView) convertview.findViewById(R.id.laatsteupdateID);
         beschrijving.setText(serviceRequest.getStatus());
 
         return convertview;

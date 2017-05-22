@@ -51,7 +51,7 @@ public class Tab2Fragment extends Fragment  {
         meldingListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent myIntent = new Intent(view.getContext(), DetailedMeldingActivity.class);
-//                myIntent.putExtra("Melding", meldingen.get(position));
+                myIntent.putExtra("Melding", meldingen.get(position));
                 startActivity(myIntent);
             }
         });

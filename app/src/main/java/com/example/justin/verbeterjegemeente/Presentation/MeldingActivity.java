@@ -10,6 +10,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -18,6 +19,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
@@ -26,11 +28,16 @@ import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
+
+import com.example.justin.verbeterjegemeente.Database.DatabaseHanlder;
+
 import com.example.justin.verbeterjegemeente.Constants;
+
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.Locatie;
 import com.example.justin.verbeterjegemeente.domain.PostServiceRequestResponse;
 import com.example.justin.verbeterjegemeente.domain.Service;
+import com.example.justin.verbeterjegemeente.domain.User;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -69,6 +76,7 @@ public class MeldingActivity extends AppCompatActivity {
             voornaamTextView, achternaamTextView,optioneelTextView;
     private EditText beschrijvingEditText, emailEditText,
             voornaamEditText, achternaamEditText;
+    private CheckBox updateCheckBox;
     private ImageView fotoImageView;
     private List<Service> serviceList;
     ArrayAdapter<String> catagoryAdapter;
@@ -78,9 +86,12 @@ public class MeldingActivity extends AppCompatActivity {
     private android.app.AlertDialog.Builder builder;
     private String imagePath = null;
     private Locatie location;
+    private CheckBox onthoudCheckbox;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_melding);
         fotoButton = (Button) findViewById(R.id.fotoButton);
@@ -93,6 +104,10 @@ public class MeldingActivity extends AppCompatActivity {
         optioneelTextView = (TextView) findViewById(R.id.optioneeltextview);
         voornaamTextView = (TextView) findViewById(R.id.voornaamtextview);
         achternaamTextView = (TextView) findViewById(R.id.achternaamtextview);
+        onthoudCheckbox = (CheckBox) findViewById(R.id.onthoudCheckBox);
+
+
+        updateCheckBox = (CheckBox) findViewById(R.id.updateCheckBox);
 
         Intent in = getIntent();
         if(in.hasExtra("long")) {
@@ -206,6 +221,17 @@ public class MeldingActivity extends AppCompatActivity {
         voornaamEditText = (EditText) findViewById(R.id.voornaam);
         achternaamEditText = (EditText) findViewById(R.id.achternaam);
 
+        final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
+        User foundUser = db.getUser();
+        Log.i("FOUND USER", foundUser.toString());
+        if(foundUser != null){
+            emailEditText.setText(foundUser.getEmail());
+            voornaamEditText.setText(foundUser.getFirstName());
+            achternaamEditText.setText(foundUser.getLastName());
+        }
+        db.close();
+
+
         terugButton = (Button) findViewById(R.id.terugButton);
         terugButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -223,6 +249,25 @@ public class MeldingActivity extends AppCompatActivity {
         plaatsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+
+
+                if(onthoudCheckbox.isChecked()) {
+                    if (!emailEditText.equals("") && !voornaamEditText.equals("") && !achternaamEditText.equals("")) {
+                        final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
+
+                        User user = new User();
+                        user.setLastName(achternaamEditText.getText().toString());
+                        user.setFirstName(voornaamEditText.getText().toString());
+                        user.setEmail(emailEditText.getText().toString());
+                        db.deleteUser();
+                        db.addUser(user);
+
+                        db.close();
+                    }
+                }
+
+
 
                 // initialize selected category and check if selected category is actually a category
                 String selecIt = "";
@@ -272,6 +317,12 @@ public class MeldingActivity extends AppCompatActivity {
                 }else {
                     Toast.makeText(getApplicationContext(),
                             getResources().getString(R.string.geenBeschrijving),Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (!updateCheckBox.isChecked() && emailEditText.getText().toString().equals("")) {
+                    Toast.makeText(getApplicationContext(),
+                            R.string.eContactGegevens, Toast.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -367,6 +418,10 @@ public class MeldingActivity extends AppCompatActivity {
                                         Toast.makeText(getApplicationContext(),
                                                 "service request is aangemaakt met id: " + psrr.getId(),
                                                 Toast.LENGTH_SHORT).show();
+
+                                        final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
+                                        db.addReport(psrr.getId());
+                                        db.close();
                                     }
 
                                 } else {
@@ -691,5 +746,15 @@ public class MeldingActivity extends AppCompatActivity {
     {
         String command = "ping -c 1 google.com";
         return (Runtime.getRuntime().exec (command).waitFor() == 0);
+    }
+
+    /**
+     * Refreshing activity when restarted. (If user presses back button).
+     */
+    @Override
+    public void onRestart() {
+        super.onRestart();
+        finish();
+        startActivity(getIntent());
     }
 }

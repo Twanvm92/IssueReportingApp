@@ -56,7 +56,6 @@
                 android:textSize="20sp"
                 android:layout_centerVertical="true"
                 android:layout_gravity="center"
-
                 android:background="@android:color/transparent"
                 android:gravity="center"
                 android:layout_marginLeft="5dp"
@@ -167,7 +166,7 @@
             android:layout_marginRight="5dp"
             android:background="@drawable/round"
             android:ems="10"
-            android:hint="Vul hier uw e-mailadres in"
+            android:hint="@string/emailHint"
             android:inputType="textEmailAddress"
             android:padding="8dp"
             android:textSize="18sp" />
@@ -255,6 +254,15 @@
             android:padding="8dp"
             android:textSize="18sp" />
 
+        <CheckBox
+            android:id="@+id/onthoudCheckBox"
+            android:theme="@style/checkBoxStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/onthoudGegevens"
+            android:textColor="@android:color/white"
+            android:textColorLink="#FF6FDA7F" />
+
         <TextView
             android:id="@+id/textView3"
             android:layout_width="match_parent"
@@ -264,11 +272,22 @@
             android:textColor="@android:color/background_light"
             android:text="@string/info" />
 
+        <CheckBox
+            android:id="@+id/updateCheckBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="15dp"
+            android:textColor="@android:color/background_light"
+            android:buttonTint="@android:color/background_light"
+            android:layout_marginTop="10dp"
+            android:text="@string/update"
+            android:textSize="18sp" />
+
         <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:baselineAligned="false"
-        android:orientation="horizontal">
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
 
             <Button
                 android:id="@+id/terugButton"
@@ -291,6 +310,6 @@
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                 android:textSize="21sp"
                 android:textStyle="bold" />
-    </LinearLayout>
+        </LinearLayout>
     </LinearLayout>
 </ScrollView>

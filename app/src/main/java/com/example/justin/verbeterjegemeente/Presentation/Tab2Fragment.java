@@ -48,11 +48,17 @@ public class Tab2Fragment extends Fragment  {
         // Listview UI referentie
         meldingListView = (ListView) view.findViewById(R.id.meldingListView);
         meldingListView.setAdapter(new MeldingAdapter(this.getContext(), generator.getMeldingen()));
-        meldingListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent myIntent = new Intent(view.getContext(), DetailedMeldingActivity.class);
-//                myIntent.putExtra("Melding", meldingen.get(position));
-                startActivity(myIntent);
+                       meldingListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                        Log.i("LISTVIEWEXAMPLE", ""+i);
+                        Intent intent = new Intent(view.getContext(), DetailedMeldingActivity.class);
+
+                        intent.putExtra("BESCHRIJVING", generator.getMeldingen().get(i).getBeschrijving());
+                        intent.putExtra("SUBCATEGORIE", generator.getMeldingen().get(i).getSubcategorie());
+                        intent.putExtra("HOOFDCATEGORIE", generator.getMeldingen().get(i).getHoofdcategorie());
+
+                startActivity(intent);
             }
         });
 

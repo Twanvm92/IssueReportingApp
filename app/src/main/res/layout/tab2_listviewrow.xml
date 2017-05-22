@@ -14,7 +14,7 @@
         android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/locatieTV"
+            android:id="@+id/locatietab2tv"
             android:layout_width="130dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -27,7 +27,7 @@
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/locatieID"
+            android:id="@+id/locatietab2id"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -44,7 +44,7 @@
         android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/hoofdcategorieTV"
+            android:id="@+id/hoofdcategorietab2tv"
             android:layout_width="250dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -57,7 +57,7 @@
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/hoofdcategorieID"
+            android:id="@+id/hoofdcategorietab2id"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -74,7 +74,7 @@
         android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/subcategorieTV"
+            android:id="@+id/subcategorietab2tv"
             android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -85,7 +85,7 @@
             android:textStyle="bold|italic" />
 
         <TextView
-            android:id="@+id/subcategorieID"
+            android:id="@+id/subcategorietab2id"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -102,7 +102,7 @@
         android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/beschrijvingID"
+            android:id="@+id/beschrijvingtab2id"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -119,7 +119,7 @@
         android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/laatsteupdateTV"
+            android:id="@+id/laatsteupdatetab2tv"
             android:layout_width="180dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -128,7 +128,7 @@
             android:textColor="@android:color/holo_green_light" />
 
         <TextView
-            android:id="@+id/laatsteupdateID"
+            android:id="@+id/laatsteupdatetab2id"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"

@@ -11,8 +11,10 @@ import android.support.v4.app.FragmentActivity;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.example.justin.verbeterjegemeente.R;
+import com.example.justin.verbeterjegemeente.domain.Melding;
 
 /**
  * Created by Justin on 19-5-2017.
@@ -27,15 +29,29 @@ public class DetailedMeldingActivity extends FragmentActivity {
     // duration is ideal for subtle animations or animations that occur
     // very frequently.
     private int mShortAnimationDuration;
+    private Melding melding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detailed_melding);
 
+        Bundle extras = getIntent().getExtras();
+        String str = extras.getString("BESCHRIJVING");
+        String subcategorie = extras.getString("SUBCATEGORIE");
+        String hoofdcategorie = extras.getString("HOOFDCATEGORIE");
+
+        TextView tv = (TextView) findViewById(R.id.beschrijvingdetailid);
+        TextView tv2 = (TextView) findViewById(R.id.hoofdcategoriedetailid);
+        TextView tv3 = (TextView) findViewById(R.id.subcategoriedetailid);
+        tv.setText(str);
+        tv2.setText(hoofdcategorie);
+        tv3.setText(subcategorie);
+
+
         // Hook up clicks on the thumbnail views.
 
-        final View thumb1View = findViewById(R.id.thumb_button_1);
+        final View thumb1View = findViewById(R.id.fotomelding);
         thumb1View.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

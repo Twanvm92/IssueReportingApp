@@ -8,11 +8,19 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
+import android.widget.Button;
 import android.widget.ImageView;
 
+import com.example.justin.verbeterjegemeente.Database.DatabaseHanlder;
 import com.example.justin.verbeterjegemeente.R;
+import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
+import com.like.LikeButton;
+import com.like.OnLikeListener;
+
+import java.util.ArrayList;
 
 /**
  * Created by Justin on 19-5-2017.
@@ -22,6 +30,8 @@ public class DetailedMeldingActivity extends FragmentActivity {
     // Hold a reference to the current animator,
     // so that it can be canceled mid-way.
     private Animator mCurrentAnimator;
+    private LikeButton likeButton;
+    private Button terugButton;
 
     // The system "short" animation time duration, in milliseconds. This
     // duration is ideal for subtle animations or animations that occur
@@ -32,6 +42,70 @@ public class DetailedMeldingActivity extends FragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detailed_melding);
+
+       Bundle extras = getIntent().getExtras();
+
+       final ServiceRequest serviceRequest = (ServiceRequest)getIntent().getSerializableExtra("melding");
+
+
+        likeButton = (LikeButton) findViewById(R.id.star_button);
+
+
+
+        final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1 );
+
+        if(db.ReportExists(serviceRequest.getServiceRequestId())){
+            likeButton.setLiked(true);
+        }else{
+            likeButton.setLiked(false);
+        }
+
+        likeButton.setOnLikeListener(new OnLikeListener() {
+            @Override
+            public void liked(LikeButton likeButton) {
+
+                try {
+                    if (db.ReportExists(serviceRequest.getServiceRequestId()) == false) {
+                        db.addReport(serviceRequest.getServiceRequestId());
+                    }
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void unLiked(LikeButton likeButton) {
+                try {
+                    if (db.ReportExists(serviceRequest.getServiceRequestId())) {
+                        db.deleteReport(serviceRequest.getServiceRequestId());
+                    }
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        terugButton = (Button) findViewById(R.id.terugButton2);
+        terugButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         // Hook up clicks on the thumbnail views.
 

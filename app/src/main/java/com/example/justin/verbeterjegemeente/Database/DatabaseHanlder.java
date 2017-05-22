@@ -146,9 +146,24 @@ public class DatabaseHanlder extends SQLiteOpenHelper {
 
     // Deletes a report from the database
     public void deleteReport(String id){
-        String query = "DELETE FROM " + MELDING_TABLE_NAME + "WHERE " + MELDING_COLUMN_IDAPI + " = " + id;
+        String query = "DELETE FROM " + MELDING_TABLE_NAME + " WHERE " + MELDING_COLUMN_IDAPI + " = '" + id + "'";
         SQLiteDatabase db = this.getWritableDatabase();
         db.execSQL(query);
+
+    }
+
+    public boolean ReportExists(String id){
+        String query = "SELECT * FROM " + MELDING_TABLE_NAME + " WHERE " + MELDING_COLUMN_IDAPI + " = '" + id + "'";
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(query, null);
+
+        if(cursor.moveToNext()){
+            return true;
+        }else{
+            return false;
+        }
+
+
 
     }
 

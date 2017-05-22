@@ -1,8 +1,13 @@
 package com.example.justin.verbeterjegemeente.Presentation;
 
+import android.content.Intent;
+import android.os.Parcelable;
+import android.support.design.internal.ParcelableSparseArray;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -84,6 +89,17 @@ public class FollowingActivity extends AppCompatActivity {
         meldingListView = (ListView) findViewById(R.id.FollowingListView);
         meldingAdapter = new ServiceRequestAdapter(getApplicationContext(), srListFinal);
         meldingListView.setAdapter(meldingAdapter);
+        meldingListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent i = new Intent(view.getContext(), DetailedMeldingActivity.class);
+                ServiceRequest serviceRequest = srListFinal.get(position);
+                i.putExtra("melding", serviceRequest);
+                startActivity(i);
+            }
+        });
+
+
         meldingAdapter.notifyDataSetChanged();
 
 

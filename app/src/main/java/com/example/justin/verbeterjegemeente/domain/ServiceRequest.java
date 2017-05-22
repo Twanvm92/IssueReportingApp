@@ -4,7 +4,9 @@ package com.example.justin.verbeterjegemeente.domain;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class ServiceRequest {
+import java.io.Serializable;
+
+public class ServiceRequest implements Serializable{
 
     @SerializedName("service_request_id")
     @Expose

@@ -8,6 +8,7 @@
 <string name="locatie">Locatie</string>
 <string name="locatieWijzigen">Locatie wijzigen</string>
 <string name="beschrijving">Beschrijving</string>
+    <string name="beschrijving2">Beschrijving van de melding:</string>
 <string name="beschrijvingHint">Beschrijf uw probleem</string>
 <string name="email">Email</string>
 <string name="optioneel">Optioneel</string>
@@ -20,6 +21,13 @@
 <string name="info">Optioneel: U bent niet verplicht om dit in te vullen, dit maakt het wel makkelijker om u op de hoogte te kunnen stellen van veranderingen.</string>
 <string name="terug">Terug</string>
 <string name="meldingplaatsen">Plaats melding</string>
+
+<string name="locatieTab2">Locatie:</string>
+<string name="hoofdcategorieTab2">Hoofdcategorie:</string>
+<string name="subcategorieTab2">Subcategorie:</string>
+<string name="laatsteupdateTab2">Laatste update:</string>
+
+
 
 <string name="FoutOphalenProblemen">Kan op het moment geen categorieën ophalen. Probeer het later opnieuw.</string>
 

@@ -9,6 +9,7 @@
     <string name="locatie">Location</string>
     <string name="locatieWijzigen">Change location</string>
     <string name="beschrijving">Description</string>
+    <string name="beschrijving2">Description of the notification:</string>
     <string name="beschrijvingHint">Describe your problem</string>
     <string name="email">Email</string>
     <string name="optioneel">Optional</string>
@@ -21,6 +22,11 @@
     <string name="info">Optional: You are not required to enter this information, but it will make it easier to keep you informed of changes.</string>
     <string name="terug">Back</string>
     <string name="meldingplaatsen">Send notification</string>
+
+    <string name="locatieTab2">Location:</string>
+    <string name="hoofdcategorieTab2">Main category:</string>
+    <string name="subcategorieTab2">Subcategory:</string>
+    <string name="laatsteupdateTab2">Latest update:</string>
 
     <string name="FoutOphalenProblemen">Can not retrieve categories at this time. Please try again later.</string>
 

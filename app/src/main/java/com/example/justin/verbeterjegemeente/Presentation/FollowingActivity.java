@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -37,6 +38,7 @@ public class FollowingActivity extends AppCompatActivity {
     ArrayList<ServiceRequest> list;
     ListView meldingListView;
     private ArrayAdapter meldingAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -101,6 +103,7 @@ public class FollowingActivity extends AppCompatActivity {
 
 
         meldingAdapter.notifyDataSetChanged();
+
 
 
 

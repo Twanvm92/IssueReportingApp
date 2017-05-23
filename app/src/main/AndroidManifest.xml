@@ -43,7 +43,8 @@
             android:name=".Presentation.MeldingActivity"
             android:theme="@style/AppTheme.Meldingscherm" />
 
-        <activity android:name=".Presentation.FollowingActivity"></activity>
+        <activity android:name=".Presentation.FollowingActivity"
+            android:theme="@style/AppTheme.Follow"></activity>
 
         <activity android:name=".Presentation.DetailedMeldingActivity"
             android:theme="@style/AppTheme.NoActionBar"></activity>

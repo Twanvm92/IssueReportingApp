@@ -64,7 +64,10 @@ public class FollowingActivity extends AppCompatActivity {
                         public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
                             if(response.isSuccessful()){
                                 ArrayList<ServiceRequest> srList = response.body();
-                                srListFinal.add(srList.get(0));
+                                for (int i = 0; i < srList.size(); i++){
+                                    srListFinal.add(srList.get(i));
+                                }
+
 
                                 if(meldingAdapter != null) {
                                     meldingAdapter.notifyDataSetChanged();

@@ -37,7 +37,7 @@
             android:drawableLeft="@drawable/mapicon"
             android:text="@string/locatieWijzigen"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            android:textSize="21sp"
+            android:textSize="25sp"
             android:textStyle="bold" />
 
         <RelativeLayout
@@ -296,7 +296,7 @@
                 android:backgroundTint="#FF6FDA7F"
                 android:text="@string/terug"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                android:textSize="21sp"
+                android:textSize="25sp"
                 android:textStyle="bold" />
 
             <Button
@@ -307,7 +307,7 @@
                 android:backgroundTint="#FF6FDA7F"
                 android:text="@string/meldingplaatsen"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                android:textSize="21sp"
+                android:textSize="25sp"
                 android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>

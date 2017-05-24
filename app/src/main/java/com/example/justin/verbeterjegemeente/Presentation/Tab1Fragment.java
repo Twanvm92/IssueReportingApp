@@ -283,34 +283,39 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
     public void getLocation() {
         if (ActivityCompat.checkSelfPermission(this.getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this.getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
+            if(currentLocation != null) {
+                currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+            } else {
 
-        // get current location of user. Don`t use this one when testing Helsinki API.
-        //  currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
-        if(currentLocation != null) {
-            currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+
+                // Location Breda. Can be used when Breda API is available.
+                // currentLatLng = new LatLng(51.58656, 4.77596);
+
+                // used to get Helsinki location for testing purposes
+                currentLatLng = new LatLng(DEFAULT_LONG, DEFAULT_LAT);
+                if(!popupShown) {
+                    new AlertDialog.Builder(this.getContext())
+                            .setTitle("Locatie bepalen mislukt")
+                            .setMessage("het is niet gelukt uw huidige locatie te bepalen, mogelijk staat locatie voorziening uit, of is er geen internetverbinding. probeer het later opnieuw.")
+                            .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                }
+                            }).setIcon(android.R.drawable.ic_dialog_alert).show();
+                    popupShown = !popupShown;
+                } else {
+                    Toast.makeText(this.getContext(), "Locatie kon niet worden opgehaald", Toast.LENGTH_SHORT).show();
+                }
+            }
         } else {
-
-
-            // Location Breda. Can be used when Breda API is available.
-            // currentLatLng = new LatLng(51.58656, 4.77596);
+            // get current location of user. Don`t use this one when testing Helsinki API.
+            //  currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
 
             // used to get Helsinki location for testing purposes
-            currentLatLng = new LatLng(DEFAULT_LAT, DEFAULT_LONG);
-            if(!popupShown) {
-                new AlertDialog.Builder(this.getContext())
-                        .setTitle("Locatie bepalen mislukt")
-                        .setMessage("het is niet gelukt uw huidige locatie te bepalen, mogelijk staat locatie voorziening uit, of is er geen internetverbinding. probeer het later opnieuw.")
-                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                            }
-                        }).setIcon(android.R.drawable.ic_dialog_alert).show();
-                popupShown = !popupShown;
-            } else {
-                Toast.makeText(this.getContext(), "Locatie kon niet worden opgehaald", Toast.LENGTH_SHORT).show();
-            }
+            currentLatLng = new LatLng(DEFAULT_LONG, DEFAULT_LAT);
         }
+
+
+
         CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
         mMap.moveCamera(center);
     }
@@ -373,7 +378,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
             @Override
             public void onFailure(Call<ArrayList<ServiceRequest>> call, Throwable t) {
-                Toast.makeText(getContext(), getResources().getString(R.string.ePostRequest),
+                Toast.makeText(getContext(), t.getMessage().toString(),
                         Toast.LENGTH_SHORT).show();
                 t.printStackTrace();
             }

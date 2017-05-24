@@ -1,5 +1,9 @@
 package com.example.justin.verbeterjegemeente.Presentation;
 
+import android.app.FragmentTransaction;
+import android.widget.Button;
+import android.widget.Toast;
+import android.content.Intent;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -22,7 +26,7 @@ import java.util.Locale;
 public class Tab3Fragment extends Fragment {
     private static final String TAG = "Tab3Fragment";
 
-    private Button btnNEDERLANDS, btnENGELS;
+    private Button btnNEDERLANDS, btnENGELS, btnMELDINGEN;
 
     @Nullable
     @Override
@@ -46,6 +50,16 @@ public class Tab3Fragment extends Fragment {
                 Toast.makeText(getActivity(), "ENGELSE TAAL AANGEZET",Toast.LENGTH_SHORT).show();
 
                 changeLang("en");
+
+            }
+        });
+
+        btnMELDINGEN = (Button) view.findViewById(R.id.buttonmeldingen);
+        btnMELDINGEN.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(getContext(), FollowingActivity.class);
+                startActivity(i);
             }
         });
 
@@ -78,5 +92,13 @@ public class Tab3Fragment extends Fragment {
         SharedPreferences.Editor editor = prefs.edit();
         editor.putString(langPref, lang);
         editor.commit();
+
+//        refresh van huidige fragment werkt, backpress naar meldingen ook
+//        andere activiteiten worden nog niet refresht
+//        misschien is er een betere manier ipv elke activiteit apart op te vangen..
+        android.support.v4.app.FragmentTransaction ft = getFragmentManager().beginTransaction();
+        ft.detach(this).attach(this).commit();
     }
+
+
 }

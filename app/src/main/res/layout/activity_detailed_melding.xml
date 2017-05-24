@@ -1,0 +1,253 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    <LinearLayout android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/Place_Id"
+                android:layout_width="500dp"
+                android:layout_height="wrap_content"
+                android:layout_alignLeft="@+id/beschrijvingTextView"
+                android:layout_alignStart="@+id/beschrijvingTextView"
+                android:layout_alignTop="@+id/star_button"
+                android:layout_marginTop="20dp"
+                android:layout_weight="1"
+                android:fontFamily="sans-serif-condensed"
+                android:text="Raadhuisstraat 123"
+                android:textColor="@android:color/white"
+                android:textSize="30sp" />
+
+            <com.like.LikeButton
+                android:id="@+id/star_button"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_alignEnd="@+id/beschrijvingTextView"
+                android:layout_alignParentTop="true"
+                android:layout_alignRight="@+id/beschrijvingTextView"
+                android:layout_marginTop="11dp"
+                android:layout_weight="1"
+                app:circle_end_color="#FF6FDA7F"
+                app:circle_start_color="#82b236"
+                app:icon_size="40dp"
+                app:icon_type="star" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/thumb_button_1"
+                android:layout_width="150dp"
+                android:layout_height="150dp"
+                android:layout_marginRight="1dp"
+                android:layout_weight="1"
+                android:scaleType="centerCrop"
+                android:src="@drawable/thumb1" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/textView5"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginTop="20dp"
+                    android:text="Hoofdcategorie:"
+                    android:textColor="@android:color/background_light"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/hoofdcategorieID"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignLeft="@+id/beschrijvingTextView"
+                    android:layout_below="@+id/DetailedFotoUrl"
+                    android:layout_marginLeft="5dp"
+                    android:background="@color/colorBackground2"
+                    android:fontFamily="sans-serif-condensed"
+                    android:foreground="@drawable/imageborder"
+                    android:paddingBottom="5px"
+                    android:paddingLeft="10dp"
+                    android:paddingRight="10dp"
+                    android:paddingTop="5px"
+                    android:text="Afval"
+                    android:textColor="@android:color/white"
+                    android:textSize="19sp" />
+
+                <TextView
+                    android:id="@+id/textView4"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:text="Subcategorie:"
+                    android:textColor="@android:color/background_light"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/subcategorieID"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignLeft="@+id/beschrijvingTextView"
+                    android:layout_alignStart="@+id/beschrijvingTextView"
+                    android:layout_below="@+id/hoofdcategorieID"
+                    android:layout_marginLeft="5dp"
+                    android:background="@color/colorBackground2"
+                    android:fontFamily="sans-serif-condensed"
+                    android:foreground="@drawable/imageborder"
+                    android:paddingBottom="5px"
+                    android:paddingLeft="10dp"
+                    android:paddingRight="10dp"
+                    android:paddingTop="5px"
+                    android:text="Straatafval"
+                    android:textColor="@android:color/white"
+                    android:textSize="19sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/textView7"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dp"
+            android:text="Status:"
+            android:textColor="@android:color/background_light"
+            android:textSize="20sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/StatusID"
+            android:layout_width="320dp"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/beschrijvingTextView"
+            android:foreground="@drawable/imageborder"
+            android:layout_alignStart="@+id/beschrijvingTextView"
+            android:layout_below="@+id/subcategorieID"
+            android:background="@color/colorBackground2"
+            android:paddingTop="5px"
+            android:paddingBottom="5px"
+            android:fontFamily="sans-serif-condensed"
+            android:paddingLeft="10dp"
+            android:layout_marginLeft="5dp"
+            android:paddingRight="10dp"
+            android:text="Afval wordt vandaag opgeruimd."
+            android:textColor="@android:color/white"
+            android:textSize="19sp" />
+
+        <TextView
+            android:id="@+id/textView6"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dp"
+            android:text="Laatste update:"
+            android:textColor="@android:color/background_light"
+            android:textSize="20sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/laatsteupdateID"
+            android:layout_width="320dp"
+            android:layout_height="wrap_content"
+            android:foreground="@drawable/imageborder"
+
+            android:layout_alignLeft="@+id/beschrijvingTextView"
+            android:layout_alignStart="@+id/beschrijvingTextView"
+            android:layout_below="@+id/StatusID"
+            android:background="@color/colorBackground2"
+            android:fontFamily="sans-serif-condensed"
+            android:paddingLeft="10dp"
+            android:layout_marginLeft="5dp"
+            android:paddingTop="5px"
+            android:paddingBottom="5px"
+            android:paddingRight="10dp"
+            android:text="12 minuten geleden"
+            android:textColor="@android:color/white"
+            android:textSize="19sp" />
+
+        <TextView
+            android:id="@+id/beschrijvingtextview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginLeft="5dp"
+            android:layout_alignLeft="@+id/beschrijvingTextView"
+            android:layout_alignStart="@+id/beschrijvingTextView"
+            android:layout_below="@id/laatsteupdateID"
+            android:text="@string/beschrijving2"
+            android:textColor="@android:color/background_light"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/beschrijvingTextView"
+            android:foreground="@drawable/imageborder"
+            android:layout_width="320dp"
+            android:layout_height="150dp"
+            android:layout_below="@+id/beschrijvingtextview"
+            android:layout_centerHorizontal="true"
+            android:layout_marginLeft="5dp"
+            android:background="@color/colorBackground2"
+            android:fontFamily="sans-serif-condensed"
+            android:paddingLeft="10dp"
+            android:paddingTop="5px"
+            android:paddingBottom="5px"
+            android:paddingRight="10dp"
+            android:text="The wise man therefore always holds in these matters to this principle of selection: he rejects pleasures to secure other greater pleasures, or else he endures pains to avoid worse pains"
+            android:textColor="@android:color/white"
+            android:textSize="19sp" />
+
+        <Button
+            android:id="@+id/terugButton2"
+            android:layout_width="320dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginLeft="5dp"
+            android:layout_alignLeft="@+id/beschrijvingTextView"
+            android:layout_alignStart="@+id/beschrijvingTextView"
+            android:layout_below="@+id/beschrijvingTextView"
+            android:layout_centerHorizontal="true"
+            android:backgroundTint="#FF6FDA7F"
+            android:text="@string/terug"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:textSize="21sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <!-- This initially-hidden ImageView will hold the expanded/zoomed version of
+         the images above. Without transformations applied, it takes up the entire
+         screen. To achieve the "zoom" animation, this view's bounds are animated
+         from the bounds of the thumbnail button above, to its final laid-out
+         bounds.
+         -->
+
+        <ImageView
+            android:id="@+id/expanded_image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="invisible" />
+
+    </FrameLayout>
+</ScrollView>

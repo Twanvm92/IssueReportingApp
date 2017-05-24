@@ -10,6 +10,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -28,10 +29,16 @@ import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
+
+import com.example.justin.verbeterjegemeente.Database.DatabaseHanlder;
+
+import com.example.justin.verbeterjegemeente.Constants;
+
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.Locatie;
 import com.example.justin.verbeterjegemeente.domain.PostServiceRequestResponse;
 import com.example.justin.verbeterjegemeente.domain.Service;
+import com.example.justin.verbeterjegemeente.domain.User;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -79,18 +86,16 @@ public class MeldingActivity extends AppCompatActivity {
     ArrayAdapter<String> subCategoryAdapter;
     private ServiceClient client;
     private String image_path = "";
-    private static final int MY_PERMISSIONS_CAMERA = 1;
-    private static final int MY_PERMISSIONS_STORAGE = 2;
-    private static final int FOTO_MAKEN = 1;
-    private static final int FOTO_KIEZEN = 2;
-    private static final int LOCATIE_KIEZEN= 3;
     private Uri selectedImage;
     private android.app.AlertDialog.Builder builder;
     private String imagePath = null;
     private Locatie location;
+    private CheckBox onthoudCheckbox;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_melding);
         fotoButton = (Button) findViewById(R.id.fotoButton);
@@ -103,6 +108,8 @@ public class MeldingActivity extends AppCompatActivity {
         optioneelTextView = (TextView) findViewById(R.id.optioneeltextview);
         voornaamTextView = (TextView) findViewById(R.id.voornaamtextview);
         achternaamTextView = (TextView) findViewById(R.id.achternaamtextview);
+        onthoudCheckbox = (CheckBox) findViewById(R.id.onthoudCheckBox);
+
 
         updateCheckBox = (CheckBox) findViewById(R.id.updateCheckBox);
 
@@ -121,7 +128,7 @@ public class MeldingActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), MapsActivity.class);
-                startActivityForResult(intent, LOCATIE_KIEZEN);
+                startActivityForResult(intent, Constants.LOCATIE_KIEZEN);
             }
         });
 
@@ -224,7 +231,7 @@ public class MeldingActivity extends AppCompatActivity {
                                     Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                                 try {
                                     Intent makePhoto = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                                    startActivityForResult(makePhoto, FOTO_MAKEN);
+                                    startActivityForResult(makePhoto, Constants.FOTO_MAKEN);
                                 } catch (Exception e) {
                                     Log.e("PERMISSION", "camera not granted");
                                     reqCameraPermission();
@@ -244,7 +251,7 @@ public class MeldingActivity extends AppCompatActivity {
                                 try {
                                     Intent pickPhoto = new Intent(Intent.ACTION_PICK,
                                             android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                                    startActivityForResult(pickPhoto, FOTO_KIEZEN);
+                                    startActivityForResult(pickPhoto, Constants.FOTO_KIEZEN);
                                 } catch (Exception e) {
                                     Log.e("PERMISSION", "storage not granted");
                                     reqWriteStoragePermission();
@@ -265,12 +272,23 @@ public class MeldingActivity extends AppCompatActivity {
         voornaamEditText = (EditText) findViewById(R.id.voornaam);
         achternaamEditText = (EditText) findViewById(R.id.achternaam);
 
+        final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
+        User foundUser = db.getUser();
+        Log.i("FOUND USER", foundUser.toString());
+        if(foundUser != null){
+            emailEditText.setText(foundUser.getEmail());
+            voornaamEditText.setText(foundUser.getFirstName());
+            achternaamEditText.setText(foundUser.getLastName());
+        }
+        db.close();
+
+
         terugButton = (Button) findViewById(R.id.terugButton);
         terugButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent i = new Intent(getApplicationContext(), MainActivity.class);
-                startActivity(i);
+                startActivityForResult(i, Constants.BACK_BUTTON);
             }
         });
 
@@ -282,6 +300,25 @@ public class MeldingActivity extends AppCompatActivity {
         plaatsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+
+
+                if(onthoudCheckbox.isChecked()) {
+                    if (!emailEditText.equals("") && !voornaamEditText.equals("") && !achternaamEditText.equals("")) {
+                        final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
+
+                        User user = new User();
+                        user.setLastName(achternaamEditText.getText().toString());
+                        user.setFirstName(voornaamEditText.getText().toString());
+                        user.setEmail(emailEditText.getText().toString());
+                        db.deleteUser();
+                        db.addUser(user);
+
+                        db.close();
+                    }
+                }
+
+
 
                 // initialize selected category and check if selected category is actually a category
                 String selecIt = "";
@@ -409,7 +446,7 @@ public class MeldingActivity extends AppCompatActivity {
                 RequestBody pLat = RequestBody.create(MediaType.parse("text/plain"), lat);
                 RequestBody pDescr = RequestBody.create(MediaType.parse("text/plain"), descr);
                 RequestBody pSc = RequestBody.create(MediaType.parse("text/plain"), sc);
-                RequestBody apiK = RequestBody.create(MediaType.parse("text/plain"), ServiceGenerator.TEST_API_KEY);
+                RequestBody apiK = RequestBody.create(MediaType.parse("text/plain"), Constants.TEST_API_KEY);
 
                 try {
                     if(isConnected()) { // check if user is actually connected to the internet
@@ -432,6 +469,10 @@ public class MeldingActivity extends AppCompatActivity {
                                         Toast.makeText(getApplicationContext(),
                                                 "service request is aangemaakt met id: " + psrr.getId(),
                                                 Toast.LENGTH_SHORT).show();
+
+                                        final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
+                                        db.addReport(psrr.getId());
+                                        db.close();
                                     }
 
                                 } else {
@@ -477,7 +518,7 @@ public class MeldingActivity extends AppCompatActivity {
         try {
             if(isConnected()) { // check if user is actually connected to the internet
                 // create a callback
-                Call<List<Service>> serviceCall = client.getServices(ServiceClient.LANG_EN);
+                Call<List<Service>> serviceCall = client.getServices(Constants.LANG_EN);
                 // fire the get request
                 serviceCall.enqueue(new Callback<List<Service>>() {
                     @Override
@@ -560,7 +601,7 @@ public class MeldingActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
         switch (requestCode) {
-            case MY_PERMISSIONS_CAMERA: {
+            case Constants.MY_PERMISSIONS_CAMERA: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -586,7 +627,7 @@ public class MeldingActivity extends AppCompatActivity {
                 }
             }
             break;
-            case MY_PERMISSIONS_STORAGE: {
+            case Constants.MY_PERMISSIONS_STORAGE: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -626,7 +667,7 @@ public class MeldingActivity extends AppCompatActivity {
 
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.CAMERA},
-                        MY_PERMISSIONS_CAMERA);
+                        Constants.MY_PERMISSIONS_CAMERA);
 
                 // Show an explanation to the user *asynchronously* -- don't block
                 // this thread waiting for the user's response! After the user
@@ -638,7 +679,7 @@ public class MeldingActivity extends AppCompatActivity {
 
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.CAMERA},
-                        MY_PERMISSIONS_CAMERA);
+                        Constants.MY_PERMISSIONS_CAMERA);
 
                 // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
                 // app-defined int constant. The callback method gets the
@@ -660,11 +701,11 @@ public class MeldingActivity extends AppCompatActivity {
 
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                        MY_PERMISSIONS_STORAGE);
+                        Constants.MY_PERMISSIONS_STORAGE);
             } else {
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                        MY_PERMISSIONS_STORAGE);
+                        Constants.MY_PERMISSIONS_STORAGE);
             }
         }
     }
@@ -679,7 +720,7 @@ public class MeldingActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         switch(requestCode) {
-            case FOTO_MAKEN:
+            case Constants.FOTO_MAKEN:
                 if (resultCode == RESULT_OK) {
                     Bitmap photo = (Bitmap) data.getExtras().get("data");
                     selectedImage = getImageUri(getApplicationContext(), photo);
@@ -692,7 +733,7 @@ public class MeldingActivity extends AppCompatActivity {
 
                 }
                 break;
-            case FOTO_KIEZEN:
+            case Constants.FOTO_KIEZEN:
                 if(resultCode == RESULT_OK){
                     selectedImage = data.getData();
                     image_path = getRealPathFromURI(selectedImage);
@@ -702,7 +743,7 @@ public class MeldingActivity extends AppCompatActivity {
 
                 }
                 break;
-            case LOCATIE_KIEZEN:
+            case Constants.LOCATIE_KIEZEN:
                 if(resultCode == RESULT_OK){
                     if(data.hasExtra("long")) {
                         double lng = data.getDoubleExtra("long", 1);
@@ -715,6 +756,13 @@ public class MeldingActivity extends AppCompatActivity {
 
                 }
                 break;
+            case Constants.BACK_BUTTON:
+                if(resultCode == RESULT_CANCELED) {
+                    finish();
+                    startActivity(getIntent());
+                }
+                break;
+
         }
     }
 

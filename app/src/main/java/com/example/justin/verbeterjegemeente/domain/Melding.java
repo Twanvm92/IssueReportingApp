@@ -2,28 +2,32 @@ package com.example.justin.verbeterjegemeente.domain;
 
 import android.net.Uri;
 
+import java.io.Serializable;
+
 /**
  * Created by Mika Krooswijk on 8-5-2017.
  */
 
-public class Melding  {
+public class Melding implements Serializable {
 
-    private String categorie, beschrijving, voornaam, achternaam, email;
+    private String hoofdcategorie, subcategorie, beschrijving, voornaam, achternaam, email;
     private boolean update;
     private String fotoUrl;
     private Locatie locatie;
 
-    public void Melding(){
-
+    public Melding(String hoofdcategorie, String subcategorie, String beschrijving) {
+        this.hoofdcategorie = hoofdcategorie;
+        this.subcategorie = subcategorie;
+        this.beschrijving = beschrijving;
     }
 
-    public String getCategorie() {
-        return categorie;
-    }
+    public String getHoofdcategorie() {return hoofdcategorie;}
 
-    public void setCategorie(String categorie) {
-        this.categorie = categorie;
-    }
+    public void setHoofdcategorie(String hoofdcategorie) {this.hoofdcategorie = hoofdcategorie;}
+
+    public String getSubcategorie() {return subcategorie;}
+
+    public void setSubcategorie(String subcategorie) {this.subcategorie = subcategorie;}
 
     public String getBeschrijving() {
         return beschrijving;
@@ -77,7 +81,8 @@ public class Melding  {
     @Override
     public String toString() {
         return "Melding{" +
-                "categorie='" + categorie + '\'' +
+                "hoofdcategorie='" + hoofdcategorie + '\'' +
+                ", subcategorie='" + subcategorie + '\'' +
                 ", beschrijving='" + beschrijving + '\'' +
                 ", voornaam='" + voornaam + '\'' +
                 ", achternaam='" + achternaam + '\'' +

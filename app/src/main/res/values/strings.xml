@@ -1,4 +1,5 @@
 <resources>
+
 <string name="app_name">Verbeter Je Gemeente</string>
 <string name="action_settings">Instellingen</string>
 
@@ -34,5 +35,9 @@
 <string name="geenLocatie">Geen locatie gevonden. Kies een locatie.</string>
 <string name="update">Houd mij NIET op de hoogte via email</string>
 <string name="eContactGegevens">Uw email is vereist om direct updates te kunnen ontvangen</string>
-    <string name="kiesSubProblemen">Kies uit lijst van subcategorieën</string>
+<string name="kiesSubProblemen">Kies uit lijst van subcategorieën</string>
+<string name="eGetServices">Geen services kunnen vinden die voldoen aan deze criteria</string>
+<string name="mijnMeldingen">Mijn meldingen</string>
+<string name="nederlands">Nederlands</string>
+<string name="engels">English</string>
 </resources>

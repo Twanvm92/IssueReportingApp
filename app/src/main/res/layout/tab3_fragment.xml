@@ -8,19 +8,19 @@
         android:id="@+id/buttonNEDERLANDS"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Nederlands" />
+        android:text="@string/nederlands" />
 
     <Button
         android:id="@+id/buttonENGELS"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="ENGLISH" />
+        android:text="@string/engels" />
 
     <Button
         android:id="@+id/buttonmeldingen"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Mijn meldingen" />
+        android:text="@string/mijnMeldingen" />
 
     <TextView
         android:id="@+id/buttontext3"

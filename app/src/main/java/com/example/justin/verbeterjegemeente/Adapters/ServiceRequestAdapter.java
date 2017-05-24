@@ -34,14 +34,20 @@ public class ServiceRequestAdapter extends ArrayAdapter<ServiceRequest> {
             convertview = LayoutInflater.from(getContext()).inflate(R.layout.tab2_listviewrow, parent, false);
         }
 
-        TextView voornaam = (TextView) convertview.findViewById(R.id.beschrijvingID);
-        voornaam.setText(serviceRequest.getDescription());
+        TextView locatie = (TextView) convertview.findViewById(R.id.locatieID);
+        locatie.setText(serviceRequest.getLat() + ", " + serviceRequest.getLong());
+
+        TextView beschrijving = (TextView) convertview.findViewById(R.id.beschrijvingID);
+        beschrijving.setText(serviceRequest.getDescription());
 
         TextView MainCatagory = (TextView) convertview.findViewById(R.id.hoofdcategorieID);
         MainCatagory.setText(serviceRequest.getServiceCode());
 
-        TextView beschrijving = (TextView) convertview.findViewById(R.id.laatsteupdateID);
-        beschrijving.setText(serviceRequest.getStatus());
+        TextView subCatagory = (TextView) convertview.findViewById(R.id.subcategorieID);
+        subCatagory.setText(serviceRequest.getServiceCode());
+
+        TextView update = (TextView) convertview.findViewById(R.id.laatsteupdateID);
+        update.setText(serviceRequest.getUpdatedDatetime());
 
         return convertview;
     }

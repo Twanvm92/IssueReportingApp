@@ -1,5 +1,6 @@
 package com.example.justin.verbeterjegemeente.Presentation;
 
+import android.app.FragmentTransaction;
 import android.widget.Button;
 import android.widget.Toast;
 import android.content.Intent;
@@ -91,5 +92,13 @@ public class Tab3Fragment extends Fragment {
         SharedPreferences.Editor editor = prefs.edit();
         editor.putString(langPref, lang);
         editor.commit();
+
+//        refresh van huidige fragment werkt, backpress naar meldingen ook
+//        andere activiteiten worden nog niet refresht
+//        misschien is er een betere manier ipv elke activiteit apart op te vangen..
+        android.support.v4.app.FragmentTransaction ft = getFragmentManager().beginTransaction();
+        ft.detach(this).attach(this).commit();
     }
+
+
 }

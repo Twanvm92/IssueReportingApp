@@ -44,4 +44,10 @@
     <string name="update">Houd mij NIET op de hoogte via email</string>
     <string name="eContactGegevens">Uw email is vereist om direct updates te kunnen ontvangen</string>
     <string name="eGetServices">Geen services kunnen vinden die voldoen aan deze criteria</string>
+    <string name="mijnMeldingen">Mijn meldingen</string>
+
+
+
+    <string name="nederlands">Nederlands</string>
+    <string name="engels">English</string>
 </resources>

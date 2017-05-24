@@ -292,7 +292,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                 // currentLatLng = new LatLng(51.58656, 4.77596);
 
                 // used to get Helsinki location for testing purposes
-                currentLatLng = new LatLng(60.2295851, 24.9287892);
+                currentLatLng = new LatLng(DEFAULT_LONG, DEFAULT_LAT);
                 if(!popupShown) {
                     new AlertDialog.Builder(this.getContext())
                             .setTitle("Locatie bepalen mislukt")
@@ -311,7 +311,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
             //  currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
 
             // used to get Helsinki location for testing purposes
-            currentLatLng = new LatLng(60.2295851, 24.9287892);
+            currentLatLng = new LatLng(DEFAULT_LONG, DEFAULT_LAT);
         }
 
 

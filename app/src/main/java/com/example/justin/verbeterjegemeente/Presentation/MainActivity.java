@@ -27,6 +27,9 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LAT;
+import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LONG;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -140,12 +143,12 @@ public class MainActivity extends AppCompatActivity {
                         if (currentLocation != null) {
                             currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
                         } else {
-                            currentLatLng = new LatLng(51.58656, 4.77596);
+                            currentLatLng = new LatLng(DEFAULT_LONG, DEFAULT_LAT);
                         }
                         CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
                         mMap.moveCamera(center);
                     } else {
-                        currentLatLng = new LatLng(51.58656, 4.77596);
+                        currentLatLng = new LatLng(DEFAULT_LONG, DEFAULT_LAT);
                         CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
                         mMap.moveCamera(center);
 

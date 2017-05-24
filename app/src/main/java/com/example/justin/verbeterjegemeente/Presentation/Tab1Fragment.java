@@ -62,6 +62,9 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LAT;
+import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LONG;
+
 /**
  * Created by Justin on 27-4-2017.
  */
@@ -174,7 +177,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
         try {
             if(isConnected()) {
-                Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests("60.2295851", "24.9287892", null, "300");
+                Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests("" + DEFAULT_LONG, "" + DEFAULT_LAT, null, "300");
                 nearbyServiceRequests.enqueue(new Callback<ArrayList<ServiceRequest>>() {
                     @Override
                     public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
@@ -294,7 +297,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
             // currentLatLng = new LatLng(51.58656, 4.77596);
 
             // used to get Helsinki location for testing purposes
-            currentLatLng = new LatLng(60.2295851, 24.9287892);
+            currentLatLng = new LatLng(DEFAULT_LAT, DEFAULT_LONG);
             if(!popupShown) {
                 new AlertDialog.Builder(this.getContext())
                         .setTitle("Locatie bepalen mislukt")

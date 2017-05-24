@@ -8,6 +8,7 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
@@ -47,6 +48,8 @@ public class DetailedMeldingActivity extends FragmentActivity {
         tv.setText(str);
         tv2.setText(hoofdcategorie);
         tv3.setText(subcategorie);
+
+
 
 
         // Hook up clicks on the thumbnail views.

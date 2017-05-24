@@ -56,7 +56,7 @@ public class DetailedMeldingActivity extends FragmentActivity {
        final ServiceRequest serviceRequest = (ServiceRequest)getIntent().getSerializableExtra("melding");
 
 
-        likeButton = (LikeButton) findViewById(R.id.star_button);
+        likeButton = (LikeButton) findViewById(R.id.favorietenknopdetail);
 
 
 
@@ -93,7 +93,7 @@ public class DetailedMeldingActivity extends FragmentActivity {
             }
         });
 
-        terugButton = (Button) findViewById(R.id.terugButton2);
+        terugButton = (Button) findViewById(R.id.terugbuttondetail);
         terugButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

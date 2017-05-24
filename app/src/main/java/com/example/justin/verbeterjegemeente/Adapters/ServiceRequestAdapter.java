@@ -36,27 +36,27 @@ public class ServiceRequestAdapter extends ArrayAdapter<ServiceRequest> {
         }
 
 
-        TextView locatie = (TextView) convertview.findViewById(R.id.locatieID);
+        TextView locatie = (TextView) convertview.findViewById(R.id.locatietab2id);
         locatie.setText(serviceRequest.getLat() + ", " + serviceRequest.getLong());
 
-        TextView beschrijving = (TextView) convertview.findViewById(R.id.beschrijvingID);
+        TextView beschrijving = (TextView) convertview.findViewById(R.id.beschrijvingtab2id);
         beschrijving.setText(serviceRequest.getDescription());
 
 //        TextView voornaam = (TextView) convertview.findViewById(R.id.beschrijvingID);
 //        voornaam.setText(serviceRequest.get());
 
 
-        TextView MainCatagory = (TextView) convertview.findViewById(R.id.hoofdcategorieID);
+        TextView MainCatagory = (TextView) convertview.findViewById(R.id.hoofdcategorietab2id);
         MainCatagory.setText(serviceRequest.getServiceCode());
 
 
-        TextView subCatagory = (TextView) convertview.findViewById(R.id.subcategorieID);
+        TextView subCatagory = (TextView) convertview.findViewById(R.id.subcategorietab2id);
         subCatagory.setText(serviceRequest.getServiceCode());
 
-        TextView update = (TextView) convertview.findViewById(R.id.laatsteupdateID);
+        TextView update = (TextView) convertview.findViewById(R.id.laatsteupdatetab2id);
         update.setText(serviceRequest.getUpdatedDatetime());
 
-        TextView laastUpdate = (TextView) convertview.findViewById(R.id.laatsteupdateID);
+        TextView laastUpdate = (TextView) convertview.findViewById(R.id.laatsteupdatetab2id);
         laastUpdate.setText(serviceRequest.getUpdatedDatetime());
 
 

@@ -25,7 +25,7 @@ import java.util.Locale;
 public class Tab3Fragment extends Fragment {
     private static final String TAG = "Tab3Fragment";
 
-    private Button btnNEDERLANDS, btnENGELS;
+    private Button btnNEDERLANDS, btnENGELS, btnMELDINGEN;
 
     @Nullable
     @Override
@@ -46,14 +46,19 @@ public class Tab3Fragment extends Fragment {
         btnENGELS.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                Intent intent = new Intent(getContext(), FollowingActivity.class);
-                startActivity(intent);
-
                 Toast.makeText(getActivity(), "ENGELSE TAAL AANGEZET",Toast.LENGTH_SHORT).show();
 
                 changeLang("en");
 
+            }
+        });
+
+        btnMELDINGEN = (Button) view.findViewById(R.id.buttonmeldingen);
+        btnMELDINGEN.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(getContext(), FollowingActivity.class);
+                startActivity(i);
             }
         });
 

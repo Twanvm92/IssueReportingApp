@@ -41,4 +41,5 @@
     <string name="geenLocatie">No location found. Please choose a location.</string>
     <string name="update">I do NOT want to be updated by email</string>
     <string name="eContactGegevens">Please enter your email to receive instant updates</string>
+    <string name="eGetServices">Could not find any services that meet these criteria</string>
 </resources>

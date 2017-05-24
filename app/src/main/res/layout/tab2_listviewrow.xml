@@ -6,6 +6,7 @@
     android:background="@color/colorBackground2"
     android:paddingLeft="10dp"
     android:paddingRight="10dp"
+    android:foreground="@drawable/imageborder"
     android:orientation="vertical">
 
     <LinearLayout
@@ -123,6 +124,7 @@
             android:layout_width="180dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:paddingBottom="5dp"
             android:fontFamily="sans-serif-condensed"
             android:text="@string/laatsteupdateTab2"
             android:textColor="@android:color/holo_green_light" />
@@ -133,6 +135,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:fontFamily="sans-serif-condensed"
+            android:paddingBottom="5dp"
             android:text="Tijd"
             android:textColor="@android:color/white" />
 

@@ -40,4 +40,10 @@
 <string name="mijnMeldingen">Mijn meldingen</string>
 <string name="nederlands">Nederlands</string>
 <string name="engels">English</string>
+    <string name="beschrijving2">Beschrijving van de notificatie:</string>
+    <string name="hoofdcategorieTab2">Hoofdcategorie:</string>
+    <string name="laatsteupdateTab2">Laatste update:</string>
+    <string name="locatieTab2">Locatie:</string>
+    <string name="section_format">Hallo</string>
+    <string name="subcategorieTab2">Subcategorie:</string>
 </resources>

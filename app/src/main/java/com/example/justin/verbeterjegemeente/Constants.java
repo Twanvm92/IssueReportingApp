@@ -21,4 +21,7 @@ public class Constants {
 
     // location
     public static final int LOCATIE_KIEZEN= 3;
+
+    // back button
+    public static final int BACK_BUTTON = 999;
 }

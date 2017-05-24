@@ -237,7 +237,7 @@ public class MeldingActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent i = new Intent(getApplicationContext(), MainActivity.class);
-                startActivity(i);
+                startActivityForResult(i, Constants.BACK_BUTTON);
             }
         });
 
@@ -696,6 +696,13 @@ public class MeldingActivity extends AppCompatActivity {
 
                 }
                 break;
+            case Constants.BACK_BUTTON:
+                if(resultCode == RESULT_CANCELED) {
+                    finish();
+                    startActivity(getIntent());
+                }
+                break;
+
         }
     }
 
@@ -746,15 +753,5 @@ public class MeldingActivity extends AppCompatActivity {
     {
         String command = "ping -c 1 google.com";
         return (Runtime.getRuntime().exec (command).waitFor() == 0);
-    }
-
-    /**
-     * Refreshing activity when restarted. (If user presses back button).
-     */
-    @Override
-    public void onRestart() {
-        super.onRestart();
-        finish();
-        startActivity(getIntent());
     }
 }

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.text.Layout;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,20 +35,30 @@ public class ServiceRequestAdapter extends ArrayAdapter<ServiceRequest> {
             convertview = LayoutInflater.from(getContext()).inflate(R.layout.tab2_listviewrow, parent, false);
         }
 
+
         TextView locatie = (TextView) convertview.findViewById(R.id.locatieID);
         locatie.setText(serviceRequest.getLat() + ", " + serviceRequest.getLong());
 
         TextView beschrijving = (TextView) convertview.findViewById(R.id.beschrijvingID);
         beschrijving.setText(serviceRequest.getDescription());
 
+//        TextView voornaam = (TextView) convertview.findViewById(R.id.beschrijvingID);
+//        voornaam.setText(serviceRequest.get());
+
+
         TextView MainCatagory = (TextView) convertview.findViewById(R.id.hoofdcategorieID);
         MainCatagory.setText(serviceRequest.getServiceCode());
+
 
         TextView subCatagory = (TextView) convertview.findViewById(R.id.subcategorieID);
         subCatagory.setText(serviceRequest.getServiceCode());
 
         TextView update = (TextView) convertview.findViewById(R.id.laatsteupdateID);
         update.setText(serviceRequest.getUpdatedDatetime());
+
+        TextView laastUpdate = (TextView) convertview.findViewById(R.id.laatsteupdateID);
+        laastUpdate.setText(serviceRequest.getUpdatedDatetime());
+
 
         return convertview;
     }

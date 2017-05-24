@@ -27,7 +27,9 @@
         </activity>
         <activity
             android:name=".Presentation.MainActivity"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme.NoActionBar"
+            android:configChanges="keyboardHidden|orientation|screenSize"></activity>
+
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
@@ -35,17 +37,28 @@
 
         <activity
             android:name=".Presentation.MapsActivity"
-            android:label="@string/title_activity_maps" />
+            android:label="@string/title_activity_maps"
+            android:configChanges="keyboardHidden|orientation|screenSize"/>
 
         <uses-library android:name="com.google.android.maps" />
 
-        <activity
-            android:name=".Presentation.MeldingActivity"
-            android:theme="@style/AppTheme.Meldingscherm" />
+
 
         <activity android:name=".Presentation.FollowingActivity"
 
             android:theme="@style/AppTheme.NoActionBar"></activity>
+
+
+        
+
+        <activity android:name=".Presentation.MeldingActivity"
+            android:theme="@style/AppTheme.Meldingscherm"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+
+            ></activity>
+
+
+
 
 
         <activity android:name=".Presentation.DetailedMeldingActivity"

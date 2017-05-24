@@ -27,13 +27,13 @@ public class MeldingAdapter extends ArrayAdapter<Melding> {
             convertview = LayoutInflater.from(getContext()).inflate(R.layout.tab2_listviewrow, parent, false);
         }
 
-        TextView hoofdcategorie = (TextView) convertview.findViewById(R.id.hoofdcategorieID);
+        TextView hoofdcategorie = (TextView) convertview.findViewById(R.id.hoofdcategorietab2id);
         hoofdcategorie.setText(melding.getHoofdcategorie());
 
-        TextView subccategorie = (TextView) convertview.findViewById(R.id.subcategorieID);
+        TextView subccategorie = (TextView) convertview.findViewById(R.id.subcategorietab2id);
         subccategorie.setText(melding.getSubcategorie());
 
-        TextView beschrijving = (TextView) convertview.findViewById(R.id.beschrijvingID);
+        TextView beschrijving = (TextView) convertview.findViewById(R.id.beschrijvingtab2id);
         beschrijving.setText(melding.getBeschrijving());
 
         return convertview;

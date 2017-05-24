@@ -68,6 +68,7 @@ public class Tab2Fragment extends Fragment  {
 
         meldingListView = (ListView) view.findViewById(R.id.meldingListView);
 
+
         serviceRequestAdapter = new ServiceRequestAdapter(getContext(), serviceList);
         meldingListView.setAdapter(serviceRequestAdapter);
         meldingListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -76,6 +77,7 @@ public class Tab2Fragment extends Fragment  {
 //                serviceRequest = serviceList.get(position);
 //                myIntent.putExtra("serviceRequest", (Serializable) serviceRequest);
 //                startActivity(myIntent);
+
             }
         });
         searchServiceRequests();

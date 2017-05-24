@@ -157,4 +157,11 @@ public class MainActivity extends AppCompatActivity {
 
         }
     }
+
+    @Override
+    public void onBackPressed() {
+        Intent i = new Intent();
+        setResult(RESULT_CANCELED, i);
+        super.onBackPressed();
+    }
 }

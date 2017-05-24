@@ -1,6 +1,8 @@
 package com.example.justin.verbeterjegemeente.API;
 
 import com.example.justin.verbeterjegemeente.Constants;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
@@ -14,19 +16,29 @@ import retrofit2.converter.gson.GsonConverterFactory;
  */
 
 public class ServiceGenerator {
+    public static String baseUrl = "http://dev.hel.fi/open311-test/v1/";
 
+    private static Gson gson = new GsonBuilder()
+            .setLenient()
+            .create();
 
-    private static Retrofit.Builder builder =
+    private static Retrofit builder =
             new Retrofit.Builder()
-                    .baseUrl(Constants.TEST_BASE_URL)
-                    .addConverterFactory(GsonConverterFactory.create());
+                    .baseUrl(baseUrl)
+                    .addConverterFactory(GsonConverterFactory.create(gson)).build();
 
-
-
-    public static Retrofit retrofit = builder.build();
+//    public static Retrofit retrofit = builder.build();
 
     private static OkHttpClient.Builder httpClient =
             new OkHttpClient.Builder();
+
+    public static void changeApiBaseUrl(String newApiBaseUrl) {
+        baseUrl = newApiBaseUrl;
+
+        builder = new Retrofit.Builder()
+                .addConverterFactory(GsonConverterFactory.create())
+                .baseUrl(baseUrl).build();
+    }
 
     /**
      * Creates a retrofit object with a <code>ServiceClient</code> that is provided
@@ -37,7 +49,7 @@ public class ServiceGenerator {
      */
     public static <S> S createService(
             Class<S> serviceClass) {
-        return retrofit.create(serviceClass);
+        return builder.create(serviceClass);
     }
 
 

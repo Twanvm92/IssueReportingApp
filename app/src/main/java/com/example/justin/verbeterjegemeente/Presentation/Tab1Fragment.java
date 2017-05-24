@@ -29,6 +29,8 @@ import android.widget.Toast;
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.Business.MarkerHandler;
+import com.example.justin.verbeterjegemeente.R;
+import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
@@ -42,14 +44,26 @@ import com.google.android.gms.maps.SupportMapFragment;
 
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.TileProvider;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.ArrayList;
 
 import br.com.bloder.magic.view.MagicButton;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LAT;
+import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LONG;
 
 /**
  * Created by Justin on 27-4-2017.
@@ -57,7 +71,7 @@ import br.com.bloder.magic.view.MagicButton;
 
 public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        com.google.android.gms.location.LocationListener {
+        com.google.android.gms.location.LocationListener, GoogleMap.OnCameraIdleListener {
     public GoogleMap mMap;
     private Marker marker;
     private Button button;
@@ -68,6 +82,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     public LatLng currentLatLng;
     public GoogleApiClient mApiClient;
     public Marker currentMarker;
+    ServiceClient client;
 
     boolean popupShown = false;
 
@@ -91,9 +106,13 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
     public void onCreate(Bundle savedInstaceState) {
         super.onCreate(savedInstaceState);
+
+        ServiceGenerator.changeApiBaseUrl("https://asiointi.hel.fi/palautews/rest/v1/");
+        client = ServiceGenerator.createService(ServiceClient.class);
+
         initApi();
 
-        ServiceClient service = ServiceGenerator.createService(ServiceClient.class);
+
 //        service.getNearbyServiceRequests("")
 
     }
@@ -154,8 +173,58 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     //set up map when map is loaded
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        mMap.setOnCameraIdleListener(this);
+
+        try {
+            if(isConnected()) {
+                Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests("" + DEFAULT_LONG, "" + DEFAULT_LAT, null, "300");
+                nearbyServiceRequests.enqueue(new Callback<ArrayList<ServiceRequest>>() {
+                    @Override
+                    public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
+                        if(response.isSuccessful()) {
+                            ArrayList<ServiceRequest> srList = response.body();
+
+                            for (ServiceRequest s : srList) {
+                                mMap.addMarker(new MarkerOptions()
+                                        .position(new LatLng(s.getLat(), s.getLong()))
+                                        .title(s.getDescription()));
+                                Log.e("Opgehaalde servicereq: ", s.getDescription());
+                            }
+
+                        } else {
+                            try { //something went wrong. Show the user what went wrong
+                                JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
+                                JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
+
+                                Toast.makeText(getContext(), jObjError.getString("description"),
+                                        Toast.LENGTH_SHORT).show();
+                                Log.i("Error message: ", jObjError.getString("description"));
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ArrayList<ServiceRequest>> call, Throwable t) {
+                        Toast.makeText(getContext(), getResources().getString(R.string.ePostRequest),
+                                Toast.LENGTH_SHORT).show();
+                        t.printStackTrace();
+                    }
+                });
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
 
         setUpMap();
+        Log.e("MAP: ", "map is klaargezet");
     }
 
 
@@ -217,11 +286,18 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
             return;
         }
 
-        currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
+        // get current location of user. Don`t use this one when testing Helsinki API.
+        //  currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
         if(currentLocation != null) {
             currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
         } else {
-            currentLatLng = new LatLng(51.58656, 4.77596);
+
+
+            // Location Breda. Can be used when Breda API is available.
+            // currentLatLng = new LatLng(51.58656, 4.77596);
+
+            // used to get Helsinki location for testing purposes
+            currentLatLng = new LatLng(DEFAULT_LAT, DEFAULT_LONG);
             if(!popupShown) {
                 new AlertDialog.Builder(this.getContext())
                         .setTitle("Locatie bepalen mislukt")
@@ -255,6 +331,54 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         currentLatLng = locationLatLng;
 
         getLocation();
+    }
+
+
+    @Override
+    public void onCameraIdle() {
+        LatLng center = mMap.getCameraPosition().target;
+        String camLat = "" + center.latitude;
+        String camLng = "" + center.longitude;
+        Log.e("Camera positie: ", "is veranderd");
+        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(camLat, camLng, null, "300");
+        nearbyServiceRequests.enqueue(new Callback<ArrayList<ServiceRequest>>() {
+            @Override
+            public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
+                if(response.isSuccessful()) {
+                    ArrayList<ServiceRequest> srList = response.body();
+
+                    for (ServiceRequest s : srList) {
+                        mMap.addMarker(new MarkerOptions()
+                                .position(new LatLng(s.getLat(), s.getLong()))
+                                .title(s.getDescription()));
+                        Log.e("Opgehaalde servicereq: ", s.getDescription());
+                    }
+
+                } else {
+                    try { //something went wrong. Show the user what went wrong
+                        JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
+                        JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
+
+                        Toast.makeText(getContext(), jObjError.getString("description"),
+                                Toast.LENGTH_SHORT).show();
+                        Log.i("Error message: ", jObjError.getString("description"));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ArrayList<ServiceRequest>> call, Throwable t) {
+                Toast.makeText(getContext(), getResources().getString(R.string.ePostRequest),
+                        Toast.LENGTH_SHORT).show();
+                t.printStackTrace();
+            }
+        });
+
     }
 }
 

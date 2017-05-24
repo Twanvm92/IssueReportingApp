@@ -21,4 +21,12 @@ public class Constants {
 
     // location
     public static final int LOCATIE_KIEZEN= 3;
+    public static final double DEFAULT_LONG = 60.2295851;
+    public static final double DEFAULT_LAT = 24.928789;
+
+
+
+    // back button
+    public static final int BACK_BUTTON = 999;
+
 }

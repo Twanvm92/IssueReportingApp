@@ -41,4 +41,5 @@
     <string name="kiesSubCategory">Please select a sub category.</string>
     <string name="eGetServices">Could not find any services that meet these criteria</string>
     <string name="mijnMeldingen">My notifications</string>
+    <string name="onthoudGegevens">Remember my personal data</string>
 </resources>

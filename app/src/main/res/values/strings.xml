@@ -45,5 +45,6 @@
     <string name="laatsteupdateTab2">Laatste update:</string>
     <string name="locatieTab2">Locatie:</string>
     <string name="section_format">Hallo</string>
-    <string name="subcategorieTab2">Subcategorie:</string>
+    <string name="subcategorieTab2">Sub categorie:</string>
+    <string name="onthoudGegevens">Onthoud mijn persoonlijke gegevens:</string>
 </resources>

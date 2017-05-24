@@ -29,25 +29,26 @@ public class Tab3Fragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.tab3_fragment,container,false);
 //        test buttons voor taal veranderen
-        btnNEDERLANDS = (Button) view.findViewById(R.id.buttonNEDERLANDS);
-        btnNEDERLANDS.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Toast.makeText(getActivity(), "NEDERLANDSE TAAL AANGEZET",Toast.LENGTH_SHORT).show();
-
-                changeLang("nl");
-            }
-        });
-
-        btnENGELS = (Button) view.findViewById(R.id.buttonENGELS);
-        btnENGELS.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Toast.makeText(getActivity(), "ENGELSE TAAL AANGEZET",Toast.LENGTH_SHORT).show();
-
-                changeLang("en");
-            }
-        });
+//
+//        btnNEDERLANDS = (Button) view.findViewById(R.id.buttonNEDERLANDS);
+//        btnNEDERLANDS.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Toast.makeText(getActivity(), "NEDERLANDSE TAAL AANGEZET",Toast.LENGTH_SHORT).show();
+//
+//                changeLang("nl");
+//            }
+//        });
+//
+//        btnENGELS = (Button) view.findViewById(R.id.buttonENGELS);
+//        btnENGELS.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Toast.makeText(getActivity(), "ENGELSE TAAL AANGEZET",Toast.LENGTH_SHORT).show();
+//
+//                changeLang("en");
+//            }
+//        });
 
         return view;
     }

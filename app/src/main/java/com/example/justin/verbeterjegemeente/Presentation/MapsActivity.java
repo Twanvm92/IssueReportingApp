@@ -5,17 +5,21 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v4.os.ResultReceiver;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
+
+import com.example.justin.verbeterjegemeente.Location.GeocodeHandler;
 import com.example.justin.verbeterjegemeente.R;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -30,6 +34,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.io.Serializable;
+
 /**
  * MapsActivity
  * Laat een map zien met daarop de huidige locatie. door op de kaart te klikken wordt de opgegeven locatie aangepast.
@@ -37,9 +43,11 @@ import com.google.android.gms.maps.model.MarkerOptions;
  */
 
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
+        GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        com.google.android.gms.location.LocationListener {
+        com.google.android.gms.location.LocationListener
+{
 
     private GoogleMap mMap;
     private Marker marker;
@@ -47,6 +55,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleApiClient mApiClient;
     private FloatingActionButton saveButton;
     private LatLng currentLatLng;
+    private GeocodeHandler gHandler;
+    private AddressResultReceiver mResultReceiver;
+    private String address;
 
     private boolean popupShown = false;
     /**
@@ -71,6 +82,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .addApi(LocationServices.API)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this).build();
+
+
 
         //maak saveButton
         saveButton = (FloatingActionButton) findViewById(R.id.maps_saveButton);
@@ -107,7 +120,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 if (marker != null)
                     marker.remove();
+
                 currentLatLng = latLng;
+
                 //make new marker
                 marker = mMap.addMarker(new MarkerOptions().position(latLng).title("marker")
                             .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
@@ -132,16 +147,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        getLocation();
-    }
-
     /**
      * getLocation checkt of er toestemming is gegeven.
      * vervolgens wordt de locatie opgehaaldt en in een variabele gezet
@@ -159,19 +164,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         if(currentLocation != null) {
             currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-
+            startAddressService();
 
         } else {
             currentLatLng = new LatLng(51.58656, 4.77596);
 
         }
 
-        marker = mMap.addMarker(new MarkerOptions().position(currentLatLng)
-                .title("current location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)).visible(true)
+        marker = mMap.addMarker(new MarkerOptions()
+                .position(currentLatLng)
+                .title("current location")
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
+                .visible(true)
         ); //maak nieuwe marker
         CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
         mMap.moveCamera(center); //update camera
     }
+
+    /**
+     * onBackPressed wortd gebruikt wanneer de hardware terug knop van de telefoon wordt ingedrukt.
+     * de code die wordt uitgevoerdt is om te voorkomen dat de app crashed
+     * wanneer de terugknop wordt ingedrukt.
+     */
 
     public void onBackPressed() {
         Intent i = new Intent();
@@ -183,5 +197,41 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         setResult(RESULT_OK, i); //set result and return
         finish();
+    }
+
+    private void startAddressService() {
+        Intent intent = new Intent(this, GeocodeHandler.class);
+        intent.putExtra("long", currentLatLng.longitude);
+        intent.putExtra("lat", currentLatLng.latitude);
+        intent.putExtra("receiver", mResultReceiver);
+        startService(intent);
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+
+    }
+
+    /**
+     * AddressResultReceiver ontvangt het resultaat van de geocodeHandler en verwerkt dit.
+     */
+
+    class AddressResultReceiver extends ResultReceiver {
+
+        public AddressResultReceiver(Handler handler) {
+            super(handler);
+        }
+
+        protected void onReceiveResult(int resultCode, Bundle resultData) {
+            if(resultCode == 1) {
+                address = resultData.getString("Address");
+                Toast.makeText(MapsActivity.this, resultData.getString("Adress"), Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 }

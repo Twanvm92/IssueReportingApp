@@ -52,6 +52,10 @@
 
             ></activity>
 
+        <service
+            android:name=".Location.GeocodeHandler"
+            android:exported="false"/>
+
 
 
     </application>

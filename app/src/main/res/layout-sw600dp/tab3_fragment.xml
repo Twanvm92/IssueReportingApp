@@ -5,13 +5,13 @@
     android:layout_height="match_parent">
 
     <Button
-        android:id="@+id/buttonNEDERLANDS"
+        android:id="@+id/activityTab3_btn_buttonNederlands"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="NL" />
 
     <Button
-        android:id="@+id/buttonENGELS"
+        android:id="@+id/activityTab3_btn_buttonEngels"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="ENGELS" />

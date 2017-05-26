@@ -10,7 +10,6 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -99,20 +98,20 @@ public class MeldingActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_melding);
-        fotoButton = (Button) findViewById(R.id.fotoButton);
+        fotoButton = (Button) findViewById(R.id.activityMelding_btn_fotoButton);
 
-        fotoImageView = (ImageView) findViewById(R.id.fotoImageView);
+        fotoImageView = (ImageView) findViewById(R.id.activityMelding_IV_fotoImageView);
 
-        locatieTextView = (TextView) findViewById(R.id.locatieTextView);
-        beschrijvingTextView = (TextView) findViewById(R.id.beschrijving);
-        emailTextView = (TextView) findViewById(R.id.emailtextview);
-        optioneelTextView = (TextView) findViewById(R.id.optioneeltextview);
-        voornaamTextView = (TextView) findViewById(R.id.voornaamtextview);
-        achternaamTextView = (TextView) findViewById(R.id.achternaamtextview);
-        onthoudCheckbox = (CheckBox) findViewById(R.id.onthoudCheckBox);
+        locatieTextView = (TextView) findViewById(R.id.activityMelding_tv_Location);
+        beschrijvingTextView = (TextView) findViewById(R.id.activityMelding_tv_beschrijving);
+        emailTextView = (TextView) findViewById(R.id.activityMelding_tv_Email);
+        optioneelTextView = (TextView) findViewById(R.id.activityMelding_tv_Optioneel);
+        voornaamTextView = (TextView) findViewById(R.id.activityMelding_tv_voorNaam);
+        achternaamTextView = (TextView) findViewById(R.id.activityMelding_tv_achterNaam);
+        onthoudCheckbox = (CheckBox) findViewById(R.id.activityMelding_cb_onthoudCheckbox);
 
 
-        updateCheckBox = (CheckBox) findViewById(R.id.updateCheckBox);
+        updateCheckBox = (CheckBox) findViewById(R.id.activityMelding_cb_updateCheckbox);
 
         Intent in = getIntent();
         if(in.hasExtra("long")) {
@@ -123,7 +122,7 @@ public class MeldingActivity extends AppCompatActivity {
 
         }
 
-        locatieButton = (Button) findViewById(R.id.wijzigLocatieButton);
+        locatieButton = (Button) findViewById(R.id.activityMelding_btn_wijzigLocation);
         locatieButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -133,7 +132,7 @@ public class MeldingActivity extends AppCompatActivity {
             }
         });
 
-        fotoImageView = (ImageView) findViewById(R.id.fotoImageView);
+        fotoImageView = (ImageView) findViewById(R.id.activityMelding_IV_fotoImageView);
 
         builder = new android.app.AlertDialog.Builder(this);
 
@@ -268,7 +267,7 @@ public class MeldingActivity extends AppCompatActivity {
             }
         );
 
-        beschrijvingEditText = (EditText) findViewById(R.id.beschrijving);
+        beschrijvingEditText = (EditText) findViewById(R.id.activityMelding_tv_beschrijving);
         emailEditText = (EditText) findViewById(R.id.email);
         voornaamEditText = (EditText) findViewById(R.id.voornaam);
         achternaamEditText = (EditText) findViewById(R.id.achternaam);

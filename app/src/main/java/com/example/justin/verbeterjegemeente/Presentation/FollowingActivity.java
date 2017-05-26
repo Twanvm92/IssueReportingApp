@@ -1,32 +1,24 @@
 package com.example.justin.verbeterjegemeente.Presentation;
 
 import android.content.Intent;
-import android.os.Parcelable;
-import android.support.design.internal.ParcelableSparseArray;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.API.ConnectionChecker;
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
-import com.example.justin.verbeterjegemeente.Adapters.MeldingAdapter;
 import com.example.justin.verbeterjegemeente.Adapters.ServiceRequestAdapter;
-import com.example.justin.verbeterjegemeente.Business.MeldingGenerator;
 import com.example.justin.verbeterjegemeente.Database.DatabaseHanlder;
 import com.example.justin.verbeterjegemeente.R;
-import com.example.justin.verbeterjegemeente.domain.Melding;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -93,7 +85,7 @@ public class FollowingActivity extends AppCompatActivity {
         }
 
 
-        meldingListView = (ListView) findViewById(R.id.FollowingListView);
+        meldingListView = (ListView) findViewById(R.id.activityFollowing_LV_FollowingListView);
         meldingAdapter = new ServiceRequestAdapter(getApplicationContext(), srListFinal);
         meldingListView.setAdapter(meldingAdapter);
         meldingListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {

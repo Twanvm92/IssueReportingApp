@@ -4,9 +4,11 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.content.Intent;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 
@@ -14,6 +16,7 @@ import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -27,6 +30,7 @@ import com.like.OnLikeListener;
 import java.util.ArrayList;
 
 import com.example.justin.verbeterjegemeente.domain.Melding;
+import com.squareup.picasso.Picasso;
 
 
 /**
@@ -45,6 +49,8 @@ public class DetailedMeldingActivity extends FragmentActivity {
     // very frequently.
     private int mShortAnimationDuration;
     private Melding melding;
+    private TextView statusDetailed, laatstUpdateDetailed, beschrijvingDetailed;
+    private ImageButton imageSmall;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,10 +59,21 @@ public class DetailedMeldingActivity extends FragmentActivity {
 
        Bundle extras = getIntent().getExtras();
 
-       final ServiceRequest serviceRequest = (ServiceRequest)getIntent().getSerializableExtra("melding");
+       final ServiceRequest serviceRequest = (ServiceRequest)getIntent().getSerializableExtra("serviceRequest");
 
 
         likeButton = (LikeButton) findViewById(R.id.favorietenknopdetail);
+        statusDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_status_DetailedID);
+        laatstUpdateDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_laatsUpdate_detailedID);
+        beschrijvingDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_beschrijving_DetailedID);
+        imageSmall = (ImageButton) findViewById(R.id.activityDetailedMelding_imgbtn_imageSmall_ID);
+
+        statusDetailed.setText(serviceRequest.getStatus());
+        laatstUpdateDetailed.setText(serviceRequest.getUpdatedDatetime());
+        beschrijvingDetailed.setText(serviceRequest.getDescription());
+
+        Picasso.with(getApplicationContext()).load(serviceRequest.getMediaUrl()).into(imageSmall);
+
 
 
 
@@ -93,10 +110,12 @@ public class DetailedMeldingActivity extends FragmentActivity {
             }
         });
 
-        terugButton = (Button) findViewById(R.id.terugbuttondetail);
+        terugButton = (Button) findViewById(R.id.activityDetailedMelding_btn_terugBTN_ID);
         terugButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Intent in = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(in);
 
             }
         });
@@ -118,13 +137,13 @@ public class DetailedMeldingActivity extends FragmentActivity {
 
         // Hook up clicks on the thumbnail views.
 
-        final View thumb1View = findViewById(R.id.fotomelding);
-        thumb1View.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                zoomImageFromThumb(thumb1View, R.drawable.thumb1);
-            }
-        });
+//        final View thumb1View = findViewById(R.id.fotomelding);
+//        thumb1View.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                zoomImageFromThumb(thumb1View, R.drawable.thumb1);
+//            }
+//        });
 
         // Retrieve and cache the system's default "short" animation time.
         mShortAnimationDuration = getResources().getInteger(

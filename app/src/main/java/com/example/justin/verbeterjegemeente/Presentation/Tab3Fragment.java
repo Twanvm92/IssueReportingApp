@@ -1,6 +1,5 @@
 package com.example.justin.verbeterjegemeente.Presentation;
 
-import android.app.FragmentTransaction;
 import android.widget.Button;
 import android.widget.Toast;
 import android.content.Intent;
@@ -12,8 +11,6 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.R;
 
@@ -33,7 +30,7 @@ public class Tab3Fragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.tab3_fragment,container,false);
 //        test buttons voor taal veranderen
-        btnNEDERLANDS = (Button) view.findViewById(R.id.buttonNEDERLANDS);
+        btnNEDERLANDS = (Button) view.findViewById(R.id.activityTab3_btn_buttonNederlands);
         btnNEDERLANDS.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -43,7 +40,7 @@ public class Tab3Fragment extends Fragment {
             }
         });
 
-        btnENGELS = (Button) view.findViewById(R.id.buttonENGELS);
+        btnENGELS = (Button) view.findViewById(R.id.activityTab3_btn_buttonEngels);
         btnENGELS.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -54,7 +51,7 @@ public class Tab3Fragment extends Fragment {
             }
         });
 
-        btnMELDINGEN = (Button) view.findViewById(R.id.buttonmeldingen);
+        btnMELDINGEN = (Button) view.findViewById(R.id.activityTab3_btn_buttonMijnMelding);
         btnMELDINGEN.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

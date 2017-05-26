@@ -1,10 +1,7 @@
 package com.example.justin.verbeterjegemeente.Adapters;
 
 import android.content.Context;
-import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
-import android.text.Layout;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,8 +10,6 @@ import android.widget.TextView;
 
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
-
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 
@@ -36,27 +31,27 @@ public class ServiceRequestAdapter extends ArrayAdapter<ServiceRequest> {
         }
 
 
-        TextView locatie = (TextView) convertview.findViewById(R.id.locatietab2id);
+        TextView locatie = (TextView) convertview.findViewById(R.id.activitySRA_tv_locationID);
         locatie.setText(serviceRequest.getLat() + ", " + serviceRequest.getLong());
 
-        TextView beschrijving = (TextView) convertview.findViewById(R.id.beschrijvingtab2id);
+        TextView beschrijving = (TextView) convertview.findViewById(R.id.activitySRA_tv_beschrijvingID);
         beschrijving.setText(serviceRequest.getDescription());
 
 //        TextView voornaam = (TextView) convertview.findViewById(R.id.beschrijvingID);
 //        voornaam.setText(serviceRequest.get());
 
 
-        TextView MainCatagory = (TextView) convertview.findViewById(R.id.hoofdcategorietab2id);
+        TextView MainCatagory = (TextView) convertview.findViewById(R.id.activitySRA_tv_hoofdCategorieID);
         MainCatagory.setText(serviceRequest.getServiceCode());
 
 
-        TextView subCatagory = (TextView) convertview.findViewById(R.id.subcategorietab2id);
+        TextView subCatagory = (TextView) convertview.findViewById(R.id.activitySRA_tv_subCategorieID);
         subCatagory.setText(serviceRequest.getServiceCode());
 
-        TextView update = (TextView) convertview.findViewById(R.id.laatsteupdatetab2id);
-        update.setText(serviceRequest.getUpdatedDatetime());
+//        TextView update = (TextView) convertview.findViewById(R.id.activitySRA_tv_laatstUpdateID);
+//        update.setText(serviceRequest.getUpdatedDatetime());
 
-        TextView laastUpdate = (TextView) convertview.findViewById(R.id.laatsteupdatetab2id);
+        TextView laastUpdate = (TextView) convertview.findViewById(R.id.activitySRA_tv_laatstUpdateID);
         laastUpdate.setText(serviceRequest.getUpdatedDatetime());
 
 

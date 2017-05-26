@@ -27,7 +27,7 @@
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/locatietab2id"
+            android:id="@+id/activitySRA_tv_locationID"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -57,7 +57,7 @@
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/hoofdcategorietab2id"
+            android:id="@+id/activitySRA_tv_hoofdCategorieID"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -85,7 +85,7 @@
             android:textStyle="bold|italic" />
 
         <TextView
-            android:id="@+id/subcategorietab2id"
+            android:id="@+id/activitySRA_tv_subCategorieID"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -102,7 +102,7 @@
         android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/beschrijvingtab2id"
+            android:id="@+id/activitySRA_tv_beschrijvingID"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -129,7 +129,7 @@
             android:textColor="@android:color/holo_green_light" />
 
         <TextView
-            android:id="@+id/laatsteupdatetab2id"
+            android:id="@+id/activitySRA_tv_laatstUpdateID"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"

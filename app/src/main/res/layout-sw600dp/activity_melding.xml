@@ -13,7 +13,7 @@
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/locatieTextView"
+            android:id="@+id/activityMelding_tv_Location"
             android:layout_width="match_parent"
             android:layout_height="40dp"
             android:layout_marginBottom="5dp"
@@ -27,7 +27,7 @@
             android:textSize="20sp" />
 
         <Button
-            android:id="@+id/wijzigLocatieButton"
+            android:id="@+id/activityMelding_btn_wijzigLocation"
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:layout_marginBottom="20dp"
@@ -85,7 +85,7 @@
             android:textStyle="bold" />
 
         <EditText
-            android:id="@+id/beschrijving"
+            android:id="@+id/activityMelding_tv_beschrijving"
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:layout_marginLeft="5dp"
@@ -94,8 +94,8 @@
             android:ems="10"
             android:hint="@string/beschrijvingHint"
             android:inputType="textMultiLine"
-            android:nextFocusLeft="@id/beschrijving"
-            android:nextFocusUp="@id/beschrijving"
+            android:nextFocusLeft="@id/activityMelding_tv_beschrijving"
+            android:nextFocusUp="@id/activityMelding_tv_beschrijving"
             android:padding="8dp"
             android:textSize="20sp" />
 
@@ -105,7 +105,7 @@
             android:orientation="horizontal">
 
             <Button
-                android:id="@+id/fotoButton"
+                android:id="@+id/activityMelding_btn_fotoButton"
                 android:layout_width="match_parent"
                 android:layout_height="80dp"
                 android:layout_marginLeft="5dp"
@@ -120,7 +120,7 @@
                 android:textStyle="bold" />
 
             <ImageView
-                android:id="@+id/fotoImageView"
+                android:id="@+id/activityMelding_IV_fotoImageView"
                 android:layout_width="match_parent"
                 android:layout_height="100dp"
                 android:layout_marginLeft="5dp"
@@ -138,7 +138,7 @@
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/emailtextview"
+                android:id="@+id/activityMelding_tv_Email"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="5dp"
@@ -149,7 +149,7 @@
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/optioneeltextview"
+                android:id="@+id/activityMelding_tv_Optioneel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginRight="10dp"
@@ -180,7 +180,7 @@
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/voornaamtextview"
+                android:id="@+id/activityMelding_tv_voorNaam"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="5dp"
@@ -223,7 +223,7 @@
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/achternaamtextview"
+                android:id="@+id/activityMelding_tv_achterNaam"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="5dp"
@@ -269,7 +269,7 @@
             android:textSize="18sp" />
 
         <CheckBox
-            android:id="@+id/updateCheckBox"
+            android:id="@+id/activityMelding_cb_updateCheckbox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="15dp"

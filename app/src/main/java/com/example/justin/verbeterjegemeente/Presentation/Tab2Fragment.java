@@ -22,6 +22,7 @@ import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 
 import retrofit2.Call;
@@ -38,7 +39,7 @@ public class Tab2Fragment extends Fragment  {
     private ArrayAdapter serviceRequestAdapter;
     private ArrayList<ServiceRequest> serviceList;
     private String lat = "", lon = "", status, meters;
-    //    private ServiceRequest serviceRequest;
+    private ServiceRequest serviceRequest;
     private Locatie location;
     private static final int LOCATIE_KIEZEN= 3;
     private LatLng currentLatLng = null;
@@ -88,10 +89,10 @@ public class Tab2Fragment extends Fragment  {
         meldingListView.setAdapter(serviceRequestAdapter);
         meldingListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                Intent myIntent = new Intent(view.getContext(), DetailedMeldingActivity.class);
-//                serviceRequest = serviceList.get(position);
-//                myIntent.putExtra("serviceRequest", (Serializable) serviceRequest);
-//                startActivity(myIntent);
+                Intent myIntent = new Intent(view.getContext(), DetailedMeldingActivity.class);
+                serviceRequest = serviceList.get(position);
+                myIntent.putExtra("serviceRequest", (Serializable) serviceRequest);
+                startActivity(myIntent);
 
             }
         });

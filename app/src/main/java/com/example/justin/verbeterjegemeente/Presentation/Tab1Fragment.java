@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.location.Location;
 
 import android.net.ConnectivityManager;
@@ -28,6 +29,7 @@ import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
+import com.example.justin.verbeterjegemeente.Business.BitmapGenerator;
 import com.example.justin.verbeterjegemeente.Business.MarkerHandler;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
@@ -73,6 +75,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         GoogleApiClient.OnConnectionFailedListener,
         com.google.android.gms.location.LocationListener, GoogleMap.OnCameraIdleListener {
     public GoogleMap mMap;
+    private ArrayList<Marker> markerList;
     private Marker marker;
     private Button button;
     private MarkerHandler mHandler;
@@ -109,6 +112,9 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
         ServiceGenerator.changeApiBaseUrl("https://asiointi.hel.fi/palautews/rest/v1/");
         client = ServiceGenerator.createService(ServiceClient.class);
+
+        // create arraylist to contain created markers
+        markerList = new ArrayList<Marker>();
 
         initApi();
 
@@ -185,9 +191,14 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                             ArrayList<ServiceRequest> srList = response.body();
 
                             for (ServiceRequest s : srList) {
+
                                 mMap.addMarker(new MarkerOptions()
                                         .position(new LatLng(s.getLat(), s.getLong()))
-                                        .title(s.getDescription()));
+                                        .title(s.getDescription())
+                                        .icon(BitmapDescriptorFactory.fromBitmap(
+                                                BitmapGenerator.getBitmapFromVectorDrawable(getContext(),
+                                                        R.drawable.service_request_marker))));
+
                                 Log.e("Opgehaalde servicereq: ", s.getDescription());
                             }
 
@@ -355,7 +366,11 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                     for (ServiceRequest s : srList) {
                         mMap.addMarker(new MarkerOptions()
                                 .position(new LatLng(s.getLat(), s.getLong()))
-                                .title(s.getDescription()));
+                                .title(s.getDescription())
+                                .icon(BitmapDescriptorFactory.fromBitmap(
+                                        BitmapGenerator.getBitmapFromVectorDrawable(getContext(),
+                                                R.drawable.service_request_marker)))
+                        );
                         Log.e("Opgehaalde servicereq: ", s.getDescription());
                     }
 

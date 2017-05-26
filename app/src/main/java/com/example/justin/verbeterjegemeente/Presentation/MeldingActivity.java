@@ -27,6 +27,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.justin.verbeterjegemeente.API.ConnectionChecker;
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 
@@ -449,7 +450,7 @@ public class MeldingActivity extends AppCompatActivity {
                 RequestBody apiK = RequestBody.create(MediaType.parse("text/plain"), Constants.TEST_API_KEY);
 
                 try {
-                    if(isConnected()) { // check if user is actually connected to the internet
+                    if(ConnectionChecker.isConnected()) { // check if user is actually connected to the internet
                         // create a callback
                         Call<ArrayList<PostServiceRequestResponse>> serviceRequestResponseCall =
                                 client.postServiceRequest(apiK, pDescr, pSc, pLat, pLon,
@@ -516,7 +517,7 @@ public class MeldingActivity extends AppCompatActivity {
         });
 
         try {
-            if(isConnected()) { // check if user is actually connected to the internet
+            if(ConnectionChecker.isConnected()) { // check if user is actually connected to the internet
                 // create a callback
                 Call<List<Service>> serviceCall = client.getServices(Constants.LANG_EN);
                 // fire the get request
@@ -801,17 +802,4 @@ public class MeldingActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Method that pings to google.com to check if user is actually
-     * connected to the internet.
-     * @return True if user is connected to the internet
-     * and false if user cannot connect to google.com
-     * @throws InterruptedException
-     * @throws IOException
-     */
-    public boolean isConnected() throws InterruptedException, IOException
-    {
-        String command = "ping -c 1 google.com";
-        return (Runtime.getRuntime().exec (command).waitFor() == 0);
-    }
 }

@@ -13,6 +13,7 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.example.justin.verbeterjegemeente.API.ConnectionChecker;
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.Adapters.MeldingAdapter;
@@ -55,7 +56,7 @@ public class FollowingActivity extends AppCompatActivity {
         final ArrayList<ServiceRequest> srListFinal = new ArrayList<>();
 
         try{
-            if(isConnected()){  //checking for internet acces.
+            if(ConnectionChecker.isConnected()){  //checking for internet acces.
                 for(String s: idList) {
                     Call<ArrayList<ServiceRequest>> RequestResponseCall =
                             client.getServiceById(s);
@@ -114,13 +115,5 @@ public class FollowingActivity extends AppCompatActivity {
 
 
 
-    }
-
-
-    // A methode for checking if the user has intrenet acces.
-    public boolean isConnected() throws InterruptedException, IOException
-    {
-        String command = "ping -c 1 google.com";
-        return (Runtime.getRuntime().exec (command).waitFor() == 0);
     }
 }

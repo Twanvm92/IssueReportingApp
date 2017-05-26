@@ -27,6 +27,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.example.justin.verbeterjegemeente.API.ConnectionChecker;
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.Business.BitmapGenerator;
@@ -126,7 +127,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     public void onStart() {
         super.onStart();
         try {
-            if (isConnected()) {
+            if (ConnectionChecker.isConnected()) {
                 mApiClient.connect();
             } else {
                 new AlertDialog.Builder(this.getContext())
@@ -146,7 +147,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
     public void onStop() {
         try {
-            if (!isConnected()) {
+            if (!ConnectionChecker.isConnected()) {
                 LocationServices.FusedLocationApi.removeLocationUpdates(mApiClient, this);
                 if (mApiClient != null) {
                     mApiClient.disconnect();
@@ -182,7 +183,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         mMap.setOnCameraIdleListener(this);
 
         try {
-            if(isConnected()) {
+            if(ConnectionChecker.isConnected()) {
                 Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests("" + DEFAULT_LONG, "" + DEFAULT_LAT, null, "300");
                 nearbyServiceRequests.enqueue(new Callback<ArrayList<ServiceRequest>>() {
                     @Override
@@ -263,12 +264,6 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this).build();
         mApiClient.connect();
-    }
-
-    public boolean isConnected() throws InterruptedException, IOException
-    {
-        String command = "ping -c 1 google.com";
-        return (Runtime.getRuntime().exec (command).waitFor() == 0);
     }
 
     //locatie voorziening

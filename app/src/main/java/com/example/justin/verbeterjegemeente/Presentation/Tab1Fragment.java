@@ -3,6 +3,7 @@ package com.example.justin.verbeterjegemeente.Presentation;
 
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -31,6 +32,7 @@ import com.example.justin.verbeterjegemeente.API.ConnectionChecker;
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.Business.BitmapGenerator;
+import com.example.justin.verbeterjegemeente.Business.LocationSelectedListener;
 import com.example.justin.verbeterjegemeente.Business.MarkerHandler;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
@@ -87,6 +89,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     public GoogleApiClient mApiClient;
     public Marker currentMarker;
     ServiceClient client;
+    private LocationSelectedListener locCallback;
 
     boolean popupShown = false;
 
@@ -121,6 +124,21 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
 
 //        service.getNearbyServiceRequests("")
+
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+
+        // This makes sure that the container activity has implemented
+        // the callback interface. If not, it throws an exception
+        try {
+            locCallback = (LocationSelectedListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement OnHeadlineSelectedListener");
+        }
 
     }
 
@@ -321,9 +339,12 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         }
 
 
-
         CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
         mMap.moveCamera(center);
+
+        if (locCallback != null) {
+            locCallback.locationSelected(currentLatLng);
+        }
     }
 
     @Override
@@ -393,6 +414,10 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                 t.printStackTrace();
             }
         });
+
+        if (locCallback != null) {
+            locCallback.locationSelected(center);
+        }
 
     }
 }

@@ -19,6 +19,7 @@ import com.example.justin.verbeterjegemeente.Adapters.ServiceRequestAdapter;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.Locatie;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -40,12 +41,26 @@ public class Tab2Fragment extends Fragment  {
     //    private ServiceRequest serviceRequest;
     private Locatie location;
     private static final int LOCATIE_KIEZEN= 3;
+    private LatLng currentLatLng = null;
 //    private Button locatieButton;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.tab2_fragment,container,false);
+
+        Bundle bundle = getArguments();
+        if(bundle!= null)
+        {
+            double lat = getArguments().getDouble("CURRENT_LAT");
+            double lng = getArguments().getDouble("CURRENT_LONG");
+            Log.e("LAT EN LONG MAP: ", "Lat: " + lat + " Long: " + lng);
+
+            currentLatLng = new LatLng(lat, lng);
+
+            searchServiceRequests();
+        }
+
 
         //                locatiebtn toevoegen
 //        locatieButton = (Button) view.findViewById(R.id.wijzigLocatieButton);
@@ -80,7 +95,7 @@ public class Tab2Fragment extends Fragment  {
 
             }
         });
-        searchServiceRequests();
+
         return view;
     }
 
@@ -115,11 +130,20 @@ public class Tab2Fragment extends Fragment  {
 //                    // niet elk veld is ingevuld
 //                }
 
+                if (currentLatLng != null) {
+                    lat = "" + currentLatLng.latitude;
+                    lon = "" + currentLatLng.longitude;
+                } else {
+                    Toast.makeText(getContext(), getResources().getString(R.string.errLoadingServiceRequestList),
+                            Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
 //                hardcoded voor nu
-                lat = "60.168321";
-                lon = "24.952397";
-                status = "open";
-                meters = "1000";
+//                lat = "60.168321";
+//                lon = "24.952397";
+//                status = "open";
+                meters = "300";
 
 //                create a callback
                 Call<ArrayList<ServiceRequest>> serviceCall = client.getNearbyServiceRequests(lat, lon, status, meters);
@@ -135,7 +159,7 @@ public class Tab2Fragment extends Fragment  {
                                     serviceList.add(s);
                                 }
                             } else {
-                                Toast.makeText(getContext(), getResources().getString(R.string.eGetServices),
+                                Toast.makeText(getActivity(), getResources().getString(R.string.eGetServices),
                                         Toast.LENGTH_SHORT).show();
                             }
                             serviceRequestAdapter.notifyDataSetChanged();
@@ -195,6 +219,14 @@ public class Tab2Fragment extends Fragment  {
                 }
 
         }
+    }
+
+    public void updateCurrentLoc(LatLng newLatLong) {
+        currentLatLng = newLatLong;
+        Log.e("LAT EN LONG MAP: ", "Lat: " + currentLatLng.latitude + " Long: " + currentLatLng.longitude);
+
+
+        searchServiceRequests();
     }
 }
 

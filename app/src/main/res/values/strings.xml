@@ -47,4 +47,5 @@
     <string name="section_format">Hallo</string>
     <string name="subcategorieTab2">Sub categorie:</string>
     <string name="onthoudGegevens">Onthoud mijn persoonlijke gegevens:</string>
+    <string name="errLoadingServiceRequestList">Kan op dit moment geen meldingen ophalen. Locatie niet bekend.</string>
 </resources>

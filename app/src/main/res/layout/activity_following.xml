@@ -22,7 +22,17 @@
         tools:layout_editor_absoluteX="8dp"
         tools:layout_editor_absoluteY="8dp" />
 
-
+    <Button
+        android:id="@+id/activityFollowing_btn_terugBTN_ID"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="20dp"
+        android:backgroundTint="#FF6FDA7F"
+        android:text="@string/terug"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:textSize="21sp"
+        android:textStyle="bold" />
 
 
 </LinearLayout>

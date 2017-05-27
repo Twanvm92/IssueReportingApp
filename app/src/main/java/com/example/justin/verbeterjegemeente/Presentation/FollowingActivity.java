@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -33,6 +34,7 @@ public class FollowingActivity extends AppCompatActivity {
     ArrayList<ServiceRequest> list;
     ListView meldingListView;
     private ArrayAdapter meldingAdapter;
+    private Button terugButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,7 +108,14 @@ public class FollowingActivity extends AppCompatActivity {
         meldingAdapter.notifyDataSetChanged();
 
 
-
+        terugButton = (Button) findViewById(R.id.activityFollowing_btn_terugBTN_ID);
+        terugButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                    Intent in = new Intent(getApplicationContext(), MainActivity.class);
+                    startActivity(in);
+                }
+        });
 
 
 

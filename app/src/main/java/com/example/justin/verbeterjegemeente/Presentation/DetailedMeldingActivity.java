@@ -59,6 +59,8 @@ public class DetailedMeldingActivity extends FragmentActivity {
 
        Bundle extras = getIntent().getExtras();
 
+       final String origin  = extras.getString("ORIGIN");
+
        final ServiceRequest serviceRequest = (ServiceRequest)getIntent().getSerializableExtra("serviceRequest");
 
 
@@ -67,6 +69,7 @@ public class DetailedMeldingActivity extends FragmentActivity {
         laatstUpdateDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_laatsUpdate_detailedID);
         beschrijvingDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_beschrijving_DetailedID);
         imageSmall = (ImageButton) findViewById(R.id.activityDetailedMelding_imgbtn_imageSmall_ID);
+
 
         statusDetailed.setText(serviceRequest.getStatus());
         laatstUpdateDetailed.setText(serviceRequest.getUpdatedDatetime());
@@ -114,8 +117,14 @@ public class DetailedMeldingActivity extends FragmentActivity {
         terugButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent in = new Intent(getApplicationContext(), MainActivity.class);
-                startActivity(in);
+
+                if(origin.equals("FollowActivity")){
+                    Intent in = new Intent(getApplicationContext(), FollowingActivity.class);
+                    startActivity(in);
+                }else if(origin.equals("Tab2Fragment")){
+                    Intent in = new Intent(getApplicationContext(), MainActivity.class);
+                    startActivity(in);
+                }
 
             }
         });

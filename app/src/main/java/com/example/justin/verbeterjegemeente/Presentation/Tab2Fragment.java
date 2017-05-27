@@ -92,6 +92,7 @@ public class Tab2Fragment extends Fragment  {
                 Intent myIntent = new Intent(view.getContext(), DetailedMeldingActivity.class);
                 serviceRequest = serviceList.get(position);
                 myIntent.putExtra("serviceRequest", (Serializable) serviceRequest);
+                myIntent.putExtra("ORIGIN", "Tab2Fragment");
                 startActivity(myIntent);
 
             }

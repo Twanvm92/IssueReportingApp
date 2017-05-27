@@ -3,6 +3,7 @@ package com.example.justin.verbeterjegemeente.Presentation;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -18,6 +19,7 @@ import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 
 import retrofit2.Call;
@@ -93,7 +95,9 @@ public class FollowingActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent i = new Intent(view.getContext(), DetailedMeldingActivity.class);
                 ServiceRequest serviceRequest = srListFinal.get(position);
-                i.putExtra("melding", serviceRequest);
+                i.putExtra("serviceRequest", (Serializable) serviceRequest);
+                i.putExtra("ORIGIN", "FollowActivity");
+                Log.i("REQUEST", serviceRequest.getStatus());
                 startActivity(i);
             }
         });

@@ -14,7 +14,7 @@
     <string name="locatieTab2">Locatie:</string>
     <string name="locatieWijzigen">Locatie wijzigen</string>
     <string name="beschrijving">Beschrijving</string>
-    <string name="beschrijving2">Beschrijving van de notificatie:</string>
+    <string name="beschrijving2">Beschrijving van de melding:</string>
     <string name="beschrijvingHint">Beschrijf uw probleem</string>
 
     <string name="optioneel">Optioneel</string>

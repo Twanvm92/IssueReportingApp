@@ -21,14 +21,14 @@
 
                 <TextView
                     android:id="@+id/locatiedetailedid"
-                    android:layout_width="500dp"
+                    android:layout_width="900dp"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="20dp"
                     android:layout_weight="1"
                     android:fontFamily="sans-serif-condensed"
                     android:text="Raadhuisstraat 123"
                     android:textColor="@android:color/white"
-                    android:textSize="30sp" />
+                    android:textSize="50sp" />
 
                 <com.like.LikeButton
                     android:id="@+id/favorietenknopdetail"
@@ -38,7 +38,7 @@
                     android:layout_weight="1"
                     app:circle_end_color="#FF6FDA7F"
                     app:circle_start_color="#82b236"
-                    app:icon_size="40dp"
+                    app:icon_size="50dp"
                     app:icon_type="star" />
             </LinearLayout>
 

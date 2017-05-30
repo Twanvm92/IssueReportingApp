@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.justin.verbeterjegemeente.Notification;
 import com.example.justin.verbeterjegemeente.R;
 
 import java.util.Locale;
@@ -37,6 +38,9 @@ public class Tab3Fragment extends Fragment {
                 Toast.makeText(getActivity(), "NEDERLANDSE TAAL AANGEZET",Toast.LENGTH_SHORT).show();
 
                 changeLang("nl");
+
+                Notification notification = new Notification();
+                notification.makeNotification(getContext(), "Title", "Text");
             }
         });
 

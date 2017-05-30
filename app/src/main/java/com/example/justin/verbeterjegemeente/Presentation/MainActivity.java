@@ -47,6 +47,28 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
 
         mSectionsPageAdapter = new SectionsPageAdapter(getSupportFragmentManager());
 
+
+
+
+
+
+        Intent i = new Intent(getApplicationContext(), UpdateService.class);
+        startService(i);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         setupViewPager(mViewPager);

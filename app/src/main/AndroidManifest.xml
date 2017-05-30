@@ -65,6 +65,9 @@
             android:theme="@style/AppTheme.NoActionBar"></activity>
 
 
+        <service android:name=".UpdateService" />
+
+
     </application>
 
 </manifest>

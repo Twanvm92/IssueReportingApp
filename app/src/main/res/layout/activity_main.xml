@@ -46,4 +46,47 @@
         app:fabSize="normal"
         app:srcCompat="@drawable/plusicon" />
 
+
+    <com.gordonwong.materialsheetfab.DimOverlayFrameLayout
+        android:id="@+id/activityMain_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+
+    <io.codetail.widget.RevealLinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="end|bottom"
+        android:orientation="vertical"
+        android:id="@+id/revealLinearLayout">
+
+
+        <android.support.v7.widget.CardView
+            android:id="@+id/activityMain_fab_sheet"
+            android:layout_width="250dp"
+            android:layout_height="300dp">
+
+
+
+        </android.support.v7.widget.CardView>
+    </io.codetail.widget.RevealLinearLayout>
+
+    <com.example.justin.verbeterjegemeente.Presentation.Fab
+        android:id="@+id/activityMain_Fbtn_menu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="33dp"
+        android:layout_marginTop="85dp"
+        android:layout_gravity="bottom|left"
+        android:src="@drawable/ic_settings_white_36dp"
+        app:backgroundTint="#6fda7f"
+
+        app:fabSize="normal"
+        app:layout_anchor="@+id/revealLinearLayout"
+        app:layout_anchorGravity="top|right" />
+
+
 </android.support.design.widget.CoordinatorLayout>

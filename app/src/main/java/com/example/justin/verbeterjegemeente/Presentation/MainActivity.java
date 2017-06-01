@@ -8,6 +8,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 
 import android.support.v4.view.ViewPager;
@@ -23,6 +24,7 @@ import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
+import com.gordonwong.materialsheetfab.MaterialSheetFab;
 
 import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LAT;
 import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LONG;
@@ -36,8 +38,10 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
 
     private ViewPager mViewPager;
     private FloatingActionButton fab;
+    private Fab fabMenu;
     private Tab1Fragment tabFragment = new Tab1Fragment();
     private LatLng currentLatLng;
+    private MaterialSheetFab mSFab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +57,17 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
+
+        fabMenu = (Fab) findViewById(R.id.activityMain_Fbtn_menu);
+        View sheetView = findViewById(R.id.activityMain_fab_sheet);
+        View overlay = findViewById(R.id.activityMain_overlay);
+        int sheetColor = ContextCompat.getColor(this, R.color.mooiGroen);
+        int fabColor = ContextCompat.getColor(this, R.color.mooiGroen);
+
+
+        // Initialize material sheet FAB
+        mSFab = new MaterialSheetFab<>(fabMenu, sheetView, overlay,
+                sheetColor, fabColor);
 
         fab = (FloatingActionButton) findViewById(R.id.activityMain_Fbtn_FAB);
         fab.setOnClickListener(new View.OnClickListener() {

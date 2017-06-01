@@ -30,13 +30,18 @@ public class GeocodeHandler extends IntentService{
 
     public void onCreate() {
         super.onCreate();
+        gCoder = new Geocoder(getApplicationContext());
     }
 
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
-        mReceiver = intent.getParcelableExtra("receiver");
+        //mReceiver = intent.getParcelableExtra("receiver");
+        Log.i("coordinate", "" + intent.getDoubleExtra("long", 1));
+        Log.i("coordinate", "" + intent.getDoubleExtra("lat", 1));
+        double longitude = intent.getDoubleExtra("long", 1);
+        double latitude = intent.getDoubleExtra("lat", 1);
         try {
-            List<Address> addresses = gCoder.getFromLocation(intent.getDoubleExtra("long", 1), intent.getDoubleExtra("lat", 1), 1);
+            List<Address> addresses = gCoder.getFromLocation(latitude,longitude, 1);
 
             if(addresses != null) {
 
@@ -46,7 +51,8 @@ public class GeocodeHandler extends IntentService{
                 for(int i=0; i<fetchedAddress.getMaxAddressLineIndex(); i++) {
                     strAddress.append(fetchedAddress.getAddressLine(i)).append("\n");
                 }
-                deliverResultToReceiver(1, strAddress.toString());
+                Log.i("address", strAddress.toString());
+                //deliverResultToReceiver(1, strAddress.toString());
             }
         } catch(IOException e) {
 

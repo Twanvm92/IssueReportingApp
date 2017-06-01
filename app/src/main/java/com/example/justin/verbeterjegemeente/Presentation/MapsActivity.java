@@ -126,7 +126,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 //make new marker
                 marker = mMap.addMarker(new MarkerOptions().position(latLng).title("marker")
                             .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-
+                startAddressService();
             }
         });
     }

@@ -33,7 +33,7 @@
             android:layout_marginLeft="5dp"
             android:layout_marginRight="5dp"
             android:backgroundTint="#FF6FDA7F"
-            android:drawableLeft="@drawable/mapicon"
+            android:drawableLeft="@drawable/changelocation"
             android:text="@string/locatieWijzigen"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:textSize="21sp"
@@ -145,10 +145,10 @@
                 android:layout_marginTop="15dp"
                 android:layout_weight="1"
                 android:backgroundTint="#FF6FDA7F"
-                android:drawableBottom="@drawable/cameraicon"
+                android:drawableLeft="@drawable/addphoto"
                 android:text="@string/foto"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                android:textSize="21sp"
+                android:textSize="19sp"
                 android:textStyle="bold" />
 
             <ImageView
@@ -292,7 +292,9 @@
             android:id="@+id/activityMelding_cb_onthoudCheckbox"
             android:theme="@style/checkBoxStyle"
             android:layout_width="match_parent"
+            android:textSize="18sp"
             android:layout_height="wrap_content"
+            android:buttonTint="@android:color/background_light"
             android:text="@string/onthoudGegevens"
             android:textColor="@android:color/white"
             android:textColorLink="#FF6FDA7F" />

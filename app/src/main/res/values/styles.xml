@@ -16,12 +16,26 @@
         <item name="android:windowBackground">@color/colorBackground</item>
     </style>
 
+
+    <style name="AppTheme.Follow">
+        <item name="windowActionBar">true</item>
+        <item name="windowNoTitle">false</item>
+        <item name="colorPrimary">@color/colorTab</item>
+        <item name="colorPrimaryDark">@color/colorTab2</item>
+        <item name="android:windowBackground">@color/colorBackground</item>
+    </style>
+
     <style name="AppTheme.Meldingscherm">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="colorPrimary">@color/colorTab</item>
         <item name="colorPrimaryDark">@color/colorTab2</item>
         <item name="android:windowBackground">@color/colorBackground2</item>
+    </style>
+
+    <style name="checkBoxStyle" parent="Base.Theme.AppCompat">
+        <item name="colorAccent">@color/mooiGroen</item>
+        <item name="android:textColorSecondary">@color/colorTab2</item>
     </style>
 
 

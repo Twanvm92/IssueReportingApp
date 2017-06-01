@@ -1,16 +1,12 @@
 <resources>
-    <string name="app_name">Verbeter Je Gemeente</string>
     <string name="action_settings">Settings</string>
-    <string name="section_format">Hello World from section: %1$d</string>
-
-    <string name="title_activity_maps">Map</string>
-    <string name="title_activity_button_handler">ButtonHandler</string>
-
     <string name="locatie">Location</string>
+    <string name="locatieTab2">Location:</string>
     <string name="locatieWijzigen">Change location</string>
     <string name="beschrijving">Description</string>
+    <string name="beschrijving2">Description of the notification:</string>
     <string name="beschrijvingHint">Describe your problem</string>
-    <string name="email">Email</string>
+
     <string name="optioneel">Optional</string>
     <string name="emailHint">Enter your email address here</string>
     <string name="voornaam">First name</string>
@@ -21,18 +17,28 @@
     <string name="info">Optional: You are not required to enter this information, but it will make it easier to keep you informed of changes.</string>
     <string name="terug">Back</string>
     <string name="meldingplaatsen">Send notification</string>
+    <string name="mijnMeldingen">My notifications</string>
+    <string name="onthoudGegevens">Remember my personal data</string>
 
+    <string name="hoofdcategorieTab2">Main category:</string>
+    <string name="kiesProblemen">Choose from list of issues</string>
+    <string name="subcategorieTab2">Subcategory:</string>
+    <string name="kiesSubProblemen">Choose from list of sub issues</string>
+    <string name="update">I do NOT want to be updated by email</string>
+    <string name="laatsteupdateTab2">Latest update:</string>
+
+    <string name="kiesSubCategory">Please select a sub category.</string>
+    <string name="geenLocatie">No location found. Please choose a location.</string>
+    <string name="eContactGegevens">Please enter your email to receive instant updates</string>
+    <string name="geenBeschrijving">Add a description</string>
+    <string name="kBeschrijving">Description must contain at least 10 characters</string>
+    <string name="ePostRequest">Unable to send message. Connect your device to the internet and try again.</string>
+    <string name="eGetServices">Could not find any services that meet these criteria</string>
     <string name="FoutOphalenProblemen">Can not retrieve categories at this time. Please try again later.</string>
+    <string name="errLoadingServiceRequestList">Cannot obtain service requests. Location unknown.</string>
 
     <string name="fotoWijzigen">Change picture</string>
     <string name="fotoMaken">Take photo</string>
     <string name="fotoKiezen">Choose picture from gallery</string>
-    <string name="kiesCategory">Please select a category.</string>
-    <string name="kiesProblemen">Choose from list of issues</string>
-    <string name="geenBeschrijving">Add a description</string>
-    <string name="kBeschrijving">Description must contain at least 10 characters</string>
-    <string name="ePostRequest">Unable to send message. Connect your device to the internet and try again.</string>
-    <string name="geenLocatie">No location found. Please choose a location.</string>
-    <string name="update">I do NOT want to be updated by email</string>
-    <string name="eContactGegevens">Please enter your email to receive instant updates</string>
+
 </resources>

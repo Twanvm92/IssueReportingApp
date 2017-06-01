@@ -1,14 +1,13 @@
 package com.example.justin.verbeterjegemeente.Presentation;
 
 import android.Manifest;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AlertDialog;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 
 import android.support.v4.view.ViewPager;
@@ -18,17 +17,18 @@ import android.view.View;
 
 import com.example.justin.verbeterjegemeente.*;
 import com.example.justin.verbeterjegemeente.Adapters.SectionsPageAdapter;
+import com.example.justin.verbeterjegemeente.Business.LocationSelectedListener;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
+
+import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LAT;
+import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LONG;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements LocationSelectedListener {
 
     private static final String TAG = "MainActivity";
 
@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
 
-        fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab = (FloatingActionButton) findViewById(R.id.activityMain_Fbtn_FAB);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -115,6 +115,8 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
+
     private void setupViewPager(ViewPager viewPager) {
         SectionsPageAdapter adapter = new SectionsPageAdapter(getSupportFragmentManager());
         adapter.addFragment(tabFragment, "");
@@ -124,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        Location currentLocation;
+        Location currentLocation = null;
         GoogleMap mMap = tabFragment.mMap;
         GoogleApiClient mApiClient = tabFragment.mApiClient;
         switch (requestCode) {
@@ -135,17 +137,20 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     if (mApiClient != null) {
-                        currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
+
+                        // commented for testing purposed. Now jumps to default lat & long in Helsinki.
+                        // uncomment this line
+                        // currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
 
                         if (currentLocation != null) {
                             currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
                         } else {
-                            currentLatLng = new LatLng(51.58656, 4.77596);
+                            currentLatLng = new LatLng(DEFAULT_LONG, DEFAULT_LAT);
                         }
                         CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
                         mMap.moveCamera(center);
                     } else {
-                        currentLatLng = new LatLng(51.58656, 4.77596);
+                        currentLatLng = new LatLng(DEFAULT_LONG, DEFAULT_LAT);
                         CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
                         mMap.moveCamera(center);
 
@@ -155,6 +160,50 @@ public class MainActivity extends AppCompatActivity {
             }
 
 
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        Intent i = new Intent();
+        setResult(RESULT_CANCELED, i);
+        super.onBackPressed();
+    }
+
+    @Override
+    public void locationSelected(LatLng curLatLong) {
+        // The user selected the headline of an article from the HeadlinesFragment
+        // Do something here to display that article
+
+        Tab2Fragment tab2Frag = (Tab2Fragment)
+                getSupportFragmentManager().getFragments().get(1);
+
+        if (tab2Frag != null) {
+            // If article frag is available, we're in two-pane layout...
+
+            // Call a method in the ArticleFragment to update its content
+            Log.e("MainActivity: ", "We are in a two pane layout..");
+
+            tab2Frag.updateCurrentLoc(curLatLong);
+        } else {
+            // Otherwise, we're in the one-pane layout and must swap frags...
+
+            // Create fragment and give it an argument for the selected article
+            Tab2Fragment newFragment = new Tab2Fragment();
+            Bundle args = new Bundle();
+            args.putDouble("CURRENT_LAT",curLatLong.latitude);
+            args.putDouble("CURRENT_LONG",curLatLong.longitude);
+            newFragment.setArguments(args);
+
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+
+            // Replace whatever is in the fragment_container view with this fragment,
+            // and add the transaction to the back stack so the user can navigate back
+            transaction.replace(R.id.tab2_fragment_layout, newFragment);
+            transaction.addToBackStack(null);
+
+            // Commit the transaction
+            transaction.commit();
         }
     }
 }

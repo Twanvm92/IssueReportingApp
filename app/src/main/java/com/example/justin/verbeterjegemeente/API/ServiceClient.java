@@ -2,7 +2,9 @@ package com.example.justin.verbeterjegemeente.API;
 
 import com.example.justin.verbeterjegemeente.domain.Service;
 import com.example.justin.verbeterjegemeente.domain.PostServiceRequestResponse;
+import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,18 +28,17 @@ import retrofit2.http.Query;
 
 public interface ServiceClient {
 
-    public static final String LANG_EN = "en";
-    public static final String LANG_NL = "nl";
-
-
     /** Send a get request to an already specified endpoint and returns a list of
      * <code>Service</code> objects
      * @param Language The language in which the result of the request will get returned
      * @return List of Service objects
      * @see Service
      */
-@GET ("services.json")
-Call<List<Service>> getServices(@Query("Locale") String Language);
+    @GET ("services.json")
+    Call<List<Service>> getServices(@Query("Locale") String Language);
+
+
+
 
     /**
      * Sends a Multipart/form-data post request to an already specified endpoint
@@ -56,16 +57,27 @@ Call<List<Service>> getServices(@Query("Locale") String Language);
      * @see PostServiceRequestResponse
      */
     @Multipart
-@POST("requests.json")
-Call<ArrayList<PostServiceRequestResponse>> postServiceRequest(@Part("api_key") RequestBody apiK,
-                                                               @Part("description") RequestBody desc,
-                                                               @Part("service_code") RequestBody sc,
-                                                               @Part("lat") RequestBody lat,
-                                                               @Part("long") RequestBody lon,
-                                                               @Part MultipartBody.Part img,
-                                                               @Part("email") RequestBody email,
-                                                               @Part("first_name") RequestBody fName,
-                                                               @Part("last_name") RequestBody lName);
+    @POST("requests.json")
+    Call<ArrayList<PostServiceRequestResponse>> postServiceRequest(@Part("api_key") RequestBody apiK,
+                                                                   @Part("description") RequestBody desc,
+                                                                   @Part("service_code") RequestBody sc,
+                                                                   @Part("lat") RequestBody lat,
+                                                                   @Part("long") RequestBody lon,
+                                                                   @Part MultipartBody.Part img,
+                                                                   @Part("email") RequestBody email,
+                                                                   @Part("first_name") RequestBody fName,
+                                                                   @Part("last_name") RequestBody lName);
+
+    @GET("requests.json")
+    Call<ArrayList<ServiceRequest>> getNearbyServiceRequests(@Query("lat") String lat,
+                                                             @Query("long") String lng,
+                                                             @Query("status") String status,
+                                                             @Query("radius") String meters);
+
+
+
+    @GET ("requests/{id}.json")
+    Call<ArrayList<ServiceRequest>> getServiceById (@Path("id") String id);
 }
 
 

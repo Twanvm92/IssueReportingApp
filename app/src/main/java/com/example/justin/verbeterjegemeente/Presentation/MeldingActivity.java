@@ -16,6 +16,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -25,12 +26,19 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.justin.verbeterjegemeente.API.ConnectionChecker;
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
+
+import com.example.justin.verbeterjegemeente.Database.DatabaseHanlder;
+
+import com.example.justin.verbeterjegemeente.Constants;
+
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.Locatie;
 import com.example.justin.verbeterjegemeente.domain.PostServiceRequestResponse;
 import com.example.justin.verbeterjegemeente.domain.Service;
+import com.example.justin.verbeterjegemeente.domain.User;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -63,7 +71,9 @@ public class MeldingActivity extends AppCompatActivity {
 
 
     private Spinner catagorySpinner;
+    private Spinner subCatagorySpinner;
     private ArrayList<String> catagoryList;
+    private ArrayList<String> subCategoryList;
     private Button locatieButton, fotoButton, terugButton, plaatsButton;
     private TextView locatieTextView, beschrijvingTextView, emailTextView,
             voornaamTextView, achternaamTextView,optioneelTextView;
@@ -73,34 +83,36 @@ public class MeldingActivity extends AppCompatActivity {
     private ImageView fotoImageView;
     private List<Service> serviceList;
     ArrayAdapter<String> catagoryAdapter;
+    ArrayAdapter<String> subCategoryAdapter;
     private ServiceClient client;
     private String image_path = "";
-    private static final int MY_PERMISSIONS_CAMERA = 1;
-    private static final int MY_PERMISSIONS_STORAGE = 2;
-    private static final int FOTO_MAKEN = 1;
-    private static final int FOTO_KIEZEN = 2;
-    private static final int LOCATIE_KIEZEN= 3;
     private Uri selectedImage;
     private android.app.AlertDialog.Builder builder;
     private String imagePath = null;
     private Locatie location;
+    private CheckBox onthoudCheckbox;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_melding);
-        fotoButton = (Button) findViewById(R.id.fotoButton);
+        ServiceGenerator.changeApiBaseUrl("http://dev.hel.fi/open311-test/v1/");
+        fotoButton = (Button) findViewById(R.id.activityMelding_btn_fotoButton);
 
-        fotoImageView = (ImageView) findViewById(R.id.fotoImageView);
+        fotoImageView = (ImageView) findViewById(R.id.activityMelding_IV_fotoImageView);
 
-        locatieTextView = (TextView) findViewById(R.id.locatieTextView);
-        beschrijvingTextView = (TextView) findViewById(R.id.beschrijving);
-        emailTextView = (TextView) findViewById(R.id.emailtextview);
-        optioneelTextView = (TextView) findViewById(R.id.optioneeltextview);
-        voornaamTextView = (TextView) findViewById(R.id.voornaamtextview);
-        achternaamTextView = (TextView) findViewById(R.id.achternaamtextview);
+        locatieTextView = (TextView) findViewById(R.id.activityMelding_tv_Location);
+        beschrijvingTextView = (TextView) findViewById(R.id.activityMelding_tv_beschrijving);
+        emailTextView = (TextView) findViewById(R.id.activityMelding_tv_Email);
+        optioneelTextView = (TextView) findViewById(R.id.activityMelding_tv_Optioneel);
+        voornaamTextView = (TextView) findViewById(R.id.activityMelding_tv_voorNaam);
+        achternaamTextView = (TextView) findViewById(R.id.activityMelding_tv_achterNaam);
+        onthoudCheckbox = (CheckBox) findViewById(R.id.activityMelding_cb_onthoudCheckbox);
 
-        updateCheckBox = (CheckBox) findViewById(R.id.updateCheckBox);
+
+        updateCheckBox = (CheckBox) findViewById(R.id.activityMelding_cb_updateCheckbox);
 
         Intent in = getIntent();
         if(in.hasExtra("long")) {
@@ -111,17 +123,17 @@ public class MeldingActivity extends AppCompatActivity {
 
         }
 
-        locatieButton = (Button) findViewById(R.id.wijzigLocatieButton);
+        locatieButton = (Button) findViewById(R.id.activityMelding_btn_wijzigLocation);
         locatieButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), MapsActivity.class);
-                startActivityForResult(intent, LOCATIE_KIEZEN);
+                startActivityForResult(intent, Constants.LOCATIE_KIEZEN);
             }
         });
 
-        fotoImageView = (ImageView) findViewById(R.id.fotoImageView);
+        fotoImageView = (ImageView) findViewById(R.id.activityMelding_IV_fotoImageView);
 
         builder = new android.app.AlertDialog.Builder(this);
 
@@ -142,8 +154,55 @@ public class MeldingActivity extends AppCompatActivity {
             }
         };
         catagoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
         catagorySpinner.setAdapter(catagoryAdapter);
+
+        // create an arraylist that will contain different sub categories fetched from an open311 interface
+        subCategoryList = new ArrayList<String>();
+        subCategoryList.add(getResources().getString(R.string.kiesSubProblemen));
+        subCatagorySpinner = (Spinner) findViewById(R.id.spinnerSub);
+        subCategoryAdapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_spinner_item, subCategoryList){
+            @Override //pakt de positions van elements in subCatagoryList en disabled the element dat postion null staat zodat we het kunnen gebruiken als een hint.
+            public boolean isEnabled(int position){
+                if (position == 0)
+                {
+                    return false;
+                }else{
+                    return true;
+                }
+            }
+        };
+        subCategoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        subCatagorySpinner.setAdapter(subCategoryAdapter);
+
+        catagorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (subCategoryList.size() > 1) { // check if list has more than just the default string
+                    subCategoryList.clear(); // clear ist before filling it again
+                    subCategoryList.add(getResources().getString(R.string.kiesSubProblemen));
+                }
+
+                if (serviceList != null) {
+                    for (Service s : serviceList) {
+                        // check if selected main category is same as main category of service object
+                        if (parent.getSelectedItem().toString().equals(s.getGroup())) {
+                            subCategoryList.add(s.getService_name()); // add sub category to list
+                        }
+                    }
+                    subCategoryAdapter.notifyDataSetChanged();
+                }
+
+                if(position != 0) {
+                    subCatagorySpinner.setSelection(0);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
 
         fotoButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -173,7 +232,7 @@ public class MeldingActivity extends AppCompatActivity {
                                     Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                                 try {
                                     Intent makePhoto = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                                    startActivityForResult(makePhoto, FOTO_MAKEN);
+                                    startActivityForResult(makePhoto, Constants.FOTO_MAKEN);
                                 } catch (Exception e) {
                                     Log.e("PERMISSION", "camera not granted");
                                     reqCameraPermission();
@@ -193,7 +252,7 @@ public class MeldingActivity extends AppCompatActivity {
                                 try {
                                     Intent pickPhoto = new Intent(Intent.ACTION_PICK,
                                             android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                                    startActivityForResult(pickPhoto, FOTO_KIEZEN);
+                                    startActivityForResult(pickPhoto, Constants.FOTO_KIEZEN);
                                 } catch (Exception e) {
                                     Log.e("PERMISSION", "storage not granted");
                                     reqWriteStoragePermission();
@@ -209,17 +268,28 @@ public class MeldingActivity extends AppCompatActivity {
             }
         );
 
-        beschrijvingEditText = (EditText) findViewById(R.id.beschrijving);
+        beschrijvingEditText = (EditText) findViewById(R.id.activityMelding_tv_beschrijving);
         emailEditText = (EditText) findViewById(R.id.email);
         voornaamEditText = (EditText) findViewById(R.id.voornaam);
         achternaamEditText = (EditText) findViewById(R.id.achternaam);
+
+        final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
+        User foundUser = db.getUser();
+        Log.i("FOUND USER", foundUser.toString());
+        if(foundUser != null){
+            emailEditText.setText(foundUser.getEmail());
+            voornaamEditText.setText(foundUser.getFirstName());
+            achternaamEditText.setText(foundUser.getLastName());
+        }
+        db.close();
+
 
         terugButton = (Button) findViewById(R.id.terugButton);
         terugButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent i = new Intent(getApplicationContext(), MainActivity.class);
-                startActivity(i);
+                startActivityForResult(i, Constants.BACK_BUTTON);
             }
         });
 
@@ -232,15 +302,34 @@ public class MeldingActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
+
+
+                if(onthoudCheckbox.isChecked()) {
+                    if (!emailEditText.equals("") && !voornaamEditText.equals("") && !achternaamEditText.equals("")) {
+                        final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
+
+                        User user = new User();
+                        user.setLastName(achternaamEditText.getText().toString());
+                        user.setFirstName(voornaamEditText.getText().toString());
+                        user.setEmail(emailEditText.getText().toString());
+                        db.deleteUser();
+                        db.addUser(user);
+
+                        db.close();
+                    }
+                }
+
+
+
                 // initialize selected category and check if selected category is actually a category
                 String selecIt = "";
-                if(catagorySpinner != null && catagorySpinner.getSelectedItem() !=null
-                        && !catagorySpinner.getSelectedItem()
-                        .equals(getResources().getString(R.string.kiesProblemen))) {
-                    selecIt = catagorySpinner.getSelectedItem().toString();
+                if(subCatagorySpinner != null && subCatagorySpinner.getSelectedItem() !=null
+                        && !subCatagorySpinner.getSelectedItem()
+                        .equals(getResources().getString(R.string.kiesSubProblemen))) {
+                    selecIt = subCatagorySpinner.getSelectedItem().toString();
                 } else {
                     Toast.makeText(getApplicationContext(),
-                            getResources().getString(R.string.kiesCategory),Toast.LENGTH_SHORT).show();
+                            getResources().getString(R.string.kiesSubCategory),Toast.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -358,10 +447,10 @@ public class MeldingActivity extends AppCompatActivity {
                 RequestBody pLat = RequestBody.create(MediaType.parse("text/plain"), lat);
                 RequestBody pDescr = RequestBody.create(MediaType.parse("text/plain"), descr);
                 RequestBody pSc = RequestBody.create(MediaType.parse("text/plain"), sc);
-                RequestBody apiK = RequestBody.create(MediaType.parse("text/plain"), ServiceGenerator.TEST_API_KEY);
+                RequestBody apiK = RequestBody.create(MediaType.parse("text/plain"), Constants.TEST_API_KEY);
 
                 try {
-                    if(isConnected()) { // check if user is actually connected to the internet
+                    if(ConnectionChecker.isConnected()) { // check if user is actually connected to the internet
                         // create a callback
                         Call<ArrayList<PostServiceRequestResponse>> serviceRequestResponseCall =
                                 client.postServiceRequest(apiK, pDescr, pSc, pLat, pLon,
@@ -381,6 +470,10 @@ public class MeldingActivity extends AppCompatActivity {
                                         Toast.makeText(getApplicationContext(),
                                                 "service request is aangemaakt met id: " + psrr.getId(),
                                                 Toast.LENGTH_SHORT).show();
+
+                                        final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
+                                        db.addReport(psrr.getId());
+                                        db.close();
                                     }
 
                                 } else {
@@ -424,9 +517,9 @@ public class MeldingActivity extends AppCompatActivity {
         });
 
         try {
-            if(isConnected()) { // check if user is actually connected to the internet
+            if(ConnectionChecker.isConnected()) { // check if user is actually connected to the internet
                 // create a callback
-                Call<List<Service>> serviceCall = client.getServices(ServiceClient.LANG_EN);
+                Call<List<Service>> serviceCall = client.getServices(Constants.LANG_EN);
                 // fire the get request
                 serviceCall.enqueue(new Callback<List<Service>>() {
                     @Override
@@ -445,11 +538,20 @@ public class MeldingActivity extends AppCompatActivity {
                         }
 
                         if(serviceList != null) {
-
+                            int x = 1; // set iterable separately for categoryList
                             for (int i = 0; i < serviceList.size(); i++) {
-                                // fill the category list with names of services from the open311 interface
-                                catagoryList.add(serviceList.get(i).getService_name());
+                                // first categoryList item is a default String
+                                if(catagoryList.size() > 1) { // do something if list already has 1 or more categories
+                                    // do something if previous category is not the same as new category in servicelist
+                                    if(!catagoryList.get(x).equals(serviceList.get(i).getGroup())) {
+                                        catagoryList.add(serviceList.get(i).getGroup()); // add new category
+                                        x++; // only up this iterable if new category is added
+                                    }
+                                } else {
+                                    catagoryList.add(serviceList.get(i).getGroup());
+                                }
                             }
+
                             catagoryAdapter.notifyDataSetChanged();
                         }
                     }
@@ -500,7 +602,7 @@ public class MeldingActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
         switch (requestCode) {
-            case MY_PERMISSIONS_CAMERA: {
+            case Constants.MY_PERMISSIONS_CAMERA: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -526,7 +628,7 @@ public class MeldingActivity extends AppCompatActivity {
                 }
             }
             break;
-            case MY_PERMISSIONS_STORAGE: {
+            case Constants.MY_PERMISSIONS_STORAGE: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -566,7 +668,7 @@ public class MeldingActivity extends AppCompatActivity {
 
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.CAMERA},
-                        MY_PERMISSIONS_CAMERA);
+                        Constants.MY_PERMISSIONS_CAMERA);
 
                 // Show an explanation to the user *asynchronously* -- don't block
                 // this thread waiting for the user's response! After the user
@@ -578,7 +680,7 @@ public class MeldingActivity extends AppCompatActivity {
 
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.CAMERA},
-                        MY_PERMISSIONS_CAMERA);
+                        Constants.MY_PERMISSIONS_CAMERA);
 
                 // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
                 // app-defined int constant. The callback method gets the
@@ -600,11 +702,11 @@ public class MeldingActivity extends AppCompatActivity {
 
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                        MY_PERMISSIONS_STORAGE);
+                        Constants.MY_PERMISSIONS_STORAGE);
             } else {
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                        MY_PERMISSIONS_STORAGE);
+                        Constants.MY_PERMISSIONS_STORAGE);
             }
         }
     }
@@ -619,7 +721,7 @@ public class MeldingActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         switch(requestCode) {
-            case FOTO_MAKEN:
+            case Constants.FOTO_MAKEN:
                 if (resultCode == RESULT_OK) {
                     Bitmap photo = (Bitmap) data.getExtras().get("data");
                     selectedImage = getImageUri(getApplicationContext(), photo);
@@ -632,7 +734,7 @@ public class MeldingActivity extends AppCompatActivity {
 
                 }
                 break;
-            case FOTO_KIEZEN:
+            case Constants.FOTO_KIEZEN:
                 if(resultCode == RESULT_OK){
                     selectedImage = data.getData();
                     image_path = getRealPathFromURI(selectedImage);
@@ -642,7 +744,7 @@ public class MeldingActivity extends AppCompatActivity {
 
                 }
                 break;
-            case LOCATIE_KIEZEN:
+            case Constants.LOCATIE_KIEZEN:
                 if(resultCode == RESULT_OK){
                     if(data.hasExtra("long")) {
                         double lng = data.getDoubleExtra("long", 1);
@@ -655,6 +757,13 @@ public class MeldingActivity extends AppCompatActivity {
 
                 }
                 break;
+            case Constants.BACK_BUTTON:
+                if(resultCode == RESULT_CANCELED) {
+                    finish();
+                    startActivity(getIntent());
+                }
+                break;
+
         }
     }
 
@@ -693,27 +802,4 @@ public class MeldingActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Method that pings to google.com to check if user is actually
-     * connected to the internet.
-     * @return True if user is connected to the internet
-     * and false if user cannot connect to google.com
-     * @throws InterruptedException
-     * @throws IOException
-     */
-    public boolean isConnected() throws InterruptedException, IOException
-    {
-        String command = "ping -c 1 google.com";
-        return (Runtime.getRuntime().exec (command).waitFor() == 0);
-    }
-
-    /**
-     * Refreshing activity when restarted. (If user presses back button).
-     */
-    @Override
-    public void onRestart() {
-        super.onRestart();
-        finish();
-        startActivity(getIntent());
-    }
 }

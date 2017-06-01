@@ -13,7 +13,7 @@
         android:orientation="vertical" >
 
         <TextView
-            android:id="@+id/locatieTextView"
+            android:id="@+id/activityMelding_tv_Location"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="5dp"
@@ -26,14 +26,14 @@
             android:textAlignment="center" />
 
         <Button
-            android:id="@+id/wijzigLocatieButton"
+            android:id="@+id/activityMelding_btn_wijzigLocation"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="5dp"
             android:layout_marginLeft="5dp"
             android:layout_marginRight="5dp"
             android:backgroundTint="#FF6FDA7F"
-            android:drawableLeft="@drawable/mapicon"
+            android:drawableLeft="@drawable/changelocation"
             android:text="@string/locatieWijzigen"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:textSize="21sp"
@@ -44,6 +44,7 @@
             android:layout_height="40dp"
             android:layout_marginLeft="5dp"
             android:layout_marginRight="5dp"
+            android:layout_marginBottom="5dp"
             android:layout_weight=".28"
             android:background="@drawable/spinner"
             android:orientation="horizontal">
@@ -56,11 +57,43 @@
                 android:textSize="20sp"
                 android:layout_centerVertical="true"
                 android:layout_gravity="center"
-
                 android:background="@android:color/transparent"
                 android:gravity="center"
                 android:layout_marginLeft="5dp"
                 android:spinnerMode="dropdown" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:layout_gravity="center"
+                android:src="@mipmap/spinner" />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:layout_weight=".28"
+            android:background="@drawable/spinner"
+            android:orientation="horizontal">
+
+            <Spinner
+                android:id="@+id/spinnerSub"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_gravity="center"
+                android:layout_marginLeft="5dp"
+                android:layout_marginTop="5dp"
+
+                android:background="@android:color/transparent"
+                android:gravity="center"
+                android:spinnerMode="dropdown"
+                android:textSize="20sp" />
 
             <ImageView
                 android:layout_width="wrap_content"
@@ -84,7 +117,7 @@
             android:textStyle="bold" />
 
         <EditText
-            android:id="@+id/beschrijving"
+            android:id="@+id/activityMelding_tv_beschrijving"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="5dp"
@@ -93,8 +126,8 @@
             android:ems="10"
             android:hint="@string/beschrijvingHint"
             android:inputType="textMultiLine"
-            android:nextFocusLeft="@id/beschrijving"
-            android:nextFocusUp="@id/beschrijving"
+            android:nextFocusLeft="@id/activityMelding_tv_beschrijving"
+            android:nextFocusUp="@id/activityMelding_tv_beschrijving"
             android:padding="8dp"
             android:textSize="18sp" />
 
@@ -104,7 +137,7 @@
             android:orientation="horizontal">
 
             <Button
-                android:id="@+id/fotoButton"
+                android:id="@+id/activityMelding_btn_fotoButton"
                 android:layout_width="match_parent"
                 android:layout_height="80dp"
                 android:layout_marginLeft="5dp"
@@ -112,14 +145,14 @@
                 android:layout_marginTop="15dp"
                 android:layout_weight="1"
                 android:backgroundTint="#FF6FDA7F"
-                android:drawableBottom="@drawable/cameraicon"
+                android:drawableLeft="@drawable/addphoto"
                 android:text="@string/foto"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                android:textSize="21sp"
+                android:textSize="19sp"
                 android:textStyle="bold" />
 
             <ImageView
-                android:id="@+id/fotoImageView"
+                android:id="@+id/activityMelding_IV_fotoImageView"
                 android:layout_width="match_parent"
                 android:layout_height="100dp"
                 android:layout_marginLeft="5dp"
@@ -137,7 +170,7 @@
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/emailtextview"
+                android:id="@+id/activityMelding_tv_Email"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="5dp"
@@ -148,7 +181,7 @@
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/optioneeltextview"
+                android:id="@+id/activityMelding_tv_Optioneel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginRight="10dp"
@@ -178,7 +211,7 @@
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/voornaamtextview"
+                android:id="@+id/activityMelding_tv_voorNaam"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="5dp"
@@ -220,7 +253,7 @@
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/achternaamtextview"
+                android:id="@+id/activityMelding_tv_achterNaam"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="5dp"
@@ -255,6 +288,17 @@
             android:padding="8dp"
             android:textSize="18sp" />
 
+        <CheckBox
+            android:id="@+id/activityMelding_cb_onthoudCheckbox"
+            android:theme="@style/checkBoxStyle"
+            android:layout_width="match_parent"
+            android:textSize="18sp"
+            android:layout_height="wrap_content"
+            android:buttonTint="@android:color/background_light"
+            android:text="@string/onthoudGegevens"
+            android:textColor="@android:color/white"
+            android:textColorLink="#FF6FDA7F" />
+
         <TextView
             android:id="@+id/textView3"
             android:layout_width="match_parent"
@@ -265,7 +309,7 @@
             android:text="@string/info" />
 
         <CheckBox
-            android:id="@+id/updateCheckBox"
+            android:id="@+id/activityMelding_cb_updateCheckbox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="15dp"

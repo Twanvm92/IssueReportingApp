@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -33,18 +34,19 @@ public class FollowingActivity extends AppCompatActivity {
     ArrayList<ServiceRequest> list;
     ListView meldingListView;
     private ArrayAdapter meldingAdapter;
+    private Button terugButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_following);
 
-        client = ServiceGenerator.createService(ServiceClient.class);
 
         // Filling the ArrayList with the service request id's from the database.
         final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1 );
         ArrayList<String> idList = new ArrayList<>();
         idList = db.getReports();
+        Log.i("IDs in userdb", idList.size() + "");
         db.close();
 
         final ArrayList<ServiceRequest> srListFinal = new ArrayList<>();
@@ -52,33 +54,39 @@ public class FollowingActivity extends AppCompatActivity {
         try{
             if(ConnectionChecker.isConnected()){  //checking for internet acces.
                 for(String s: idList) {
-                    Call<ArrayList<ServiceRequest>> RequestResponseCall =
-                            client.getServiceById(s);
-                    RequestResponseCall.enqueue(new Callback<ArrayList<ServiceRequest>>() {
-                        @Override
-                        public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
-                            if(response.isSuccessful()){
-                                ArrayList<ServiceRequest> srList = response.body();
-                                for (int i = 0; i < srList.size(); i++){
-                                    srListFinal.add(srList.get(i));
+                    int i = 0;
+                    ServiceGenerator.changeApiBaseUrl("https://asiointi.hel.fi/palautews/rest/v1/");
+                    while (i < 2){
+                        client = ServiceGenerator.createService(ServiceClient.class);
+                        Call<ArrayList<ServiceRequest>> RequestResponseCall =
+                                client.getServiceById(s);
+                        RequestResponseCall.enqueue(new Callback<ArrayList<ServiceRequest>>() {
+                            @Override
+                            public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
+                                if(response.isSuccessful()){
+                                    ArrayList<ServiceRequest> srList = response.body();
+                                    for (int i = 0; i < srList.size(); i++){
+                                        srListFinal.add(srList.get(i));
 
-                                }
-
-
-                                if(meldingAdapter != null) {
-                                    meldingAdapter.notifyDataSetChanged();
+                                    }
+                                    if(meldingAdapter != null) {
+                                        meldingAdapter.notifyDataSetChanged();
+                                    }
                                 }
                             }
-                        }
 
-                        @Override
-                        public void onFailure(Call<ArrayList<ServiceRequest>> call, Throwable t) {
-                            Toast.makeText(getApplicationContext(),
-                                    "Something went wrong while getting your requests",
-                                    Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                            @Override
+                            public void onFailure(Call<ArrayList<ServiceRequest>> call, Throwable t) {
+                                Toast.makeText(getApplicationContext(),
+                                        "Something went wrong while getting your requests",
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                        ServiceGenerator.changeApiBaseUrl("http://dev.hel.fi/open311-test/v1/");
+                        i++;
+                    }
                 }
+                ServiceGenerator.changeApiBaseUrl("https://asiointi.hel.fi/palautews/rest/v1/");
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -106,7 +114,14 @@ public class FollowingActivity extends AppCompatActivity {
         meldingAdapter.notifyDataSetChanged();
 
 
-
+        terugButton = (Button) findViewById(R.id.activityFollowing_btn_terugBTN_ID);
+        terugButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                    Intent in = new Intent(getApplicationContext(), MainActivity.class);
+                    startActivity(in);
+                }
+        });
 
 
 

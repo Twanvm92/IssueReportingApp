@@ -98,6 +98,7 @@ public class MeldingActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_melding);
+        ServiceGenerator.changeApiBaseUrl("http://dev.hel.fi/open311-test/v1/");
         fotoButton = (Button) findViewById(R.id.activityMelding_btn_fotoButton);
 
         fotoImageView = (ImageView) findViewById(R.id.activityMelding_IV_fotoImageView);

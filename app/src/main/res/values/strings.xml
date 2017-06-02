@@ -1,51 +1,54 @@
 <resources>
+    <!--STRINGS DIE NIET IN ANDERE TAAL HOEVEN-->
+    <string name="app_name">Verbeter Je Gemeente</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="title_activity_button_handler">ButtonHandler</string>
+    <string name="email">Email</string>
+    <string name="nederlands">Nederlands</string>
+    <string name="engels">English</string>
 
-<string name="app_name">Verbeter Je Gemeente</string>
-<string name="action_settings">Instellingen</string>
 
-<string name="title_activity_maps">Map</string>
-<string name="title_activity_button_handler">ButtonHandler</string>
-
-<string name="locatie">Locatie</string>
-<string name="locatieWijzigen">Locatie wijzigen</string>
-<string name="beschrijving">Beschrijving</string>
-<string name="beschrijvingHint">Beschrijf uw probleem</string>
-<string name="email">Email</string>
-<string name="optioneel">Optioneel</string>
-<string name="emailHint">Vul hier uw email adress in</string>
-<string name="voornaam">Voornaam</string>
-<string name="voornaamHint">Vul hier uw voornaam in</string>
-<string name="achternaam">Achternaam</string>
-<string name="achternaamHint">Vul hier uw achternaam in</string>
-<string name="foto">Foto toevoegen</string>
-<string name="info">Optioneel: U bent niet verplicht om dit in te vullen, dit maakt het wel makkelijker om u op de hoogte te kunnen stellen van veranderingen.</string>
-<string name="terug">Terug</string>
-<string name="meldingplaatsen">Plaats melding</string>
-
-<string name="FoutOphalenProblemen">Kan op het moment geen categorieën ophalen. Probeer het later opnieuw.</string>
-
-<string name="fotoWijzigen">Foto wijzigen</string>
-<string name="fotoMaken">Maak foto</string>
-<string name="fotoKiezen">Kies foto uit galerij</string>
-<string name="kiesSubCategory">Selecteer eerst een subcategorie.</string>
-<string name="kiesProblemen">Kies uit lijst van problemen</string>
-<string name="geenBeschrijving">Voeg een beschrijving toe</string>
-<string name="kBeschrijving">Beschrijving moet minimaal 10 karakters bevatten</string>
-<string name="ePostRequest">Kan melding niet versturen. Verbind uw apparaat met het internet en probeer opnieuw.</string>
-<string name="geenLocatie">Geen locatie gevonden. Kies een locatie.</string>
-<string name="update">Houd mij NIET op de hoogte via email</string>
-<string name="eContactGegevens">Uw email is vereist om direct updates te kunnen ontvangen</string>
-<string name="kiesSubProblemen">Kies uit lijst van subcategorieën</string>
-<string name="eGetServices">Geen services kunnen vinden die voldoen aan deze criteria</string>
-<string name="mijnMeldingen">Mijn meldingen</string>
-<string name="nederlands">Nederlands</string>
-<string name="engels">English</string>
-    <string name="beschrijving2">Beschrijving van de notificatie:</string>
-    <string name="hoofdcategorieTab2">Hoofdcategorie:</string>
-    <string name="laatsteupdateTab2">Laatste update:</string>
+    <!--STRINGS DIE VERTAALD WORDEN-->
+    <string name="action_settings">Instellingen</string>
+    <string name="locatie">Locatie</string>
     <string name="locatieTab2">Locatie:</string>
-    <string name="section_format">Hallo</string>
+    <string name="locatieWijzigen">Locatie wijzigen</string>
+    <string name="beschrijving">Beschrijving</string>
+    <string name="beschrijving2">Beschrijving van de melding:</string>
+    <string name="beschrijvingHint">Beschrijf uw probleem</string>
+
+    <string name="optioneel">Optioneel</string>
+    <string name="emailHint">Vul hier uw email adres in</string>
+    <string name="voornaam">Voornaam</string>
+    <string name="voornaamHint">Vul hier uw voornaam in</string>
+    <string name="achternaam">Achternaam</string>
+    <string name="achternaamHint">Vul hier uw achternaam in</string>
+    <string name="foto">Foto toevoegen</string>
+    <string name="info">Optioneel: U bent niet verplicht om dit in te vullen, dit maakt het wel makkelijker om u op de hoogte te kunnen stellen van veranderingen.</string>
+    <string name="terug">Terug</string>
+    <string name="meldingplaatsen">Plaats melding</string>
+    <string name="mijnMeldingen">Mijn meldingen</string>
+    <string name="onthoudGegevens">Onthoud mijn persoonlijke gegevens</string>
+
+    <string name="hoofdcategorieTab2">Hoofdcategorie:</string>
+    <string name="kiesProblemen">Kies uit lijst van problemen</string>
     <string name="subcategorieTab2">Sub categorie:</string>
-    <string name="onthoudGegevens">Onthoud mijn persoonlijke gegevens:</string>
+    <string name="kiesSubProblemen">Kies uit lijst van sub categorieën</string>
+    <string name="update">Houd mij NIET op de hoogte via email</string>
+    <string name="laatsteupdateTab2">Laatste update:</string>
+
+    <string name="kiesSubCategory">Selecteer eerst een subcategorie.</string>
+    <string name="geenLocatie">Geen locatie gevonden. Kies een locatie.</string>
+    <string name="eContactGegevens">Uw email is vereist om direct updates te kunnen ontvangen</string>
+    <string name="geenBeschrijving">Voeg een beschrijving toe</string>
+    <string name="kBeschrijving">Beschrijving moet minimaal 10 karakters bevatten</string>
+    <string name="ePostRequest">Kan melding niet versturen. Verbind uw apparaat met het internet en probeer opnieuw.</string>
+    <string name="eGetServices">Geen services kunnen vinden die voldoen aan deze criteria</string>
+    <string name="FoutOphalenProblemen">Kan op het moment geen categorieën ophalen. Probeer het later opnieuw.</string>
     <string name="errLoadingServiceRequestList">Kan op dit moment geen meldingen ophalen. Locatie niet bekend.</string>
+
+    <string name="fotoWijzigen">Foto wijzigen</string>
+    <string name="fotoMaken">Maak foto</string>
+    <string name="fotoKiezen">Kies foto uit galerij</string>
+
 </resources>

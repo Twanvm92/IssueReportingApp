@@ -49,7 +49,7 @@ public class DetailedMeldingActivity extends FragmentActivity {
     // very frequently.
     private int mShortAnimationDuration;
     private Melding melding;
-    private TextView statusDetailed, laatstUpdateDetailed, beschrijvingDetailed;
+    private TextView statusDetailed, laatstUpdateDetailed, beschrijvingDetailed, hoofdCategorieDetailed, subCategorieDetailed;
     private ImageButton imageSmall;
 
     @Override
@@ -68,12 +68,16 @@ public class DetailedMeldingActivity extends FragmentActivity {
         statusDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_status_DetailedID);
         laatstUpdateDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_laatsUpdate_detailedID);
         beschrijvingDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_beschrijving_DetailedID);
+        hoofdCategorieDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_hoofdCategorie_detailedID);
+        subCategorieDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_subCategorie_detailedID);
         imageSmall = (ImageButton) findViewById(R.id.activityDetailedMelding_imgbtn_imageSmall_ID);
 
 
         statusDetailed.setText(serviceRequest.getStatus());
         laatstUpdateDetailed.setText(serviceRequest.getUpdatedDatetime());
         beschrijvingDetailed.setText(serviceRequest.getDescription());
+        hoofdCategorieDetailed.setText(serviceRequest.getServiceCode());
+        subCategorieDetailed.setText(serviceRequest.getServiceCode());
 
         Picasso.with(getApplicationContext()).load(serviceRequest.getMediaUrl()).into(imageSmall);
 

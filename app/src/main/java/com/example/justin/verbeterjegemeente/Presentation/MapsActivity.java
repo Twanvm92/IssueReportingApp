@@ -16,6 +16,8 @@ import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
+
+import com.example.justin.verbeterjegemeente.Location.GeoLocator;
 import com.example.justin.verbeterjegemeente.Location.GeocodeHandler;
 import com.example.justin.verbeterjegemeente.R;
 import com.google.android.gms.common.ConnectionResult;
@@ -123,7 +125,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 //make new marker
                 marker = mMap.addMarker(new MarkerOptions().position(latLng).title("marker")
                             .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-                startAddressService();
+
+                GeoLocator.getLocation(currentLatLng, this);
             }
         });
     }

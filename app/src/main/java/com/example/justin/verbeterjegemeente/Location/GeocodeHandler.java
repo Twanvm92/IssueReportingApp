@@ -62,7 +62,7 @@ public class GeocodeHandler extends IntentService{
     private void deliverResultToReceiver(int resultCode, String message) {
         Bundle bundle = new Bundle();
         bundle.putString("Address", message);
-        mReceiver.send(resultCode, bundle);
+        //GeoLocator.onReceiveResult(resultCode, bundle);
     }
 
 }

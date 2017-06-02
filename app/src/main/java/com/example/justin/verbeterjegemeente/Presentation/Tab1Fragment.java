@@ -114,13 +114,13 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     public void onCreate(Bundle savedInstaceState) {
         super.onCreate(savedInstaceState);
 
-        ServiceGenerator.changeApiBaseUrl("https://asiointi.hel.fi/palautews/rest/v1/");
-        client = ServiceGenerator.createService(ServiceClient.class);
-
-        // create arraylist to contain created markers
-        markerList = new ArrayList<Marker>();
-
-        initApi();
+//        ServiceGenerator.changeApiBaseUrl("https://asiointi.hel.fi/palautews/rest/v1/");
+//        client = ServiceGenerator.createService(ServiceClient.class);
+//
+//        // create arraylist to contain created markers
+//        markerList = new ArrayList<Marker>();
+//
+//        initApi();
 
 
 //        service.getNearbyServiceRequests("")
@@ -133,12 +133,12 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
         // This makes sure that the container activity has implemented
         // the callback interface. If not, it throws an exception
-        try {
-            locCallback = (LocationSelectedListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement OnHeadlineSelectedListener");
-        }
+//        try {
+//            locCallback = (LocationSelectedListener) activity;
+//        } catch (ClassCastException e) {
+//            throw new ClassCastException(activity.toString()
+//                    + " must implement OnHeadlineSelectedListener");
+//        }
 
     }
 
@@ -190,9 +190,9 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
     //load map if needed
     private void setUpMapIfNeeded() {
-        if (mMap == null) {
-            getMapAsync(this);
-        }
+//        if (mMap == null) {
+//            getMapAsync(this);
+//        }
     }
 
     //set up map when map is loaded
@@ -202,7 +202,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
         try {
             if(ConnectionChecker.isConnected()) {
-                Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests("" + DEFAULT_LONG, "" + DEFAULT_LAT, null, "300");
+                Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests("" + DEFAULT_LONG, "" + DEFAULT_LAT, null, "300", "OV");
                 nearbyServiceRequests.enqueue(new Callback<ArrayList<ServiceRequest>>() {
                     @Override
                     public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
@@ -372,7 +372,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         String camLat = "" + center.latitude;
         String camLng = "" + center.longitude;
         Log.e("Camera positie: ", "is veranderd");
-        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(camLat, camLng, null, "300");
+        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(camLat, camLng, null, "300", "OV");
         nearbyServiceRequests.enqueue(new Callback<ArrayList<ServiceRequest>>() {
             @Override
             public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {

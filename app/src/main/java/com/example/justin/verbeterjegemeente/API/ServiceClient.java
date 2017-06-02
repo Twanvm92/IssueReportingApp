@@ -11,6 +11,7 @@ import java.util.List;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import retrofit2.Call;
+import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
@@ -34,8 +35,8 @@ public interface ServiceClient {
      * @return List of Service objects
      * @see Service
      */
-    @GET ("services.json")
-    Call<List<Service>> getServices(@Query("Locale") String Language);
+    @GET ("CitySDK/services.json")
+    Call<List<Service>> getServices(@Query("locale") String Language);
 
 
 
@@ -56,28 +57,39 @@ public interface ServiceClient {
      * @return Arraylist<PostServiceRequestResponse>
      * @see PostServiceRequestResponse
      */
-    @Multipart
-    @POST("requests.json")
-    Call<ArrayList<PostServiceRequestResponse>> postServiceRequest(@Part("api_key") RequestBody apiK,
-                                                                   @Part("description") RequestBody desc,
-                                                                   @Part("service_code") RequestBody sc,
-                                                                   @Part("lat") RequestBody lat,
-                                                                   @Part("long") RequestBody lon,
-                                                                   @Part MultipartBody.Part img,
-                                                                   @Part("email") RequestBody email,
-                                                                   @Part("first_name") RequestBody fName,
-                                                                   @Part("last_name") RequestBody lName);
+    @POST("CitySDK/requests.json")
+    Call<ArrayList<PostServiceRequestResponse>> postServiceRequest(@Query("service_code") String service_code,
+                                                                   @Query("description") String description,
+                                                                   @Query("lat") Double lat,
+                                                                   @Query("long") Double lon,
+                                                                   @Query("address_string") String address_string,
+                                                                   @Query("address_id") String address_id,
+                                                                   @Body String [] attribute,
+                                                                   @Query("jurisdiction_id") String jurisdiction_id,
+                                                                   @Query("email") String email,
+                                                                   @Query("first_name") String first_name,
+                                                                   @Query("last_name") String last_name,
+                                                                   @Query("media_url") String media_url);
 
-    @GET("requests.json")
+
+//    misschien in toekomst zonder service code mogelijk, op dit moment zelfde als getSimilarServiceRequests
+    @GET("CitySDK/requests.json")
     Call<ArrayList<ServiceRequest>> getNearbyServiceRequests(@Query("lat") String lat,
                                                              @Query("long") String lng,
                                                              @Query("status") String status,
-                                                             @Query("radius") String meters);
+                                                             @Query("radius") String meters,
+                                                             @Query("service_code") String service_code);
 
+    @GET("CitySDK/requests.json")
+    Call<ArrayList<ServiceRequest>> getSimilarServiceRequests(@Query("lat") String lat,
+                                                             @Query("long") String lng,
+                                                             @Query("status") String status,
+                                                             @Query("radius") String meters,
+                                                             @Query("service_code") String serviceCode);
 
-
-    @GET ("requests/{id}.json")
-    Call<ArrayList<ServiceRequest>> getServiceById (@Path("id") String id);
+    @GET ("CitySDK/request/{id}.json")
+    Call<ServiceRequest> getServiceById (@Path("id") String serviceID,
+                                                    @Query("jurisdiction_id") String jurisdiction_id);
 }
 
 

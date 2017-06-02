@@ -126,11 +126,12 @@ public class DetailedMeldingActivity extends FragmentActivity {
                 if(origin.equals("FollowActivity")){
                     Intent in = new Intent(getApplicationContext(), FollowingActivity.class);
                     startActivity(in);
-                }else if(origin.equals("Tab2Fragment")){
+                }else if(origin.equals("Tab2Fragment") || origin.equals("MeldingActivity")){
                     Intent in = new Intent(getApplicationContext(), MainActivity.class);
                     startActivity(in);
+                }else if(origin.equals("MeldingActivityDialog")){
+                    onBackPressed();
                 }
-
             }
         });
 

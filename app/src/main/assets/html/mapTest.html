@@ -1,0 +1,48 @@
+﻿
+
+<!doctype html>
+<html lang="en">
+<head>
+
+    <!-- Stylesheet nodig voor de map div-->
+    <link rel="stylesheet" href="css/GeomerkBeheerLib.css">
+
+    <!-- Onze geo library-->
+    <!--<script src="http://www.beeldbestekken.nl/GeomerkBeheerLib.js"></script>  -->
+    <script src="scripts/GeomerkBeheerLib.js" type='text/javascript' ></script>
+    
+    
+    
+    <script>
+
+
+
+    </script>
+    <!--Style om de size van de div te manupuleren-->
+    <style>
+        .map {
+            height: 800px;
+            width: 100%;
+        }
+    </style>
+    <title>Geomerk Openmap</title>
+</head>
+<body onload="Geomerk.Map.initMap(p);">
+   <!-- <h2>My Map</h2>-->
+    <button onclick="Geomerk.Map.drawGeo('Point', callbackGeom);">Draw Point</button>
+    <button onclick="Geomerk.Map.addWKT('POLYGON((109766.27532491283 402884.3110125257,108266.19864481625 401565.7722746064,110263.11600876648 400256.78816522274,111342.7890332946 401260.0241614657,109766.27532491283 402884.3110125257))')">AddWKT</button>
+    <button onclick="Geomerk.Map.addWKTPng('POINT(109766.27532491283 402884.3110125257)',0.5, 46,'http://openlayers.org/en/v3.7.0/examples/data/icon.png')">AddWKT PNG</button>
+    <button onclick="Geomerk.Map.zoomToWKT('POINT(109766.27532491283 402884.3110125257)',17)">Zoom 2 WKT point</button>
+    <button onclick="Geomerk.Map.zoomToWKT('POLYGON((109766.27532491283 402884.3110125257,108266.19864481625 401565.7722746064,110263.11600876648 400256.78816522274,111342.7890332946 401260.0241614657,109766.27532491283 402884.3110125257))',16)">Zoom2Polygon</button>
+    <button onclick="Geomerk.Map.drawGeo('LineString', callbackGeom);">Draw line</button>
+    <button onclick="Geomerk.Map.drawGeo('Polygon', callbackGeom);">Draw Polygon</button>
+    <button onclick="callbackGeom(Geomerk.Map.convertRDtoLatLon(110952.899657619, 400001.1715714091))">ConvertRDToLatLonCoordinate</button>
+    <button onclick="callbackGeom(Geomerk.Map.convertLatLontoRD(51.571915, 4.768323))">ConvertLatLonToRDCoordinate</button>
+
+
+    <div id="testmap" class="map"></div>
+    <script type="text/javascript">
+     
+    </script>
+</body>
+</html>

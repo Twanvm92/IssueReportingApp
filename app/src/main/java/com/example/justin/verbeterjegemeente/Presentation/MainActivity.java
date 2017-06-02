@@ -28,7 +28,7 @@ import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LAT;
 import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LONG;
 
 
-public class MainActivity extends AppCompatActivity implements LocationSelectedListener {
+public class MainActivity extends AppCompatActivity /*implements LocationSelectedListener*/ {
 
     private static final String TAG = "MainActivity";
 
@@ -125,6 +125,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
         viewPager.setAdapter(adapter);
     }
 
+    /*
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         Location currentLocation = null;
         GoogleMap mMap = tabFragment.mMap;
@@ -170,7 +171,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
         super.onBackPressed();
     }
 
-    @Override
+    /*@Override
     public void locationSelected(LatLng curLatLong) {
         // The user selected the headline of an article from the HeadlinesFragment
         // Do something here to display that article
@@ -205,5 +206,5 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
             // Commit the transaction
             transaction.commit();
         }
-    }
+    }*/
 }

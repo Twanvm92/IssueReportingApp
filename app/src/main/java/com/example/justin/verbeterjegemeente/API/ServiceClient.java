@@ -74,7 +74,12 @@ public interface ServiceClient {
                                                              @Query("status") String status,
                                                              @Query("radius") String meters);
 
-
+    @GET("requests.json")
+    Call<ArrayList<ServiceRequest>> getSimilarServiceRequests(@Query("lat") String lat,
+                                                             @Query("long") String lng,
+                                                             @Query("status") String status,
+                                                             @Query("radius") String meters,
+                                                             @Query("service_code") String service_code);
 
     @GET ("requests/{id}.json")
     Call<ArrayList<ServiceRequest>> getServiceById (@Path("id") String id);

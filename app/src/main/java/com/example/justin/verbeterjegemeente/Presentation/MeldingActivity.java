@@ -38,7 +38,6 @@ import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.Locatie;
 import com.example.justin.verbeterjegemeente.domain.PostServiceRequestResponse;
 import com.example.justin.verbeterjegemeente.domain.Service;
-import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 import com.example.justin.verbeterjegemeente.domain.User;
 
 import org.json.JSONArray;
@@ -471,12 +470,13 @@ public class MeldingActivity extends AppCompatActivity {
                                                 "service request is aangemaakt met id: " + psrr.getId(),
                                                 Toast.LENGTH_SHORT).show();
 
-                                        insertRequest(psrr.getId());
+                                        final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
+                                        db.addReport(psrr.getId());
+                                        db.close();
                                     }
 
                                 } else {
 
-                                    Log.i("ERROR", "error");
                                     try { //something went wrong. Show the user what went wrong
                                         JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
                                         JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
@@ -799,44 +799,6 @@ public class MeldingActivity extends AppCompatActivity {
         {
             return uri.getPath();
         }
-    }
-
-
-    public void insertRequest(String requestId){
-
-        Log.i("LOG", requestId);
-//        try{
-//            if(ConnectionChecker.isConnected()){  //checking for internet acces.
-//
-//                    Call<ArrayList<ServiceRequest>> RequestResponseCall = client.getServiceById(requestId);
-//                    RequestResponseCall.enqueue(new Callback<ArrayList<ServiceRequest>>() {
-//                        @Override
-//                        public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
-//                            if(response.isSuccessful()){
-//                                ArrayList<ServiceRequest> srList = response.body();
-//
-//                                Log.i("REQ", srList.get(0).getRequestedDatetime());
-//                                final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
-//                                db.addReport(srList.get(0));
-//                                db.close();
-//
-//                            }
-//                        }
-//
-//                        @Override
-//                        public void onFailure(Call<ArrayList<ServiceRequest>> call, Throwable t) {
-//                            Toast.makeText(getApplicationContext(),
-//                                    "Something went wrong while getting your requests",
-//                                    Toast.LENGTH_SHORT).show();
-//                        }
-//                    });
-//
-//            }
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
     }
 
 }

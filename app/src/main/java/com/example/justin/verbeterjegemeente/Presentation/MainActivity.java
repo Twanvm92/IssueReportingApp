@@ -18,7 +18,6 @@ import android.view.View;
 import com.example.justin.verbeterjegemeente.*;
 import com.example.justin.verbeterjegemeente.Adapters.SectionsPageAdapter;
 import com.example.justin.verbeterjegemeente.Business.LocationSelectedListener;
-import com.example.justin.verbeterjegemeente.Database.DatabaseHanlder;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -49,13 +48,12 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
         mSectionsPageAdapter = new SectionsPageAdapter(getSupportFragmentManager());
 
 
-        DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
-        db.close();
 
 
 
-//        Intent i = new Intent(getApplicationContext(), UpdateService.class);
-//        startService(i);
+
+        Intent i = new Intent(getApplicationContext(), UpdateService.class);
+        startService(i);
 
 
 

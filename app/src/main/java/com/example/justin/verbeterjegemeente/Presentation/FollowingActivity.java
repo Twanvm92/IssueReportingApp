@@ -44,7 +44,7 @@ public class FollowingActivity extends AppCompatActivity {
 
         // Filling the ArrayList with the service request id's from the database.
         final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1 );
-        ArrayList<String> idList = new ArrayList<>();
+        ArrayList<ServiceRequest> idList = new ArrayList<>();
         idList = db.getReports();
         Log.i("IDs in userdb", idList.size() + "");
         db.close();
@@ -53,13 +53,13 @@ public class FollowingActivity extends AppCompatActivity {
 
         try{
             if(ConnectionChecker.isConnected()){  //checking for internet acces.
-                for(String s: idList) {
+                for(ServiceRequest s: idList) {
                     int i = 0;
                     ServiceGenerator.changeApiBaseUrl("https://asiointi.hel.fi/palautews/rest/v1/");
                     while (i < 2){
                         client = ServiceGenerator.createService(ServiceClient.class);
                         Call<ArrayList<ServiceRequest>> RequestResponseCall =
-                                client.getServiceById(s);
+                                client.getServiceById(s.getServiceRequestId());
                         RequestResponseCall.enqueue(new Callback<ArrayList<ServiceRequest>>() {
                             @Override
                             public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {

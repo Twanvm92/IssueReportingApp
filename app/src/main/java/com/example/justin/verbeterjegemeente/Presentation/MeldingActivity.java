@@ -38,6 +38,7 @@ import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.Locatie;
 import com.example.justin.verbeterjegemeente.domain.PostServiceRequestResponse;
 import com.example.justin.verbeterjegemeente.domain.Service;
+import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 import com.example.justin.verbeterjegemeente.domain.User;
 
 import org.json.JSONArray;
@@ -471,9 +472,10 @@ public class MeldingActivity extends AppCompatActivity {
                                                 "service request is aangemaakt met id: " + psrr.getId(),
                                                 Toast.LENGTH_SHORT).show();
 
-                                        final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
-                                        db.addReport(psrr.getId());
-                                        db.close();
+
+                                        insertReport(psrr.getId());
+
+
                                     }
 
                                 } else {
@@ -799,6 +801,55 @@ public class MeldingActivity extends AppCompatActivity {
         catch (Exception e)
         {
             return uri.getPath();
+        }
+    }
+
+    public void insertReport(String id){
+
+        ArrayList<String> idList = new ArrayList<>();
+        idList.add(id);
+
+        try{
+            if(ConnectionChecker.isConnected()){  //checking for internet acces.
+                for(String s: idList) {
+                    int i = 0;
+                    ServiceGenerator.changeApiBaseUrl("https://asiointi.hel.fi/palautews/rest/v1/");
+                    while (i < 2){
+                        client = ServiceGenerator.createService(ServiceClient.class);
+                        Call<ArrayList<ServiceRequest>> RequestResponseCall =
+                                client.getServiceById(s);
+                        RequestResponseCall.enqueue(new Callback<ArrayList<ServiceRequest>>() {
+                            @Override
+                            public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
+                                if(response.isSuccessful()){
+                                    ArrayList<ServiceRequest> srList = response.body();
+                                    for (int i = 0; i < srList.size(); i++){
+                                        DatabaseHanlder db = new DatabaseHanlder(getApplication(), null, null, 1);
+                                        db.addReport(srList.get(i));
+                                        db.close();
+
+                                    }
+
+                                }
+                            }
+
+                            @Override
+                            public void onFailure(Call<ArrayList<ServiceRequest>> call, Throwable t) {
+                                Toast.makeText(getApplicationContext(),
+                                        "Something went wrong while getting your requests",
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                        ServiceGenerator.changeApiBaseUrl("http://dev.hel.fi/open311-test/v1/");
+                        i++;
+                    }
+                }
+                ServiceGenerator.changeApiBaseUrl("https://asiointi.hel.fi/palautews/rest/v1/");
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

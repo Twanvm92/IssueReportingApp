@@ -18,6 +18,7 @@ public class Constants {
     public static final int MY_PERMISSIONS_STORAGE = 2;
     public static final int FOTO_MAKEN = 1;
     public static final int FOTO_KIEZEN = 2;
+    public static final int DEFAULT_JURISTICATION = 1;
 
     // location
     public static final int LOCATIE_KIEZEN= 3;

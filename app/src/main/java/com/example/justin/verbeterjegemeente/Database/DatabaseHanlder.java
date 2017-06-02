@@ -13,6 +13,8 @@ import android.renderscript.ScriptIntrinsicYuvToRGB;
 import android.util.Log;
 
 import com.example.justin.verbeterjegemeente.domain.Melding;
+import com.example.justin.verbeterjegemeente.domain.Service;
+import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 import com.example.justin.verbeterjegemeente.domain.User;
 import com.readystatesoftware.sqliteasset.SQLiteAssetHelper;
 
@@ -29,6 +31,7 @@ public class DatabaseHanlder extends SQLiteOpenHelper {
     private static final String MELDING_TABLE_NAME = "melding";
         private static final String MELDING_COLUMN_ID = "_meldingId";
         private static final String MELDING_COLUMN_IDAPI = "meldingIdApi";
+        private static final String MELDING_UPDATETIME = "updatetime";
 
     private static final String USER_TABLE_NAME = "user";
         private static final String USER_COLUMN_EMAIL  = "email";
@@ -48,7 +51,8 @@ public class DatabaseHanlder extends SQLiteOpenHelper {
     // The method that will actually create the database, called by the constructor if the database is not already created.
     public void onCreate(SQLiteDatabase database){
         String CREATE_MELDING_TABLE = " CREATE TABLE " + MELDING_TABLE_NAME + " ( " +
-                MELDING_COLUMN_ID + " INTEGER PRIMARY KEY," +
+                MELDING_COLUMN_ID + " INTEGER PRIMARY KEY, " +
+                MELDING_UPDATETIME + " TEXT ," +
                 MELDING_COLUMN_IDAPI + " TEXT )";
 
         String CREATE_USER_TABLE = "CREATE TABLE " + USER_TABLE_NAME + "(" +
@@ -58,15 +62,12 @@ public class DatabaseHanlder extends SQLiteOpenHelper {
                 USER_COLUMN_PHONENUMBER + " INTEGER, " +
                 USER_COLUMN_USERID + " INTEGER PRIMARY KEY )";
 
+        Log.i("DATABAE", "creating database");
         database.execSQL(CREATE_MELDING_TABLE);
         database.execSQL(CREATE_USER_TABLE);
     }
 
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
-    }
-
-    public void addMelding(){
 
     }
 
@@ -84,10 +85,12 @@ public class DatabaseHanlder extends SQLiteOpenHelper {
     }
 
     // Adds a report to the database
-    public void addReport(String id){
+    public void addReport(ServiceRequest sr){
         ContentValues values = new ContentValues();
-        values.put(MELDING_COLUMN_IDAPI, id);
+        values.put(MELDING_COLUMN_IDAPI, sr.getServiceRequestId());
+        values.put(MELDING_UPDATETIME, sr.getUpdatedDatetime());
 
+        Log.i("DATABASE", sr.getUpdatedDatetime());
 
         SQLiteDatabase db = this.getWritableDatabase();
         db.insert(MELDING_TABLE_NAME, null,  values);
@@ -121,7 +124,7 @@ public class DatabaseHanlder extends SQLiteOpenHelper {
     // Returns a list of all stored reports
     public ArrayList<String> getReports(){
 
-       ArrayList<String> list = new ArrayList<>();
+        ArrayList<String> list = new ArrayList<>();
 
         String query = "SELECT * FROM " + MELDING_TABLE_NAME;
 
@@ -130,6 +133,28 @@ public class DatabaseHanlder extends SQLiteOpenHelper {
 
         while (cursor.moveToNext()){
             list.add(cursor.getString(cursor.getColumnIndex(MELDING_COLUMN_IDAPI)));
+        }
+
+        db.close();
+        return list;
+    }
+
+
+
+    public ArrayList<ServiceRequest> getDetailedReports(){
+
+        ArrayList<ServiceRequest> list = new ArrayList<>();
+
+        String query = "SELECT * FROM " + MELDING_TABLE_NAME;
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(query, null);
+
+        while (cursor.moveToNext()){
+            ServiceRequest serviceRequest = new ServiceRequest();
+            serviceRequest.setServiceRequestId(cursor.getString(cursor.getColumnIndex(MELDING_COLUMN_IDAPI)));
+            serviceRequest.setUpdatedDatetime(cursor.getString(cursor.getColumnIndex(MELDING_UPDATETIME)));
+            list.add(serviceRequest);
         }
 
         db.close();

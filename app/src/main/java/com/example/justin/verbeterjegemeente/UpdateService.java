@@ -12,6 +12,13 @@ import android.util.Log;
 import android.widget.Toast;
 import android.app.Service;
 
+import com.example.justin.verbeterjegemeente.Database.DatabaseHanlder;
+import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
+
+import java.util.ArrayList;
+
+import dk.brics.automaton.DatatypesAutomatonProvider;
+
 import static android.app.Service.START_STICKY;
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 
@@ -32,7 +39,7 @@ public class UpdateService extends Service {
         }
 
         public void handleMessage(Message message){
-            Log.i("SERVICE", "5 sec have past");
+
             try{
                Thread.sleep(5000);
             }catch (InterruptedException e){
@@ -40,7 +47,12 @@ public class UpdateService extends Service {
                 Log.i("THREAD","sleep failed");
                 Thread.currentThread().interrupt();
             }
-            count++;
+
+
+
+
+
+
 
             if(count > 50) {
                 stopSelf(message.arg1);

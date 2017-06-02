@@ -94,7 +94,7 @@ public class DetailedMeldingActivity extends FragmentActivity {
 
                 try {
                     if (db.ReportExists(serviceRequest.getServiceRequestId()) == false) {
-                        db.addReport(serviceRequest.getServiceRequestId());
+                        db.addReport(serviceRequest);
                     }
                 }catch (Exception e){
                     e.printStackTrace();

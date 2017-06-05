@@ -32,6 +32,7 @@
     <string name="info">Optioneel: U bent niet verplicht om dit in te vullen, dit maakt het wel makkelijker om u op de hoogte te kunnen stellen van veranderingen.</string>
     <string name="terug">Terug</string>
     <string name="meldingplaatsen">Plaats melding</string>
+    <string name="meldingplaatsen2">Plaats</string>
     <string name="mijnMeldingen">Mijn meldingen</string>
     <string name="onthoudGegevens">Onthoud mijn persoonlijke gegevens</string>
 
@@ -56,4 +57,6 @@
     <string name="fotoMaken">Maak foto</string>
     <string name="fotoKiezen">Kies foto uit galerij</string>
 
+
+    <string name="soortgelijkeMeldingen">Soortgelijke meldingen op deze locatie</string>
 </resources>

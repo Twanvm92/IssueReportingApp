@@ -1,12 +1,15 @@
 package com.example.justin.verbeterjegemeente.Presentation;
 
 import android.Manifest;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -22,6 +25,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,6 +34,7 @@ import com.example.justin.verbeterjegemeente.API.ConnectionChecker;
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 
+import com.example.justin.verbeterjegemeente.Adapters.MeldingDialogAdapter;
 import com.example.justin.verbeterjegemeente.Database.DatabaseHanlder;
 
 import com.example.justin.verbeterjegemeente.Constants;
@@ -38,6 +43,7 @@ import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.Locatie;
 import com.example.justin.verbeterjegemeente.domain.PostServiceRequestResponse;
 import com.example.justin.verbeterjegemeente.domain.Service;
+import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 import com.example.justin.verbeterjegemeente.domain.User;
 
 import org.json.JSONArray;
@@ -47,6 +53,7 @@ import org.json.JSONObject;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -91,14 +98,15 @@ public class MeldingActivity extends AppCompatActivity {
     private String imagePath = null;
     private Locatie location;
     private CheckBox onthoudCheckbox;
+    private RequestBody pDescr, pEmail, pFName, pLName, pLat, pLon, pSc, apiK;
+    private MultipartBody.Part imgBody;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_melding);
-        ServiceGenerator.changeApiBaseUrl("http://dev.hel.fi/open311-test/v1/");
+        final Dialog dialog = new Dialog(this);
         fotoButton = (Button) findViewById(R.id.activityMelding_btn_fotoButton);
 
         fotoImageView = (ImageView) findViewById(R.id.activityMelding_IV_fotoImageView);
@@ -115,7 +123,7 @@ public class MeldingActivity extends AppCompatActivity {
         updateCheckBox = (CheckBox) findViewById(R.id.activityMelding_cb_updateCheckbox);
 
         Intent in = getIntent();
-        if(in.hasExtra("long")) {
+        if (in.hasExtra("long")) {
             double lng = in.getDoubleExtra("long", 1);
             double lat = in.getDoubleExtra("lat", 1);
             location = new Locatie(lng, lat);
@@ -142,13 +150,13 @@ public class MeldingActivity extends AppCompatActivity {
         catagoryList.add(getResources().getString(R.string.kiesProblemen));
         catagorySpinner = (Spinner) findViewById(R.id.spinner2);
         catagoryAdapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_spinner_item, catagoryList){
-            @Override //pakt de positions van elements in catagoryList en disabled the element dat postion null staat zodat we het kunnen gebruiken als een hint.
-            public boolean isEnabled(int position){
-                if (position == 0)
-                {
+                android.R.layout.simple_spinner_item, catagoryList) {
+            @Override
+            //pakt de positions van elements in catagoryList en disabled the element dat postion null staat zodat we het kunnen gebruiken als een hint.
+            public boolean isEnabled(int position) {
+                if (position == 0) {
                     return false;
-                }else{
+                } else {
                     return true;
                 }
             }
@@ -161,13 +169,13 @@ public class MeldingActivity extends AppCompatActivity {
         subCategoryList.add(getResources().getString(R.string.kiesSubProblemen));
         subCatagorySpinner = (Spinner) findViewById(R.id.spinnerSub);
         subCategoryAdapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_spinner_item, subCategoryList){
-            @Override //pakt de positions van elements in subCatagoryList en disabled the element dat postion null staat zodat we het kunnen gebruiken als een hint.
-            public boolean isEnabled(int position){
-                if (position == 0)
-                {
+                android.R.layout.simple_spinner_item, subCategoryList) {
+            @Override
+            //pakt de positions van elements in subCatagoryList en disabled the element dat postion null staat zodat we het kunnen gebruiken als een hint.
+            public boolean isEnabled(int position) {
+                if (position == 0) {
                     return false;
-                }else{
+                } else {
                     return true;
                 }
             }
@@ -193,7 +201,7 @@ public class MeldingActivity extends AppCompatActivity {
                     subCategoryAdapter.notifyDataSetChanged();
                 }
 
-                if(position != 0) {
+                if (position != 0) {
                     subCatagorySpinner.setSelection(0);
                 }
             }
@@ -205,67 +213,67 @@ public class MeldingActivity extends AppCompatActivity {
         });
 
         fotoButton.setOnClickListener(new View.OnClickListener() {
-            @Override
+                                          @Override
 
-            public void onClick(View v) {
-                int PERMISSION_ALL = 1;
-                String[] PERMISSIONS = {Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE};
-                if(!hasPermissions(getApplicationContext(), PERMISSIONS)){
-                    ActivityCompat.requestPermissions(MeldingActivity.this, PERMISSIONS, PERMISSION_ALL);
-                }
+                                          public void onClick(View v) {
+                                              int PERMISSION_ALL = 1;
+                                              String[] PERMISSIONS = {Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+                                              if (!hasPermissions(getApplicationContext(), PERMISSIONS)) {
+                                                  ActivityCompat.requestPermissions(MeldingActivity.this, PERMISSIONS, PERMISSION_ALL);
+                                              }
 
 //                permissies aanvragen gaat async, kan niet wachten tot gebruiker antwoord geeft op de aanvraag
 //                misschien later nog uitzoeken hoe dit moet.
-                final CharSequence[] items = {getString(R.string.fotoMaken), getString(R.string.fotoKiezen)};
-                //builder.setTitle("Foto toevoegen");
-                builder.setItems(items, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int item) {
+                                              final CharSequence[] items = {getString(R.string.fotoMaken), getString(R.string.fotoKiezen)};
+                                              //builder.setTitle("Foto toevoegen");
+                                              builder.setItems(items, new DialogInterface.OnClickListener() {
+                                                  @Override
+                                                  public void onClick(DialogInterface dialog, int item) {
 
-                        if (items[item].equals(getString(R.string.fotoMaken))) {
-                            if (ContextCompat.checkSelfPermission(getApplicationContext(),
-                                    Manifest.permission.CAMERA)!= PackageManager.PERMISSION_GRANTED) {
-                                Log.i("CAMERA", "ASKING PERMISSION");
-                                reqCameraPermission();
-                            }
-                            if (ContextCompat.checkSelfPermission(getApplicationContext(),
-                                    Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-                                try {
-                                    Intent makePhoto = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                                    startActivityForResult(makePhoto, Constants.FOTO_MAKEN);
-                                } catch (Exception e) {
-                                    Log.e("PERMISSION", "camera not granted");
-                                    reqCameraPermission();
-                                }
-                            } else {
-                                    builder.show();
-                            }
+                                                      if (items[item].equals(getString(R.string.fotoMaken))) {
+                                                          if (ContextCompat.checkSelfPermission(getApplicationContext(),
+                                                                  Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                                                              Log.i("CAMERA", "ASKING PERMISSION");
+                                                              reqCameraPermission();
+                                                          }
+                                                          if (ContextCompat.checkSelfPermission(getApplicationContext(),
+                                                                  Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                                                              try {
+                                                                  Intent makePhoto = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                                                                  startActivityForResult(makePhoto, Constants.FOTO_MAKEN);
+                                                              } catch (Exception e) {
+                                                                  Log.e("PERMISSION", "camera not granted");
+                                                                  reqCameraPermission();
+                                                              }
+                                                          } else {
+                                                              builder.show();
+                                                          }
 
-                        } else if (items[item].equals(getString(R.string.fotoKiezen))) {
-                            if (ContextCompat.checkSelfPermission(getApplicationContext(),
-                                    Manifest.permission.WRITE_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED) {
-                                Log.i("STORAGE", "ASKING PERMISSION");
-                                reqWriteStoragePermission();
-                            }
-                            if (ContextCompat.checkSelfPermission(getApplicationContext(),
-                                    Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-                                try {
-                                    Intent pickPhoto = new Intent(Intent.ACTION_PICK,
-                                            android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                                    startActivityForResult(pickPhoto, Constants.FOTO_KIEZEN);
-                                } catch (Exception e) {
-                                    Log.e("PERMISSION", "storage not granted");
-                                    reqWriteStoragePermission();
-                                }
-                            } else {
-                                builder.show();
-                            }
-                        }
-                    }
-                });
-                builder.show();
-               }
-            }
+                                                      } else if (items[item].equals(getString(R.string.fotoKiezen))) {
+                                                          if (ContextCompat.checkSelfPermission(getApplicationContext(),
+                                                                  Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                                                              Log.i("STORAGE", "ASKING PERMISSION");
+                                                              reqWriteStoragePermission();
+                                                          }
+                                                          if (ContextCompat.checkSelfPermission(getApplicationContext(),
+                                                                  Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                                                              try {
+                                                                  Intent pickPhoto = new Intent(Intent.ACTION_PICK,
+                                                                          android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                                                                  startActivityForResult(pickPhoto, Constants.FOTO_KIEZEN);
+                                                              } catch (Exception e) {
+                                                                  Log.e("PERMISSION", "storage not granted");
+                                                                  reqWriteStoragePermission();
+                                                              }
+                                                          } else {
+                                                              builder.show();
+                                                          }
+                                                      }
+                                                  }
+                                              });
+                                              builder.show();
+                                          }
+                                      }
         );
 
         beschrijvingEditText = (EditText) findViewById(R.id.activityMelding_tv_beschrijving);
@@ -276,7 +284,7 @@ public class MeldingActivity extends AppCompatActivity {
         final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
         User foundUser = db.getUser();
         Log.i("FOUND USER", foundUser.toString());
-        if(foundUser != null){
+        if (foundUser != null) {
             emailEditText.setText(foundUser.getEmail());
             voornaamEditText.setText(foundUser.getFirstName());
             achternaamEditText.setText(foundUser.getLastName());
@@ -293,232 +301,12 @@ public class MeldingActivity extends AppCompatActivity {
             }
         });
 
-        // create a Retrofit client by passing ServiceClient
-        // you can now start to enqueue requests
-        client = ServiceGenerator.createService(ServiceClient.class);
-
-        plaatsButton = (Button) findViewById(R.id.plaatsButton);
-        plaatsButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-
-
-                if(onthoudCheckbox.isChecked()) {
-                    if (!emailEditText.equals("") && !voornaamEditText.equals("") && !achternaamEditText.equals("")) {
-                        final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
-
-                        User user = new User();
-                        user.setLastName(achternaamEditText.getText().toString());
-                        user.setFirstName(voornaamEditText.getText().toString());
-                        user.setEmail(emailEditText.getText().toString());
-                        db.deleteUser();
-                        db.addUser(user);
-
-                        db.close();
-                    }
-                }
-
-
-
-                // initialize selected category and check if selected category is actually a category
-                String selecIt = "";
-                if(subCatagorySpinner != null && subCatagorySpinner.getSelectedItem() !=null
-                        && !subCatagorySpinner.getSelectedItem()
-                        .equals(getResources().getString(R.string.kiesSubProblemen))) {
-                    selecIt = subCatagorySpinner.getSelectedItem().toString();
-                } else {
-                    Toast.makeText(getApplicationContext(),
-                            getResources().getString(R.string.kiesSubCategory),Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                // checks which category is selected and initializes the service code tht matches
-                // the category
-                String sc = "";
-                if(serviceList != null) {
-                    for (Service s : serviceList) {
-                        if (s.getService_name().equals(selecIt)) {
-                            sc = s.getService_code();
-                            Log.i("Service code: ", sc);
-                        }
-                    }
-                }
-
-                // create a new file part that contains an image, to send with a post service request.
-                // the image path has been provided by the user.
-                MultipartBody.Part imgBody = null;
-                if (imagePath != null) {
-                    File imgFile = new File(imagePath);
-                    RequestBody requestFile =
-                            RequestBody.create(MediaType.parse("multipart/form-data"), imgFile);
-                    imgBody = MultipartBody.Part.createFormData("image", imgFile.getName(), requestFile);
-                }
-
-                // initializes a description that the user has provided
-                // to send with the post service request
-                String descr = "";
-                if(beschrijvingEditText != null && !beschrijvingEditText.getText().toString().equals("")) {
-                    if (beschrijvingEditText.getText().toString().length() >= 10) {
-                        descr = beschrijvingEditText.getText().toString();
-                    } else {
-                        Toast.makeText(getApplicationContext(),
-                                getResources().getString(R.string.kBeschrijving),Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                }else {
-                    Toast.makeText(getApplicationContext(),
-                            getResources().getString(R.string.geenBeschrijving),Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                if (!updateCheckBox.isChecked() && emailEditText.getText().toString().equals("")) {
-                    Toast.makeText(getApplicationContext(),
-                            R.string.eContactGegevens, Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                // initializes an e-mailaddress that the user has provided
-                // to send with the post service request
-                String email = "";
-                RequestBody pEmail = null;
-                if(emailEditText != null || !emailEditText.getText().equals("")) {
-                    email = emailEditText.getText().toString();
-                    pEmail = RequestBody.create(MediaType.parse("text/plain"), email);
-                }
-
-                // initializes a last name that the user has provided
-                // to send with the post service request
-                String fName = "";
-                RequestBody pFName = null;
-                if(voornaamEditText != null || !voornaamEditText.getText().equals("")) {
-                    fName = voornaamEditText.getText().toString();
-                    pFName = RequestBody.create(MediaType.parse("text/plain"), fName);
-                }
-
-                // initializes a last name that the user has provided
-                // to send with the post service request
-                String lName = "";
-                RequestBody pLName = null;
-                if(achternaamEditText != null || !achternaamEditText.getText().equals("")) {
-                    lName = achternaamEditText.getText().toString();
-                    pLName = RequestBody.create(MediaType.parse("text/plain"), lName);
-                }
-
-                // initializes a longtitude of the user's current location or a longtitude that
-                // has been provided by the user
-                String lon = "";
-                if(location != null) {
-                    if(location.getLongitude() != 0.0) {
-                        lon = "" + location.getLongitude();
-                        Log.e("Long after receive", lon);
-                    } else {
-                        Toast.makeText(getApplicationContext(),
-                                getResources().getString(R.string.geenLocatie),Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                } else {
-                    Toast.makeText(getApplicationContext(),
-                            getResources().getString(R.string.geenLocatie),Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                // initializes a latitude of the user's current location or a latitude that
-                // has been provided by the user
-                String lat = "";
-                if(location != null) {
-                    if(location.getLatitude() != 0.0) {
-                        lat = "" + location.getLatitude();
-                        Log.e("Lat after receive", lat);
-                    } else {
-                        Toast.makeText(getApplicationContext(),
-                                getResources().getString(R.string.geenLocatie),Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                } else {
-                    Toast.makeText(getApplicationContext(),
-                            getResources().getString(R.string.geenLocatie),Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-
-                // parse the data to multipart/form-data that has to be send with the post service request
-                RequestBody pLon = RequestBody.create(MediaType.parse("text/plain"), lon);
-                RequestBody pLat = RequestBody.create(MediaType.parse("text/plain"), lat);
-                RequestBody pDescr = RequestBody.create(MediaType.parse("text/plain"), descr);
-                RequestBody pSc = RequestBody.create(MediaType.parse("text/plain"), sc);
-                RequestBody apiK = RequestBody.create(MediaType.parse("text/plain"), Constants.TEST_API_KEY);
-
-                try {
-                    if(ConnectionChecker.isConnected()) { // check if user is actually connected to the internet
-                        // create a callback
-                        Call<ArrayList<PostServiceRequestResponse>> serviceRequestResponseCall =
-                                client.postServiceRequest(apiK, pDescr, pSc, pLat, pLon,
-                                        imgBody, pEmail, pFName, pLName);
-                        // fire the get post request
-                        serviceRequestResponseCall.enqueue(new Callback<ArrayList<PostServiceRequestResponse>>() {
-                            @Override
-                            public void onResponse(Call<ArrayList<PostServiceRequestResponse>> call,
-                                                   Response<ArrayList<PostServiceRequestResponse>> response) {
-                                if(response.isSuccessful()) {
-                                    // if a response was successful get an arraylist of postservicerequestresponses
-                                    ArrayList<PostServiceRequestResponse> pRespList = response.body();
-
-                                    // show the service code that was found in the respond as a toast
-                                    for (PostServiceRequestResponse psrr : pRespList) {
-                                        Log.i("Service response: ", psrr.getId());
-                                        Toast.makeText(getApplicationContext(),
-                                                "service request is aangemaakt met id: " + psrr.getId(),
-                                                Toast.LENGTH_SHORT).show();
-
-                                        final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
-                                        db.addReport(psrr.getId());
-                                        db.close();
-                                    }
-
-                                } else {
-
-                                    try { //something went wrong. Show the user what went wrong
-                                        JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
-                                        JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
-
-                                        Toast.makeText(getApplicationContext(), jObjError.getString("description"),
-                                                Toast.LENGTH_SHORT).show();
-                                        Log.i("Error message: ", jObjError.getString("description"));
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
-                                    } catch (JSONException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                            }
-                            // a connection could not have been made. Tell the user.
-                            @Override
-                            public void onFailure(Call<ArrayList<PostServiceRequestResponse>> call, Throwable t) {
-                                Toast.makeText(getApplicationContext(), getResources().getString(R.string.ePostRequest),
-                                        Toast.LENGTH_SHORT).show();
-                            }
-                        });
-
-                    } else {// a connection could not have been made. Tell the user.
-                        Toast.makeText(getApplicationContext(), getResources().getString(R.string.ePostRequest),
-                                Toast.LENGTH_SHORT).show();
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-
-
-
-            }
-        });
 
         try {
             if(ConnectionChecker.isConnected()) { // check if user is actually connected to the internet
                 // create a callback
+                ServiceGenerator.changeApiBaseUrl("https://asiointi.hel.fi/palautews/rest/v1/");
+                client = ServiceGenerator.createService(ServiceClient.class);
                 Call<List<Service>> serviceCall = client.getServices(Constants.LANG_EN);
                 // fire the get request
                 serviceCall.enqueue(new Callback<List<Service>>() {
@@ -573,6 +361,308 @@ public class MeldingActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        plaatsButton = (Button) findViewById(R.id.plaatsButton);
+        plaatsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+
+                if (onthoudCheckbox.isChecked()) {
+                    if (!emailEditText.equals("") && !voornaamEditText.equals("") && !achternaamEditText.equals("")) {
+                        final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
+
+                        User user = new User();
+                        user.setLastName(achternaamEditText.getText().toString());
+                        user.setFirstName(voornaamEditText.getText().toString());
+                        user.setEmail(emailEditText.getText().toString());
+                        db.deleteUser();
+                        db.addUser(user);
+
+                        db.close();
+                    }
+                }
+
+
+                // initialize selected category and check if selected category is actually a category
+                String selecIt = "";
+                if (subCatagorySpinner != null && subCatagorySpinner.getSelectedItem() != null
+                        && !subCatagorySpinner.getSelectedItem()
+                        .equals(getResources().getString(R.string.kiesSubProblemen))) {
+                    selecIt = subCatagorySpinner.getSelectedItem().toString();
+                } else {
+                    Toast.makeText(getApplicationContext(),
+                            getResources().getString(R.string.kiesSubCategory), Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // checks which category is selected and initializes the service code tht matches
+                // the category
+                String sc = "";
+                pSc = null;
+                if (serviceList != null) {
+                    for (Service s : serviceList) {
+                        if (s.getService_name().equals(selecIt)) {
+                            sc = s.getService_code();
+                            pSc = RequestBody.create(MediaType.parse("text/plain"), sc);
+                            Log.i("Service code: ", sc);
+                        }
+                    }
+                }
+
+                // create a new file part that contains an image, to send with a post service request.
+                // the image path has been provided by the user.
+                imgBody = null;
+                if (imagePath != null) {
+                    File imgFile = new File(imagePath);
+                    RequestBody requestFile =
+                            RequestBody.create(MediaType.parse("multipart/form-data"), imgFile);
+                    imgBody = MultipartBody.Part.createFormData("image", imgFile.getName(), requestFile);
+                }
+
+                // initializes a description that the user has provided
+                // to send with the post service request
+                String descr = "";
+                pDescr = null;
+                if (beschrijvingEditText != null && !beschrijvingEditText.getText().toString().equals("")) {
+                    if (beschrijvingEditText.getText().toString().length() >= 10) {
+                        descr = beschrijvingEditText.getText().toString();
+                        pDescr = RequestBody.create(MediaType.parse("text/plain"), descr);
+                    } else {
+                        Toast.makeText(getApplicationContext(),
+                                getResources().getString(R.string.kBeschrijving), Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                } else {
+                    Toast.makeText(getApplicationContext(),
+                            getResources().getString(R.string.geenBeschrijving), Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (!updateCheckBox.isChecked() && emailEditText.getText().toString().equals("")) {
+                    Toast.makeText(getApplicationContext(),
+                            R.string.eContactGegevens, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // initializes an e-mailaddress that the user has provided
+                // to send with the post service request
+                String email = "";
+                pEmail = null;
+                if (emailEditText != null || !emailEditText.getText().equals("")) {
+                    email = emailEditText.getText().toString();
+                    pEmail = RequestBody.create(MediaType.parse("text/plain"), email);
+                }
+
+                // initializes a last name that the user has provided
+                // to send with the post service request
+                String fName = "";
+                pFName = null;
+                if (voornaamEditText != null || !voornaamEditText.getText().equals("")) {
+                    fName = voornaamEditText.getText().toString();
+                    pFName = RequestBody.create(MediaType.parse("text/plain"), fName);
+                }
+
+                // initializes a last name that the user has provided
+                // to send with the post service request
+                String lName = "";
+                pLName = null;
+                if (achternaamEditText != null || !achternaamEditText.getText().equals("")) {
+                    lName = achternaamEditText.getText().toString();
+                    pLName = RequestBody.create(MediaType.parse("text/plain"), lName);
+                }
+
+                // initializes a longtitude of the user's current location or a longtitude that
+                // has been provided by the user
+                String lon = "";
+                pLon = null;
+                if (location != null) {
+                    if (location.getLongitude() != 0.0) {
+                        lon = "" + location.getLongitude();
+                        pLon = RequestBody.create(MediaType.parse("text/plain"), lon);
+                        Log.e("Long after receive", lon);
+                    } else {
+                        Toast.makeText(getApplicationContext(),
+                                getResources().getString(R.string.geenLocatie), Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                } else {
+                    Toast.makeText(getApplicationContext(),
+                            getResources().getString(R.string.geenLocatie), Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // initializes a latitude of the user's current location or a latitude that
+                // has been provided by the user
+                String lat = "";
+                pLat = null;
+                if (location != null) {
+                    if (location.getLatitude() != 0.0) {
+                        lat = "" + location.getLatitude();
+                        pLat = RequestBody.create(MediaType.parse("text/plain"), lat);
+                        Log.e("Lat after receive", lat);
+                    } else {
+                        Toast.makeText(getApplicationContext(),
+                                getResources().getString(R.string.geenLocatie), Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                } else {
+                    Toast.makeText(getApplicationContext(),
+                            getResources().getString(R.string.geenLocatie), Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                apiK = RequestBody.create(MediaType.parse("text/plain"), Constants.TEST_API_KEY);
+
+                final ArrayList<ServiceRequest> srListFinal = new ArrayList<>();
+
+                try {
+                    if (ConnectionChecker.isConnected()) {  //checking for internet acces.
+                        ServiceGenerator.changeApiBaseUrl("https://asiointi.hel.fi/palautews/rest/v1/");
+                        client = ServiceGenerator.createService(ServiceClient.class);
+
+//                      map/melding moet deze gegevens meegeven meegeven
+                        lat = "60.1699";
+                        lon = "24.9384";
+                        String status = "open";
+                        String radius = "5000";
+                        sc = "2806";
+
+                        Call<ArrayList<ServiceRequest>> RequestResponseCall =
+                                client.getSimilarServiceRequests(lat, lon, status, radius, sc);
+                        RequestResponseCall.enqueue(new Callback<ArrayList<ServiceRequest>>() {
+                            @Override
+                            public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
+                                if (response.isSuccessful()) {
+                                    ArrayList<ServiceRequest> srList = response.body();
+                                    if (!srList.isEmpty()) {
+                                        for (int i = 0; i < srList.size(); i++) {
+                                            Log.i("gevondenService", srList.get(i).getServiceRequestId() + "");
+                                            srListFinal.add(srList.get(i));
+                                        }
+
+                                        dialog.setContentView(R.layout.activity_melding_dialog);
+                                        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                        ListView meldingDialogListView = (ListView) dialog.findViewById(R.id.activity_melding_dialog_listView);
+                                        MeldingDialogAdapter meldingDialogAdapter = new MeldingDialogAdapter(getApplicationContext(), srListFinal);
+                                        meldingDialogListView.setAdapter(meldingDialogAdapter);
+                                        meldingDialogListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                                            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                                                Intent myIntent = new Intent(view.getContext(), DetailedMeldingActivity.class);
+                                                ServiceRequest serviceRequest = srListFinal.get(position);
+                                                myIntent.putExtra("serviceRequest", (Serializable) serviceRequest);
+                                                myIntent.putExtra("ORIGIN", "MeldingActivityDialog");
+                                                startActivity(myIntent);
+                                            }
+                                        });
+
+                                        Button closeBtn = (Button) dialog.findViewById(R.id.activity_melding_dialog_btn_terug);
+                                        closeBtn.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View v) {
+                                                dialog.dismiss();
+                                            }
+                                        });
+
+                                        Button postBtn = (Button) dialog.findViewById(R.id.activity_melding_dialog_btn_maakMelding);
+                                        postBtn.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View v) {
+                                                postNotification();
+                                                dialog.dismiss();
+                                            }
+                                        });
+
+                                        dialog.show();
+
+                                    } else {
+                                        postNotification();
+                                    }
+                                }
+                            }
+
+                            @Override
+                            public void onFailure(Call<ArrayList<ServiceRequest>> call, Throwable t) {
+
+                            }
+                        });
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        });
+    }
+
+    /**
+     * Melding sturen naar de API met meerdere variabele die al gedeclareerd zijn bovenaan de klasse
+     * Indien de melding goed verwerkt wordt door de API, wordt het id opgeslagen in de user database en wordt de gebruiker naar zijn favoriete meldingen verwezen
+     * Als er iets mis gaat in dit proces wordt een foutmelding getoond aan de gebuiker
+     */
+    public void postNotification(){
+        try {
+            if (ConnectionChecker.isConnected()) {
+                ServiceGenerator.changeApiBaseUrl("http://dev.hel.fi/open311-test/v1/");
+                client = ServiceGenerator.createService(ServiceClient.class);
+                Call<ArrayList<PostServiceRequestResponse>> serviceRequestResponseCall =
+                        client.postServiceRequest(apiK, pDescr, pSc, pLat, pLon,
+                                imgBody, pEmail, pFName, pLName);
+                // fire the get post request
+                serviceRequestResponseCall.enqueue(new Callback<ArrayList<PostServiceRequestResponse>>() {
+                    @Override
+                    public void onResponse(Call<ArrayList<PostServiceRequestResponse>> call,
+                                           Response<ArrayList<PostServiceRequestResponse>> response) {
+                        if (response.isSuccessful()) {
+                            // if a response was successful get an arraylist of postservicerequestresponses
+                            ArrayList<PostServiceRequestResponse> pRespList = response.body();
+
+                            // show the service code that was found in the respond as a toast
+                            for (PostServiceRequestResponse psrr : pRespList) {
+                                Log.i("Service response: ", psrr.getId());
+                                Toast.makeText(getApplicationContext(),
+                                        "service request is aangemaakt met id: " + psrr.getId(),
+                                        Toast.LENGTH_SHORT).show();
+
+                                final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
+                                db.addReport(psrr.getId());
+                                db.close();
+                                Intent i = new Intent(getApplicationContext(), FollowingActivity.class);
+                                startActivityForResult(i, Constants.BACK_BUTTON);
+                            }
+                        } else {
+                            try { //something went wrong. Show the user what went wrong
+                                JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
+                                JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
+
+                                Toast.makeText(getApplicationContext(), jObjError.getString("description"),
+                                        Toast.LENGTH_SHORT).show();
+                                Log.i("Error message: ", jObjError.getString("description"));
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                    // a connection could not have been made. Tell the user.
+                    @Override
+                    public void onFailure(Call<ArrayList<PostServiceRequestResponse>> call, Throwable t) {
+                        Toast.makeText(getApplicationContext(), getResources().getString(R.string.ePostRequest),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+            } else {// a connection could not have been made. Tell the user.
+                Toast.makeText(getApplicationContext(), getResources().getString(R.string.ePostRequest),
+                        Toast.LENGTH_SHORT).show();
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

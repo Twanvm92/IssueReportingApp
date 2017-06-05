@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="@color/grijs"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" >
+
+    <TextView
+        android:id="@+id/alertdialog_tv_profiel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="5dp"
+        android:text="@string/instellingen"
+        android:textAlignment="center"
+        android:textSize="25sp"
+        android:textStyle="bold" />
+
+    <ImageView
+        android:id="@+id/alertdialog_iv_containerTaal"
+        android:layout_width="250dp"
+        android:layout_height="80dp"
+        app:srcCompat="@android:color/background_light"
+        android:layout_marginTop="10dp"
+        android:layout_below="@+id/alertdialog_tv_profiel"
+        android:layout_alignLeft="@+id/alertdialog_iv_containerAfstand"
+        android:layout_alignStart="@+id/alertdialog_iv_containerAfstand" />
+
+    <ImageView
+        android:id="@+id/alertdialog_iv_containerAfstand"
+        android:layout_width="250dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="22dp"
+        android:layout_marginBottom="22dp"
+        app:srcCompat="@android:color/background_light"
+        android:layout_below="@+id/alertdialog_btn_nederlands"
+        android:layout_centerHorizontal="true" />
+
+    <SeekBar
+        android:id="@+id/alertdialog_sb_radius"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="11dp"
+        android:layout_alignBottom="@+id/alertdialog_iv_containerAfstand"
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:id="@+id/alertdialog_tv_zoekafstand"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/alertdialog_sb_radius"
+        android:layout_alignLeft="@+id/alertdialog_sb_radius"
+        android:layout_alignStart="@+id/alertdialog_sb_radius"
+        android:layout_marginBottom="13dp"
+        android:text="@string/zoekafstand"
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/alertdialog_tv_afstand"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/alertdialog_tv_zoekafstand"
+        android:layout_alignBottom="@+id/alertdialog_tv_zoekafstand"
+        android:layout_alignEnd="@+id/alertdialog_sb_radius"
+        android:layout_alignRight="@+id/alertdialog_sb_radius"
+        android:text="35km."
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/alertdialog_tv_taal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="13dp"
+        android:text="@string/taal"
+        android:textSize="18sp"
+        android:layout_alignTop="@+id/alertdialog_iv_containerTaal"
+        android:layout_alignLeft="@+id/alertdialog_tv_zoekafstand"
+        android:layout_alignStart="@+id/alertdialog_tv_zoekafstand" />
+
+    <Button
+        android:id="@+id/alertdialog_btn_engels"
+        android:layout_width="100dp"
+        android:layout_height="40dp"
+        android:backgroundTint="#FF6FDA7F"
+        android:text="@string/engels"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_above="@+id/alertdialog_iv_containerAfstand"
+        android:layout_toRightOf="@+id/alertdialog_btn_nederlands"
+        />
+
+    <Button
+        android:id="@+id/alertdialog_btn_nederlands"
+        android:layout_width="100dp"
+        android:layout_height="40dp"
+        android:backgroundTint="#FF6FDA7F"
+        android:text="@string/nederlands"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_below="@+id/alertdialog_tv_taal"
+        android:layout_alignLeft="@+id/alertdialog_tv_taal"
+        android:layout_alignStart="@+id/alertdialog_tv_taal" />
+
+</RelativeLayout>

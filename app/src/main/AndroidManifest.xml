@@ -27,7 +27,7 @@
         </activity>
         <activity
             android:name=".Presentation.MainActivity"
-            android:theme="@style/AppTheme.NoActionBar"
+            android:theme="@style/AppTheme.Main"
             android:configChanges="keyboardHidden|orientation|screenSize"></activity>
 
 

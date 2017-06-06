@@ -202,7 +202,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
         try {
             if(ConnectionChecker.isConnected()) {
-                Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests("" + DEFAULT_LONG, "" + DEFAULT_LAT, null, "300", "OV");
+                Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests("" + DEFAULT_LONG, "" + DEFAULT_LAT, null, "300");
                 nearbyServiceRequests.enqueue(new Callback<ArrayList<ServiceRequest>>() {
                     @Override
                     public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
@@ -372,7 +372,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         String camLat = "" + center.latitude;
         String camLng = "" + center.longitude;
         Log.e("Camera positie: ", "is veranderd");
-        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(camLat, camLng, null, "300", "OV");
+        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(camLat, camLng, null, "300");
         nearbyServiceRequests.enqueue(new Callback<ArrayList<ServiceRequest>>() {
             @Override
             public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {

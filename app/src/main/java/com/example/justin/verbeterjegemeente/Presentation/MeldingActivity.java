@@ -525,7 +525,7 @@ public class MeldingActivity extends AppCompatActivity {
                         jurisdiction_id = "1";
 
                         Call<ArrayList<ServiceRequest>> RequestResponseCall =
-                                client.getSimilarServiceRequests(lat.toString(), lon.toString(), "", "10", sc);
+                                client.getSimilarServiceRequests(lat.toString(), lon.toString(), "open", "10", sc);
                         RequestResponseCall.enqueue(new Callback<ArrayList<ServiceRequest>>() {
                             @Override
                             public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {

@@ -142,14 +142,13 @@ public class Tab2Fragment extends Fragment  {
                 }
 
 //                hardcoded voor nu
-//                lat = "60.168321";
-//                lon = "24.952397";
-//                status = "open";
+                lat = "52";
+                lon = "10";
+                status = "open";
                 meters = "300";
-                String sc = "OV";
 
 //                create a callback
-                Call<ArrayList<ServiceRequest>> serviceCall = client.getNearbyServiceRequests(lat, lon, status, meters, sc);
+                Call<ArrayList<ServiceRequest>> serviceCall = client.getNearbyServiceRequests(lat, lon, status, meters);
 //                 fire the get request
                 serviceCall.enqueue(new Callback<ArrayList<ServiceRequest>>() {
                     @Override

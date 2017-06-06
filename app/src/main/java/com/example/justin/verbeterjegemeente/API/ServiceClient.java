@@ -72,13 +72,11 @@ public interface ServiceClient {
                                                                    @Query("media_url") String media_url);
 
 
-//    misschien in toekomst zonder service code mogelijk, op dit moment zelfde als getSimilarServiceRequests
     @GET("CitySDK/requests.json")
     Call<ArrayList<ServiceRequest>> getNearbyServiceRequests(@Query("lat") String lat,
                                                              @Query("long") String lng,
                                                              @Query("status") String status,
-                                                             @Query("radius") String meters,
-                                                             @Query("service_code") String service_code);
+                                                             @Query("radius") String meters);
 
     @GET("CitySDK/requests.json")
     Call<ArrayList<ServiceRequest>> getSimilarServiceRequests(@Query("lat") String lat,

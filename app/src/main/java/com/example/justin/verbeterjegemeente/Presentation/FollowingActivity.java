@@ -54,39 +54,30 @@ public class FollowingActivity extends AppCompatActivity {
         try{
             if(ConnectionChecker.isConnected()){  //checking for internet acces.
                 for(String s: idList) {
-                    int i = 0;
-                    ServiceGenerator.changeApiBaseUrl("https://asiointi.hel.fi/palautews/rest/v1/");
-                    while (i < 2){
-                        client = ServiceGenerator.createService(ServiceClient.class);
-                        Call<ArrayList<ServiceRequest>> RequestResponseCall =
-                                client.getServiceById(s);
-                        RequestResponseCall.enqueue(new Callback<ArrayList<ServiceRequest>>() {
-                            @Override
-                            public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
-                                if(response.isSuccessful()){
-                                    ArrayList<ServiceRequest> srList = response.body();
-                                    for (int i = 0; i < srList.size(); i++){
-                                        srListFinal.add(srList.get(i));
+                    client = ServiceGenerator.createService(ServiceClient.class);
+                    Call<ServiceRequest> RequestResponseCall =
+                            client.getServiceById(s, "1");
+                    RequestResponseCall.enqueue(new Callback<ServiceRequest>() {
+                        @Override
+                        public void onResponse(Call<ServiceRequest> call, Response<ServiceRequest> response) {
+                            if(response.isSuccessful()){
+                                ServiceRequest sr = response.body();
+                                srListFinal.add(sr);
 
-                                    }
-                                    if(meldingAdapter != null) {
-                                        meldingAdapter.notifyDataSetChanged();
-                                    }
+                                if(meldingAdapter != null) {
+                                    meldingAdapter.notifyDataSetChanged();
                                 }
-                            }
+                            } else { Log.i("response mis", "yup");}
+                        }
 
-                            @Override
-                            public void onFailure(Call<ArrayList<ServiceRequest>> call, Throwable t) {
-                                Toast.makeText(getApplicationContext(),
-                                        "Something went wrong while getting your requests",
-                                        Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                        ServiceGenerator.changeApiBaseUrl("http://dev.hel.fi/open311-test/v1/");
-                        i++;
-                    }
+                        @Override
+                        public void onFailure(Call<ServiceRequest> call, Throwable t) {
+                            Toast.makeText(getApplicationContext(),
+                                    "Something went wrong while getting your requests",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 }
-                ServiceGenerator.changeApiBaseUrl("https://asiointi.hel.fi/palautews/rest/v1/");
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -118,13 +109,17 @@ public class FollowingActivity extends AppCompatActivity {
         terugButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                    Intent in = new Intent(getApplicationContext(), MainActivity.class);
-                    startActivity(in);
-                }
+                Intent in = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(in);
+            }
         });
 
+    }
 
-
-
+    @Override
+    public void onBackPressed() {
+        Intent i = new Intent();
+        setResult(RESULT_CANCELED, i);
+        super.onBackPressed();
     }
 }

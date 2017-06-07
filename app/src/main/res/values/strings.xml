@@ -16,6 +16,11 @@
     <string name="beschrijving">Beschrijving</string>
     <string name="beschrijving2">Beschrijving van de melding:</string>
     <string name="beschrijvingHint">Beschrijf uw probleem</string>
+    <string name="instellingen">Instellingen</string>
+    <string name="over">Over</string>
+    <string name="taal">Taal</string>
+    <string name="zoekafstand">Zoekafstand</string>
+    <string name="profiel">Profiel</string>
 
     <string name="optioneel">Optioneel</string>
     <string name="emailHint">Vul hier uw email adres in</string>
@@ -27,6 +32,7 @@
     <string name="info">Optioneel: U bent niet verplicht om dit in te vullen, dit maakt het wel makkelijker om u op de hoogte te kunnen stellen van veranderingen.</string>
     <string name="terug">Terug</string>
     <string name="meldingplaatsen">Plaats melding</string>
+    <string name="meldingplaatsen2">Plaats</string>
     <string name="mijnMeldingen">Mijn meldingen</string>
     <string name="onthoudGegevens">Onthoud mijn persoonlijke gegevens</string>
 
@@ -54,4 +60,6 @@
     <string name="activityMain_item_gps">Locatie</string>
     <string name="activityMain_item_report">Melding</string>
 
+
+    <string name="soortgelijkeMeldingen">Soortgelijke meldingen op deze locatie</string>
 </resources>

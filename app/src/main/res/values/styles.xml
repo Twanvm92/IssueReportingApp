@@ -8,12 +8,26 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="colorPrimary">@color/colorTab</item>
         <item name="colorPrimaryDark">@color/colorTab2</item>
         <item name="android:windowBackground">@color/colorBackground</item>
+    </style>
+
+    <style name="AppTheme.Main">
+        <item name="colorPrimary">@color/colorTab</item>
+        <item name="android:actionOverflowButtonStyle">@style/MyActionButtonOverflow</item>
+        <item name="colorPrimaryDark">@color/colorTab2</item>
+        <item name="android:windowBackground">@color/colorBackground</item>
+    </style>
+
+    <style name="MyActionButtonOverflow" parent="android:style/Widget.Holo.Light.ActionButton.Overflow">
+        <item name="android:src">@drawable/accountcirlce2</item>
+        <item name="android:background">?android:attr/actionBarItemBackground</item>
+        <item name="android:contentDescription">"Lala"</item>
     </style>
 
 

@@ -114,7 +114,6 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     public void onCreate(Bundle savedInstaceState) {
         super.onCreate(savedInstaceState);
 
-        ServiceGenerator.changeApiBaseUrl("https://asiointi.hel.fi/palautews/rest/v1/");
         client = ServiceGenerator.createService(ServiceClient.class);
 
         // create arraylist to contain created markers
@@ -372,7 +371,9 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         String camLat = "" + center.latitude;
         String camLng = "" + center.longitude;
         Log.e("Camera positie: ", "is veranderd");
-        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(camLat, camLng, null, "300");
+//        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(camLat, camLng, null, "300");
+//        moet service_code meegeven...
+        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getSimilarServiceRequests(camLat, camLng, null, "300", "OV");
         nearbyServiceRequests.enqueue(new Callback<ArrayList<ServiceRequest>>() {
             @Override
             public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
@@ -387,7 +388,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                                         BitmapGenerator.getBitmapFromVectorDrawable(getContext(),
                                                 R.drawable.service_request_marker)))
                         );
-                        Log.e("Opgehaalde servicereq: ", s.getDescription());
+                        Log.e("Opgehaalde servicereq: ", s.getDescription() + "");
                     }
 
                 } else {

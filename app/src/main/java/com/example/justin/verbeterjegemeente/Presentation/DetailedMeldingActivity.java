@@ -49,7 +49,7 @@ public class DetailedMeldingActivity extends FragmentActivity {
     // very frequently.
     private int mShortAnimationDuration;
     private Melding melding;
-    private TextView statusDetailed, laatstUpdateDetailed, beschrijvingDetailed, hoofdCategorieDetailed, subCategorieDetailed;
+    private TextView statusDetailed, statusDetailedNote, laatstUpdateDetailed, beschrijvingDetailed, hoofdCategorieDetailed, subCategorieDetailed;
     private ImageButton imageSmall;
 
     @Override
@@ -66,14 +66,15 @@ public class DetailedMeldingActivity extends FragmentActivity {
 
         likeButton = (LikeButton) findViewById(R.id.favorietenknopdetail);
         statusDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_status_DetailedID);
+        statusDetailedNote = (TextView) findViewById(R.id.activityDetailedMelding_tv_status_DetailedNotesID);
         laatstUpdateDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_laatsUpdate_detailedID);
         beschrijvingDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_beschrijving_DetailedID);
         hoofdCategorieDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_hoofdCategorie_detailedID);
         subCategorieDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_subCategorie_detailedID);
         imageSmall = (ImageButton) findViewById(R.id.activityDetailedMelding_imgbtn_imageSmall_ID);
 
-
         statusDetailed.setText(serviceRequest.getStatus());
+        statusDetailedNote.setText(serviceRequest.getStatusNotes());
         laatstUpdateDetailed.setText(serviceRequest.getUpdatedDatetime());
         beschrijvingDetailed.setText(serviceRequest.getDescription());
         hoofdCategorieDetailed.setText(serviceRequest.getServiceCode());
@@ -122,14 +123,13 @@ public class DetailedMeldingActivity extends FragmentActivity {
             @Override
             public void onClick(View v) {
 
+
                 if(origin.equals("FollowActivity")){
                     Intent in = new Intent(getApplicationContext(), FollowingActivity.class);
                     startActivity(in);
-                }else if(origin.equals("Tab2Fragment")){
-                    Intent in = new Intent(getApplicationContext(), MainActivity.class);
-                    startActivity(in);
+                }else if(origin.equals("Tab2Fragment") || origin.equals("MeldingActivityDialog")) {
+                    onBackPressed();
                 }
-
             }
         });
 

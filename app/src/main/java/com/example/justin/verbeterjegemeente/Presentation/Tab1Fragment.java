@@ -271,9 +271,9 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
 
         //markerHandler stuff
-        mHandler = new MarkerHandler(mMap);
+        mHandler = new MarkerHandler(mMap, getContext());
         mHandler.init();
-        mHandler.setVisible("category");
+        //mHandler.setVisible(1);
     }
 
     public void initApi() {

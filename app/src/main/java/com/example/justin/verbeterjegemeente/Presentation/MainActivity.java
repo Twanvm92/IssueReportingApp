@@ -65,10 +65,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
         gps.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getLocation();
-
-
-
+                tabFragment.initApi();
             }
         });
 

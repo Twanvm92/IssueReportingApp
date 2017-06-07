@@ -10,5 +10,7 @@
     <color name="colorBackground2">#616161</color>
     <color name="mooiGroen">#FF6FDA7F</color>
     <color name="white">#FFFF</color>
+    <color name="black">#000000</color>
+
 
 </resources>

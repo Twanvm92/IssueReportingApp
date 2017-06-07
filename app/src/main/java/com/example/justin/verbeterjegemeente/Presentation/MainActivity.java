@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
 
-        fabMenu = (Fab) findViewById(R.id.activityMain_Fbtn_menu);
+        /*fabMenu = (Fab) findViewById(R.id.activityMain_Fbtn_menu);
         View sheetView = findViewById(R.id.activityMain_fab_sheet);
         View overlay = findViewById(R.id.activityMain_overlay);
         int sheetColor = ContextCompat.getColor(this, R.color.mooiGroen);
@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
 
         // Initialize material sheet FAB
         mSFab = new MaterialSheetFab<>(fabMenu, sheetView, overlay,
-                sheetColor, fabColor);
+                sheetColor, fabColor);*/
 
         fab = (FloatingActionButton) findViewById(R.id.activityMain_Fbtn_FAB);
         fab.setOnClickListener(new View.OnClickListener() {

@@ -40,5 +40,8 @@
     <string name="fotoWijzigen">Change picture</string>
     <string name="fotoMaken">Take photo</string>
     <string name="fotoKiezen">Choose picture from gallery</string>
+    <string name="activityMain_item_filters">Filters</string>
+    <string name="activityMain_item_gps">Location</string>
+    <string name="activityMain_item_report">Report</string>
 
 </resources>

@@ -50,5 +50,8 @@
     <string name="fotoWijzigen">Foto wijzigen</string>
     <string name="fotoMaken">Maak foto</string>
     <string name="fotoKiezen">Kies foto uit galerij</string>
+    <string name="activityMain_item_filters">Filters</string>
+    <string name="activityMain_item_gps">Locatie</string>
+    <string name="activityMain_item_report">Melding</string>
 
 </resources>

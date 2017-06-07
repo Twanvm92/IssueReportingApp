@@ -33,6 +33,18 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior" >
 
     </android.support.v4.view.ViewPager>
+    <io.github.yavski.fabspeeddial.FabSpeedDial
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginBottom="150dp"
+
+        app:fabGravity="bottom_end"
+        app:fabMenu="@menu/activitymain_speedddial_menu"
+        app:fabBackgroundTint="@color/mooiGroen"
+        app:miniFabBackgroundTint="@color/white"
+        app:miniFabDrawableTint="@color/black"
+        app:miniFabTitleTextColor="@color/black" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/activityMain_Fbtn_FAB"
@@ -42,12 +54,12 @@
         android:layout_marginBottom="69dp"
         android:layout_marginRight="33dp"
         android:clickable="true"
-        app:backgroundTint="#6fda7f"
+        app:backgroundTint="@color/mooiGroen"
         app:fabSize="normal"
         app:srcCompat="@drawable/plusicon" />
 
 
-    <com.gordonwong.materialsheetfab.DimOverlayFrameLayout
+    <!--<com.gordonwong.materialsheetfab.DimOverlayFrameLayout
         android:id="@+id/activityMain_overlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
@@ -150,7 +162,7 @@
             </android.widget.LinearLayout>
 
         </android.support.v7.widget.CardView>
-    </io.codetail.widget.RevealLinearLayout>
+    </io.codetail.widget.RevealLinearLayout>-->
 
 
 </android.support.design.widget.CoordinatorLayout>

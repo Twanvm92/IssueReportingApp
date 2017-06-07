@@ -1,65 +1,103 @@
 package com.example.justin.verbeterjegemeente.Presentation;
 
 
+import android.support.v4.content.ContextCompat;
+import android.Manifest;
+import android.app.Activity;
 
+import android.content.DialogInterface;
+
+
+import android.content.IntentSender;
+import android.content.pm.PackageManager;
 import android.location.Location;
-
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.webkit.WebView;
+import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.widget.Button;
+import android.widget.Toast;
 
+import com.example.justin.verbeterjegemeente.API.ConnectionChecker;
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
+import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
+import com.example.justin.verbeterjegemeente.Business.BitmapGenerator;
 import com.example.justin.verbeterjegemeente.Business.LocationSelectedListener;
 import com.example.justin.verbeterjegemeente.Business.MarkerHandler;
 import com.example.justin.verbeterjegemeente.R;
+import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStates;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
 
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.TileProvider;
 
-import java.io.BufferedReader;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.net.InetAddress;
 import java.util.ArrayList;
 
-import br.com.bloder.magic.view.MagicButton;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LAT;
+import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LONG;
+import static com.example.justin.verbeterjegemeente.Constants.REQUEST_CHECK_SETTINGS;
 
 /**
  * Created by Justin on 27-4-2017.
  */
 
-public class Tab1Fragment extends Fragment /*SupportMapFragment implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,
+public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        com.google.android.gms.location.LocationListener, GoogleMap.OnCameraIdleListener*/ {
+        com.google.android.gms.location.LocationListener, GoogleMap.OnCameraIdleListener {
     public GoogleMap mMap;
     private ArrayList<Marker> markerList;
     private Marker marker;
     private Button button;
     private MarkerHandler mHandler;
-    private MagicButton btnTEST;
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 2;
     private Location currentLocation;
     public LatLng currentLatLng;
     public GoogleApiClient mApiClient;
     public Marker currentMarker;
+
     ServiceClient client;
     private LocationSelectedListener locCallback;
 
     boolean popupShown = false;
 
 
-    @Nullable
+    /*@Nullable
+    @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.tab1_fragment,container,false);
-        /*btnTEST = (MagicButton) view.findViewById(R.id.meldingmakenbutton);
+        btnTEST = (MagicButton) view.findViewById(R.id.meldingmakenbutton);
         btnTEST.setMagicButtonClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -67,69 +105,32 @@ public class Tab1Fragment extends Fragment /*SupportMapFragment implements OnMap
                 startActivity(i);
             }
 
-        });*/
-
-        WebView wbMap = (WebView) view.findViewById(R.id.tab1Fragment_webview);
-        wbMap.getSettings().setJavaScriptEnabled(true);
-        wbMap.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
-        wbMap.getSettings().setAllowFileAccessFromFileURLs(true);
-        wbMap.getSettings().setAllowUniversalAccessFromFileURLs(true);
-        wbMap.getSettings().setDomStorageEnabled(true);
-
-        wbMap.setWebContentsDebuggingEnabled(true);
-
-
-        StringBuilder buf = new StringBuilder();
-        InputStream json= null;
-        try {
-            json = getActivity().getAssets().open("html/mapTest.html");
-
-        BufferedReader in= null;
-
-            in = new BufferedReader(new InputStreamReader(json, "UTF-8"));
-            String str;
-
-            while ((str=in.readLine()) != null) {
-                buf.append(str);
-            }
-
-
-
-            in.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-
-        wbMap.loadDataWithBaseURL("file:///android_asset/", buf.toString(), "text/html", "utf-8", null);
-
-//        wbMap.loadUrl("file:///android_asset/mapTest.html");
-
-
+        });
 
         return view;
-    }
+    }*/
 
-
-    /*public void onCreate(Bundle savedInstaceState) {
+    public void onCreate(Bundle savedInstaceState) {
         super.onCreate(savedInstaceState);
-
         ServiceGenerator.changeApiBaseUrl("https://asiointi.hel.fi/palautews/rest/v1/");
         client = ServiceGenerator.createService(ServiceClient.class);
 
         // create arraylist to contain created markers
         markerList = new ArrayList<Marker>();
 
+        initApi();
 
 
         //initApi();
 
 
+
+
 //        service.getNearbyServiceRequests("")
 
-    }*/
+    }
 
-    /*@Override
+    @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
 
@@ -284,6 +285,47 @@ public class Tab1Fragment extends Fragment /*SupportMapFragment implements OnMap
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this).build();
         mApiClient.connect();
+
+        LocationRequest locationRequest = LocationRequest.create();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setInterval(30 * 1000);
+        locationRequest.setFastestInterval(5 * 1000);
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(locationRequest);
+
+        builder.setAlwaysShow(true); //this is the key ingredient
+        //**************************
+
+        final PendingResult<LocationSettingsResult> result =
+                LocationServices.SettingsApi.checkLocationSettings(mApiClient, builder.build());
+        result.setResultCallback(new ResultCallback<LocationSettingsResult>(){
+
+            @Override
+            public void onResult(@NonNull LocationSettingsResult LSresult) {
+                final Status status = LSresult.getStatus();
+                final LocationSettingsStates states = LSresult.getLocationSettingsStates();
+                switch (status.getStatusCode()){
+                    case LocationSettingsStatusCodes.SUCCESS:
+                        break;
+                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                        try{
+                            status.startResolutionForResult(getActivity(), REQUEST_CHECK_SETTINGS);
+                        } catch (IntentSender.SendIntentException e){
+
+                        }
+                        break;
+                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+
+                        break;
+                }
+
+
+            }
+        });
+
+
+
+
     }
 
     //locatie voorziening
@@ -315,7 +357,7 @@ public class Tab1Fragment extends Fragment /*SupportMapFragment implements OnMap
 
 
                 // Location Breda. Can be used when Breda API is available.
-                // currentLatLng = new LatLng(51.58656, 4.77596);
+//                 currentLatLng = new LatLng(51.58656, 4.77596);
 
                 // used to get Helsinki location for testing purposes
                 currentLatLng = new LatLng(DEFAULT_LONG, DEFAULT_LAT);
@@ -421,7 +463,7 @@ public class Tab1Fragment extends Fragment /*SupportMapFragment implements OnMap
             locCallback.locationSelected(center);
         }
 
-    }*/
+    }
 }
 
 

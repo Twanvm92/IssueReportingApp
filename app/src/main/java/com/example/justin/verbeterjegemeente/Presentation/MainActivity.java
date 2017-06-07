@@ -1,24 +1,29 @@
 package com.example.justin.verbeterjegemeente.Presentation;
 
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.provider.Settings;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.*;
 import com.example.justin.verbeterjegemeente.Adapters.SectionsPageAdapter;
 import com.example.justin.verbeterjegemeente.Business.LocationSelectedListener;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -28,7 +33,7 @@ import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LAT;
 import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LONG;
 
 
-public class MainActivity extends AppCompatActivity /*implements LocationSelectedListener*/ {
+public class MainActivity extends AppCompatActivity implements LocationSelectedListener {
 
     private static final String TAG = "MainActivity";
 
@@ -36,8 +41,10 @@ public class MainActivity extends AppCompatActivity /*implements LocationSelecte
 
     private ViewPager mViewPager;
     private FloatingActionButton fab;
+    private FloatingActionButton gps;
     private Tab1Fragment tabFragment = new Tab1Fragment();
     private LatLng currentLatLng;
+    boolean popupShown = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,8 +58,19 @@ public class MainActivity extends AppCompatActivity /*implements LocationSelecte
         mViewPager = (ViewPager) findViewById(R.id.container);
         setupViewPager(mViewPager);
 
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+        final TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
+
+        gps = (FloatingActionButton) findViewById(R.id.activityMain_Fbtn_gps);
+        gps.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getLocation();
+
+
+
+            }
+        });
 
         fab = (FloatingActionButton) findViewById(R.id.activityMain_Fbtn_FAB);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -84,19 +102,22 @@ public class MainActivity extends AppCompatActivity /*implements LocationSelecte
                 switch (position){
                     case 0:
                         fab.show();
-
+                        gps.show();
                         break;
 
                     case 1:
                         fab.show();
+                        gps.hide();
                         break;
 
                     case 2:
                         fab.hide();
+                        gps.hide();
                         break;
 
                     default:
                         fab.hide();
+                        gps.hide();
                         break;
                 }
 
@@ -125,43 +146,54 @@ public class MainActivity extends AppCompatActivity /*implements LocationSelecte
         viewPager.setAdapter(adapter);
     }
 
-    /*
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        Location currentLocation = null;
-        GoogleMap mMap = tabFragment.mMap;
-        GoogleApiClient mApiClient = tabFragment.mApiClient;
+
         switch (requestCode) {
             case 2: {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                         return;
                     }
+                    getLocation();
 
-                    if (mApiClient != null) {
-
-                        // commented for testing purposed. Now jumps to default lat & long in Helsinki.
-                        // uncomment this line
-                        // currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
-
-                        if (currentLocation != null) {
-                            currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-                        } else {
-                            currentLatLng = new LatLng(DEFAULT_LONG, DEFAULT_LAT);
-                        }
-                        CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
-                        mMap.moveCamera(center);
-                    } else {
-                        currentLatLng = new LatLng(DEFAULT_LONG, DEFAULT_LAT);
-                        CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
-                        mMap.moveCamera(center);
-
-                    }
                     return;
                 }
             }
 
 
         }
+    }
+
+    public void getLocation() {
+        Location currentLocation = null;
+        GoogleMap mMap = tabFragment.mMap;
+        GoogleApiClient mApiClient = tabFragment.mApiClient;
+
+//            if (mApiClient != null) {
+//
+//                // commented for testing purposed. Now jumps to default lat & long in Helsinki.
+//                // uncomment this line
+//                // currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
+//
+//                if (currentLocation != null) {
+//                    currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+//                } else {
+//                    currentLatLng = new LatLng(DEFAULT_LONG, DEFAULT_LAT);
+//
+//                }
+//                CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
+//                mMap.moveCamera(center);
+//            }
+//                else {
+//                currentLatLng = new LatLng(DEFAULT_LONG, DEFAULT_LAT);
+//                CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
+//                mMap.moveCamera(center);
+//
+//            }
+
+
+
+
     }
 
     @Override
@@ -171,7 +203,7 @@ public class MainActivity extends AppCompatActivity /*implements LocationSelecte
         super.onBackPressed();
     }
 
-    /*@Override
+    @Override
     public void locationSelected(LatLng curLatLong) {
         // The user selected the headline of an article from the HeadlinesFragment
         // Do something here to display that article
@@ -206,5 +238,5 @@ public class MainActivity extends AppCompatActivity /*implements LocationSelecte
             // Commit the transaction
             transaction.commit();
         }
-    }*/
+    }
 }

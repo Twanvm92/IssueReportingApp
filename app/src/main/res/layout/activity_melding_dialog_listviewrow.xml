@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#94b59c"
+    android:background="#669270"
     android:orientation="vertical">
 
     <LinearLayout
@@ -18,6 +18,8 @@
             android:layout_marginRight="1dp"
             android:layout_weight="1"
             android:scaleType="centerCrop"
+            android:layout_marginTop="5dp"
+            android:layout_marginLeft="5dp"
             android:src="@drawable/thumb1" />
 
         <LinearLayout
@@ -32,7 +34,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="5dp"
                 android:layout_marginTop="20dp"
-                android:text="@string/locatie"
+                android:text="@string/locatieTab2"
                 android:textAlignment="center"
                 android:textColor="@android:color/white"
                 android:textSize="20sp"
@@ -88,7 +90,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="5dp"
         android:layout_marginTop="20dp"
-        android:text="@string/beschrijving"
+        android:text="@string/beschrijving2"
         android:textAlignment="center"
         android:textColor="@android:color/white"
         android:textSize="20sp"

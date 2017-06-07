@@ -5,6 +5,8 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.location.Location;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
@@ -15,12 +17,14 @@ import android.support.v7.app.AppCompatActivity;
 
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.*;
@@ -48,6 +52,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
     private FloatingActionButton fab;
     private Tab1Fragment tabFragment = new Tab1Fragment();
     private LatLng currentLatLng;
+    private Locale myLocale;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,7 +127,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
 
         tabLayout.getTabAt(0).setIcon(R.drawable.mapicon);
         tabLayout.getTabAt(1).setIcon(R.drawable.listicon);
-        tabLayout.getTabAt(2).setIcon(R.drawable.accounticon);
+
 
     }
 
@@ -157,24 +162,42 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
             AlertDialog.Builder builder1 = new AlertDialog.Builder(MainActivity.this);
             View mView = getLayoutInflater().inflate(R.layout.dialog2, null);
                     Button nederlands = (Button) mView.findViewById(R.id.alertdialog_btn_nederlands);
+                    nederlands.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Toast.makeText(getApplication(), "NEDERLANDSE TAAL AANGEZET",Toast.LENGTH_SHORT).show();
+
+                            setLocale("nl");
+                            recreate();
+                        }
+                    });
                     Button engels = (Button) mView.findViewById(R.id.alertdialog_btn_engels);
                     engels.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
                             Toast.makeText(getApplication(), "ENGELSE TAAL AANGEZET",Toast.LENGTH_SHORT).show();
 
-                            changeLang("en");
+                            setLocale("en");
+                            recreate();
 
                         }
                     });
+
                     SeekBar radius = (SeekBar) mView.findViewById(R.id.alertdialog_sb_radius);
+                    final TextView radius_afstand = (TextView) mView.findViewById(R.id.alertdialog_tv_afstand);
+                    radius.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
 
-                    nederlands.setOnClickListener(new View.OnClickListener() {
                         @Override
-                        public void onClick(View view) {
-                            Toast.makeText(getApplication(), "NEDERLANDSE TAAL AANGEZET",Toast.LENGTH_SHORT).show();
+                        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                            radius_afstand.setText(String.valueOf(progress) + "Km." );
+                        }
 
-                            changeLang("nl");
+                        @Override
+                        public void onStartTrackingTouch(SeekBar seekBar) {
+                        }
+
+                        @Override
+                        public void onStopTrackingTouch(SeekBar seekBar) {
                         }
                     });
 
@@ -203,16 +226,19 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
      * Changing language to user's choice
      * @param lang language user is requesting
      */
-    public void changeLang(String lang) {
-        if (lang.equalsIgnoreCase(""))
-            return;
-        Locale myLocale = new Locale(lang);
-        saveLocale(lang);
-        Locale.setDefault(myLocale);
-        android.content.res.Configuration config = new android.content.res.Configuration();
-        config.locale = myLocale;
-        getApplicationContext().getResources().updateConfiguration(config,getApplicationContext().getResources().getDisplayMetrics());
+    public void setLocale(String lang) {
+
+        myLocale = new Locale(lang);
+        Resources res = getResources();
+        DisplayMetrics dm = res.getDisplayMetrics();
+        Configuration conf = res.getConfiguration();
+        conf.locale = myLocale;
+        res.updateConfiguration(conf, dm);
+//        Intent refresh = new Intent(this, MainActivity.class);
+//        startActivity(refresh);
+
     }
+
 
     /**
      * Saving preferred language
@@ -220,7 +246,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
      */
     public void saveLocale(String lang) {
         String langPref = "Language";
-        SharedPreferences prefs = getApplicationContext().getSharedPreferences("CommonPrefs",
+        SharedPreferences prefs = getApplication().getSharedPreferences("CommonPrefs",
                 Activity.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         editor.putString(langPref, lang);
@@ -263,7 +289,6 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
         SectionsPageAdapter adapter = new SectionsPageAdapter(getSupportFragmentManager());
         adapter.addFragment(tabFragment, "");
         adapter.addFragment(new Tab2Fragment(), "");
-        adapter.addFragment(new Tab3Fragment(), "");
         viewPager.setAdapter(adapter);
     }
 

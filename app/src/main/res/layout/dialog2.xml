@@ -63,7 +63,7 @@
         android:layout_alignBottom="@+id/alertdialog_tv_zoekafstand"
         android:layout_alignEnd="@+id/alertdialog_sb_radius"
         android:layout_alignRight="@+id/alertdialog_sb_radius"
-        android:text="35km."
+        android:text=""
         android:textSize="18sp" />
 
     <TextView

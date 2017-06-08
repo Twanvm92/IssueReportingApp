@@ -41,10 +41,11 @@
 
     </android.support.v4.view.ViewPager>
     <io.github.yavski.fabspeeddial.FabSpeedDial
+        android:id="@+id/activityMain_Fbtn_speeddial"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_marginBottom="150dp"
+        android:layout_marginBottom="20dp"
 
         app:fabGravity="bottom_end"
         app:fabMenu="@menu/activitymain_speedddial_menu"
@@ -52,19 +53,6 @@
         app:miniFabBackgroundTint="@color/white"
         app:miniFabDrawableTint="@color/black"
         app:miniFabTitleTextColor="@color/black" />
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/activityMain_Fbtn_FAB"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end|bottom"
-        android:layout_marginBottom="69dp"
-        android:layout_marginRight="33dp"
-        android:clickable="true"
-        app:backgroundTint="@color/mooiGroen"
-        app:fabSize="normal"
-        app:srcCompat="@drawable/addalert" />
-
 
     <!--<com.gordonwong.materialsheetfab.DimOverlayFrameLayout
         android:id="@+id/activityMain_overlay"

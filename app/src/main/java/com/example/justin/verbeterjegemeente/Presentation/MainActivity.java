@@ -22,22 +22,36 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.SeekBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.*;
+import com.example.justin.verbeterjegemeente.API.ConnectionChecker;
+import com.example.justin.verbeterjegemeente.API.ServiceClient;
+import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.Adapters.SectionsPageAdapter;
 import com.example.justin.verbeterjegemeente.Business.LocationSelectedListener;
+import com.example.justin.verbeterjegemeente.domain.Service;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
-import com.gordonwong.materialsheetfab.MaterialSheetFab;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+
+import io.github.yavski.fabspeeddial.FabSpeedDial;
+import io.github.yavski.fabspeeddial.SimpleMenuListenerAdapter;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LAT;
 import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LONG;
@@ -50,10 +64,14 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
     private SectionsPageAdapter mSectionsPageAdapter;
 
     private ViewPager mViewPager;
-    private FloatingActionButton fab;
     private Fab fabMenu;
     private Tab1Fragment tabFragment = new Tab1Fragment();
     private LatLng currentLatLng;
+    private List<Service> serviceList;
+    ArrayAdapter<String> catagoryAdapter;
+    private ArrayList<String> catagoryList;
+    private Spinner catagorySpinner;
+    private ServiceClient client;
 
     private Locale myLocale;
 
@@ -70,29 +88,145 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
         mViewPager = (ViewPager) findViewById(R.id.container);
         setupViewPager(mViewPager);
 
+        catagoryList = new ArrayList<String>();
+        catagoryAdapter = new ArrayAdapter<String>(getApplicationContext(),
+                android.R.layout.simple_spinner_item, catagoryList);
+
+        final FabSpeedDial fabSpeedDial = (FabSpeedDial) findViewById(R.id.activityMain_Fbtn_speeddial);
+        fabSpeedDial.setMenuListener(new SimpleMenuListenerAdapter() {
+            @Override
+            public boolean onMenuItemSelected(MenuItem menuItem) {
+
+                switch (menuItem.getItemId()) {
+                    case R.id.activityMain_item_filters :
+                        AlertDialog.Builder builder1 = new AlertDialog.Builder(MainActivity.this);
+                        View mView = getLayoutInflater().inflate(R.layout.activity_main_filters_dialog, null);
+
+                        SeekBar radius = (SeekBar) mView.findViewById(R.id.filterdialog_sb_radius);
+                        radius.setMax(1000);
+                        radius.incrementProgressBy(2);
+
+                        final TextView radius_afstand = (TextView) mView.findViewById(R.id.filterdialog_tv_afstand6);
+                        radius.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
+
+                            @Override
+                            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                                radius_afstand.setText(String.valueOf(progress) + "Meters" );
+                            }
+
+                            @Override
+                            public void onStartTrackingTouch(SeekBar seekBar) {
+                            }
+
+                            @Override
+                            public void onStopTrackingTouch(SeekBar seekBar) {
+                            }
+                        });
+
+                        // create an arraylist that will contain different categories fetched from an open311 interface
+//                        catagoryList = new ArrayList<String>();
+                        catagorySpinner = (Spinner) mView.findViewById(R.id.filterdialog_sp_categorieen);
+                        /*catagoryAdapter = new ArrayAdapter<String>(getApplicationContext(),
+                                android.R.layout.simple_spinner_item, catagoryList){
+                            @Override //pakt de positions van elements in catagoryList en disabled the element dat postion null staat zodat we het kunnen gebruiken als een hint.
+                            public boolean isEnabled(int position){
+                                if (position == 0)
+                                {
+                                    return false;
+                                }else{
+                                    return true;
+                                }
+                            }
+                        };*/
+                        catagoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                        catagorySpinner.setAdapter(catagoryAdapter);
+
+                        builder1.setView(mView);
+                        AlertDialog dialog = builder1.create();
+                        dialog.show();
+                        break;
+                    case R.id.activityMain_item_report :
+                        if (tabFragment.currentLatLng != null) {
+                            double longCor = tabFragment.currentLatLng.longitude;
+                            double latCor = tabFragment.currentLatLng.latitude;
+                            currentLatLng = new LatLng(longCor, latCor);
+                        }
+                        Intent in = new Intent(getApplicationContext(),
+                                com.example.justin.verbeterjegemeente.Presentation.MeldingActivity.class);
+                        if (currentLatLng != null) {
+                            in.putExtra("long", currentLatLng.longitude);
+                            in.putExtra("lat", currentLatLng.latitude);
+                        }
+                        startActivity(in);
+                        break;
+                    case R.id.activityMain_item_gps :
+                        Toast.makeText(getApplicationContext(), "GPS knop is aangeklikt",Toast.LENGTH_SHORT).show();
+                }
+                return true;
+            }
+        });
+
+        try {
+            if(ConnectionChecker.isConnected()) { // check if user is actually connected to the internet
+                // create a callback
+//                ServiceGenerator.changeApiBaseUrl("https://asiointi.hel.fi/palautews/rest/v1/");
+                client = ServiceGenerator.createService(ServiceClient.class);
+                Call<List<Service>> serviceCall = client.getServices(Constants.LANG_EN);
+                // fire the get request
+                serviceCall.enqueue(new Callback<List<Service>>() {
+                    @Override
+                    public void onResponse(Call<List<Service>> call, Response<List<Service>> response) {
+                        // if a response has been received create a list with Services with the responsebody
+                        serviceList = response.body();
+
+                        // test what services have been caught in the response
+                        if (serviceList != null) {
+                            for (Service s : serviceList) {
+                                Log.i("Response: ", "" + s.getService_name());
+                            }
+
+                        } else {
+                            Log.i("Response: ", "List was empty");
+                        }
+
+                        if(serviceList != null) {
+                            int x = 1; // set iterable separately for categoryList
+                            for (int i = 0; i < serviceList.size(); i++) {
+                                // first categoryList item is a default String
+                                if(catagoryList.size() > 1) { // do something if list already has 1 or more categories
+                                    // do something if previous category is not the same as new category in servicelist
+                                    if(!catagoryList.get(x).equals(serviceList.get(i).getGroup())) {
+                                        catagoryList.add(serviceList.get(i).getGroup()); // add new category
+                                        x++; // only up this iterable if new category is added
+                                    }
+                                } else {
+                                    catagoryList.add(serviceList.get(i).getGroup());
+                                }
+                            }
+
+                            catagoryAdapter.notifyDataSetChanged();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<Service>> call, Throwable t) { // something went wrong
+
+                        Toast.makeText(getApplication(), t.getMessage(),Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+            } else { // user is not connected to the internet
+                Toast.makeText(getApplication(), getResources().getString(R.string.FoutOphalenProblemen),
+                        Toast.LENGTH_SHORT).show();
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
-        
-
-        fab = (FloatingActionButton) findViewById(R.id.activityMain_Fbtn_FAB);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (tabFragment.currentLatLng != null) {
-                    double longCor = tabFragment.currentLatLng.longitude;
-                    double latCor = tabFragment.currentLatLng.latitude;
-                    currentLatLng = new LatLng(longCor, latCor);
-                }
-                Intent in = new Intent(getApplicationContext(),
-                        com.example.justin.verbeterjegemeente.Presentation.MeldingActivity.class);
-                if (currentLatLng != null) {
-                    in.putExtra("long", currentLatLng.longitude);
-                    in.putExtra("lat", currentLatLng.latitude);
-                }
-                startActivity(in);
-            }
-        });
 
         mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -104,20 +238,20 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
             public void onPageSelected(int position) {
                 switch (position) {
                     case 0:
-                        fab.show();
+                        fabSpeedDial.show();
 
                         break;
 
                     case 1:
-                        fab.show();
+                        fabSpeedDial.show();
                         break;
 
                     case 2:
-                        fab.hide();
+                        fabSpeedDial.hide();
                         break;
 
                     default:
-                        fab.hide();
+                        fabSpeedDial.hide();
                         break;
                 }
 

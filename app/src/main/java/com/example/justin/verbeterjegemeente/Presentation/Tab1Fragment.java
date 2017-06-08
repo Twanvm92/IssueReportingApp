@@ -26,6 +26,7 @@ import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.Business.BitmapGenerator;
 import com.example.justin.verbeterjegemeente.Business.LocationSelectedListener;
 import com.example.justin.verbeterjegemeente.Business.MarkerHandler;
+import com.example.justin.verbeterjegemeente.Constants;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 import com.google.android.gms.common.ConnectionResult;
@@ -324,6 +325,16 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         });
 
 
+        if (ActivityCompat.checkSelfPermission(this.getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this.getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+//        LocationServices.FusedLocationApi.requestLocationUpdates(mApiClient,locationRequest, this);
+        currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
+//        if (currentLocation != null) {
+//            currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+//            CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
+//            mMap.moveCamera(center);
+//        }
 
 
     }
@@ -463,6 +474,44 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
             locCallback.locationSelected(center);
         }
 
+    }
+
+    public void reqFindLocation() {
+        if (ContextCompat.checkSelfPermission(getActivity(),
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(getActivity(),
+                    Manifest.permission.ACCESS_FINE_LOCATION)) {
+                ActivityCompat.requestPermissions(this.getActivity(),
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                        MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+            } else {
+                ActivityCompat.requestPermissions(getActivity(),
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                        Constants.MY_PERMISSIONS_LOCATION);
+            }
+        }
+    }
+
+    /**
+     * Controleren of permissies goed gekeurd zijn door de gebruiker
+     * @param requestCode meegegeven activiteit nummer die gedaan is
+     * @param permissions permissies die aangevraagd worden
+     * @param grantResults hoeveelheid permissies die goed gekeurd zijn door de gebruiker
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case Constants.MY_PERMISSIONS_LOCATION: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Log.i("PERMISSION", "Location granted");
+                } else {
+                    Log.i("PERMISSION", "Llocation not granted");
+                }
+            }
+        }
     }
 }
 

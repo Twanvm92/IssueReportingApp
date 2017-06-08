@@ -22,6 +22,7 @@ import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Random;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -42,12 +43,14 @@ public class UpdateService extends Service {
     private int LONG_SLEEP_TIME, TEST_SLEEP_TIME;
 
 
+
     public final class ServiceHandler extends Handler{
         public ServiceHandler(Looper looper){
             super(looper);
             count = 0;
-            TEST_SLEEP_TIME = 5000;
+            TEST_SLEEP_TIME = 1000;
             LONG_SLEEP_TIME = 600000;
+
         }
 
         public void handleMessage(Message message){
@@ -56,6 +59,8 @@ public class UpdateService extends Service {
             DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
             final ArrayList<ServiceRequest> DatabaseList = db.getReports();
             db.close();
+
+
 
 
 
@@ -77,7 +82,7 @@ public class UpdateService extends Service {
 
                                                 String dateTime = responseSrList.get(i).getRequestedDatetime();
 
-                                                if(count == 15){
+                                                if(count == 5){
                                                     dateTime = "different";
                                                 }
 
@@ -86,8 +91,13 @@ public class UpdateService extends Service {
 
                                                 if (responseSrList.get(i).getRequestedDatetime() != dateTime){
                                                     Log.i("CHECK", "changed date time = " + dateTime);
-                                                    notifyReportChanged("Uw melding is veranderd",
-                                                            "op " + responseSrList.get(i).getRequestedDatetime());
+
+
+
+
+
+                                                    notifyReportChanged(getString(R.string.reportUpdated) + " ",
+                                                            getString(R.string.on)  + " " + responseSrList.get(i).getRequestedDatetime(), responseSrList.get(i));
                                                 }else{
                                                     Log.i("CHECK", "not changed date time = " + dateTime);
                                                 }
@@ -121,7 +131,7 @@ public class UpdateService extends Service {
 
             count++;
             try{
-               Thread.sleep(LONG_SLEEP_TIME);
+               Thread.sleep(TEST_SLEEP_TIME);
             }catch (InterruptedException e){
                 e.printStackTrace();
                 Log.i("THREAD","sleep failed");
@@ -129,7 +139,7 @@ public class UpdateService extends Service {
             }
 
 
-            if(count > 50) {
+            if(count > 10 ){
                 stopSelf(message.arg1);
                 Log.i("THREAD", "service comitted suicide");
             }else{
@@ -177,9 +187,10 @@ public class UpdateService extends Service {
     }
 
 
-    public void notifyReportChanged(String title, String content){
+    public void notifyReportChanged(String title, String content, ServiceRequest serviceRequest){
         Notification notification = new Notification();
-        notification.makeNotification(getApplicationContext(), title, content);
+        notification.makeNotification(getApplicationContext(), title, content, serviceRequest);
     }
+
 
 }

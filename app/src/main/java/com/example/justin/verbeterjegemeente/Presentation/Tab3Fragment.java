@@ -39,8 +39,7 @@ public class Tab3Fragment extends Fragment {
 
                 changeLang("nl");
 
-                Notification notification = new Notification();
-                notification.makeNotification(getContext(), "Title", "Text");
+
             }
         });
 

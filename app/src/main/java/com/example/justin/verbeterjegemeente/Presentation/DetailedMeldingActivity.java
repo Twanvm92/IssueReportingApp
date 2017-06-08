@@ -4,6 +4,8 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Point;
 import android.graphics.Rect;
@@ -21,6 +23,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.justin.verbeterjegemeente.Database.DatabaseHanlder;
+import com.example.justin.verbeterjegemeente.Notification;
 import com.example.justin.verbeterjegemeente.R;
 
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
@@ -57,7 +60,12 @@ public class DetailedMeldingActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detailed_melding);
 
-       Bundle extras = getIntent().getExtras();
+        Bundle extras = getIntent().getExtras();
+
+        for(int i = 0; i < 50; i++){
+            NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.cancel(i);
+        }
 
        final String origin  = extras.getString("ORIGIN");
 

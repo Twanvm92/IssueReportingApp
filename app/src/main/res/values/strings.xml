@@ -51,4 +51,7 @@
     <string name="fotoMaken">Maak foto</string>
     <string name="fotoKiezen">Kies foto uit galerij</string>
 
+    <string name="reportUpdated">Uw melding is veranderd</string>
+    <string name="on">op</string>
+
 </resources>

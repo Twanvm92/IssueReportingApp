@@ -41,4 +41,7 @@
     <string name="fotoMaken">Take photo</string>
     <string name="fotoKiezen">Choose picture from gallery</string>
 
+    <string name="reportUpdated">Your report has been updated</string>
+    <string name="on">on</string>
+
 </resources>

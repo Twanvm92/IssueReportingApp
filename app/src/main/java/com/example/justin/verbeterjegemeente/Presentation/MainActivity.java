@@ -168,6 +168,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
                             Toast.makeText(getApplication(), "NEDERLANDSE TAAL AANGEZET",Toast.LENGTH_SHORT).show();
 
                             setLocale("nl");
+                            saveLocale("nl");
                             recreate();
                         }
                     });
@@ -178,6 +179,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
                             Toast.makeText(getApplication(), "ENGELSE TAAL AANGEZET",Toast.LENGTH_SHORT).show();
 
                             setLocale("en");
+                            saveLocale("en");
                             recreate();
 
                         }

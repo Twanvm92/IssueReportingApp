@@ -54,7 +54,7 @@ public class UpdateService extends Service {
         }
 
         public void handleMessage(Message message){
-            Log.i("SERVICE", "5 sec have past, count = " + count);
+            //Log.i("SERVICE", "5 sec have past, count = " + count);
 
             DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
             final ArrayList<ServiceRequest> DatabaseList = db.getReports();
@@ -82,9 +82,9 @@ public class UpdateService extends Service {
 
                                                 String dateTime = responseSrList.get(i).getRequestedDatetime();
 
-                                                if(count == 5){
-                                                    dateTime = "different";
-                                                }
+//                                                if(count == 5){
+//                                                    dateTime = "different";
+//                                                }
 
 
                                                 Log.i("API", responseSrList.get(i).getRequestedDatetime());
@@ -139,13 +139,9 @@ public class UpdateService extends Service {
             }
 
 
-            if(count > 10 ){
-                stopSelf(message.arg1);
-                Log.i("THREAD", "service comitted suicide");
-            }else{
-                Message m = new Message();
-                handleMessage(m);
-            }
+            Message m = new Message();
+            handleMessage(m);
+
         }
 
     }

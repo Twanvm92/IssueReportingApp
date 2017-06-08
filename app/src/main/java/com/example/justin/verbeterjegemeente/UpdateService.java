@@ -38,7 +38,6 @@ import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 public class UpdateService extends Service {
     private Looper serviceLooper;
     private ServiceHandler serviceHandler;
-    private int count;
     ServiceClient client;
     private int LONG_SLEEP_TIME, TEST_SLEEP_TIME;
 
@@ -47,7 +46,6 @@ public class UpdateService extends Service {
     public final class ServiceHandler extends Handler{
         public ServiceHandler(Looper looper){
             super(looper);
-            count = 0;
             TEST_SLEEP_TIME = 1000;
             LONG_SLEEP_TIME = 600000;
 
@@ -65,73 +63,58 @@ public class UpdateService extends Service {
 
 
             try{
-                    if(ConnectionChecker.isConnected()){  //checking for internet acces.
-                        for(final ServiceRequest s: DatabaseList) {
-                            int i = 0;
-                            ServiceGenerator.changeApiBaseUrl("https://asiointi.hel.fi/palautews/rest/v1/");
-                            while (i < 2){
-                                client = ServiceGenerator.createService(ServiceClient.class);
-                                Call<ArrayList<ServiceRequest>> RequestResponseCall =
-                                        client.getServiceById(s.getServiceRequestId());
-                                RequestResponseCall.enqueue(new retrofit2.Callback<ArrayList<ServiceRequest>>() {
-                                    @Override
-                                    public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
-                                        if(response.isSuccessful()){
-                                            ArrayList<ServiceRequest>responseSrList = response.body();
-                                            for (int i = 0; i < responseSrList.size(); i++){
+                if(ConnectionChecker.isConnected()){  //checking for internet acces.
 
-                                                String dateTime = responseSrList.get(i).getRequestedDatetime();
+                    for(ServiceRequest s: DatabaseList) {
+                        client = ServiceGenerator.createService(ServiceClient.class);
+                        Call<ServiceRequest> RequestResponseCall =
+                                client.getServiceById(s.getServiceRequestId(), "1");
+                        RequestResponseCall.enqueue(new retrofit2.Callback<ServiceRequest>() {
+                            @Override
+                            public void onResponse(Call<ServiceRequest> call, Response<ServiceRequest> response) {
+                                if(response.isSuccessful()){
+                                    ServiceRequest sr = response.body();
 
-//                                                if(count == 5){
-//                                                    dateTime = "different";
-//                                                }
+                                    if(sr != null) {
 
+                                        String dateTime = sr.getRequestedDatetime();
 
-                                                Log.i("API", responseSrList.get(i).getRequestedDatetime());
+                                        Log.i("API", sr.getRequestedDatetime());
 
-                                                if (responseSrList.get(i).getRequestedDatetime() != dateTime){
-                                                    Log.i("CHECK", "changed date time = " + dateTime);
-
-
-
-
-
-                                                    notifyReportChanged(getString(R.string.reportUpdated) + " ",
-                                                            getString(R.string.on)  + " " + responseSrList.get(i).getRequestedDatetime(), responseSrList.get(i));
-                                                }else{
-                                                    Log.i("CHECK", "not changed date time = " + dateTime);
-                                                }
-
-                                            }
-
+                                        if (sr.getRequestedDatetime() != dateTime) {
+                                            Log.i("CHECK", "changed date time = " + dateTime);
+                                            notifyReportChanged(getString(R.string.reportUpdated) + " ",
+                                                    getString(R.string.on) + " " + sr.getRequestedDatetime(), sr);
+                                        } else {
+                                            Log.i("CHECK", "not changed date time = " + dateTime);
                                         }
                                     }
 
-                                    @Override
-                                    public void onFailure(Call<ArrayList<ServiceRequest>> call, Throwable t) {
-                                        Toast.makeText(getApplicationContext(),
-                                                "Something went wrong while getting your requests",
-                                                Toast.LENGTH_SHORT).show();
-                                    }
-                                });
-                                ServiceGenerator.changeApiBaseUrl("http://dev.hel.fi/open311-test/v1/");
-                                i++;
+                                } else { Log.i("response mis", "yup");}
                             }
-                        }
-                        ServiceGenerator.changeApiBaseUrl("https://asiointi.hel.fi/palautews/rest/v1/");
+
+                            @Override
+                            public void onFailure(Call<ServiceRequest> call, Throwable t) {
+                                Toast.makeText(getApplicationContext(),
+                                        "Something went wrong while getting your requests",
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
 
 
 
-            count++;
+
+
             try{
-               Thread.sleep(TEST_SLEEP_TIME);
+               Thread.sleep(LONG_SLEEP_TIME);
             }catch (InterruptedException e){
                 e.printStackTrace();
                 Log.i("THREAD","sleep failed");
@@ -144,7 +127,7 @@ public class UpdateService extends Service {
 
         }
 
-    }
+        }
     @Override
     public void onCreate(){
         HandlerThread thread = new HandlerThread("ServiceStartArguments",

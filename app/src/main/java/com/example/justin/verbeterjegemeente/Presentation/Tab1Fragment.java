@@ -25,7 +25,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.API.ConnectionChecker;
@@ -34,7 +36,9 @@ import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.Business.BitmapGenerator;
 import com.example.justin.verbeterjegemeente.Business.LocationSelectedListener;
 import com.example.justin.verbeterjegemeente.Business.MarkerHandler;
+import com.example.justin.verbeterjegemeente.Constants;
 import com.example.justin.verbeterjegemeente.R;
+import com.example.justin.verbeterjegemeente.domain.Service;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -61,6 +65,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.List;
 
 import br.com.bloder.magic.view.MagicButton;
 import retrofit2.Call;
@@ -90,37 +95,24 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     public Marker currentMarker;
     ServiceClient client;
     private LocationSelectedListener locCallback;
+    private List<Service> serviceList;
+    ArrayAdapter<String> catagoryAdapter;
+    private ArrayList<String> catagoryList;
+    private Spinner catagorySpinner;
 
     boolean popupShown = false;
 
 
-    /*@Nullable
-    @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.tab1_fragment,container,false);
-        btnTEST = (MagicButton) view.findViewById(R.id.meldingmakenbutton);
-        btnTEST.setMagicButtonClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent i = new Intent(getContext(), MeldingActivity.class);
-                startActivity(i);
-            }
-
-        });
-
-        return view;
-    }*/
-
     public void onCreate(Bundle savedInstaceState) {
         super.onCreate(savedInstaceState);
 
-        ServiceGenerator.changeApiBaseUrl("https://asiointi.hel.fi/palautews/rest/v1/");
         client = ServiceGenerator.createService(ServiceClient.class);
 
         // create arraylist to contain created markers
         markerList = new ArrayList<Marker>();
 
         initApi();
+
 
 
 //        service.getNearbyServiceRequests("")
@@ -372,7 +364,9 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         String camLat = "" + center.latitude;
         String camLng = "" + center.longitude;
         Log.e("Camera positie: ", "is veranderd");
-        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(camLat, camLng, null, "300");
+//        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(camLat, camLng, null, "300");
+//        moet service_code meegeven...
+        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getSimilarServiceRequests(camLat, camLng, null, "300", "OV");
         nearbyServiceRequests.enqueue(new Callback<ArrayList<ServiceRequest>>() {
             @Override
             public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
@@ -387,7 +381,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                                         BitmapGenerator.getBitmapFromVectorDrawable(getContext(),
                                                 R.drawable.service_request_marker)))
                         );
-                        Log.e("Opgehaalde servicereq: ", s.getDescription());
+                        Log.e("Opgehaalde servicereq: ", s.getDescription() + "");
                     }
 
                 } else {

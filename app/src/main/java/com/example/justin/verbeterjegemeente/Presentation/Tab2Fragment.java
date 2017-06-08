@@ -78,8 +78,6 @@ public class Tab2Fragment extends Fragment  {
         //spinner maken voor meters
         //zoek knop toevoegen
 
-        client = ServiceGenerator.createService(ServiceClient.class);
-
         serviceList = new ArrayList<>();
 
         meldingListView = (ListView) view.findViewById(R.id.meldingListView);
@@ -142,14 +140,18 @@ public class Tab2Fragment extends Fragment  {
                 }
 
 //                hardcoded voor nu
-//                lat = "60.168321";
-//                lon = "24.952397";
-//                status = "open";
-                meters = "300";
+                lat = "52";
+                lon = "10";
+                status = "open";
+                meters = "200";
 
 //                create a callback
-                Call<ArrayList<ServiceRequest>> serviceCall = client.getNearbyServiceRequests(lat, lon, status, meters);
-//                 fire the get request
+                client = ServiceGenerator.createService(ServiceClient.class);
+
+//                moet nog steeds service_code meegegeven worden.. fout van api
+//                Call<ArrayList<ServiceRequest>> serviceCall = client.getNearbyServiceRequests(lat, lon, status, meters);
+               Call<ArrayList<ServiceRequest>> serviceCall = client.getSimilarServiceRequests(lat, lon, status, meters, "OV");
+//               fire the get request
                 serviceCall.enqueue(new Callback<ArrayList<ServiceRequest>>() {
                     @Override
                     public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
@@ -231,4 +233,3 @@ public class Tab2Fragment extends Fragment  {
         searchServiceRequests();
     }
 }
-

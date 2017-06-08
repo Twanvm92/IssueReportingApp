@@ -44,6 +44,6 @@
         android:clickable="true"
         app:backgroundTint="#6fda7f"
         app:fabSize="normal"
-        app:srcCompat="@drawable/plusicon" />
+        app:srcCompat="@drawable/addalert" />
 
 </android.support.design.widget.CoordinatorLayout>

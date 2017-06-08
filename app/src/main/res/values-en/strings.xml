@@ -6,6 +6,11 @@
     <string name="beschrijving">Description</string>
     <string name="beschrijving2">Description of the notification:</string>
     <string name="beschrijvingHint">Describe your problem</string>
+    <string name="instellingen">Settings</string>
+    <string name="over">About</string>
+    <string name="taal">Language</string>
+    <string name="zoekafstand">Search Distance</string>
+    <string name="profiel">Profile</string>
 
     <string name="optioneel">Optional</string>
     <string name="emailHint">Enter your email address here</string>
@@ -17,6 +22,7 @@
     <string name="info">Optional: You are not required to enter this information, but it will make it easier to keep you informed of changes.</string>
     <string name="terug">Back</string>
     <string name="meldingplaatsen">Send notification</string>
+    <string name="meldingplaatsen2">Send</string>
     <string name="mijnMeldingen">My notifications</string>
     <string name="onthoudGegevens">Remember my personal data</string>
 
@@ -40,8 +46,15 @@
     <string name="fotoWijzigen">Change picture</string>
     <string name="fotoMaken">Take photo</string>
     <string name="fotoKiezen">Choose picture from gallery</string>
+    <string name="activityMain_item_filters">Filters</string>
+    <string name="activityMain_item_gps">Location</string>
+    <string name="activityMain_item_report">Report</string>
+
 
     <string name="reportUpdated">Your report has been updated</string>
     <string name="on">on</string>
 
+
+    <string name="soortgelijkeMeldingen">Similar alerts at this location</string>
+    <string name="categorieën">Categories</string>
 </resources>

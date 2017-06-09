@@ -16,7 +16,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
  */
 
 public class ServiceGenerator {
-    public static String baseUrl = "http://37.34.59.50/breda/";
+    public static String baseUrl = "http://dev.hel.fi/open311-test/v1/";
 
     private static Gson gson = new GsonBuilder()
             .setLenient()
@@ -31,6 +31,14 @@ public class ServiceGenerator {
 
     private static OkHttpClient.Builder httpClient =
             new OkHttpClient.Builder();
+
+    public static void changeApiBaseUrl(String newApiBaseUrl) {
+        baseUrl = newApiBaseUrl;
+
+        builder = new Retrofit.Builder()
+                .addConverterFactory(GsonConverterFactory.create())
+                .baseUrl(baseUrl).build();
+    }
 
     /**
      * Creates a retrofit object with a <code>ServiceClient</code> that is provided

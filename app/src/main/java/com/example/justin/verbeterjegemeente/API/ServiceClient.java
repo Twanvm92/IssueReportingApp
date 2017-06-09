@@ -11,7 +11,6 @@ import java.util.List;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import retrofit2.Call;
-import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
@@ -35,8 +34,8 @@ public interface ServiceClient {
      * @return List of Service objects
      * @see Service
      */
-    @GET ("CitySDK/services.json")
-    Call<List<Service>> getServices(@Query("locale") String Language);
+    @GET ("services.json")
+    Call<List<Service>> getServices(@Query("Locale") String Language);
 
 
 
@@ -44,50 +43,43 @@ public interface ServiceClient {
     /**
      * Sends a Multipart/form-data post request to an already specified endpoint
      * and returns an Arraylist of <code>PostServiceRequestResponse</code> objects
-     * @param service_code The service code of a Service Request. Required.
-     * @param description The description of a Service Request. Required
+     * @param apiK The API key that is need to be able to be allowed to send a post request to the endpoint.
+     *             Required.
+     * @param desc The description of a Service Request. Required
+     * @param sc The service code of a Service Request. Required.
      * @param lat The Latitude of the location of the Service Request. Required.
      * @param lon The longitude of the location of the Service Request. Required.
-     * @param address_string The address string of the Service Request. Required.
-     * @param address_id The address id of the Service Request. Required.
-     * @param attribute The attributes of the location of the Service Request. Required.
-     * @param jurisdiction_id The jurisdiction id of the Service Request.
-     * @param media_url The optional image file that can be send with the post request
+     * @param img The optional image file that can be send with the post request
      * @param email The optional email of the user that made the Service Request.
-     * @param first_name The optional front name of the user that made the Service Request
-     * @param last_name The optional last name of the user that made the Service Request
+     * @param fName The optional front name of the user that made the Service Request
+     * @param lName The optional last name of the user that made the Service Request
      * @return Arraylist<PostServiceRequestResponse>
      * @see PostServiceRequestResponse
      */
-    @POST("CitySDK/requests.json")
-    Call<ArrayList<PostServiceRequestResponse>> postServiceRequest(@Query("service_code") String service_code,
-                                                                   @Query("description") String description,
-                                                                   @Query("lat") Double lat,
-                                                                   @Query("long") Double lon,
-                                                                   @Query("address_string") String address_string,
-                                                                   @Query("address_id") String address_id,
-                                                                   @Body String [] attribute,
-                                                                   @Query("jurisdiction_id") String jurisdiction_id,
-                                                                   @Query("email") String email,
-                                                                   @Query("first_name") String first_name,
-                                                                   @Query("last_name") String last_name,
-                                                                   @Query("media_url") String media_url);
+    @Multipart
+    @POST("requests.json")
+    Call<ArrayList<PostServiceRequestResponse>> postServiceRequest(@Part("api_key") RequestBody apiK,
+                                                                   @Part("description") RequestBody desc,
+                                                                   @Part("service_code") RequestBody sc,
+                                                                   @Part("lat") RequestBody lat,
+                                                                   @Part("long") RequestBody lon,
+                                                                   @Part MultipartBody.Part img,
+                                                                   @Part("email") RequestBody email,
+                                                                   @Part("first_name") RequestBody fName,
+                                                                   @Part("last_name") RequestBody lName);
 
-
-    @GET("CitySDK/requests.json")
+    @GET("requests.json")
     Call<ArrayList<ServiceRequest>> getNearbyServiceRequests(@Query("lat") String lat,
                                                              @Query("long") String lng,
                                                              @Query("status") String status,
                                                              @Query("radius") String meters);
 
-    @GET("CitySDK/requests.json")
-    Call<ArrayList<ServiceRequest>> getSimilarServiceRequests(@Query("lat") String lat,
-                                                              @Query("long") String lng,
-                                                              @Query("status") String status,
-                                                              @Query("radius") String meters,
-                                                              @Query("service_code") String serviceCode);
 
-    @GET ("CitySDK/request/{id}.json")
-    Call<ServiceRequest> getServiceById (@Path("id") String serviceID,
-                                         @Query("jurisdiction_id") String jurisdiction_id);
+
+    @GET ("requests/{id}.json")
+    Call<ArrayList<ServiceRequest>> getServiceById (@Path("id") String id);
 }
+
+
+
+

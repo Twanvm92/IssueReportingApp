@@ -1,6 +1,7 @@
 package com.example.justin.verbeterjegemeente.Presentation;
 
 
+import android.content.Intent;
 import android.support.v4.content.ContextCompat;
 import android.Manifest;
 import android.app.Activity;
@@ -82,7 +83,6 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     private Marker marker;
     private Button button;
     private MarkerHandler mHandler;
-    private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 2;
     private Location currentLocation;
     public LatLng currentLatLng;
     public GoogleApiClient mApiClient;
@@ -90,8 +90,6 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
     ServiceClient client;
     private LocationSelectedListener locCallback;
-
-    boolean popupShown = false;
 
 
     /*@Nullable
@@ -118,17 +116,6 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
         // create arraylist to contain created markers
         markerList = new ArrayList<Marker>();
-
-        initApi();
-
-
-        //initApi();
-
-
-
-
-//        service.getNearbyServiceRequests("")
-
     }
 
     @Override
@@ -270,8 +257,8 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         mMap.setPadding(60, 100, 0, 180);
 
 
-        //locatie voorziening
-        initLocation();
+//        setup Google Api
+        initApi();
 
 
         //markerHandler stuff
@@ -287,6 +274,10 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                 .addOnConnectionFailedListener(this).build();
         mApiClient.connect();
 
+        reqFindLocation();
+    }
+
+    public void getUserLocation(){
         LocationRequest locationRequest = LocationRequest.create();
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         locationRequest.setInterval(30 * 1000);
@@ -294,8 +285,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
                 .addLocationRequest(locationRequest);
 
-        builder.setAlwaysShow(true); //this is the key ingredient
-        //**************************
+        builder.setAlwaysShow(true);
 
         final PendingResult<LocationSettingsResult> result =
                 LocationServices.SettingsApi.checkLocationSettings(mApiClient, builder.build());
@@ -307,6 +297,24 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                 final LocationSettingsStates states = LSresult.getLocationSettingsStates();
                 switch (status.getStatusCode()){
                     case LocationSettingsStatusCodes.SUCCESS:
+                        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                            currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
+                            if (currentLocation != null) {
+                                Log.i("location1", currentLocation.getLatitude() + "");
+                                Log.i("location2", currentLocation.getLongitude() + "");
+                                currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+                                CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
+                                mMap.moveCamera(center);
+                                if (locCallback != null) {
+                                    locCallback.locationSelected(currentLatLng);
+                                }
+                            } else {
+                                Log.e("getUserLocation", "Kan locatie niet ophalen");
+                            }
+                        } else {
+                            Log.i("getUserLocation", "Geen toestemming");
+                            Toast.makeText(getContext(), "Kan locatie niet ophalen", Toast.LENGTH_SHORT).show();
+                        }
                         break;
                     case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
                         try{
@@ -319,37 +327,13 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
                         break;
                 }
-
-
             }
         });
-
-
-        if (ActivityCompat.checkSelfPermission(this.getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this.getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
-//        LocationServices.FusedLocationApi.requestLocationUpdates(mApiClient,locationRequest, this);
-        currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
-//        if (currentLocation != null) {
-//            currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-//            CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
-//            mMap.moveCamera(center);
-//        }
-
-
     }
 
     //locatie voorziening
     private void initLocation() {
-        if (ContextCompat.checkSelfPermission(this.getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this.getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)) {
 
-            } else {
-                ActivityCompat.requestPermissions(this.getActivity(),
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                        MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-            }
-        }
     }
 
 
@@ -357,42 +341,18 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        getLocation();
+
     }
 
     public void getLocation() {
-        if (ActivityCompat.checkSelfPermission(this.getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this.getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            if(currentLocation != null) {
-                currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-            } else {
-
-
-                // Location Breda. Can be used when Breda API is available.
-//                 currentLatLng = new LatLng(51.58656, 4.77596);
-
-                // used to get Helsinki location for testing purposes
-                currentLatLng = new LatLng(DEFAULT_LONG, DEFAULT_LAT);
-                if(!popupShown) {
-                    new AlertDialog.Builder(this.getContext())
-                            .setTitle("Locatie bepalen mislukt")
-                            .setMessage("het is niet gelukt uw huidige locatie te bepalen, mogelijk staat locatie voorziening uit, of is er geen internetverbinding. probeer het later opnieuw.")
-                            .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                }
-                            }).setIcon(android.R.drawable.ic_dialog_alert).show();
-                    popupShown = !popupShown;
-                } else {
-                    Toast.makeText(this.getContext(), "Locatie kon niet worden opgehaald", Toast.LENGTH_SHORT).show();
-                }
-            }
-        } else {
-            // get current location of user. Don`t use this one when testing Helsinki API.
-            //  currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
-
-            // used to get Helsinki location for testing purposes
-            currentLatLng = new LatLng(DEFAULT_LONG, DEFAULT_LAT);
-        }
-
+        currentLatLng = new LatLng(DEFAULT_LONG, DEFAULT_LAT);
+        new AlertDialog.Builder(this.getContext())
+                .setTitle("Locatie bepalen mislukt")
+                .setMessage("het is niet gelukt uw huidige locatie te bepalen, mogelijk staat locatie voorziening uit, of is er geen internetverbinding. probeer het later opnieuw.")
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                    }
+                }).setIcon(android.R.drawable.ic_dialog_alert).show();
 
         CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
         mMap.moveCamera(center);
@@ -414,10 +374,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
     @Override
     public void onLocationChanged(Location location) {
-        LatLng locationLatLng = new LatLng(location.getLongitude(), location.getLatitude());
-        currentLatLng = locationLatLng;
 
-        getLocation();
     }
 
 
@@ -462,12 +419,12 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                 }
             }
 
-            @Override
-            public void onFailure(Call<ArrayList<ServiceRequest>> call, Throwable t) {
-                Toast.makeText(getContext(), t.getMessage().toString(),
-                        Toast.LENGTH_SHORT).show();
-                t.printStackTrace();
-            }
+        @Override
+        public void onFailure(Call<ArrayList<ServiceRequest>> call, Throwable t) {
+            Toast.makeText(getContext(), t.getMessage().toString(),
+                    Toast.LENGTH_SHORT).show();
+            t.printStackTrace();
+        }
         });
 
         if (locCallback != null) {
@@ -484,12 +441,14 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                     Manifest.permission.ACCESS_FINE_LOCATION)) {
                 ActivityCompat.requestPermissions(this.getActivity(),
                         new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                        MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+                        Constants.MY_PERMISSIONS_LOCATION);
             } else {
                 ActivityCompat.requestPermissions(getActivity(),
                         new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                         Constants.MY_PERMISSIONS_LOCATION);
             }
+        } else {
+            getUserLocation();
         }
     }
 
@@ -506,11 +465,33 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
             case Constants.MY_PERMISSIONS_LOCATION: {
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Log.i("PERMISSION", "Location granted");
+//                    Permissie gekregen
+                    getUserLocation();
                 } else {
-                    Log.i("PERMISSION", "Llocation not granted");
+                    Log.i("onRequestPermResult", "Geen toestemming gekregen, eerste keer dat map geladen wordt default lat/long gepakt");
+                    if (currentLatLng == null){
+                        getLocation();
+                    } else {
+                        Log.i("onRequestPermResult", "Geen toestemming gekregen");
+                        Toast.makeText(getContext(), "Kan locatie niet ophalen zonder permissie", Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case REQUEST_CHECK_SETTINGS:
+                if (resultCode == Activity.RESULT_OK) {
+                    reqFindLocation();
+                } else {
+                    if (currentLatLng == null) {
+                        getLocation();
+                    }
+                    Log.i("onActivityResult", "Gps aanvraag afgewezen");
+                }
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.example.justin.verbeterjegemeente.Presentation;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -31,6 +32,8 @@ import com.google.android.gms.maps.model.LatLng;
 
 import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LAT;
 import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LONG;
+import static com.example.justin.verbeterjegemeente.Constants.MY_PERMISSIONS_LOCATION;
+import static com.example.justin.verbeterjegemeente.Constants.REQUEST_CHECK_SETTINGS;
 
 
 public class MainActivity extends AppCompatActivity implements LocationSelectedListener {
@@ -65,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
         gps.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                tabFragment.initApi();
+                tabFragment.reqFindLocation();
             }
         });
 
@@ -143,23 +146,14 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
         viewPager.setAdapter(adapter);
     }
 
+    @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-
         switch (requestCode) {
-            case 2: {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                        return;
-                    }
-                    getLocation();
-
-                    return;
-                }
-            }
-
-
+            case Constants.MY_PERMISSIONS_LOCATION:
+                tabFragment.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }
+
 
     public void getLocation() {
         Location currentLocation = null;
@@ -234,6 +228,14 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
 
             // Commit the transaction
             transaction.commit();
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case REQUEST_CHECK_SETTINGS:
+                tabFragment.onActivityResult(requestCode, resultCode, data);
         }
     }
 }

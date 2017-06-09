@@ -1,6 +1,7 @@
 package com.example.justin.verbeterjegemeente;
 
 /**
+ * This class holds constants used by 1 or more classes, activities or fragments
  * Created by twanv on 16-5-2017.
  */
 

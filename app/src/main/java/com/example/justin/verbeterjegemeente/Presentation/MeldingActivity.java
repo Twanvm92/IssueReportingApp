@@ -15,14 +15,11 @@ import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Base64;
 import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -63,9 +60,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import okhttp3.MediaType;
-import okhttp3.MultipartBody;
-import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -527,7 +521,7 @@ public class MeldingActivity extends AppCompatActivity {
                         jurisdiction_id = "1";
 
                         Call<ArrayList<ServiceRequest>> RequestResponseCall =
-                                client.getSimilarServiceRequests(lat.toString(), lon.toString(), "open", "10", sc);
+                                client.getNearbyServiceRequests(lat.toString(), lon.toString(), "open", "10", sc);
                         RequestResponseCall.enqueue(new Callback<ArrayList<ServiceRequest>>() {
                             @Override
                             public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {

@@ -2,13 +2,16 @@ package com.example.justin.verbeterjegemeente.Presentation;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.location.Location;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentTransaction;
@@ -60,19 +63,17 @@ import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LONG;
 public class MainActivity extends AppCompatActivity implements LocationSelectedListener {
 
     private static final String TAG = "MainActivity";
-
     private SectionsPageAdapter mSectionsPageAdapter;
-
+    private int rValue;
     private ViewPager mViewPager;
-    private Fab fabMenu;
     private Tab1Fragment tabFragment = new Tab1Fragment();
+    private Tab2Fragment tab2Fragment = new Tab2Fragment();
     private LatLng currentLatLng;
     private List<Service> serviceList;
     ArrayAdapter<String> catagoryAdapter;
     private ArrayList<String> catagoryList;
     private Spinner catagorySpinner;
     private ServiceClient client;
-
     private Locale myLocale;
 
 
@@ -88,30 +89,48 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
         mViewPager = (ViewPager) findViewById(R.id.container);
         setupViewPager(mViewPager);
 
+        // create an arraylist that will contain different categories fetched from an open311 interface
         catagoryList = new ArrayList<String>();
+        catagoryList.add(getString(R.string.geenFilter));
         catagoryAdapter = new ArrayAdapter<String>(getApplicationContext(),
                 android.R.layout.simple_spinner_item, catagoryList);
 
+        // Floating action button with expandable menu on tab1
         final FabSpeedDial fabSpeedDial = (FabSpeedDial) findViewById(R.id.activityMain_Fbtn_speeddial);
         fabSpeedDial.setMenuListener(new SimpleMenuListenerAdapter() {
             @Override
             public boolean onMenuItemSelected(MenuItem menuItem) {
 
+
                 switch (menuItem.getItemId()) {
                     case R.id.activityMain_item_filters :
+
+                        //create a new custom dialog
                         AlertDialog.Builder builder1 = new AlertDialog.Builder(MainActivity.this);
                         View mView = getLayoutInflater().inflate(R.layout.activity_main_filters_dialog, null);
 
-                        SeekBar radius = (SeekBar) mView.findViewById(R.id.filterdialog_sb_radius);
-                        radius.setMax(1000);
-                        radius.incrementProgressBy(2);
+                        final TextView tvRadiusD = (TextView) mView.findViewById(R.id.filterdialog_tv_afstand6);
+                        final SeekBar sbRadius = (SeekBar) mView.findViewById(R.id.filterdialog_sb_radius);
 
-                        final TextView radius_afstand = (TextView) mView.findViewById(R.id.filterdialog_tv_afstand6);
-                        radius.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
+                        // get user selected radius or use default radius
+                        SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
+                        rValue = prefs.getInt(getString(R.string.activityMain_saved_radius), 20); // 20 is default
+
+                        // set all values for the seekbar
+                        sbRadius.getProgressDrawable().setColorFilter(Color.GREEN, PorterDuff.Mode.SRC_IN);
+                        sbRadius.getThumb().setColorFilter(Color.GREEN, PorterDuff.Mode.SRC_IN);
+                        sbRadius.setMax(300);
+                        sbRadius.incrementProgressBy(2);
+                        sbRadius.setProgress(rValue);
+                        tvRadiusD.setText(rValue + getString(R.string.radiusMeters));
+
+                        sbRadius.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
 
                             @Override
                             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                                radius_afstand.setText(String.valueOf(progress) + "Meters" );
+                                // show progress in a Textview
+                                tvRadiusD.setText(String.valueOf(progress) + getString(R.string.radiusMeters));
+
                             }
 
                             @Override
@@ -120,30 +139,34 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
 
                             @Override
                             public void onStopTrackingTouch(SeekBar seekBar) {
+                                // put new radius value in preferences
+                                SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
+                                prefs.edit().putInt(getString(R.string.activityMain_saved_radius), sbRadius.getProgress()).apply();
+
+                                // pass the updated radius value to Tab1Fragment
+                                radiusSelected(sbRadius.getProgress());
                             }
                         });
 
-                        // create an arraylist that will contain different categories fetched from an open311 interface
-//                        catagoryList = new ArrayList<String>();
+
                         catagorySpinner = (Spinner) mView.findViewById(R.id.filterdialog_sp_categorieen);
-                        /*catagoryAdapter = new ArrayAdapter<String>(getApplicationContext(),
-                                android.R.layout.simple_spinner_item, catagoryList){
-                            @Override //pakt de positions van elements in catagoryList en disabled the element dat postion null staat zodat we het kunnen gebruiken als een hint.
-                            public boolean isEnabled(int position){
-                                if (position == 0)
-                                {
-                                    return false;
-                                }else{
-                                    return true;
-                                }
-                            }
-                        };*/
+
                         catagoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                         catagorySpinner.setAdapter(catagoryAdapter);
 
                         builder1.setView(mView);
                         AlertDialog dialog = builder1.create();
+
+
                         dialog.show();
+
+                        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                            @Override
+                            public void onDismiss(DialogInterface dialog) {
+
+                            }
+                        });
+
                         break;
                     case R.id.activityMain_item_report :
                         if (tabFragment.currentLatLng != null) {
@@ -162,7 +185,8 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
                     case R.id.activityMain_item_gps :
                         Toast.makeText(getApplicationContext(), "GPS knop is aangeklikt",Toast.LENGTH_SHORT).show();
                 }
-                return true;
+
+            return true;
             }
         });
 
@@ -227,6 +251,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
+
 
         mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -396,38 +421,26 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
 //        misschien is er een betere manier ipv elke activiteit apart op te vangen..
     }
 
-
-
-
-
-
-
-//            builder.setTitle("Profiel").setItems(new String[]
-//                    {
-//                            "Mijn meldingen", "Instellingen", "Over"
-//                    }, new DialogInterface.OnClickListener()
-//            {
-//                public void onClick(DialogInterface dialog, int which) {
-//                    switch (which) {
-//                        case 0:
-//                            Intent i = new Intent(getApplicationContext(), FollowingActivity.class);
-//                            startActivity(i);
-//                            break;
-//                    }
-//                }
-//            });
-//            builder.show();
-//        }
-//
-//
-//
-
-
-
     private void setupViewPager(ViewPager viewPager) {
         SectionsPageAdapter adapter = new SectionsPageAdapter(getSupportFragmentManager());
+
+        // get user selected radius or use default radius
+        SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
+        rValue = prefs.getInt(getString(R.string.activityMain_saved_radius), 20); // 20 is default
+
+        //create bundle and put current saved radius value in the bundle
+        Bundle bundle = new Bundle();
+        String sValue = Integer.toString(rValue);
+        bundle.putString("RADIUS_VALUE",sValue);
+
+        // pass radius value as a bundle to the Tab1Fragment
+        tabFragment.setArguments(bundle);
         adapter.addFragment(tabFragment, "");
-        adapter.addFragment(new Tab2Fragment(), "");
+
+        // pass radius value as a bundle to the Tab1Fragment
+        tab2Fragment.setArguments(bundle);
+        adapter.addFragment(tab2Fragment, "");
+
         viewPager.setAdapter(adapter);
     }
 
@@ -478,23 +491,21 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
 
     @Override
     public void locationSelected(LatLng curLatLong) {
-        // The user selected the headline of an article from the HeadlinesFragment
-        // Do something here to display that article
 
         Tab2Fragment tab2Frag = (Tab2Fragment)
                 getSupportFragmentManager().getFragments().get(1);
 
         if (tab2Frag != null) {
-            // If article frag is available, we're in two-pane layout...
+            // If tab1 frag is available, we're in two-pane layout...
 
-            // Call a method in the ArticleFragment to update its content
+            // Call a method in the Tab1Fragment to update its content
             Log.e("MainActivity: ", "We are in a two pane layout..");
 
             tab2Frag.updateCurrentLoc(curLatLong);
         } else {
             // Otherwise, we're in the one-pane layout and must swap frags...
 
-            // Create fragment and give it an argument for the selected article
+            // Create fragment and give it an argument for the selected LatLng
             Tab2Fragment newFragment = new Tab2Fragment();
             Bundle args = new Bundle();
             args.putDouble("CURRENT_LAT",curLatLong.latitude);
@@ -510,6 +521,48 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
 
             // Commit the transaction
             transaction.commit();
+        }
+    }
+
+    /**
+     * This method will pass the radius that is selected by the user in a custom dialog
+     * to the Tab1Fragment where the radius will be used to find service requests and
+     * place them on the map and in the
+     * @param value value of the progress of the radius seekbar in custom dialog
+     *
+     */
+    public void radiusSelected(int value) {
+
+        Tab1Fragment tab1Fragment = null;
+
+        if(getSupportFragmentManager().getFragments() != null) {
+            tab1Fragment = (Tab1Fragment)
+                    getSupportFragmentManager().getFragments().get(0);
+        }
+
+        if (tab1Fragment != null) {
+            // If tab1 frag is available, we're in two-pane layout...
+
+            // Call a method in the Tab1Fragment to update its content
+            Log.e("MainActivity: ", "We are in a two pane layout..");
+
+            tab1Fragment.updateRadius(value);
+        }
+
+        Tab2Fragment tab2Fragment = null;
+
+        if(getSupportFragmentManager().getFragments() != null) {
+            tab2Fragment = (Tab2Fragment)
+                    getSupportFragmentManager().getFragments().get(1);
+        }
+
+        if (tab2Fragment != null) {
+            // If tab1 frag is available, we're in two-pane layout...
+
+            // Call a method in the Tab2Fragment to update its content
+            Log.e("MainActivity: ", "We are in a two pane layout..");
+
+            tab2Fragment.updateRadius(value);
         }
     }
 }

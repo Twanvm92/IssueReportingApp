@@ -52,4 +52,7 @@
 
     <string name="soortgelijkeMeldingen">Similar alerts at this location</string>
     <string name="categorieën">Categories</string>
+    <string name="activityMain_saved_radius">SAVED_RADIUS</string>
+    <string name="radiusMeters">meters</string>
+    <string name="geenFilter">No filter</string>
 </resources>

@@ -43,6 +43,7 @@ public class Tab2Fragment extends Fragment  {
     private Locatie location;
     private static final int LOCATIE_KIEZEN= 3;
     private LatLng currentLatLng = null;
+    private String currentRadius;
 //    private Button locatieButton;
 
     @Nullable
@@ -53,30 +54,23 @@ public class Tab2Fragment extends Fragment  {
         Bundle bundle = getArguments();
         if(bundle!= null)
         {
-            double lat = getArguments().getDouble("CURRENT_LAT");
-            double lng = getArguments().getDouble("CURRENT_LONG");
-            Log.e("LAT EN LONG MAP: ", "Lat: " + lat + " Long: " + lng);
+            if(bundle.getDouble("CURRENT_LAT") != 0  && bundle.getDouble("CURRENT_LONG") != 0) {
+                double lat = getArguments().getDouble("CURRENT_LAT");
+                double lng = getArguments().getDouble("CURRENT_LONG");
+                Log.e("Bundle: ", "Lat: " + lat + " Long: " + lng);
 
-            currentLatLng = new LatLng(lat, lng);
+                currentLatLng = new LatLng(lat, lng);
+            }
 
-            searchServiceRequests();
+            if(bundle.getString("RADIUS_VALUE") != null) {
+                currentRadius = getArguments().getString("RADIUS_VALUE");
+                Log.e("tab2frag bndl radius: ", currentRadius);
+            }
+
+
         }
 
-
-        //                locatiebtn toevoegen
-//        locatieButton = (Button) view.findViewById(R.id.wijzigLocatieButton);
-//        locatieButton.setOnClickListener(new View.OnClickListener() {
-//
-//            @Override
-//            public void onClick(View v) {
-//                Intent intent = new Intent(getContext(), MapsActivity.class);
-//                startActivityForResult(intent, LOCATIE_KIEZEN);
-//            }
-//        });
-
-        //spinner maken voor status
-        //spinner maken voor meters
-        //zoek knop toevoegen
+        searchServiceRequests();
 
         serviceList = new ArrayList<>();
 
@@ -103,32 +97,6 @@ public class Tab2Fragment extends Fragment  {
     public void searchServiceRequests (){
         try {
             if(isConnected()) {
-//                 zoek opties nog toevoegen
-//                if(currentLatLng != null) {
-//                    if(currentLatLng.longitude != 0.0 && currentLatLng.latitude != 0.0) {
-//                        lon = "" + currentLatLng.longitude;
-//                        lat = "" + currentLatLng.latitude;
-//                        Log.e("Long after receive", lon);
-//                        Log.e("Lat after receive", lat);
-//                    } else {
-//                        Toast.makeText(getContext(),
-//                                getResources().getString(R.string.geenLocatie),Toast.LENGTH_SHORT).show();
-//                        return;
-//                    }
-//                } else {
-//                    Toast.makeText(getContext(),
-//                            getResources().getString(R.string.geenLocatie),Toast.LENGTH_SHORT).show();
-//                    return;
-//                }
-
-
-//                if (!status.getText().toString().equals("") && !meters.getText().toString().equals("")) {
-//                    status = *.getText().toString();
-//                    meters = *.getText().toString();
-//                } else {
-//                    return;
-//                    // niet elk veld is ingevuld
-//                }
 
                 if (currentLatLng != null) {
                     lat = "" + currentLatLng.latitude;
@@ -140,8 +108,10 @@ public class Tab2Fragment extends Fragment  {
                 }
 
 //                hardcoded voor nu
-                lat = "52";
-                lon = "10";
+                // use lat and long from google maps camera or user location
+                // instea dof hardcoded for testing Helsinki Live API
+                /*lat = "52";
+                lon = "10";*/
                 status = "open";
                 meters = "200";
 
@@ -150,7 +120,10 @@ public class Tab2Fragment extends Fragment  {
 
 //                moet nog steeds service_code meegegeven worden.. fout van api
 //                Call<ArrayList<ServiceRequest>> serviceCall = client.getNearbyServiceRequests(lat, lon, status, meters);
-               Call<ArrayList<ServiceRequest>> serviceCall = client.getSimilarServiceRequests(lat, lon, status, meters, "OV");
+
+                // commented this line for testing getting service request based on radius from Helsinki Live API
+//                Call<ArrayList<ServiceRequest>> serviceCall = client.getNearbyServiceRequests(lat, lon, status, currentRadius, "OV");
+                Call<ArrayList<ServiceRequest>> serviceCall= client.getNearbyServiceRequests(lat, lon, null, currentRadius);
 //               fire the get request
                 serviceCall.enqueue(new Callback<ArrayList<ServiceRequest>>() {
                     @Override
@@ -227,9 +200,19 @@ public class Tab2Fragment extends Fragment  {
 
     public void updateCurrentLoc(LatLng newLatLong) {
         currentLatLng = newLatLong;
-        Log.e("LAT EN LONG MAP: ", "Lat: " + currentLatLng.latitude + " Long: " + currentLatLng.longitude);
+        Log.e("Method: ", "Lat: " + currentLatLng.latitude + " Long: " + currentLatLng.longitude);
 
 
         searchServiceRequests();
+    }
+
+    /**
+     * This method will update the radius set by the user
+     * @param radius radius in meters
+     */
+    public void updateRadius(int radius) {
+        String pRadius = (String) Integer.toString(radius);
+        currentRadius = pRadius;
+        Log.e("Radius update tab2: ", currentRadius);
     }
 }

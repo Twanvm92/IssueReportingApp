@@ -4,27 +4,18 @@ package com.example.justin.verbeterjegemeente.Presentation;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.location.Location;
 
-import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
@@ -36,13 +27,11 @@ import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.Business.BitmapGenerator;
 import com.example.justin.verbeterjegemeente.Business.LocationSelectedListener;
 import com.example.justin.verbeterjegemeente.Business.MarkerHandler;
-import com.example.justin.verbeterjegemeente.Constants;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.Service;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 
@@ -53,17 +42,14 @@ import com.google.android.gms.maps.SupportMapFragment;
 
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.TileProvider;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -99,12 +85,21 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     ArrayAdapter<String> catagoryAdapter;
     private ArrayList<String> catagoryList;
     private Spinner catagorySpinner;
+    private String currentRadius;
 
     boolean popupShown = false;
 
 
     public void onCreate(Bundle savedInstaceState) {
         super.onCreate(savedInstaceState);
+
+        Bundle bundle = getArguments();
+        if(bundle!= null)
+        {
+            currentRadius = getArguments().getString("RADIUS_VALUE");
+            Log.e("tab1frag bundl radius: ", currentRadius);
+
+        }
 
         client = ServiceGenerator.createService(ServiceClient.class);
 
@@ -113,9 +108,6 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
         initApi();
 
-
-
-//        service.getNearbyServiceRequests("")
 
     }
 
@@ -192,58 +184,8 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         mMap = googleMap;
         mMap.setOnCameraIdleListener(this);
 
-        try {
-            if(ConnectionChecker.isConnected()) {
-                Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests("" + DEFAULT_LONG, "" + DEFAULT_LAT, null, "300");
-                nearbyServiceRequests.enqueue(new Callback<ArrayList<ServiceRequest>>() {
-                    @Override
-                    public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
-                        if(response.isSuccessful()) {
-                            ArrayList<ServiceRequest> srList = response.body();
-
-                            for (ServiceRequest s : srList) {
-
-                                mMap.addMarker(new MarkerOptions()
-                                        .position(new LatLng(s.getLat(), s.getLong()))
-                                        .title(s.getDescription())
-                                        .icon(BitmapDescriptorFactory.fromBitmap(
-                                                BitmapGenerator.getBitmapFromVectorDrawable(getContext(),
-                                                        R.drawable.service_request_marker))));
-
-                                Log.e("Opgehaalde servicereq: ", s.getDescription());
-                            }
-
-                        } else {
-                            try { //something went wrong. Show the user what went wrong
-                                JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
-                                JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
-
-                                Toast.makeText(getContext(), jObjError.getString("description"),
-                                        Toast.LENGTH_SHORT).show();
-                                Log.i("Error message: ", jObjError.getString("description"));
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<ArrayList<ServiceRequest>> call, Throwable t) {
-                        Toast.makeText(getContext(), getResources().getString(R.string.ePostRequest),
-                                Toast.LENGTH_SHORT).show();
-                        t.printStackTrace();
-                    }
-                });
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
+        //get Current radius selected by user in MainActivity
+        System.out.println("Current radius: " + currentRadius);
 
         setUpMap();
         Log.e("MAP: ", "map is klaargezet");
@@ -360,18 +302,27 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
     @Override
     public void onCameraIdle() {
+        //get Current radius selected by user in MainActivity
+        System.out.println("Current radius: " + currentRadius);
+
         LatLng center = mMap.getCameraPosition().target;
         String camLat = "" + center.latitude;
         String camLng = "" + center.longitude;
         Log.e("Camera positie: ", "is veranderd");
 //        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(camLat, camLng, null, "300");
 //        moet service_code meegeven...
-        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getSimilarServiceRequests(camLat, camLng, null, "300", "OV");
+
+        // commented this line for testing getting service request based on radius from Helsinki Live API
+//        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(camLat, camLng, null, currentRadius, "OV");
+        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(camLat, camLng, null, currentRadius);
         nearbyServiceRequests.enqueue(new Callback<ArrayList<ServiceRequest>>() {
             @Override
             public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
                 if(response.isSuccessful()) {
                     ArrayList<ServiceRequest> srList = response.body();
+
+                    // clear all markers on the map before adding new markers
+                    mMap.clear();
 
                     for (ServiceRequest s : srList) {
                         mMap.addMarker(new MarkerOptions()
@@ -413,6 +364,16 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
             locCallback.locationSelected(center);
         }
 
+    }
+
+    /**
+     * This method will update the radius set by the user
+     * @param radius radius in meters
+     */
+    public void updateRadius(int radius) {
+        String pRadius = (String) Integer.toString(radius);
+        currentRadius = pRadius;
+        Log.e("Radius update tab1: ", currentRadius);
     }
 }
 

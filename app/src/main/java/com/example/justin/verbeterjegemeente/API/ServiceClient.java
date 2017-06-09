@@ -35,7 +35,7 @@ public interface ServiceClient {
      * @return List of Service objects
      * @see Service
      */
-    @GET ("CitySDK/services.json")
+    @GET ("services.json")
     Call<List<Service>> getServices(@Query("locale") String Language);
 
 
@@ -59,7 +59,7 @@ public interface ServiceClient {
      * @return Arraylist<PostServiceRequestResponse>
      * @see PostServiceRequestResponse
      */
-    @POST("CitySDK/requests.json")
+    @POST("requests.json")
     Call<ArrayList<PostServiceRequestResponse>> postServiceRequest(@Query("service_code") String service_code,
                                                                    @Query("description") String description,
                                                                    @Query("lat") Double lat,
@@ -74,20 +74,45 @@ public interface ServiceClient {
                                                                    @Query("media_url") String media_url);
 
 
-    @GET("CitySDK/requests.json")
+    /**
+     * Get nearby service requests based on a radius with meters and lat and long that
+     * were given as parameters.
+     * @param lat the lattitude of the location.
+     * @param lng the longtitude of the location.
+     * @param status the status of a service request. Can be open or closed
+     * @param meters the meters for the radius search
+     * @return ArrayList<ServiceRequest> A list of service requests
+     */
+    @GET("requests.json")
     Call<ArrayList<ServiceRequest>> getNearbyServiceRequests(@Query("lat") String lat,
                                                              @Query("long") String lng,
                                                              @Query("status") String status,
                                                              @Query("radius") String meters);
 
-    @GET("CitySDK/requests.json")
-    Call<ArrayList<ServiceRequest>> getSimilarServiceRequests(@Query("lat") String lat,
-                                                              @Query("long") String lng,
-                                                              @Query("status") String status,
-                                                              @Query("radius") String meters,
-                                                              @Query("service_code") String serviceCode);
+    /**
+     * Get nearby service requests based on a radius with meters and lat and long that
+     * were given as parameters and a category.
+     * @param lat the lattitude of the location.
+     * @param lng the longtitude of the location.
+     * @param status the status of a service request. Can be open or closed.
+     * @param meters the meters for the radius search.
+     * @param serviceCode the service code of the category that is used as a filter
+     * @return ArrayList<ServiceRequest> A list of service requests
+     */
+    @GET("requests.json")
+    Call<ArrayList<ServiceRequest>> getNearbyServiceRequests(@Query("lat") String lat,
+                                                             @Query("long") String lng,
+                                                             @Query("status") String status,
+                                                             @Query("radius") String meters,
+                                                             @Query("service_code") String serviceCode);
 
-    @GET ("CitySDK/request/{id}.json")
+    /**
+     * Get specific service requests that are identified by a service ID.
+     * @param serviceID unique identifier for a service request
+     * @param jurisdiction_id unique identifier for a jurisdiction
+     * @return <code>ServiceRequest</code>
+     */
+    @GET ("request/{id}.json")
     Call<ServiceRequest> getServiceById (@Path("id") String serviceID,
                                          @Query("jurisdiction_id") String jurisdiction_id);
 }

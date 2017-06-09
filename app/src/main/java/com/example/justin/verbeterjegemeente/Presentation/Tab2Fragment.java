@@ -13,6 +13,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.example.justin.verbeterjegemeente.API.ConnectionChecker;
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.Adapters.ServiceRequestAdapter;
@@ -96,7 +97,7 @@ public class Tab2Fragment extends Fragment  {
     //moet aangeroepen worden met zoekknop
     public void searchServiceRequests (){
         try {
-            if(isConnected()) {
+            if(ConnectionChecker.isConnected()) {
 
                 if (currentLatLng != null) {
                     lat = "" + currentLatLng.latitude;
@@ -164,20 +165,6 @@ public class Tab2Fragment extends Fragment  {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    /**
-     * Method that pings to google.com to check if user is actually
-     * connected to the internet.
-     * @return True if user is connected to the internet
-     * and false if user cannot connect to google.com
-     * @throws InterruptedException
-     * @throws IOException
-     */
-    public boolean isConnected() throws InterruptedException, IOException
-    {
-        String command = "ping -c 1 google.com";
-        return (Runtime.getRuntime().exec (command).waitFor() == 0);
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {

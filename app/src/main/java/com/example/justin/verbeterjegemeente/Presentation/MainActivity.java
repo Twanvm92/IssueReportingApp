@@ -1,6 +1,6 @@
 package com.example.justin.verbeterjegemeente.Presentation;
 
-import android.Manifest;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -8,13 +8,13 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.location.Location;
+import android.provider.Settings;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
@@ -26,20 +26,17 @@ import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.example.justin.verbeterjegemeente.*;
 import com.example.justin.verbeterjegemeente.Adapters.SectionsPageAdapter;
 import com.example.justin.verbeterjegemeente.Business.LocationSelectedListener;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.maps.CameraUpdate;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
-
 import java.util.Locale;
-
 import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LAT;
 import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LONG;
+import static com.example.justin.verbeterjegemeente.Constants.MY_PERMISSIONS_LOCATION;
+import static com.example.justin.verbeterjegemeente.Constants.REQUEST_CHECK_SETTINGS;
 
 
 public class MainActivity extends AppCompatActivity implements LocationSelectedListener {
@@ -50,6 +47,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
 
     private ViewPager mViewPager;
     private FloatingActionButton fab;
+    private FloatingActionButton gps;
     private Tab1Fragment tabFragment = new Tab1Fragment();
     private LatLng currentLatLng;
     private Locale myLocale;
@@ -66,9 +64,17 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
         mViewPager = (ViewPager) findViewById(R.id.container);
         setupViewPager(mViewPager);
 
+        final TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
 
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
+
+        gps = (FloatingActionButton) findViewById(R.id.activityMain_Fbtn_gps);
+        gps.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                tabFragment.reqFindLocation();
+            }
+        });
 
         fab = (FloatingActionButton) findViewById(R.id.activityMain_Fbtn_FAB);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -100,19 +106,22 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
                 switch (position) {
                     case 0:
                         fab.show();
-
+                        gps.show();
                         break;
 
                     case 1:
                         fab.show();
+                        gps.hide();
                         break;
 
                     case 2:
                         fab.hide();
+                        gps.hide();
                         break;
 
                     default:
                         fab.hide();
+                        gps.hide();
                         break;
                 }
 
@@ -294,42 +303,45 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
         viewPager.setAdapter(adapter);
     }
 
+    @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case Constants.MY_PERMISSIONS_LOCATION:
+                tabFragment.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+    }
+
+
+    public void getLocation() {
         Location currentLocation = null;
         GoogleMap mMap = tabFragment.mMap;
         GoogleApiClient mApiClient = tabFragment.mApiClient;
-        switch (requestCode) {
-            case 2: {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                        return;
-                    }
 
-                    if (mApiClient != null) {
-
-                        // commented for testing purposed. Now jumps to default lat & long in Helsinki.
-                        // uncomment this line
-                        // currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
-
-                        if (currentLocation != null) {
-                            currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-                        } else {
-                            currentLatLng = new LatLng(DEFAULT_LONG, DEFAULT_LAT);
-                        }
-                        CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
-                        mMap.moveCamera(center);
-                    } else {
-                        currentLatLng = new LatLng(DEFAULT_LONG, DEFAULT_LAT);
-                        CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
-                        mMap.moveCamera(center);
-
-                    }
-                    return;
-                }
-            }
+//            if (mApiClient != null) {
+//
+//                // commented for testing purposed. Now jumps to default lat & long in Helsinki.
+//                // uncomment this line
+//                // currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
+//
+//                if (currentLocation != null) {
+//                    currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+//                } else {
+//                    currentLatLng = new LatLng(DEFAULT_LONG, DEFAULT_LAT);
+//
+//                }
+//                CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
+//                mMap.moveCamera(center);
+//            }
+//                else {
+//                currentLatLng = new LatLng(DEFAULT_LONG, DEFAULT_LAT);
+//                CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
+//                mMap.moveCamera(center);
+//
+//            }
 
 
-        }
+
+
     }
 
     @Override
@@ -373,6 +385,14 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
 
             // Commit the transaction
             transaction.commit();
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case REQUEST_CHECK_SETTINGS:
+                tabFragment.onActivityResult(requestCode, resultCode, data);
         }
     }
 }

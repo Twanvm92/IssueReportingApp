@@ -41,7 +41,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     private Marker marker;
     private Location currentLocation;
-    private GoogleApiClient mApiClient;
+    private GoogleApiClient  mApiClient;
     private FloatingActionButton saveButton;
     private LatLng currentLatLng;
 

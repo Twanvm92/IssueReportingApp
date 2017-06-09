@@ -26,31 +26,46 @@
             android:id="@+id/tabs"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:tabMaxWidth="0dp"
             app:tabGravity="fill"
-            app:tabMode="fixed"/>
+            app:tabMaxWidth="0dp"
+            app:tabMode="fixed" />
 
     </android.support.design.widget.AppBarLayout>
 
-
-    <android.support.v4.view.ViewPager
-        android:id="@+id/container"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior" >
-
-    </android.support.v4.view.ViewPager>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/activityMain_Fbtn_FAB"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end|bottom"
-        android:layout_marginBottom="69dp"
+        android:layout_marginBottom="35dp"
         android:layout_marginRight="33dp"
         android:clickable="true"
         app:backgroundTint="#6fda7f"
         app:fabSize="normal"
         app:srcCompat="@drawable/addalert" />
+
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/activityMain_Fbtn_gps"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:layout_marginBottom="89dp"
+        android:layout_marginRight="33dp"
+        android:clickable="true"
+        app:backgroundTint="#6fda7f"
+        app:fabSize="mini"
+        app:srcCompat="@drawable/ic_gps_fixed_white_48dp" />
+
+
+    <android.support.v4.view.ViewPager
+        android:id="@+id/container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+    </android.support.v4.view.ViewPager>
+
 
 </android.support.design.widget.CoordinatorLayout>

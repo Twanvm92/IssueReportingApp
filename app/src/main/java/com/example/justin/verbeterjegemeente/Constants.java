@@ -16,6 +16,7 @@ public class Constants {
     // Camera - gallery
     public static final int MY_PERMISSIONS_CAMERA = 1;
     public static final int MY_PERMISSIONS_STORAGE = 2;
+    public static final int MY_PERMISSIONS_LOCATION = 3;
     public static final int FOTO_MAKEN = 1;
     public static final int FOTO_KIEZEN = 2;
 
@@ -23,6 +24,7 @@ public class Constants {
     public static final int LOCATIE_KIEZEN= 3;
     public static final double DEFAULT_LONG = 60.2295851;
     public static final double DEFAULT_LAT = 24.9287892;
+    public static final int REQUEST_CHECK_SETTINGS = 0x1;
 
 
 

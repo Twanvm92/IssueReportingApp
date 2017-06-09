@@ -85,10 +85,10 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
         setContentView(R.layout.activity_main);
         Log.d(TAG, "onCreate: Starting.");
 
-
-        client = ServiceGenerator.createService(ServiceClient.class);
         reqManager = new RequestManager(this);
+        // set callback for data passing
         reqManager.setOnServicesReadyCallb(this);
+        // launch Retrofit callback and retrieve services asynchronously
         reqManager.getServices();
 
         mSectionsPageAdapter = new SectionsPageAdapter(getSupportFragmentManager());
@@ -151,8 +151,8 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
                                 SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
                                 prefs.edit().putInt(getString(R.string.activityMain_saved_radius), sbRadius.getProgress()).apply();
 
-                                // pass the updated radius value to Tab1Fragment
-                                radiusSelected(sbRadius.getProgress());
+                                rValue = sbRadius.getProgress();
+
                             }
                         });
 
@@ -178,7 +178,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
                                     if ()
                                 }*/
 
-                                
+                                radiusSelected(rValue);
                             }
                         });
 

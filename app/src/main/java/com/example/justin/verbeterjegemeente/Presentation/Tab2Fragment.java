@@ -201,5 +201,7 @@ public class Tab2Fragment extends Fragment  {
         String pRadius = (String) Integer.toString(radius);
         currentRadius = pRadius;
         Log.e("Radius update tab2: ", currentRadius);
+
+        searchServiceRequests();
     }
 }

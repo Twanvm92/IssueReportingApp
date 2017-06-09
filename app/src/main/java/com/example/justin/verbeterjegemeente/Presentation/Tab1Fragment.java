@@ -308,13 +308,20 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         LatLng center = mMap.getCameraPosition().target;
         String camLat = "" + center.latitude;
         String camLng = "" + center.longitude;
+        double camlatD = Double.parseDouble(camLat);
+        double camLngD = Double.parseDouble((camLng));
+        // update current lattitude and longtitude for updateRadius callback
+        // from MainActivity
+        currentLatLng = new LatLng(camlatD, camLngD);
         Log.e("Camera positie: ", "is veranderd");
 //        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(camLat, camLng, null, "300");
 //        moet service_code meegeven...
 
         // commented this line for testing getting service request based on radius from Helsinki Live API
-//        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(camLat, camLng, null, currentRadius, "OV");
-        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(camLat, camLng, null, currentRadius);
+//        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(
+//                  camLat, camLng, null, currentRadius, "OV");
+        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(
+                camLat, camLng, null, currentRadius);
         nearbyServiceRequests.enqueue(new Callback<ArrayList<ServiceRequest>>() {
             @Override
             public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
@@ -373,7 +380,57 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     public void updateRadius(int radius) {
         String pRadius = (String) Integer.toString(radius);
         currentRadius = pRadius;
+        String currentLat = Double.toString(currentLatLng.latitude);
+        String currentLng = Double.toString(currentLatLng.longitude);
         Log.e("Radius update tab1: ", currentRadius);
+
+        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(
+                currentLat, currentLng, null, currentRadius);
+        nearbyServiceRequests.enqueue(new Callback<ArrayList<ServiceRequest>>() {
+            @Override
+            public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
+                if(response.isSuccessful()) {
+                    ArrayList<ServiceRequest> srList = response.body();
+
+                    // clear all markers on the map before adding new markers
+                    mMap.clear();
+
+                    for (ServiceRequest s : srList) {
+                        mMap.addMarker(new MarkerOptions()
+                                .position(new LatLng(s.getLat(), s.getLong()))
+                                .title(s.getDescription())
+                                .icon(BitmapDescriptorFactory.fromBitmap(
+                                        BitmapGenerator.getBitmapFromVectorDrawable(getContext(),
+                                                R.drawable.service_request_marker)))
+                        );
+                        Log.e("Opgehaalde servicereq: ", s.getDescription() + "");
+                    }
+
+                } else {
+                    try { //something went wrong. Show the user what went wrong
+                        JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
+                        JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
+
+                        Toast.makeText(getContext(), jObjError.getString("description"),
+                                Toast.LENGTH_SHORT).show();
+                        Log.i("Error message: ", jObjError.getString("description"));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ArrayList<ServiceRequest>> call, Throwable t) {
+                Toast.makeText(getContext(), t.getMessage().toString(),
+                        Toast.LENGTH_SHORT).show();
+                t.printStackTrace();
+            }
+        });
+
     }
 }
 

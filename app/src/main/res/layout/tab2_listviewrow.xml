@@ -16,10 +16,9 @@
 
         <TextView
             android:id="@+id/locatietab2tv"
-            android:layout_width="130dp"
+            android:layout_width="145dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-
             android:fontFamily="sans-serif-condensed"
             android:text="@string/locatieTab2"
             android:textAppearance="@style/TextAppearance.AppCompat.Light.Widget.PopupMenu.Large"

@@ -11,6 +11,7 @@
     <string name="taal">Language</string>
     <string name="zoekafstand">Search Distance</string>
     <string name="profiel">Profile</string>
+    <string name="status">Status:</string>
 
     <string name="optioneel">Optional</string>
     <string name="emailHint">Enter your email address here</string>

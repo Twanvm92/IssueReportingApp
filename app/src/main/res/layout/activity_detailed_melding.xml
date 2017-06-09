@@ -26,7 +26,7 @@
                     android:layout_marginTop="20dp"
                     android:layout_weight="1"
                     android:fontFamily="sans-serif-condensed"
-                    android:text="Raadhuisstraat 123"
+                    android:text="@string/locatieTab2"
                     android:textColor="@android:color/white"
                     android:textSize="30sp" />
 
@@ -68,7 +68,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginLeft="5dp"
                         android:layout_marginTop="20dp"
-                        android:text="Hoofdcategorie:"
+                        android:text="@string/hoofdcategorieTab2"
                         android:textColor="@android:color/background_light"
                         android:textSize="20sp"
                         android:textStyle="bold" />
@@ -94,7 +94,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginLeft="5dp"
-                        android:text="Subcategorie:"
+                        android:text="@string/subcategorieTab2"
                         android:textColor="@android:color/background_light"
                         android:textSize="20sp"
                         android:textStyle="bold" />
@@ -116,84 +116,6 @@
                         android:textSize="19sp" />
                 </LinearLayout>
             </LinearLayout>
-
-            <TextView
-                android:id="@+id/activityDetailedMelding_tv_statusID"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:text="Status:"
-                android:textColor="@android:color/background_light"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/activityDetailedMelding_tv_status_DetailedID"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:background="@color/colorBackground2"
-                android:fontFamily="sans-serif-condensed"
-                android:foreground="@drawable/imageborder"
-                android:paddingBottom="5px"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
-                android:paddingTop="5px"
-                android:text="Afval wordt vandaag opgeruimd."
-                android:textColor="@android:color/white"
-                android:textSize="19sp" />
-
-            <TextView
-                android:id="@+id/activityDetailedMelding_tv_statusNotesID"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:text="Status:"
-                android:textColor="@android:color/background_light"
-                android:textSize="20sp"
-                android:textStyle="bold"  />
-
-            <TextView
-                android:id="@+id/activityDetailedMelding_tv_status_DetailedNotesID"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:background="@color/colorBackground2"
-                android:fontFamily="sans-serif-condensed"
-                android:foreground="@drawable/imageborder"
-                android:paddingBottom="5px"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
-                android:paddingTop="5px"
-                android:text="Notes."
-                android:textColor="@android:color/white"
-                android:textSize="19sp" />
-
-            <TextView
-                android:id="@+id/activityDetailedMelding_tv_laatstUpdateID"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:text="Laatste update:"
-                android:textColor="@android:color/background_light"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/activityDetailedMelding_tv_laatsUpdate_detailedID"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:background="@color/colorBackground2"
-                android:fontFamily="sans-serif-condensed"
-                android:foreground="@drawable/imageborder"
-                android:paddingBottom="5px"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
-                android:paddingTop="5px"
-                android:text="12 minuten geleden"
-                android:textColor="@android:color/white"
-                android:textSize="19sp" />
 
             <TextView
                 android:id="@+id/activityDetailedMelding_tv_beschrijvingID"
@@ -227,6 +149,84 @@
                     android:textColor="@android:color/white"
                     android:textSize="19sp" />
             </ScrollView>
+
+            <TextView
+                android:id="@+id/activityDetailedMelding_tv_statusID"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:text="@string/status"
+                android:textColor="@android:color/background_light"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/activityDetailedMelding_tv_status_DetailedID"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:background="@color/colorBackground2"
+                android:fontFamily="sans-serif-condensed"
+                android:foreground="@drawable/imageborder"
+                android:paddingBottom="5px"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:paddingTop="5px"
+                android:text="Open/gesloten"
+                android:textColor="@android:color/white"
+                android:textSize="19sp" />
+
+            <TextView
+                android:id="@+id/activityDetailedMelding_tv_statusNotesID"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:text="@string/status"
+                android:textColor="@android:color/background_light"
+                android:textSize="20sp"
+                android:textStyle="bold"  />
+
+            <TextView
+                android:id="@+id/activityDetailedMelding_tv_status_DetailedNotesID"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:background="@color/colorBackground2"
+                android:fontFamily="sans-serif-condensed"
+                android:foreground="@drawable/imageborder"
+                android:paddingBottom="5px"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:paddingTop="5px"
+                android:text="Notes."
+                android:textColor="@android:color/white"
+                android:textSize="19sp" />
+
+            <TextView
+                android:id="@+id/activityDetailedMelding_tv_laatstUpdateID"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:text="@string/laatsteupdateTab2"
+                android:textColor="@android:color/background_light"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/activityDetailedMelding_tv_laatsUpdate_detailedID"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:background="@color/colorBackground2"
+                android:fontFamily="sans-serif-condensed"
+                android:foreground="@drawable/imageborder"
+                android:paddingBottom="5px"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:paddingTop="5px"
+                android:text="12 minuten geleden"
+                android:textColor="@android:color/white"
+                android:textSize="19sp" />
 
             <Button
                 android:id="@+id/activityDetailedMelding_btn_terugBTN_ID"

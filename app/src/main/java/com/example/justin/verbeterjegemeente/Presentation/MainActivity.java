@@ -165,7 +165,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
                     nederlands.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            Toast.makeText(getApplication(), "NEDERLANDSE TAAL AANGEZET",Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplication(), "Welkom",Toast.LENGTH_SHORT).show();
 
                             setLocale("nl");
                             saveLocale("nl");
@@ -176,7 +176,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
                     engels.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            Toast.makeText(getApplication(), "ENGELSE TAAL AANGEZET",Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplication(), "Welcome",Toast.LENGTH_SHORT).show();
 
                             setLocale("en");
                             saveLocale("en");

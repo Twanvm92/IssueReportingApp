@@ -21,6 +21,7 @@
     <string name="taal">Taal</string>
     <string name="zoekafstand">Zoekafstand</string>
     <string name="profiel">Profiel</string>
+    <string name="status">Status:</string>
 
     <string name="optioneel">Optioneel</string>
     <string name="emailHint">Vul hier uw email adres in</string>

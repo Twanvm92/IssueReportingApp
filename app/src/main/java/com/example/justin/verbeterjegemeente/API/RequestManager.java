@@ -49,6 +49,8 @@ public class RequestManager {
                                 Log.i("Response: ", "" + s.getService_name());
                             }
 
+                            // let the activity/fragment that implemented the service callback
+                            // know that the services are ready.
                             servCallb.servicesReady(serviceList);
                         } else {
                             Log.i("Response: ", "List was empty");

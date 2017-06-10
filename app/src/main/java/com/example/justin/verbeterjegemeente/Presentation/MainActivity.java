@@ -39,6 +39,7 @@ import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.Adapters.SectionsPageAdapter;
 import com.example.justin.verbeterjegemeente.Business.LocationSelectedListener;
+import com.example.justin.verbeterjegemeente.Business.ServiceManager;
 import com.example.justin.verbeterjegemeente.domain.Service;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.CameraUpdate;
@@ -85,6 +86,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
         setContentView(R.layout.activity_main);
         Log.d(TAG, "onCreate: Starting.");
 
+        // from here all the API requests will be handled
         reqManager = new RequestManager(this);
         // set callback for data passing
         reqManager.setOnServicesReadyCallb(this);
@@ -525,24 +527,11 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
     @Override
     public void servicesReady(List<Service> services) {
         serviceList = services;
+        // update the catagoryList with main categories generated from the service list
+        catagoryList = ServiceManager.genMainCategories(services, catagoryList);
 
-        if(serviceList != null) {
-            int x = 1; // set iterable separately for categoryList
-            for (int i = 0; i < services.size(); i++) {
-                // first categoryList item is a default String
-                if(catagoryList.size() > 1) { // do something if list already has 1 or more categories
-                    // do something if previous category is not the same as new category in servicelist
-                    if(!catagoryList.get(x).equals(serviceList.get(i).getGroup())) {
-                        catagoryList.add(serviceList.get(i).getGroup()); // add new category
-                        x++; // only up this iterable if new category is added
-                    }
-                } else {
-                    catagoryList.add(serviceList.get(i).getGroup());
-                    Log.e("service groups: ", serviceList.get(i).getGroup());
-                }
-            }
+        // let the adapter know that data has changed
+        catagoryAdapter.notifyDataSetChanged();
 
-            catagoryAdapter.notifyDataSetChanged();
-        }
     }
 }

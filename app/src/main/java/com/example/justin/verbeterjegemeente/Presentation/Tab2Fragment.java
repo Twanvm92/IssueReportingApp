@@ -45,6 +45,7 @@ public class Tab2Fragment extends Fragment  {
     private static final int LOCATIE_KIEZEN= 3;
     private LatLng currentLatLng = null;
     private String currentRadius;
+    private String servCodeQ;
 //    private Button locatieButton;
 
     @Nullable
@@ -68,7 +69,14 @@ public class Tab2Fragment extends Fragment  {
                 Log.e("tab2frag bndl radius: ", currentRadius);
             }
 
-
+            if(bundle.getString("SERVICE_CODE_VALUE") != null) {
+                servCodeQ = getArguments().getString("SERVICE_CODE_VALUE");
+                if (servCodeQ !=null) {
+                    Log.e("tab2frag bnd servcodeQ ", servCodeQ);
+                } else {
+                    Log.e("tab2frag servCodeQ null", "");
+                }
+            }
         }
 
         searchServiceRequests();
@@ -124,7 +132,7 @@ public class Tab2Fragment extends Fragment  {
 
                 // commented this line for testing getting service request based on radius from Helsinki Live API
 //                Call<ArrayList<ServiceRequest>> serviceCall = client.getNearbyServiceRequests(lat, lon, status, currentRadius, "OV");
-                Call<ArrayList<ServiceRequest>> serviceCall= client.getNearbyServiceRequests(lat, lon, null, currentRadius);
+                Call<ArrayList<ServiceRequest>> serviceCall= client.getNearbyServiceRequests(lat, lon, null, currentRadius, servCodeQ);
 //               fire the get request
                 serviceCall.enqueue(new Callback<ArrayList<ServiceRequest>>() {
                     @Override
@@ -197,9 +205,10 @@ public class Tab2Fragment extends Fragment  {
      * This method will update the radius set by the user
      * @param radius radius in meters
      */
-    public void updateRadius(int radius) {
+    public void updateRadiusCat(int radius, String servCodeQ) {
         String pRadius = (String) Integer.toString(radius);
         currentRadius = pRadius;
+        this.servCodeQ = servCodeQ;
         Log.e("Radius update tab2: ", currentRadius);
 
         searchServiceRequests();

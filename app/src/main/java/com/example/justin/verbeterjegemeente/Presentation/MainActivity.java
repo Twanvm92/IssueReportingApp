@@ -33,10 +33,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.*;
-import com.example.justin.verbeterjegemeente.API.ConnectionChecker;
 import com.example.justin.verbeterjegemeente.API.RequestManager;
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
-import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.Adapters.SectionsPageAdapter;
 import com.example.justin.verbeterjegemeente.Business.LocationSelectedListener;
 import com.example.justin.verbeterjegemeente.Business.ServiceManager;
@@ -47,16 +45,12 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 import io.github.yavski.fabspeeddial.FabSpeedDial;
 import io.github.yavski.fabspeeddial.SimpleMenuListenerAdapter;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LAT;
 import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LONG;
@@ -78,6 +72,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
     private ServiceClient client;
     private Locale myLocale;
     private RequestManager reqManager;
+    private String servCodeQ;
 
 
     @Override
@@ -125,6 +120,8 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
                         // get user selected radius or use default radius
                         SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
                         rValue = prefs.getInt(getString(R.string.activityMain_saved_radius), 20); // 20 is default
+                        String savedCat = prefs.getString(getString(R.string.activityMain_saved_category),
+                                getString(R.string.geenFilter));
 
                         // set all values for the seekbar
                         sbRadius.getProgressDrawable().setColorFilter(Color.GREEN, PorterDuff.Mode.SRC_IN);
@@ -160,9 +157,12 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
 
 
                         catagorySpinner = (Spinner) mView.findViewById(R.id.filterdialog_sp_categorieen);
-
                         catagoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                         catagorySpinner.setAdapter(catagoryAdapter);
+                        if (!savedCat.equals(null)) {
+                            int spinnerPosition = catagoryAdapter.getPosition(savedCat);
+                            catagorySpinner.setSelection(spinnerPosition);
+                        }
 
                         builder1.setView(mView);
                         AlertDialog dialog = builder1.create();
@@ -173,14 +173,15 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
                         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
                             @Override
                             public void onDismiss(DialogInterface dialog) {
-                                /*String currCatag = catagorySpinner.getSelectedItem().toString();
-                                String currCatacode = null;
+                                String currCatag = catagorySpinner.getSelectedItem().toString();
+                                ArrayList<String> catCodeList = new ArrayList<String>();
+                                SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
 
-                                for (Service s : serviceList) {
-                                    if ()
-                                }*/
+                                servCodeQ = ServiceManager.genServiceCodeQ(serviceList, currCatag);
+                                prefs.edit().putString(getString(R.string.activityMain_saved_category), currCatag).apply();
+                                prefs.edit().putString(getString(R.string.activityMain_saved_servcodeQ), servCodeQ).apply();
 
-                                radiusSelected(rValue);
+                                radiusCategSelected(rValue, servCodeQ);
                             }
                         });
 
@@ -382,20 +383,30 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
     private void setupViewPager(ViewPager viewPager) {
         SectionsPageAdapter adapter = new SectionsPageAdapter(getSupportFragmentManager());
 
-        // get user selected radius or use default radius
+        // get user selected radius and cat or use default radius and cat
         SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
         rValue = prefs.getInt(getString(R.string.activityMain_saved_radius), 20); // 20 is default
+        String savedservCodeQ = prefs.getString(getString(R.string.activityMain_saved_servcodeQ),
+                getString(R.string.geenFilter));
 
-        //create bundle and put current saved radius value in the bundle
+        // check if service code is not default value
+        // otherwise make String null
+        // this will let API requests not take in account service codes
+        if(savedservCodeQ.equals(getString(R.string.geenFilter))) {
+            savedservCodeQ = null;
+        }
+
+        //create bundle and put current saved radius and service code values in the bundle
         Bundle bundle = new Bundle();
         String sValue = Integer.toString(rValue);
         bundle.putString("RADIUS_VALUE",sValue);
+        bundle.putString("SERVICE_CODE_VALUE",savedservCodeQ);
 
-        // pass radius value as a bundle to the Tab1Fragment
+        // pass values as a bundle to the Tab1Fragment
         tabFragment.setArguments(bundle);
         adapter.addFragment(tabFragment, "");
 
-        // pass radius value as a bundle to the Tab1Fragment
+        // pass values as a bundle to the Tab1Fragment
         tab2Fragment.setArguments(bundle);
         adapter.addFragment(tab2Fragment, "");
 
@@ -487,9 +498,14 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
      * to the Tab1Fragment where the radius will be used to find service requests and
      * place them on the map and in the
      * @param value value of the progress of the radius seekbar in custom dialog
+     * @param servCodeQ
      *
      */
-    public void radiusSelected(int value) {
+    public void radiusCategSelected(int value, String servCodeQ) {
+
+        if(servCodeQ.equals("")) {
+            servCodeQ = null;
+        }
 
         Tab1Fragment tab1Fragment = null;
 
@@ -504,7 +520,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
             // Call a method in the Tab1Fragment to update its content
             Log.e("MainActivity: ", "We are in a two pane layout..");
 
-            tab1Fragment.updateRadius(value);
+            tab1Fragment.updateRadiusCat(value, servCodeQ);
         }
 
         Tab2Fragment tab2Fragment = null;
@@ -520,7 +536,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
             // Call a method in the Tab2Fragment to update its content
             Log.e("MainActivity: ", "We are in a two pane layout..");
 
-            tab2Fragment.updateRadius(value);
+            tab2Fragment.updateRadiusCat(value, servCodeQ);
         }
     }
 

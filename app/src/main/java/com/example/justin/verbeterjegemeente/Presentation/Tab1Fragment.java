@@ -86,6 +86,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     private ArrayList<String> catagoryList;
     private Spinner catagorySpinner;
     private String currentRadius;
+    private String servCodeQ;
 
     boolean popupShown = false;
 
@@ -98,6 +99,14 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         {
             currentRadius = getArguments().getString("RADIUS_VALUE");
             Log.e("tab1frag bundl radius: ", currentRadius);
+
+            servCodeQ = getArguments().getString("SERVICE_CODE_VALUE");
+            if (servCodeQ !=null) {
+                Log.e("tab1frag bnd servcodeQ ", servCodeQ);
+            } else {
+                Log.e("tab1frag servCodeQ", "null");
+            }
+
 
         }
 
@@ -310,7 +319,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         String camLng = "" + center.longitude;
         double camlatD = Double.parseDouble(camLat);
         double camLngD = Double.parseDouble((camLng));
-        // update current lattitude and longtitude for updateRadius callback
+        // update current lattitude and longtitude for updateRadiusCat callback
         // from MainActivity
         currentLatLng = new LatLng(camlatD, camLngD);
         Log.e("Camera positie: ", "is veranderd");
@@ -321,7 +330,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 //        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(
 //                  camLat, camLng, null, currentRadius, "OV");
         Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(
-                camLat, camLng, null, currentRadius);
+                camLat, camLng, null, currentRadius, servCodeQ);
         nearbyServiceRequests.enqueue(new Callback<ArrayList<ServiceRequest>>() {
             @Override
             public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
@@ -339,7 +348,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                                         BitmapGenerator.getBitmapFromVectorDrawable(getContext(),
                                                 R.drawable.service_request_marker)))
                         );
-                        Log.e("Opgehaalde servicereq: ", s.getDescription() + "");
+                        Log.e("Opgehaalde servicereq: ", s.getServiceCode() + "");
                     }
 
                 } else {
@@ -377,15 +386,16 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
      * This method will update the radius set by the user
      * @param radius radius in meters
      */
-    public void updateRadius(int radius) {
+    public void updateRadiusCat(int radius, String servCodeQ) {
         String pRadius = (String) Integer.toString(radius);
         currentRadius = pRadius;
+        this.servCodeQ = servCodeQ;
         String currentLat = Double.toString(currentLatLng.latitude);
         String currentLng = Double.toString(currentLatLng.longitude);
         Log.e("Radius update tab1: ", currentRadius);
 
         Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(
-                currentLat, currentLng, null, currentRadius);
+                currentLat, currentLng, null, currentRadius, servCodeQ);
         nearbyServiceRequests.enqueue(new Callback<ArrayList<ServiceRequest>>() {
             @Override
             public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
@@ -403,7 +413,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                                         BitmapGenerator.getBitmapFromVectorDrawable(getContext(),
                                                 R.drawable.service_request_marker)))
                         );
-                        Log.e("Opgehaalde servicereq: ", s.getDescription() + "");
+                        Log.e("Opgehaalde serv: ", s.getServiceCode() + "");
                     }
 
                 } else {

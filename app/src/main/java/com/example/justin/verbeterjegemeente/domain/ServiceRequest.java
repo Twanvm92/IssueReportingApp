@@ -6,6 +6,14 @@ import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
 
+/**
+ * <code>ServiceRequest</code> is a class that gets created after a get request for services requests has been send
+ * to an open311 interface. The JSON that gets caught in the response is converted to a <code>ServiceRequest</code> class
+ * by a gson converter in the <code>Retrofit</code> class
+ * @see com.example.justin.verbeterjegemeente.API.ServiceClient#getNearbyServiceRequests(String, String, String, String)
+ * @see retrofit2.Retrofit
+ * @author Twan van Maastricht
+ */
 public class ServiceRequest implements Serializable{
 
     @SerializedName("service_request_id")

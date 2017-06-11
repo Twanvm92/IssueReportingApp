@@ -173,14 +173,22 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
                         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
                             @Override
                             public void onDismiss(DialogInterface dialog) {
+                                // get the currently selected category
                                 String currCatag = catagorySpinner.getSelectedItem().toString();
                                 ArrayList<String> catCodeList = new ArrayList<String>();
                                 SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
 
+                                // generate a string with appended service codes
+                                // depending on what services are available and what category filter is
+                                // currently active.
                                 servCodeQ = ServiceManager.genServiceCodeQ(serviceList, currCatag);
+                                // save the currently active category filter and the string of service codes
+                                // that belong to that category in the users preferences
                                 prefs.edit().putString(getString(R.string.activityMain_saved_category), currCatag).apply();
                                 prefs.edit().putString(getString(R.string.activityMain_saved_servcodeQ), servCodeQ).apply();
 
+                                // notify Tab1Fragment and Tab2Fragment that a new radius and category
+                                // was selected
                                 radiusCategSelected(rValue, servCodeQ);
                             }
                         });
@@ -515,11 +523,8 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
         }
 
         if (tab1Fragment != null) {
-            // If tab1 frag is available, we're in two-pane layout...
 
-            // Call a method in the Tab1Fragment to update its content
-            Log.e("MainActivity: ", "We are in a two pane layout..");
-
+            // update the radius and category selected in the Tab1Fragment
             tab1Fragment.updateRadiusCat(value, servCodeQ);
         }
 
@@ -531,11 +536,8 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
         }
 
         if (tab2Fragment != null) {
-            // If tab1 frag is available, we're in two-pane layout...
 
-            // Call a method in the Tab2Fragment to update its content
-            Log.e("MainActivity: ", "We are in a two pane layout..");
-
+            // update the radius and category selected in the Tab2Fragment
             tab2Fragment.updateRadiusCat(value, servCodeQ);
         }
     }

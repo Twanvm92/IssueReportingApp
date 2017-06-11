@@ -16,6 +16,11 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 /**
+ * This class will manage all the Retrofit API requests.
+ * When the requests give back a response a custom callback interface
+ * will notify and pass the data out of the response to the
+ * activity that implemented the callback.
+ * It will need the context of the activity to display toasts.
  * Created by twanv on 9-6-2017.
  */
 
@@ -25,11 +30,20 @@ public class RequestManager {
     private List<Service> serviceList;
     private OnServicesReady servCallb;
 
+    /**
+     * Accepts the context of an activity and initializes the ServiceClient
+     * to handle the API requests.
+     * @param context context of an activity
+     */
     public RequestManager(Context context) {
         client = ServiceGenerator.createService(ServiceClient.class);
         this.context = context;
     }
 
+    /**
+     * Gets the services from an Open311 interface APi and passes these as a list
+     * to a callback interface.
+     */
     public void getServices() {
         try {
             if(ConnectionChecker.isConnected()) { // check if user is actually connected to the internet
@@ -75,11 +89,25 @@ public class RequestManager {
         }
     }
 
+    /**
+     *
+     * @param servCallb Callback interface that was implemented by the activity
+     *                  that passed this callback.
+     */
     public void setOnServicesReadyCallb(OnServicesReady servCallb) {
         this.servCallb = servCallb;
     }
 
+    /**
+     * Callback interface that will pass a list of services to a activity that implemented
+     * the interface once the list has been received.
+     */
     public interface OnServicesReady {
+        /**
+         * Passes available services in a list to class that is listening.
+         * @param services accepts a list of services obtained
+         *                 from an open311 interface
+         */
         void servicesReady(List<Service> services);
     }
 }

@@ -11,7 +11,7 @@ import com.google.android.gms.maps.model.LatLng;
 public interface LocationSelectedListener {
     /**
      *  Passes a lat and long of the changed location to the
-     *  class that was listening
+     *  class that is listening.
      * @param curLatLong the lat and long value of location
      */
     public void locationSelected(LatLng curLatLong);

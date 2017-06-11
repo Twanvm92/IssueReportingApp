@@ -116,8 +116,6 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         markerList = new ArrayList<Marker>();
 
         initApi();
-
-
     }
 
     @Override
@@ -329,6 +327,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         // commented this line for testing getting service request based on radius from Helsinki Live API
 //        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(
 //                  camLat, camLng, null, currentRadius, "OV");
+
         Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(
                 camLat, camLng, null, currentRadius, servCodeQ);
         nearbyServiceRequests.enqueue(new Callback<ArrayList<ServiceRequest>>() {
@@ -340,6 +339,8 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                     // clear all markers on the map before adding new markers
                     mMap.clear();
 
+                    // loop through all the service requests and add their description
+                    // to a new marker on the Google map
                     for (ServiceRequest s : srList) {
                         mMap.addMarker(new MarkerOptions()
                                 .position(new LatLng(s.getLat(), s.getLong()))
@@ -383,8 +384,12 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     }
 
     /**
-     * This method will update the radius set by the user
+     * This method will update the radius and service codes connected to the category
+     * set by the user. After that it will get new service requests based on the new radius and
+     * category filter and add them as markers on a Google map
      * @param radius radius in meters
+     * @param servCodeQ String with service codes appending by a , delimiter
+     *                  that can be used for filtering service requests.
      */
     public void updateRadiusCat(int radius, String servCodeQ) {
         String pRadius = (String) Integer.toString(radius);
@@ -405,6 +410,8 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                     // clear all markers on the map before adding new markers
                     mMap.clear();
 
+                    // loop through all the service requests and add their description
+                    // to a new marker on the Google map
                     for (ServiceRequest s : srList) {
                         mMap.addMarker(new MarkerOptions()
                                 .position(new LatLng(s.getLat(), s.getLong()))

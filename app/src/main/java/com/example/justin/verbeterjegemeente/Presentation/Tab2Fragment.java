@@ -193,17 +193,28 @@ public class Tab2Fragment extends Fragment  {
         }
     }
 
+    /**
+     * Accepts current location of the user (or the location of the camera on the Google map
+     * if user does not have gps activated) that was passed from Tab1Fragment to MainActivity
+     * to this Fragment. Also sends a new get request to obtain srvice requests based on the new
+     * location given.
+     * @param newLatLong Current location of the user that is determined by
+     *                   a gps location or the center of the camera on the Google map
+     */
     public void updateCurrentLoc(LatLng newLatLong) {
         currentLatLng = newLatLong;
         Log.e("Method: ", "Lat: " + currentLatLng.latitude + " Long: " + currentLatLng.longitude);
-
 
         searchServiceRequests();
     }
 
     /**
-     * This method will update the radius set by the user
+     * This method will update the radius and service codes connected to the category
+     * set by the user. After that it will get new service requests based on the new radius and
+     * category filter and add them as markers on a Google map
      * @param radius radius in meters
+     * @param servCodeQ String with service codes appending by a , delimiter
+     *                  that can be used for filtering service requests.
      */
     public void updateRadiusCat(int radius, String servCodeQ) {
         String pRadius = (String) Integer.toString(radius);

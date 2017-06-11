@@ -9,11 +9,21 @@ import java.util.List;
 import java.util.Locale;
 
 /**
+ * This class is responsible for getting information out of services
+ * and doing something with that information.
  * Created by twanv on 10-6-2017.
  */
 
 public class ServiceManager {
-
+    /**
+     * Loops through every <code>Service</code> and finds unique group names
+     * which are our main categories. These unique group names are then
+     * put into a new ArrayList.
+     * @param serviceL list filled with services that is looped through.
+     * @param catagoryList list filled with the categories filtered out of the services.
+     * @return a list of main categories.
+     * @see Service
+     */
     public static ArrayList<String> genMainCategories(List<Service> serviceL, ArrayList<String> catagoryList) {
 
         int x = 1; // set iterable separately for categoryList
@@ -35,6 +45,14 @@ public class ServiceManager {
         return catagoryList;
     }
 
+    /**
+     * Will check if the current category filter chosen by the user, matches the attribute group
+     * in a <code>Service</code> and if so, will append the service code of that service
+     * to a <code>StringBuilder</code>.
+     * @param serviceL list of services from an open311 Interface.
+     * @param currCat current category filter chosen by the user.
+     * @return
+     */
     public static String genServiceCodeQ(List<Service> serviceL, String currCat) {
         StringBuilder sb = new StringBuilder();
         String delim = "";

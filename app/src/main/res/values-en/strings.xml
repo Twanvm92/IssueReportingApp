@@ -47,6 +47,15 @@
     <string name="fotoWijzigen">Change picture</string>
     <string name="fotoMaken">Take photo</string>
     <string name="fotoKiezen">Choose picture from gallery</string>
+    <string name="activityMain_item_filters">Filters</string>
+    <string name="activityMain_item_gps">Location</string>
+    <string name="activityMain_item_report">Report</string>
 
     <string name="soortgelijkeMeldingen">Similar alerts at this location</string>
+    <string name="categorieën">Categories</string>
+    <string name="activityMain_saved_radius">SAVED_RADIUS</string>
+    <string name="radiusMeters">meters</string>
+    <string name="geenFilter">No filter</string>
+    <string name="activityMain_saved_category">SAVED_CAT</string>
+    <string name="activityMain_saved_servcodeQ">SAVED_SERVICE_CODES</string>
 </resources>

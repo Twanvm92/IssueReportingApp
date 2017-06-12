@@ -13,6 +13,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.example.justin.verbeterjegemeente.API.ConnectionChecker;
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.Adapters.ServiceRequestAdapter;
@@ -43,6 +44,8 @@ public class Tab2Fragment extends Fragment  {
     private Locatie location;
     private static final int LOCATIE_KIEZEN= 3;
     private LatLng currentLatLng = null;
+    private String currentRadius;
+    private String servCodeQ;
 //    private Button locatieButton;
 
     @Nullable
@@ -53,30 +56,30 @@ public class Tab2Fragment extends Fragment  {
         Bundle bundle = getArguments();
         if(bundle!= null)
         {
-            double lat = getArguments().getDouble("CURRENT_LAT");
-            double lng = getArguments().getDouble("CURRENT_LONG");
-            Log.e("LAT EN LONG MAP: ", "Lat: " + lat + " Long: " + lng);
+            if(bundle.getDouble("CURRENT_LAT") != 0  && bundle.getDouble("CURRENT_LONG") != 0) {
+                double lat = getArguments().getDouble("CURRENT_LAT");
+                double lng = getArguments().getDouble("CURRENT_LONG");
+                Log.e("Bundle: ", "Lat: " + lat + " Long: " + lng);
 
-            currentLatLng = new LatLng(lat, lng);
+                currentLatLng = new LatLng(lat, lng);
+            }
 
-            searchServiceRequests();
+            if(bundle.getString("RADIUS_VALUE") != null) {
+                currentRadius = getArguments().getString("RADIUS_VALUE");
+                Log.e("tab2frag bndl radius: ", currentRadius);
+            }
+
+            if(bundle.getString("SERVICE_CODE_VALUE") != null) {
+                servCodeQ = getArguments().getString("SERVICE_CODE_VALUE");
+                if (servCodeQ !=null) {
+                    Log.e("tab2frag bnd servcodeQ ", servCodeQ);
+                } else {
+                    Log.e("tab2frag servCodeQ null", "");
+                }
+            }
         }
 
-
-        //                locatiebtn toevoegen
-//        locatieButton = (Button) view.findViewById(R.id.wijzigLocatieButton);
-//        locatieButton.setOnClickListener(new View.OnClickListener() {
-//
-//            @Override
-//            public void onClick(View v) {
-//                Intent intent = new Intent(getContext(), MapsActivity.class);
-//                startActivityForResult(intent, LOCATIE_KIEZEN);
-//            }
-//        });
-
-        //spinner maken voor status
-        //spinner maken voor meters
-        //zoek knop toevoegen
+        searchServiceRequests();
 
         serviceList = new ArrayList<>();
 
@@ -102,33 +105,7 @@ public class Tab2Fragment extends Fragment  {
     //moet aangeroepen worden met zoekknop
     public void searchServiceRequests (){
         try {
-            if(isConnected()) {
-//                 zoek opties nog toevoegen
-//                if(currentLatLng != null) {
-//                    if(currentLatLng.longitude != 0.0 && currentLatLng.latitude != 0.0) {
-//                        lon = "" + currentLatLng.longitude;
-//                        lat = "" + currentLatLng.latitude;
-//                        Log.e("Long after receive", lon);
-//                        Log.e("Lat after receive", lat);
-//                    } else {
-//                        Toast.makeText(getContext(),
-//                                getResources().getString(R.string.geenLocatie),Toast.LENGTH_SHORT).show();
-//                        return;
-//                    }
-//                } else {
-//                    Toast.makeText(getContext(),
-//                            getResources().getString(R.string.geenLocatie),Toast.LENGTH_SHORT).show();
-//                    return;
-//                }
-
-
-//                if (!status.getText().toString().equals("") && !meters.getText().toString().equals("")) {
-//                    status = *.getText().toString();
-//                    meters = *.getText().toString();
-//                } else {
-//                    return;
-//                    // niet elk veld is ingevuld
-//                }
+            if(ConnectionChecker.isConnected()) {
 
                 if (currentLatLng != null) {
                     lat = "" + currentLatLng.latitude;
@@ -140,8 +117,10 @@ public class Tab2Fragment extends Fragment  {
                 }
 
 //                hardcoded voor nu
-                lat = "52";
-                lon = "10";
+                // use lat and long from google maps camera or user location
+                // instea dof hardcoded for testing Helsinki Live API
+                /*lat = "52";
+                lon = "10";*/
                 status = "open";
                 meters = "200";
 
@@ -150,7 +129,10 @@ public class Tab2Fragment extends Fragment  {
 
 //                moet nog steeds service_code meegegeven worden.. fout van api
 //                Call<ArrayList<ServiceRequest>> serviceCall = client.getNearbyServiceRequests(lat, lon, status, meters);
-               Call<ArrayList<ServiceRequest>> serviceCall = client.getSimilarServiceRequests(lat, lon, status, meters, "OV");
+
+                // commented this line for testing getting service request based on radius from Helsinki Live API
+//                Call<ArrayList<ServiceRequest>> serviceCall = client.getNearbyServiceRequests(lat, lon, status, currentRadius, "OV");
+                Call<ArrayList<ServiceRequest>> serviceCall= client.getNearbyServiceRequests(lat, lon, null, currentRadius, servCodeQ);
 //               fire the get request
                 serviceCall.enqueue(new Callback<ArrayList<ServiceRequest>>() {
                     @Override
@@ -193,20 +175,6 @@ public class Tab2Fragment extends Fragment  {
         }
     }
 
-    /**
-     * Method that pings to google.com to check if user is actually
-     * connected to the internet.
-     * @return True if user is connected to the internet
-     * and false if user cannot connect to google.com
-     * @throws InterruptedException
-     * @throws IOException
-     */
-    public boolean isConnected() throws InterruptedException, IOException
-    {
-        String command = "ping -c 1 google.com";
-        return (Runtime.getRuntime().exec (command).waitFor() == 0);
-    }
-
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode) {
@@ -225,10 +193,34 @@ public class Tab2Fragment extends Fragment  {
         }
     }
 
+    /**
+     * Accepts current location of the user (or the location of the camera on the Google map
+     * if user does not have gps activated) that was passed from Tab1Fragment to MainActivity
+     * to this Fragment. Also sends a new get request to obtain srvice requests based on the new
+     * location given.
+     * @param newLatLong Current location of the user that is determined by
+     *                   a gps location or the center of the camera on the Google map
+     */
     public void updateCurrentLoc(LatLng newLatLong) {
         currentLatLng = newLatLong;
-        Log.e("LAT EN LONG MAP: ", "Lat: " + currentLatLng.latitude + " Long: " + currentLatLng.longitude);
+        Log.e("Method: ", "Lat: " + currentLatLng.latitude + " Long: " + currentLatLng.longitude);
 
+        searchServiceRequests();
+    }
+
+    /**
+     * This method will update the radius and service codes connected to the category
+     * set by the user. After that it will get new service requests based on the new radius and
+     * category filter and add them as markers on a Google map
+     * @param radius radius in meters
+     * @param servCodeQ String with service codes appending by a , delimiter
+     *                  that can be used for filtering service requests.
+     */
+    public void updateRadiusCat(int radius, String servCodeQ) {
+        String pRadius = (String) Integer.toString(radius);
+        currentRadius = pRadius;
+        this.servCodeQ = servCodeQ;
+        Log.e("Radius update tab2: ", currentRadius);
 
         searchServiceRequests();
     }

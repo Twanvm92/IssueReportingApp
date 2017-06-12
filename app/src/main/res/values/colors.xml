@@ -9,6 +9,9 @@
     <color name="colorBackground">#424242</color>
     <color name="colorBackground2">#616161</color>
     <color name="mooiGroen">#FF6FDA7F</color>
+    <color name="white">#FFFF</color>
+    <color name="black">#000000</color>
     <color name="grijs">#ECF0F1</color>
+
 
 </resources>

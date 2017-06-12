@@ -9,12 +9,11 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.renderscript.ScriptIntrinsicYuvToRGB;
+
 import android.util.Log;
 
-import com.example.justin.verbeterjegemeente.domain.Melding;
 import com.example.justin.verbeterjegemeente.domain.User;
-import com.readystatesoftware.sqliteasset.SQLiteAssetHelper;
+
 
 import java.util.ArrayList;
 

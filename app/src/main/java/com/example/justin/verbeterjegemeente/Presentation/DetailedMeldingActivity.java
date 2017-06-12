@@ -29,7 +29,7 @@ import com.like.OnLikeListener;
 
 import java.util.ArrayList;
 
-import com.example.justin.verbeterjegemeente.domain.Melding;
+
 import com.squareup.picasso.Picasso;
 
 
@@ -48,7 +48,6 @@ public class DetailedMeldingActivity extends FragmentActivity {
     // duration is ideal for subtle animations or animations that occur
     // very frequently.
     private int mShortAnimationDuration;
-    private Melding melding;
     private TextView statusDetailed, statusDetailedNote, laatstUpdateDetailed, beschrijvingDetailed, hoofdCategorieDetailed, subCategorieDetailed;
     private ImageButton imageSmall;
 

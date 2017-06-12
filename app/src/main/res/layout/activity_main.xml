@@ -33,7 +33,8 @@
     </android.support.design.widget.AppBarLayout>
 
 
-    <android.support.design.widget.FloatingActionButton
+
+   <!-- <android.support.design.widget.FloatingActionButton
         android:id="@+id/activityMain_Fbtn_FAB"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -43,10 +44,31 @@
         android:clickable="true"
         app:backgroundTint="#6fda7f"
         app:fabSize="normal"
-        app:srcCompat="@drawable/addalert" />
+        app:srcCompat="@drawable/addalert" />-->
+
+    <android.support.v4.view.ViewPager
+        android:id="@+id/container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" >
+
+    </android.support.v4.view.ViewPager>
+    <io.github.yavski.fabspeeddial.FabSpeedDial
+        android:id="@+id/activityMain_Fbtn_speeddial"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginBottom="20dp"
+
+        app:fabGravity="bottom_end"
+        app:fabMenu="@menu/activitymain_speedddial_menu"
+        app:fabBackgroundTint="@color/mooiGroen"
+        app:miniFabBackgroundTint="@color/white"
+        app:miniFabDrawableTint="@color/black"
+        app:miniFabTitleTextColor="@color/black" />
 
 
-    <android.support.design.widget.FloatingActionButton
+    <!--<android.support.design.widget.FloatingActionButton
         android:id="@+id/activityMain_Fbtn_gps"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -56,16 +78,6 @@
         android:clickable="true"
         app:backgroundTint="#6fda7f"
         app:fabSize="mini"
-        app:srcCompat="@drawable/ic_gps_fixed_white_48dp" />
-
-
-    <android.support.v4.view.ViewPager
-        android:id="@+id/container"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
-
-    </android.support.v4.view.ViewPager>
-
+        app:srcCompat="@drawable/ic_gps_fixed_white_48dp" />-->
 
 </android.support.design.widget.CoordinatorLayout>

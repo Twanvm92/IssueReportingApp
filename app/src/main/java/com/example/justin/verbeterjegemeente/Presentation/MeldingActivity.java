@@ -15,14 +15,11 @@ import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Base64;
 import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -35,10 +32,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.API.ConnectionChecker;
+import com.example.justin.verbeterjegemeente.API.RequestManager;
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 
 import com.example.justin.verbeterjegemeente.Adapters.MeldingDialogAdapter;
+import com.example.justin.verbeterjegemeente.Business.ServiceManager;
 import com.example.justin.verbeterjegemeente.Database.DatabaseHanlder;
 
 import com.example.justin.verbeterjegemeente.Constants;
@@ -63,9 +62,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import okhttp3.MediaType;
-import okhttp3.MultipartBody;
-import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -79,7 +75,7 @@ import retrofit2.Response;
  * @author Thijs van Marle
  * @author Mika Krooswijk
  */
-public class MeldingActivity extends AppCompatActivity {
+public class MeldingActivity extends AppCompatActivity implements RequestManager.OnServicesReady {
 
 
     private Spinner catagorySpinner;
@@ -106,6 +102,7 @@ public class MeldingActivity extends AppCompatActivity {
     private String descr, sc, lName, fName, email, address_string, address_id, jurisdiction_id, imgUrl;
     private Double lon, lat;
     private String[] attribute = {};
+    private RequestManager reqManager;
 
 
     @Override
@@ -125,8 +122,14 @@ public class MeldingActivity extends AppCompatActivity {
         voornaamTextView = (TextView) findViewById(R.id.activityMelding_tv_voorNaam);
         achternaamTextView = (TextView) findViewById(R.id.activityMelding_tv_achterNaam);
         onthoudCheckbox = (CheckBox) findViewById(R.id.activityMelding_cb_onthoudCheckbox);
-
         updateCheckBox = (CheckBox) findViewById(R.id.activityMelding_cb_updateCheckbox);
+
+        // from here all the API requests will be handled
+        reqManager = new RequestManager(this);
+        // set callback for data passing
+        reqManager.setOnServicesReadyCallb(this);
+        // launch Retrofit callback and retrieve services asynchronously
+        reqManager.getServices();
 
         Intent in = getIntent();
         if(in.hasExtra("long")) {
@@ -296,65 +299,6 @@ public class MeldingActivity extends AppCompatActivity {
             achternaamEditText.setText(foundUser.getLastName());
         }
         db.close();
-
-        try {
-            if(ConnectionChecker.isConnected()) { // check if user is actually connected to the internet
-                // create a callback
-//                ServiceGenerator.changeApiBaseUrl("https://asiointi.hel.fi/palautews/rest/v1/");
-                client = ServiceGenerator.createService(ServiceClient.class);
-                Call<List<Service>> serviceCall = client.getServices(Constants.LANG_EN);
-                // fire the get request
-                serviceCall.enqueue(new Callback<List<Service>>() {
-                    @Override
-                    public void onResponse(Call<List<Service>> call, Response<List<Service>> response) {
-                        // if a response has been received create a list with Services with the responsebody
-                        serviceList = response.body();
-
-                        // test what services have been caught in the response
-                        if (serviceList != null) {
-                            for (Service s : serviceList) {
-                                Log.i("Response: ", "" + s.getService_name());
-                            }
-
-                        } else {
-                            Log.i("Response: ", "List was empty");
-                        }
-
-                        if(serviceList != null) {
-                            int x = 1; // set iterable separately for categoryList
-                            for (int i = 0; i < serviceList.size(); i++) {
-                                // first categoryList item is a default String
-                                if(catagoryList.size() > 1) { // do something if list already has 1 or more categories
-                                    // do something if previous category is not the same as new category in servicelist
-                                    if(!catagoryList.get(x).equals(serviceList.get(i).getGroup())) {
-                                        catagoryList.add(serviceList.get(i).getGroup()); // add new category
-                                        x++; // only up this iterable if new category is added
-                                    }
-                                } else {
-                                    catagoryList.add(serviceList.get(i).getGroup());
-                                }
-                            }
-
-                            catagoryAdapter.notifyDataSetChanged();
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<List<Service>> call, Throwable t) { // something went wrong
-
-                        Toast.makeText(getApplicationContext(), t.getMessage(),Toast.LENGTH_SHORT).show();
-                    }
-                });
-
-            } else { // user is not connected to the internet
-                Toast.makeText(getApplicationContext(), getResources().getString(R.string.FoutOphalenProblemen),
-                        Toast.LENGTH_SHORT).show();
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
         terugButton = (Button) findViewById(R.id.terugButton);
         terugButton.setOnClickListener(new View.OnClickListener() {
@@ -527,7 +471,7 @@ public class MeldingActivity extends AppCompatActivity {
                         jurisdiction_id = "1";
 
                         Call<ArrayList<ServiceRequest>> RequestResponseCall =
-                                client.getSimilarServiceRequests(lat.toString(), lon.toString(), "open", "10", sc);
+                                client.getNearbyServiceRequests(lat.toString(), lon.toString(), "open", "10", sc);
                         RequestResponseCall.enqueue(new Callback<ArrayList<ServiceRequest>>() {
                             @Override
                             public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
@@ -901,4 +845,13 @@ public class MeldingActivity extends AppCompatActivity {
     }
 
 
+    @Override
+    public void servicesReady(List<Service> services) {
+        serviceList = services;
+        // update the catagoryList with main categories generated from the service list
+        catagoryList = ServiceManager.genMainCategories(services, catagoryList);
+
+        // let the adapter know that data has changed
+        catagoryAdapter.notifyDataSetChanged();
+    }
 }

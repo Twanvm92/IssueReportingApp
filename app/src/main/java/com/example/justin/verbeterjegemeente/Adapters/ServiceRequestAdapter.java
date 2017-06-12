@@ -23,10 +23,10 @@ public class ServiceRequestAdapter extends ArrayAdapter<ServiceRequest> {
         super(context, 0, requests);
     }
 
-    public View getView(int position, View convertview, ViewGroup parent){
+    public View getView(int position, View convertview, ViewGroup parent) {
         ServiceRequest serviceRequest = getItem(position);
 
-        if(convertview == null){
+        if (convertview == null) {
             convertview = LayoutInflater.from(getContext()).inflate(R.layout.tab2_listviewrow, parent, false);
         }
 

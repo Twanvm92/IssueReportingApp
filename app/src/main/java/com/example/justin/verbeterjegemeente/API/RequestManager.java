@@ -33,6 +33,7 @@ public class RequestManager {
     /**
      * Accepts the context of an activity and initializes the ServiceClient
      * to handle the API requests.
+     *
      * @param context context of an activity
      */
     public RequestManager(Context context) {
@@ -46,7 +47,7 @@ public class RequestManager {
      */
     public void getServices() {
         try {
-            if(ConnectionChecker.isConnected()) { // check if user is actually connected to the internet
+            if (ConnectionChecker.isConnected()) { // check if user is actually connected to the internet
                 // create a callback
 //                ServiceGenerator.changeApiBaseUrl("https://asiointi.hel.fi/palautews/rest/v1/");
                 Call<List<Service>> serviceCall = client.getServices(Constants.LANG_EN);
@@ -75,7 +76,7 @@ public class RequestManager {
                     @Override
                     public void onFailure(Call<List<Service>> call, Throwable t) { // something went wrong
 
-                        Toast.makeText(context, t.getMessage(),Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, t.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
 
@@ -85,13 +86,13 @@ public class RequestManager {
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
+            Thread.currentThread().interrupt();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     /**
-     *
      * @param servCallb Callback interface that was implemented by the activity
      *                  that passed this callback.
      */
@@ -106,6 +107,7 @@ public class RequestManager {
     public interface OnServicesReady {
         /**
          * Passes available services in a list to class that is listening.
+         *
          * @param services accepts a list of services obtained
          *                 from an open311 interface
          */

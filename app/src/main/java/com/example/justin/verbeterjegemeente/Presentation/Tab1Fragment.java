@@ -1,26 +1,26 @@
 package com.example.justin.verbeterjegemeente.Presentation;
 
 
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.support.v4.content.ContextCompat;
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.IntentSender;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.Toast;
+
 import com.example.justin.verbeterjegemeente.API.ConnectionChecker;
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
@@ -49,20 +49,22 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+
 import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LAT;
 import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LONG;
-import static com.example.justin.verbeterjegemeente.Constants.REQUEST_CHECK_SETTINGS;
 
 /**
  * Created by Justin on 27-4-2017.
@@ -71,7 +73,8 @@ import static com.example.justin.verbeterjegemeente.Constants.REQUEST_CHECK_SETT
 public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         com.google.android.gms.location.LocationListener, GoogleMap.OnCameraIdleListener {
-    public GoogleMap mMap;;
+    public GoogleMap mMap;
+    ;
     private MarkerHandler mHandler;
     private Location currentLocation;
     public LatLng currentLatLng;
@@ -99,7 +102,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         // check if service code is not default value
         // otherwise make String null
         // this will let API requests not take in account service codes
-        if(savedservCodeQ.equals("")) {
+        if (savedservCodeQ.equals("")) {
             servCodeQ = null;
         } else {
             servCodeQ = savedservCodeQ;
@@ -154,13 +157,12 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
                 }
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             Log.i("EXCEPTION: ", e.getLocalizedMessage());
         }
 
         super.onStop();
     }
-
 
 
     //set up map on resume
@@ -217,7 +219,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         reqFindLocation();
     }
 
-    public void getUserLocation(){
+    public void getUserLocation() {
         LocationRequest locationRequest = LocationRequest.create();
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         locationRequest.setInterval(30 * 1000);
@@ -229,13 +231,13 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
         final PendingResult<LocationSettingsResult> result =
                 LocationServices.SettingsApi.checkLocationSettings(mApiClient, builder.build());
-        result.setResultCallback(new ResultCallback<LocationSettingsResult>(){
+        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
 
             @Override
             public void onResult(@NonNull LocationSettingsResult LSresult) {
                 final Status status = LSresult.getStatus();
                 final LocationSettingsStates states = LSresult.getLocationSettingsStates();
-                switch (status.getStatusCode()){
+                switch (status.getStatusCode()) {
                     case LocationSettingsStatusCodes.SUCCESS:
                         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                             currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
@@ -252,9 +254,9 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                         }
                         break;
                     case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                        try{
+                        try {
                             status.startResolutionForResult(getActivity(), Constants.REQUEST_CHECK_SETTINGS);
-                        } catch (IntentSender.SendIntentException e){
+                        } catch (IntentSender.SendIntentException e) {
 
                         }
                         break;
@@ -270,8 +272,6 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     private void initLocation() {
 
     }
-
-
 
 
     @Override
@@ -336,19 +336,19 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 //                  camLat, camLng, null, currentRadius, "OV");
         Call<ArrayList<ServiceRequest>> nearbyServiceRequests;
         if (servCodeQ == null) {
-            Log.e("oncameraidle sercoeQ: ", "" +servCodeQ);
+            Log.e("oncameraidle sercoeQ: ", "" + servCodeQ);
             nearbyServiceRequests = client.getNearbyServiceRequests(
                     camLat, camLng, null, currentRadius);
         } else {
-            Log.e("oncameraidle sercoeQ: ", "" +servCodeQ);
+            Log.e("oncameraidle sercoeQ: ", "" + servCodeQ);
             nearbyServiceRequests = client.getNearbyServiceRequests(
                     camLat, camLng, null, currentRadius, servCodeQ);
         }
-        
+
         nearbyServiceRequests.enqueue(new Callback<ArrayList<ServiceRequest>>() {
             @Override
             public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
-                if(response.isSuccessful()) {
+                if (response.isSuccessful()) {
                     ArrayList<ServiceRequest> srList = response.body();
 
                     // clear all markers on the map before adding new markers
@@ -386,12 +386,12 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                 }
             }
 
-        @Override
-        public void onFailure(Call<ArrayList<ServiceRequest>> call, Throwable t) {
-            Toast.makeText(getContext(), t.getMessage().toString(),
-                    Toast.LENGTH_SHORT).show();
-            t.printStackTrace();
-        }
+            @Override
+            public void onFailure(Call<ArrayList<ServiceRequest>> call, Throwable t) {
+                Toast.makeText(getContext(), t.getMessage().toString(),
+                        Toast.LENGTH_SHORT).show();
+                t.printStackTrace();
+            }
         });
     }
 
@@ -416,8 +416,9 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
     /**
      * Controleren of permissies goed gekeurd zijn door de gebruiker
-     * @param requestCode meegegeven activiteit nummer die gedaan is
-     * @param permissions permissies die aangevraagd worden
+     *
+     * @param requestCode  meegegeven activiteit nummer die gedaan is
+     * @param permissions  permissies die aangevraagd worden
      * @param grantResults hoeveelheid permissies die goed gekeurd zijn door de gebruiker
      */
     @Override
@@ -431,7 +432,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                     getUserLocation();
                 } else {
                     Log.i("onRequestPermResult", "Geen toestemming gekregen, eerste keer dat map geladen wordt default lat/long gepakt");
-                    if (currentLatLng == null){
+                    if (currentLatLng == null) {
                         getLocation();
                     } else {
                         Log.i("onRequestPermResult", "Geen toestemming gekregen");
@@ -461,7 +462,8 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
      * This method will update the radius and service codes connected to the category
      * set by the user. After that it will get new service requests based on the new radius and
      * category filter and add them as markers on a Google map
-     * @param radius radius in meters
+     *
+     * @param radius    radius in meters
      * @param servCodeQ String with service codes appending by a , delimiter
      *                  that can be used for filtering service requests.
      */
@@ -471,7 +473,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         this.servCodeQ = servCodeQ;
         String currentLat;
         String currentLng;
-        if (currentLatLng == null){
+        if (currentLatLng == null) {
             currentLat = Double.toString(Constants.DEFAULT_LAT);
             currentLng = Double.toString(Constants.DEFAULT_LONG);
         } else {
@@ -481,7 +483,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         }
 
         Call<ArrayList<ServiceRequest>> nearbyServiceRequests;
-        if(servCodeQ != null) {
+        if (servCodeQ != null) {
             nearbyServiceRequests = client.getNearbyServiceRequests(
                     currentLat, currentLng, null, currentRadius, servCodeQ);
             Log.e("servCodeq update tab1: ", servCodeQ);
@@ -494,7 +496,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         nearbyServiceRequests.enqueue(new Callback<ArrayList<ServiceRequest>>() {
             @Override
             public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
-                if(response.isSuccessful()) {
+                if (response.isSuccessful()) {
                     ArrayList<ServiceRequest> srList = response.body();
 
                     // clear all markers on the map before adding new markers

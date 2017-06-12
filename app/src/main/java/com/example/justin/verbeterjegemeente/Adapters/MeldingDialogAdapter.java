@@ -1,18 +1,13 @@
 package com.example.justin.verbeterjegemeente.Adapters;
 
 import android.content.Context;
-import android.content.Intent;
-import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.example.justin.verbeterjegemeente.Presentation.DetailedMeldingActivity;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 import com.squareup.picasso.Picasso;
@@ -25,10 +20,10 @@ public class MeldingDialogAdapter extends ArrayAdapter<ServiceRequest> {
         super(context, 0, requests);
     }
 
-    public View getView(int position, View convertview, ViewGroup parent){
+    public View getView(int position, View convertview, ViewGroup parent) {
         ServiceRequest serviceRequest = getItem(position);
 
-        if(convertview == null){
+        if (convertview == null) {
             convertview = LayoutInflater.from(getContext()).inflate(R.layout.activity_melding_dialog_listviewrow, parent, false);
         }
 

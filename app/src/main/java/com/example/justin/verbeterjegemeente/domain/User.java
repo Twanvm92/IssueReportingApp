@@ -4,7 +4,7 @@ package com.example.justin.verbeterjegemeente.domain;
  * Created by Mika Krooswijk on 16-5-2017.
  */
 
-public class User   {
+public class User {
     private String firstName, lastName, email;
     private int phoneNumber;
 

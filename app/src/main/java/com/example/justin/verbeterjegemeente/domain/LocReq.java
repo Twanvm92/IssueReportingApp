@@ -96,30 +96,24 @@ public class LocReq extends AppCompatActivity
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data)
-    {
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.d("onActivityResult()", Integer.toString(resultCode));
 
         //final LocationSettingsStates states = LocationSettingsStates.fromIntent(data);
-        switch (requestCode)
-        {
+        switch (requestCode) {
             case REQUEST_LOCATION:
-                switch (resultCode)
-                {
-                    case Activity.RESULT_OK:
-                    {
+                switch (resultCode) {
+                    case Activity.RESULT_OK: {
                         // All required changes were successfully made
                         Toast.makeText(LocReq.this, "Location enabled by user!", Toast.LENGTH_LONG).show();
                         break;
                     }
-                    case Activity.RESULT_CANCELED:
-                    {
+                    case Activity.RESULT_CANCELED: {
                         // The user was asked to change settings, but chose not to
                         Toast.makeText(LocReq.this, "Location not enabled, user cancelled.", Toast.LENGTH_LONG).show();
                         break;
                     }
-                    default:
-                    {
+                    default: {
                         break;
                     }
                 }

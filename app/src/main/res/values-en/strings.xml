@@ -1,5 +1,4 @@
 <resources>
-    <string name="action_settings">Settings</string>
     <string name="locatie">Location</string>
     <string name="locatieTab2">Location:</string>
     <string name="locatieWijzigen">Change location</string>

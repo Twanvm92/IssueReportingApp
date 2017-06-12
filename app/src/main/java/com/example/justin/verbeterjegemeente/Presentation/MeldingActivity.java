@@ -1,7 +1,5 @@
 package com.example.justin.verbeterjegemeente.Presentation;
 
-import android.provider.MediaStore;
-import android.util.Base64;
 import android.Manifest;
 import android.app.Dialog;
 import android.content.Context;
@@ -15,9 +13,11 @@ import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -35,13 +35,10 @@ import com.example.justin.verbeterjegemeente.API.ConnectionChecker;
 import com.example.justin.verbeterjegemeente.API.RequestManager;
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
-
 import com.example.justin.verbeterjegemeente.Adapters.MeldingDialogAdapter;
 import com.example.justin.verbeterjegemeente.Business.ServiceManager;
-import com.example.justin.verbeterjegemeente.Database.DatabaseHanlder;
-
 import com.example.justin.verbeterjegemeente.Constants;
-
+import com.example.justin.verbeterjegemeente.Database.DatabaseHanlder;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.PostServiceRequestResponse;
 import com.example.justin.verbeterjegemeente.domain.Service;
@@ -69,6 +66,7 @@ import retrofit2.Response;
 /**
  * Deze klasse zorgt ervoor dat de gebruiker een meldingsformulier kan invullen en deze informatie aan de database connectie klasse geeft
  * Alle benodigde informatie moet hier ingevuld worden en zijn er enkele optionele opties die de gebruiker kan kiezen
+ *
  * @author Twan van Maastricht
  * @author Justin Kannekens
  * @author Maikel Jacobs
@@ -83,8 +81,6 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
     private ArrayList<String> catagoryList;
     private ArrayList<String> subCategoryList;
     private Button locatieButton, fotoButton, terugButton, plaatsButton;
-    private TextView locatieTextView, beschrijvingTextView, emailTextView,
-            voornaamTextView, achternaamTextView,optioneelTextView;
     private EditText beschrijvingEditText, emailEditText,
             voornaamEditText, achternaamEditText;
     private CheckBox updateCheckBox;
@@ -93,8 +89,6 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
     ArrayAdapter<String> catagoryAdapter;
     ArrayAdapter<String> subCategoryAdapter;
     private ServiceClient client;
-    private String image_path = "";
-    private Uri selectedImage;
     private android.app.AlertDialog.Builder builder;
     private String imagePath = null;
     private LatLng location, mapLocation;
@@ -115,12 +109,6 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
 
         fotoImageView = (ImageView) findViewById(R.id.activityMelding_IV_fotoImageView);
 
-        locatieTextView = (TextView) findViewById(R.id.activityMelding_tv_Location);
-        beschrijvingTextView = (TextView) findViewById(R.id.activityMelding_tv_beschrijving);
-        emailTextView = (TextView) findViewById(R.id.activityMelding_tv_Email);
-        optioneelTextView = (TextView) findViewById(R.id.activityMelding_tv_Optioneel);
-        voornaamTextView = (TextView) findViewById(R.id.activityMelding_tv_voorNaam);
-        achternaamTextView = (TextView) findViewById(R.id.activityMelding_tv_achterNaam);
         onthoudCheckbox = (CheckBox) findViewById(R.id.activityMelding_cb_onthoudCheckbox);
         updateCheckBox = (CheckBox) findViewById(R.id.activityMelding_cb_updateCheckbox);
 
@@ -132,7 +120,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
         reqManager.getServices();
 
         Intent in = getIntent();
-        if(in.hasExtra("long")) {
+        if (in.hasExtra("long")) {
             lon = in.getDoubleExtra("long", 1);
             lat = in.getDoubleExtra("lat", 1);
             location = new LatLng(lat, lon);
@@ -148,7 +136,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                     intent.putExtra("long", location.longitude);
                     intent.putExtra("lat", location.latitude);
                 }
-                if (marker){
+                if (marker) {
                     intent.putExtra("marker", "true");
                 }
                 startActivityForResult(intent, Constants.LOCATIE_KIEZEN);
@@ -164,13 +152,13 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
         catagoryList.add(getResources().getString(R.string.kiesProblemen));
         catagorySpinner = (Spinner) findViewById(R.id.spinner2);
         catagoryAdapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_spinner_item, catagoryList){
-            @Override //pakt de positions van elements in catagoryList en disabled the element dat postion null staat zodat we het kunnen gebruiken als een hint.
-            public boolean isEnabled(int position){
-                if (position == 0)
-                {
+                android.R.layout.simple_spinner_item, catagoryList) {
+            @Override
+            //pakt de positions van elements in catagoryList en disabled the element dat postion null staat zodat we het kunnen gebruiken als een hint.
+            public boolean isEnabled(int position) {
+                if (position == 0) {
                     return false;
-                }else{
+                } else {
                     return true;
                 }
             }
@@ -183,13 +171,13 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
         subCategoryList.add(getResources().getString(R.string.kiesSubProblemen));
         subCatagorySpinner = (Spinner) findViewById(R.id.spinnerSub);
         subCategoryAdapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_spinner_item, subCategoryList){
-            @Override //pakt de positions van elements in subCatagoryList en disabled the element dat postion null staat zodat we het kunnen gebruiken als een hint.
-            public boolean isEnabled(int position){
-                if (position == 0)
-                {
+                android.R.layout.simple_spinner_item, subCategoryList) {
+            @Override
+            //pakt de positions van elements in subCatagoryList en disabled the element dat postion null staat zodat we het kunnen gebruiken als een hint.
+            public boolean isEnabled(int position) {
+                if (position == 0) {
                     return false;
-                }else{
+                } else {
                     return true;
                 }
             }
@@ -215,14 +203,14 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                     subCategoryAdapter.notifyDataSetChanged();
                 }
 
-                if(position != 0) {
+                if (position != 0) {
                     subCatagorySpinner.setSelection(0);
                 }
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-
+                // something is always selected...also by default
             }
         });
 
@@ -232,21 +220,21 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                                           public void onClick(View v) {
                                               int PERMISSION_ALL = 1;
                                               String[] PERMISSIONS = {Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE};
-                                              if(!hasPermissions(getApplicationContext(), PERMISSIONS)){
+                                              if (!hasPermissions(getApplicationContext(), PERMISSIONS)) {
                                                   ActivityCompat.requestPermissions(MeldingActivity.this, PERMISSIONS, PERMISSION_ALL);
                                               }
 
 //                permissies aanvragen gaat async, kan niet wachten tot gebruiker antwoord geeft op de aanvraag
 //                misschien later nog uitzoeken hoe dit moet.
                                               final CharSequence[] items = {getString(R.string.fotoMaken), getString(R.string.fotoKiezen)};
-                                              //builder.setTitle("Foto toevoegen");
+
                                               builder.setItems(items, new DialogInterface.OnClickListener() {
                                                   @Override
                                                   public void onClick(DialogInterface dialog, int item) {
 
                                                       if (items[item].equals(getString(R.string.fotoMaken))) {
                                                           if (ContextCompat.checkSelfPermission(getApplicationContext(),
-                                                                  Manifest.permission.CAMERA)!= PackageManager.PERMISSION_GRANTED) {
+                                                                  Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
                                                               Log.i("CAMERA", "ASKING PERMISSION");
                                                               reqCameraPermission();
                                                           }
@@ -256,7 +244,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                                                                   Intent makePhoto = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                                                                   startActivityForResult(makePhoto, Constants.FOTO_MAKEN);
                                                               } catch (Exception e) {
-                                                                  Log.e("PERMISSION", "camera not granted");
+                                                                  Log.e(Constants.PERMISSION, "camera not granted");
                                                                   reqCameraPermission();
                                                               }
                                                           } else {
@@ -265,7 +253,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
 
                                                       } else if (items[item].equals(getString(R.string.fotoKiezen))) {
                                                           if (ContextCompat.checkSelfPermission(getApplicationContext(),
-                                                                  Manifest.permission.WRITE_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED) {
+                                                                  Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                                                               Log.i("STORAGE", "ASKING PERMISSION");
                                                               reqWriteStoragePermission();
                                                           }
@@ -276,7 +264,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                                                                           android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                                                                   startActivityForResult(pickPhoto, Constants.FOTO_KIEZEN);
                                                               } catch (Exception e) {
-                                                                  Log.e("PERMISSION", "storage not granted");
+                                                                  Log.e(Constants.PERMISSION, "storage not granted");
                                                                   reqWriteStoragePermission();
                                                               }
                                                           } else {
@@ -298,11 +286,9 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
         final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
         User foundUser = db.getUser();
         Log.i("FOUND USER", foundUser.toString());
-        if(foundUser != null){
-            emailEditText.setText(foundUser.getEmail());
-            voornaamEditText.setText(foundUser.getFirstName());
-            achternaamEditText.setText(foundUser.getLastName());
-        }
+        emailEditText.setText(foundUser.getEmail());
+        voornaamEditText.setText(foundUser.getFirstName());
+        achternaamEditText.setText(foundUser.getLastName());
         db.close();
 
         terugButton = (Button) findViewById(R.id.terugButton);
@@ -320,19 +306,21 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
             public void onClick(View v) {
 
 
-                if (onthoudCheckbox.isChecked()) {
-                    if (!emailEditText.equals("") && !voornaamEditText.equals("") && !achternaamEditText.equals("")) {
-                        final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
+                if (onthoudCheckbox.isChecked() && !emailEditText.getText().toString().equals("")
+                        && !voornaamEditText.getText().toString().equals("") &&
+                        !achternaamEditText.getText().toString().equals("")) {
 
-                        User user = new User();
-                        user.setLastName(achternaamEditText.getText().toString());
-                        user.setFirstName(voornaamEditText.getText().toString());
-                        user.setEmail(emailEditText.getText().toString());
-                        db.deleteUser();
-                        db.addUser(user);
+                    final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
 
-                        db.close();
-                    }
+                    User user = new User();
+                    user.setLastName(achternaamEditText.getText().toString());
+                    user.setFirstName(voornaamEditText.getText().toString());
+                    user.setEmail(emailEditText.getText().toString());
+                    db.deleteUser();
+                    db.addUser(user);
+
+                    db.close();
+
                 }
 
 
@@ -345,7 +333,6 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                 } else {
                     Toast.makeText(getApplicationContext(),
                             getResources().getString(R.string.kiesSubCategory), Toast.LENGTH_SHORT).show();
-//                    return;
                 }
 
                 // checks which category is selected and initializes the service code tht matches
@@ -363,10 +350,11 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                 // create a new file part that contains an image, to send with a post service request.
                 // the image path has been provided by the user.
                 imgUrl = null;
+                FileInputStream imageInFile = null;
                 if (imagePath != null) {
                     try {
                         File imgFile = new File(imagePath);
-                        FileInputStream imageInFile = new FileInputStream(imgFile);
+                        imageInFile = new FileInputStream(imgFile);
                         byte imageData[] = new byte[(int) imgFile.length()];
                         imageInFile.read(imageData);
 
@@ -375,9 +363,15 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                         Log.i("imageString", imgUrl);
 
                     } catch (FileNotFoundException e) {
-                        System.out.println("Image not found" + e);
+                        Log.e("Image not found", e.getMessage());
                     } catch (IOException ioe) {
-                        System.out.println("Exception while reading the Image " + ioe);
+                        Log.e("Exception img reading", ioe.getMessage());
+                    } finally {
+                        try {
+                            imageInFile.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
 
@@ -407,14 +401,14 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                 // initializes an e-mailaddress that the user has provided
                 // to send with the post service request
                 email = null;
-                if (emailEditText != null || !emailEditText.getText().equals("")) {
+                if (!emailEditText.getText().toString().equals("")) {
                     email = emailEditText.getText().toString();
                 }
 
                 // initializes a last name that the user has provided
                 // to send with the post service request
                 fName = null;
-                if (voornaamEditText != null || !voornaamEditText.getText().equals("")) {
+                if (!voornaamEditText.getText().toString().equals("")) {
                     fName = voornaamEditText.getText().toString();
 
                 }
@@ -422,7 +416,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                 // initializes a last name that the user has provided
                 // to send with the post service request
                 lName = null;
-                if (achternaamEditText != null || !achternaamEditText.getText().equals("")) {
+                if (!achternaamEditText.getText().toString().equals("")) {
                     lName = achternaamEditText.getText().toString();
                 }
 
@@ -448,7 +442,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                 lat = null;
                 if (mapLocation != null) {
                     if (mapLocation.latitude != 0.0) {
-                        lat =  mapLocation.latitude;
+                        lat = mapLocation.latitude;
                     } else {
                         Toast.makeText(getApplicationContext(),
                                 getResources().getString(R.string.geenLocatie), Toast.LENGTH_SHORT).show();
@@ -532,6 +526,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
+                    Thread.currentThread().interrupt();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -544,7 +539,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
      * Indien de melding goed verwerkt wordt door de API, wordt het id opgeslagen in de user database en wordt de gebruiker naar zijn favoriete meldingen verwezen
      * Als er iets mis gaat in dit proces wordt een foutmelding getoond aan de gebuiker
      */
-    public void postNotification(){
+    public void postNotification() {
         try {
             if (ConnectionChecker.isConnected()) {
                 client = ServiceGenerator.createService(ServiceClient.class);
@@ -588,6 +583,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                             }
                         }
                     }
+
                     // a connection could not have been made. Tell the user.
                     @Override
                     public void onFailure(Call<ArrayList<PostServiceRequestResponse>> call, Throwable t) {
@@ -602,6 +598,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
+            Thread.currentThread().interrupt();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -609,6 +606,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
 
     /**
      * controleren of alle permissies zijn gegeven die nodig zijn in dit scherm om alles uit te kunnen voeren
+     *
      * @param context
      * @param permissions permissies die gecontroleerd moeten worden
      * @return boolean of ALLE permissies gegeven zijn
@@ -626,8 +624,9 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
 
     /**
      * Controleren of permissies goed gekeurd zijn door de gebruiker
-     * @param requestCode meegegeven activiteit nummer die gedaan is
-     * @param permissions permissies die aangevraagd worden
+     *
+     * @param requestCode  meegegeven activiteit nummer die gedaan is
+     * @param permissions  permissies die aangevraagd worden
      * @param grantResults hoeveelheid permissies die goed gekeurd zijn door de gebruiker
      */
     @Override
@@ -642,7 +641,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
 
-                    Log.i("PERMISSION", "camera granted");
+                    Log.i(Constants.PERMISSION, "camera granted");
 //                    fotoButton.setEnabled(true);
 
 //                    Log.i("STORAGE", "ASKING PERMISSION");
@@ -651,7 +650,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                 } else {
 
                     // permission denied, boo! Disable the
-                    Log.i("PERMISSION", "camera not granted");
+                    Log.i(Constants.PERMISSION, "camera not granted");
 //                    fotoButton.setEnabled(false);
 
 //                    Log.i("STORAGE", "ASKING PERMISSION");
@@ -669,11 +668,11 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                     // contacts-related task you need to do.
 
 //                    fotoButton.setEnabled(true);
-                    Log.i("PERMISSION", "storage granted");
+                    Log.i(Constants.PERMISSION, "storage granted");
                 } else {
 
                     // permission denied, boo! Disable the
-                    Log.i("PERMISSION", "storage not granted");
+                    Log.i(Constants.PERMISSION, "storage not granted");
 //                    fotoButton.setEnabled(false);
                     // functionality that depends on this permission.
                 }
@@ -694,30 +693,10 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                 Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
 
-            // Should we show an explanation?
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.CAMERA)) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.CAMERA},
+                    Constants.MY_PERMISSIONS_CAMERA);
 
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.CAMERA},
-                        Constants.MY_PERMISSIONS_CAMERA);
-
-                // Show an explanation to the user *asynchronously* -- don't block
-                // this thread waiting for the user's response! After the user
-                // sees the explanation, try again to request the permission.
-
-            } else {
-
-                // No explanation needed, we can request the permission.
-
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.CAMERA},
-                        Constants.MY_PERMISSIONS_CAMERA);
-
-                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
-                // app-defined int constant. The callback method gets the
-                // result of the request.
-            }
         }
     }
 
@@ -729,31 +708,26 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                 Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
 
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    Constants.MY_PERMISSIONS_STORAGE);
 
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                        Constants.MY_PERMISSIONS_STORAGE);
-            } else {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                        Constants.MY_PERMISSIONS_STORAGE);
-            }
         }
     }
 
     /**
      * Resultaat ophalen uit de activiteit die uitgevoerd is
+     *
      * @param requestCode meegegeven activiteit nummer die gedaan is
-     * @param resultCode controle of er een result uit voortgekomen is
-     * @param data het resultaat
+     * @param resultCode  controle of er een result uit voortgekomen is
+     * @param data        het resultaat
      */
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        switch(requestCode) {
+        switch (requestCode) {
             case Constants.FOTO_MAKEN:
+                Uri selectedImage;
                 if (resultCode == RESULT_OK) {
                     Bitmap photo = (Bitmap) data.getExtras().get("data");
                     selectedImage = getImageUri(getApplicationContext(), photo);
@@ -767,9 +741,9 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                 }
                 break;
             case Constants.FOTO_KIEZEN:
-                if(resultCode == RESULT_OK){
+                if (resultCode == RESULT_OK) {
                     selectedImage = data.getData();
-                    image_path = getRealPathFromURI(selectedImage);
+                    String image_path = getRealPathFromURI(selectedImage);
                     fotoImageView.setImageURI(selectedImage);
                     fotoButton.setText(R.string.fotoWijzigen);
                     imagePath = image_path;
@@ -777,8 +751,8 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                 }
                 break;
             case Constants.LOCATIE_KIEZEN:
-                if(resultCode == RESULT_OK){
-                    if(data.hasExtra("long")) {
+                if (resultCode == RESULT_OK) {
+                    if (data.hasExtra("long")) {
                         double lng = data.getDoubleExtra("long", 1);
                         double lat = data.getDoubleExtra("lat", 1);
                         mapLocation = new LatLng(lat, lng);
@@ -792,7 +766,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                 }
                 break;
             case Constants.BACK_BUTTON:
-                if(resultCode == RESULT_CANCELED) {
+                if (resultCode == RESULT_CANCELED) {
                     finish();
                     startActivity(getIntent());
                 }
@@ -804,8 +778,9 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
     /**
      * Haalt de uri uit de bitmap, dit moet eerst gedaan worden als een foto gemaakt wordt (en dus niet gekozen wordt uit storage)
      * Formateerd de bitmap waarna het pad van de image geparsed wordt naar een Uri
+     *
      * @param inContext de context die gebruikt wordt
-     * @param inImage de bitmap van de foto die gemaakt is door de gebruiker
+     * @param inImage   de bitmap van de foto die gemaakt is door de gebruiker
      * @return geeft een Uri terug die verder gebruikt kan worden
      */
     public Uri getImageUri(Context inContext, Bitmap inImage) {
@@ -817,21 +792,18 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
 
     /**
      * Pad ophalen van een image door middel van de uri
+     *
      * @param uri de uri van de image die de gebruiker kiest
      * @return het pad van de image als een String
      */
-    public String getRealPathFromURI(Uri uri)
-    {
-        try
-        {
+    public String getRealPathFromURI(Uri uri) {
+        try {
             String[] proj = {MediaStore.Images.Media.DATA};
             Cursor cursor = getContentResolver().query(uri, proj, null, null, null);
             int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
             cursor.moveToFirst();
             return cursor.getString(column_index);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             return uri.getPath();
         }
     }

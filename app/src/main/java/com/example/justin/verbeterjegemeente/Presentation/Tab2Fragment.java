@@ -75,8 +75,6 @@ public class Tab2Fragment extends Fragment  {
 
         searchServiceRequests();
 
-        client = ServiceGenerator.createService(ServiceClient.class);
-
         serviceList = new ArrayList<>();
 
         ListView meldingListView = (ListView) view.findViewById(R.id.meldingListView);

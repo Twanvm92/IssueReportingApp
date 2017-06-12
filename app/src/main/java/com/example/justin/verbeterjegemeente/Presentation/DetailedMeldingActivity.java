@@ -64,13 +64,19 @@ public class DetailedMeldingActivity extends FragmentActivity {
 
         Bundle extras = getIntent().getExtras();
 
+
+        /**
+         * for loop to clear all notifications when the detailed view is opened.
+         */
         for(int i = 0; i < 60; i++){
             NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
             notificationManager.cancel(i);
         }
 
 
+
        final String origin  = extras.getString("ORIGIN");
+
 
 
        final ServiceRequest serviceRequest = (ServiceRequest)getIntent().getSerializableExtra("serviceRequest");
@@ -96,18 +102,27 @@ public class DetailedMeldingActivity extends FragmentActivity {
         Picasso.with(getApplicationContext()).load(serviceRequest.getMediaUrl()).into(imageSmall);
 
 
-
-
+        /**
+         * This if statement checkcs if the selected ServiceReqest is already in the database, if so it sets the like button
+         * to liked, if not, it sets the button to unLiked.
+         */
         final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1 );
-
         if(db.ReportExists(serviceRequest.getServiceRequestId())){
             likeButton.setLiked(true);
         }else{
             likeButton.setLiked(false);
         }
 
+
+
+
         likeButton.setOnLikeListener(new OnLikeListener() {
             @Override
+
+            /**
+             * if the like star is pressed when the button is not liked, the like method is called. This method adds the selected
+             * ServiceRequest to the database and sets the star to liked.
+             */
             public void liked(LikeButton likeButton) {
 
                 try {
@@ -119,6 +134,10 @@ public class DetailedMeldingActivity extends FragmentActivity {
                 }
             }
 
+            /**
+             *When the star is presses when the button is liked, the unLike method is called. This method deletes the selected
+             * ServiceRequest from the database and set the button to unLiked.
+             */
             @Override
             public void unLiked(LikeButton likeButton) {
                 try {
@@ -131,6 +150,10 @@ public class DetailedMeldingActivity extends FragmentActivity {
             }
         });
 
+
+        /**
+         * This button takes the user back to the previous screen, based on the ORIGIN value.
+         */
         terugButton = (Button) findViewById(R.id.activityDetailedMelding_btn_terugBTN_ID);
         terugButton.setOnClickListener(new View.OnClickListener() {
             @Override

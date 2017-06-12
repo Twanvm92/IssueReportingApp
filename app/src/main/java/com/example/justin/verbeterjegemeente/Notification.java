@@ -27,7 +27,7 @@ public class Notification {
     public void makeNotification(Context context, String title, String text, ServiceRequest serviceRequest){
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context);
         // Sets the icon of the notification in the status bar.
-        mBuilder.setSmallIcon(R.drawable.imageicon);
+        mBuilder.setSmallIcon(R.drawable.statusicon);
         // Set the Title of the notification in the status bar.
         mBuilder.setContentTitle(title);
         // Set the content of the notification.

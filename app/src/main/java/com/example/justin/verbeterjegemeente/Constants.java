@@ -23,8 +23,8 @@ public class Constants {
 
     // location
     public static final int LOCATIE_KIEZEN= 3;
-    public static final double DEFAULT_LONG = 60.2295851;
-    public static final double DEFAULT_LAT = 24.9287892;
+    public static final double DEFAULT_LAT = 51.57191501488476;
+    public static final double DEFAULT_LONG = 4.768322892487049;
     public static final int REQUEST_CHECK_SETTINGS = 0x1;
 
 

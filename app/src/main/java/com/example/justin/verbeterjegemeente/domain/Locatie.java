@@ -10,9 +10,9 @@ public class Locatie {
 
     private double longitude, latitude;
 
-    public Locatie(double longitude, double latitude) {
-        this.longitude = longitude;
+    public Locatie(double latitude, double longitude) {
         this.latitude = latitude;
+        this.longitude = longitude;
     }
 
     public double getLongitude() {

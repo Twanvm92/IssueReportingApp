@@ -48,6 +48,7 @@ import com.example.justin.verbeterjegemeente.domain.PostServiceRequestResponse;
 import com.example.justin.verbeterjegemeente.domain.Service;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 import com.example.justin.verbeterjegemeente.domain.User;
+import com.google.android.gms.maps.model.LatLng;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -97,7 +98,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
     private Uri selectedImage;
     private android.app.AlertDialog.Builder builder;
     private String imagePath = null;
-    private Locatie location;
+    private LatLng location;
     private CheckBox onthoudCheckbox;
     private String descr, sc, lName, fName, email, address_string, address_id, jurisdiction_id, imgUrl;
     private Double lon, lat;
@@ -133,11 +134,9 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
 
         Intent in = getIntent();
         if(in.hasExtra("long")) {
-            double lng = in.getDoubleExtra("long", 1);
-            double lat = in.getDoubleExtra("lat", 1);
-            location = new Locatie(lng, lat);
-            //Toast.makeText(this, "Long: " + location.getLongitude() + " Lat: " + location.getLatitude(),Toast.LENGTH_SHORT).show();
-
+            lon = in.getDoubleExtra("long", 1);
+            lat = in.getDoubleExtra("lat", 1);
+            location = new LatLng(lat, lon);
         }
 
         locatieButton = (Button) findViewById(R.id.activityMelding_btn_wijzigLocation);
@@ -146,6 +145,10 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), MapsActivity.class);
+                if (location != null) {
+                    intent.putExtra("long", location.longitude);
+                    intent.putExtra("lat", location.latitude);
+                }
                 startActivityForResult(intent, Constants.LOCATIE_KIEZEN);
             }
         });
@@ -304,10 +307,8 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
         terugButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-//                Intent i = new Intent(getApplicationContext(), MainActivity.class);
-//                startActivityForResult(i, Constants.BACK_BUTTON);
-
-                postNotification();
+                Intent i = new Intent(getApplicationContext(), MainActivity.class);
+                startActivityForResult(i, Constants.BACK_BUTTON);
             }
         });
 
@@ -427,8 +428,8 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                 // has been provided by the user
                 lon = null;
                 if (location != null) {
-                    if (location.getLongitude() != 0.0) {
-                        lon = location.getLongitude();
+                    if (location.longitude != 0.0) {
+                        lon = location.longitude;
                     } else {
                         Toast.makeText(getApplicationContext(),
                                 getResources().getString(R.string.geenLocatie), Toast.LENGTH_SHORT).show();
@@ -437,15 +438,15 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                 } else {
                     Toast.makeText(getApplicationContext(),
                             getResources().getString(R.string.geenLocatie), Toast.LENGTH_SHORT).show();
-//                    return;
+                    return;
                 }
 
                 // initializes a latitude of the user's current location or a latitude that
                 // has been provided by the user
                 lat = null;
                 if (location != null) {
-                    if (location.getLatitude() != 0.0) {
-                        lat =  location.getLatitude();
+                    if (location.latitude != 0.0) {
+                        lat =  location.latitude;
                     } else {
                         Toast.makeText(getApplicationContext(),
                                 getResources().getString(R.string.geenLocatie), Toast.LENGTH_SHORT).show();
@@ -454,7 +455,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                 } else {
                     Toast.makeText(getApplicationContext(),
                             getResources().getString(R.string.geenLocatie), Toast.LENGTH_SHORT).show();
-//                    return;
+                    return;
                 }
 
                 final ArrayList<ServiceRequest> srListFinal = new ArrayList<>();
@@ -463,9 +464,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                     if (ConnectionChecker.isConnected()) {  //checking for internet acces.
                         client = ServiceGenerator.createService(ServiceClient.class);
 
-//                      map moet deze gegevens meegeven meegeven
-                        lat = 52.00;
-                        lon = 5.00;
+//                      Dit moet meegegeven worden..
                         address_string = "adress_string";
                         address_id = "address_id";
                         jurisdiction_id = "1";
@@ -518,7 +517,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                                         dialog.show();
 
                                     } else {
-//                                        postNotification();
+                                        postNotification();
                                     }
                                 }
                             }
@@ -780,9 +779,9 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                     if(data.hasExtra("long")) {
                         double lng = data.getDoubleExtra("long", 1);
                         double lat = data.getDoubleExtra("lat", 1);
-                        location = new Locatie(lng, lat);
-                        Log.e("long: ", "" + location.getLongitude());
-                        Log.e("lat: ", "" + location.getLatitude());
+                        location = new LatLng(lat, lng);
+                        Log.e("long: ", "" + location.longitude);
+                        Log.e("lat: ", "" + location.latitude);
 
                     }
 

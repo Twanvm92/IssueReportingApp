@@ -1,7 +1,9 @@
 package com.example.justin.verbeterjegemeente.Presentation;
 
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v4.content.ContextCompat;
 import android.Manifest;
 import android.app.Activity;
@@ -92,29 +94,24 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     public void onCreate(Bundle savedInstaceState) {
         super.onCreate(savedInstaceState);
 
-        Bundle bundle = getArguments();
-        if(bundle!= null)
-        {
-            currentRadius = getArguments().getString("RADIUS_VALUE");
-            Log.e("tab1frag bundl radius: ", currentRadius);
+        // get user selected radius and cat or use default radius and cat
+        SharedPreferences prefs = getActivity().getPreferences(Context.MODE_PRIVATE);
+        int rValue = prefs.getInt(getString(R.string.activityMain_saved_radius), 20); // 20 is default
+        currentRadius = Integer.toString(rValue);
+        String savedservCodeQ = prefs.getString(getString(R.string.activityMain_saved_servcodeQ),
+                getString(R.string.geenFilter));
 
-            servCodeQ = getArguments().getString("SERVICE_CODE_VALUE");
-            if (servCodeQ !=null) {
-                Log.e("tab1frag bnd servcodeQ ", servCodeQ);
-            } else {
-                Log.e("tab1frag servCodeQ", "null");
-            }
-
-
+        // check if service code is not default value
+        // otherwise make String null
+        // this will let API requests not take in account service codes
+        if(savedservCodeQ.equals("")) {
+            servCodeQ = null;
+        } else {
+            servCodeQ = savedservCodeQ;
         }
 
         client = ServiceGenerator.createService(ServiceClient.class);
 
-        // create arraylist to contain created markers
-        markerList = new ArrayList<Marker>();
-
-
-        initApi();
     }
 
     @Override
@@ -345,9 +342,17 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         // commented this line for testing getting service request based on radius from Helsinki Live API
 //        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(
 //                  camLat, camLng, null, currentRadius, "OV");
+        Call<ArrayList<ServiceRequest>> nearbyServiceRequests;
+        if (servCodeQ == null) {
+            Log.e("oncameraidle sercoeQ: ", "" +servCodeQ);
+            nearbyServiceRequests = client.getNearbyServiceRequests(
+                    camLat, camLng, null, currentRadius);
+        } else {
+            Log.e("oncameraidle sercoeQ: ", "" +servCodeQ);
+            nearbyServiceRequests = client.getNearbyServiceRequests(
+                    camLat, camLng, null, currentRadius, servCodeQ);
+        }
 
-        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(
-                camLat, camLng, null, currentRadius, servCodeQ);
         nearbyServiceRequests.enqueue(new Callback<ArrayList<ServiceRequest>>() {
             @Override
             public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
@@ -479,8 +484,17 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         String currentLng = Double.toString(currentLatLng.longitude);
         Log.e("Radius update tab1: ", currentRadius);
 
-        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(
-                currentLat, currentLng, null, currentRadius, servCodeQ);
+        Call<ArrayList<ServiceRequest>> nearbyServiceRequests;
+        if(servCodeQ != null) {
+            nearbyServiceRequests = client.getNearbyServiceRequests(
+                    currentLat, currentLng, null, currentRadius, servCodeQ);
+            Log.e("servCodeq update tab1: ", servCodeQ);
+        } else {
+            Log.e("servCodeq update tab1: ", "null");
+            nearbyServiceRequests = client.getNearbyServiceRequests(
+                    currentLat, currentLng, null, currentRadius);
+        }
+
         nearbyServiceRequests.enqueue(new Callback<ArrayList<ServiceRequest>>() {
             @Override
             public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {

@@ -1,6 +1,8 @@
 package com.example.justin.verbeterjegemeente.Presentation;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -53,30 +55,20 @@ public class Tab2Fragment extends Fragment  {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.tab2_fragment,container,false);
 
-        Bundle bundle = getArguments();
-        if(bundle!= null)
-        {
-            if(bundle.getDouble("CURRENT_LAT") != 0  && bundle.getDouble("CURRENT_LONG") != 0) {
-                double lat = getArguments().getDouble("CURRENT_LAT");
-                double lng = getArguments().getDouble("CURRENT_LONG");
-                Log.e("Bundle: ", "Lat: " + lat + " Long: " + lng);
+        // get user selected radius and cat or use default radius and cat
+        SharedPreferences prefs = getActivity().getPreferences(Context.MODE_PRIVATE);
+        int rValue = prefs.getInt(getString(R.string.activityMain_saved_radius), 20); // 20 is default
+        currentRadius = Integer.toString(rValue);
+        String savedservCodeQ = prefs.getString(getString(R.string.activityMain_saved_servcodeQ),
+                getString(R.string.geenFilter));
 
-                currentLatLng = new LatLng(lat, lng);
-            }
-
-            if(bundle.getString("RADIUS_VALUE") != null) {
-                currentRadius = getArguments().getString("RADIUS_VALUE");
-                Log.e("tab2frag bndl radius: ", currentRadius);
-            }
-
-            if(bundle.getString("SERVICE_CODE_VALUE") != null) {
-                servCodeQ = getArguments().getString("SERVICE_CODE_VALUE");
-                if (servCodeQ !=null) {
-                    Log.e("tab2frag bnd servcodeQ ", servCodeQ);
-                } else {
-                    Log.e("tab2frag servCodeQ null", "");
-                }
-            }
+        // check if service code is not default value
+        // otherwise make String null
+        // this will let API requests not take in account service codes
+        if(savedservCodeQ.equals("")) {
+            servCodeQ = null;
+        } else {
+            servCodeQ = savedservCodeQ;
         }
 
         searchServiceRequests();
@@ -132,7 +124,14 @@ public class Tab2Fragment extends Fragment  {
 
                 // commented this line for testing getting service request based on radius from Helsinki Live API
 //                Call<ArrayList<ServiceRequest>> serviceCall = client.getNearbyServiceRequests(lat, lon, status, currentRadius, "OV");
-                Call<ArrayList<ServiceRequest>> serviceCall= client.getNearbyServiceRequests(lat, lon, null, currentRadius, servCodeQ);
+                Call<ArrayList<ServiceRequest>> serviceCall;
+                if (servCodeQ == null) {
+                    serviceCall = client.getNearbyServiceRequests(
+                            lat, lon, null, currentRadius);
+                } else {
+                    serviceCall = client.getNearbyServiceRequests(
+                            lat, lon, null, currentRadius, servCodeQ);
+                }
 //               fire the get request
                 serviceCall.enqueue(new Callback<ArrayList<ServiceRequest>>() {
                     @Override

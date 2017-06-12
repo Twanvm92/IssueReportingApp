@@ -398,7 +398,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
     private void setupViewPager(ViewPager viewPager) {
         SectionsPageAdapter adapter = new SectionsPageAdapter(getSupportFragmentManager());
 
-        // get user selected radius and cat or use default radius and cat
+        /*// get user selected radius and cat or use default radius and cat
         SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
         rValue = prefs.getInt(getString(R.string.activityMain_saved_radius), 20); // 20 is default
         String savedservCodeQ = prefs.getString(getString(R.string.activityMain_saved_servcodeQ),
@@ -407,7 +407,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
         // check if service code is not default value
         // otherwise make String null
         // this will let API requests not take in account service codes
-        if(savedservCodeQ.equals(getString(R.string.geenFilter))) {
+        if(savedservCodeQ.equals("")) {
             savedservCodeQ = null;
         }
 
@@ -415,14 +415,14 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
         Bundle bundle = new Bundle();
         String sValue = Integer.toString(rValue);
         bundle.putString("RADIUS_VALUE",sValue);
-        bundle.putString("SERVICE_CODE_VALUE",savedservCodeQ);
+        *//*bundle.putString("SERVICE_CODE_VALUE",savedservCodeQ);*/
 
         // pass values as a bundle to the Tab1Fragment
-        tabFragment.setArguments(bundle);
+//        tabFragment.setArguments(bundle);
         adapter.addFragment(tabFragment, "");
 
         // pass values as a bundle to the Tab1Fragment
-        tab2Fragment.setArguments(bundle);
+//        tab2Fragment.setArguments(bundle);
         adapter.addFragment(tab2Fragment, "");
 
         viewPager.setAdapter(adapter);

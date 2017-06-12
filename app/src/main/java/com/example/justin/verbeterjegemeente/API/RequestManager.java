@@ -56,6 +56,7 @@ public class RequestManager {
                     public void onResponse(Call<List<Service>> call, Response<List<Service>> response) {
                         // if a response has been received create a list with Services with the responsebody
                         serviceList = response.body();
+                        Log.e("empty response: ", response.body().toString());
 
                         // test what services have been caught in the response
                         if (serviceList != null) {

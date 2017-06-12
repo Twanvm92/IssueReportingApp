@@ -3,6 +3,7 @@
     <string name="locatie">Location</string>
     <string name="locatieTab2">Location:</string>
     <string name="locatieWijzigen">Change location</string>
+    <string name="locatieKiezen">Choose location</string>
     <string name="beschrijving">Description</string>
     <string name="beschrijving2">Description of the notification:</string>
     <string name="beschrijvingHint">Describe your problem</string>

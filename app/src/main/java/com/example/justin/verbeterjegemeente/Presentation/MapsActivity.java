@@ -83,6 +83,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             lon = in.getDoubleExtra("long", 1);
             lat = in.getDoubleExtra("lat", 1);
             currentLatLng = new LatLng(lat, lon);
+
         }
 
 
@@ -100,10 +101,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(View v) {
                 Intent i = new Intent();
-                if(currentLatLng != null) {
-                    i.putExtra("long", currentLatLng.longitude); //post longitude
-                    i.putExtra("lat", currentLatLng.latitude); //post latitude
+                if (marker != null){
+                    LatLng markerPosition = marker.getPosition();
+                    i.putExtra("long", markerPosition.longitude); //post longitude
+                    i.putExtra("lat", markerPosition.latitude); //post latitude
                 }
+
                 setResult(RESULT_OK, i); //set result and return
                 finish();
             }
@@ -154,16 +157,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
+        if (getIntent().hasExtra("marker")) {
+            marker = mMap.addMarker(new MarkerOptions().position(currentLatLng)
+                    .title("current location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)).visible(true)
+            );
+        }
         getLocation();
-//        if (currentLatLng == null){
-//            reqFindLocation();
-//        } else {
-//            CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
-//            mMap.moveCamera(center); //update camera
-//            marker = mMap.addMarker(new MarkerOptions().position(currentLatLng)
-//                    .title("current location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)).visible(true)
-//            );
-//        }
 
     }
 
@@ -183,28 +182,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void getLocation() {
-        if(marker != null)//verwijder de oude marker
-            marker.remove();
         if (currentLatLng == null){
             CameraUpdate center = CameraUpdateFactory.newLatLngZoom(new LatLng(Constants.DEFAULT_LAT, Constants.DEFAULT_LONG), 12.0f);
             mMap.moveCamera(center); //update camera
-            marker = mMap.addMarker(new MarkerOptions().position(new LatLng(Constants.DEFAULT_LAT, Constants.DEFAULT_LONG))
-                    .title("current location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)).visible(true)
-            );
+
         } else {
             CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
             mMap.moveCamera(center); //update camera
-            marker = mMap.addMarker(new MarkerOptions().position(currentLatLng)
-                    .title("current location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)).visible(true)
-            );
         }
     }
 
     public void onBackPressed() {
         Intent i = new Intent();
-        if(currentLatLng != null) {
-            i.putExtra("long", currentLatLng.longitude);
-            i.putExtra("lat", currentLatLng.latitude);
+        if (marker != null){
+            LatLng markerPosition = marker.getPosition();
+            i.putExtra("long", markerPosition.longitude); //post longitude
+            i.putExtra("lat", markerPosition.latitude); //post latitude
         }
         setResult(RESULT_OK, i); //set result and return
         finish();
@@ -255,12 +248,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
                                 CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
                                 mMap.moveCamera(center);
-                                if(marker != null) {
-                                    marker.remove();
-                                }
-                                marker = mMap.addMarker(new MarkerOptions().position(currentLatLng)
-                                        .title("current location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)).visible(true)
-                                );
                             } else {
                                 Log.e("getUserLocation", "Kan locatie niet ophalen");
                             }

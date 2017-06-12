@@ -469,9 +469,16 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         String pRadius = (String) Integer.toString(radius);
         currentRadius = pRadius;
         this.servCodeQ = servCodeQ;
-        String currentLat = Double.toString(currentLatLng.latitude);
-        String currentLng = Double.toString(currentLatLng.longitude);
-        Log.e("Radius update tab1: ", currentRadius);
+        String currentLat;
+        String currentLng;
+        if (currentLatLng == null){
+            currentLat = Double.toString(Constants.DEFAULT_LAT);
+            currentLng = Double.toString(Constants.DEFAULT_LONG);
+        } else {
+            currentLat = Double.toString(currentLatLng.latitude);
+            currentLng = Double.toString(currentLatLng.longitude);
+            Log.e("Radius update tab1: ", currentRadius);
+        }
 
         Call<ArrayList<ServiceRequest>> nearbyServiceRequests;
         if(servCodeQ != null) {

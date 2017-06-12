@@ -43,7 +43,6 @@ import com.example.justin.verbeterjegemeente.Database.DatabaseHanlder;
 import com.example.justin.verbeterjegemeente.Constants;
 
 import com.example.justin.verbeterjegemeente.R;
-import com.example.justin.verbeterjegemeente.domain.Locatie;
 import com.example.justin.verbeterjegemeente.domain.PostServiceRequestResponse;
 import com.example.justin.verbeterjegemeente.domain.Service;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
@@ -98,13 +97,13 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
     private Uri selectedImage;
     private android.app.AlertDialog.Builder builder;
     private String imagePath = null;
-    private LatLng location;
+    private LatLng location, mapLocation;
     private CheckBox onthoudCheckbox;
     private String descr, sc, lName, fName, email, address_string, address_id, jurisdiction_id, imgUrl;
     private Double lon, lat;
     private String[] attribute = {};
     private RequestManager reqManager;
-
+    private boolean marker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -148,6 +147,9 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                 if (location != null) {
                     intent.putExtra("long", location.longitude);
                     intent.putExtra("lat", location.latitude);
+                }
+                if (marker){
+                    intent.putExtra("marker", "true");
                 }
                 startActivityForResult(intent, Constants.LOCATIE_KIEZEN);
             }
@@ -427,9 +429,9 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                 // initializes a longtitude of the user's current location or a longtitude that
                 // has been provided by the user
                 lon = null;
-                if (location != null) {
-                    if (location.longitude != 0.0) {
-                        lon = location.longitude;
+                if (mapLocation != null) {
+                    if (mapLocation.longitude != 0.0) {
+                        lon = mapLocation.longitude;
                     } else {
                         Toast.makeText(getApplicationContext(),
                                 getResources().getString(R.string.geenLocatie), Toast.LENGTH_SHORT).show();
@@ -444,9 +446,9 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                 // initializes a latitude of the user's current location or a latitude that
                 // has been provided by the user
                 lat = null;
-                if (location != null) {
-                    if (location.latitude != 0.0) {
-                        lat =  location.latitude;
+                if (mapLocation != null) {
+                    if (mapLocation.latitude != 0.0) {
+                        lat =  mapLocation.latitude;
                     } else {
                         Toast.makeText(getApplicationContext(),
                                 getResources().getString(R.string.geenLocatie), Toast.LENGTH_SHORT).show();
@@ -779,10 +781,12 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                     if(data.hasExtra("long")) {
                         double lng = data.getDoubleExtra("long", 1);
                         double lat = data.getDoubleExtra("lat", 1);
-                        location = new LatLng(lat, lng);
-                        Log.e("long: ", "" + location.longitude);
-                        Log.e("lat: ", "" + location.latitude);
-
+                        mapLocation = new LatLng(lat, lng);
+                        location = mapLocation;
+                        Log.e("long: ", "" + mapLocation.longitude);
+                        Log.e("lat: ", "" + mapLocation.latitude);
+                        marker = true;
+                        locatieButton.setText(getResources().getString(R.string.locatieWijzigen));
                     }
 
                 }

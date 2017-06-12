@@ -19,8 +19,8 @@ import com.example.justin.verbeterjegemeente.API.ConnectionChecker;
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.Adapters.ServiceRequestAdapter;
+import com.example.justin.verbeterjegemeente.Constants;
 import com.example.justin.verbeterjegemeente.R;
-import com.example.justin.verbeterjegemeente.domain.Locatie;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 import com.google.android.gms.maps.model.LatLng;
 
@@ -43,7 +43,6 @@ public class Tab2Fragment extends Fragment  {
     private ArrayList<ServiceRequest> serviceList;
     private String lat = "", lon = "", status, meters;
     private ServiceRequest serviceRequest;
-    private Locatie location;
     private static final int LOCATIE_KIEZEN= 3;
     private LatLng currentLatLng = null;
     private String currentRadius;
@@ -55,6 +54,15 @@ public class Tab2Fragment extends Fragment  {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.tab2_fragment,container,false);
 
+
+        Bundle bundle = getArguments();
+        if (bundle != null) {
+            if (bundle.getDouble("CURRENT_LAT") != 0) {
+                currentLatLng = new LatLng(bundle.getDouble("CURRENT_LAT"), bundle.getDouble("CURRENT_LONG"));
+            } else {
+                currentLatLng = new LatLng(Constants.DEFAULT_LAT, Constants.DEFAULT_LONG);
+            }
+        }
         // get user selected radius and cat or use default radius and cat
         SharedPreferences prefs = getActivity().getPreferences(Context.MODE_PRIVATE);
         int rValue = prefs.getInt(getString(R.string.activityMain_saved_radius), 20); // 20 is default
@@ -107,14 +115,6 @@ public class Tab2Fragment extends Fragment  {
                             Toast.LENGTH_SHORT).show();
                     return;
                 }
-
-//                hardcoded voor nu
-                // use lat and long from google maps camera or user location
-                // instea dof hardcoded for testing Helsinki Live API
-                /*lat = "52";
-                lon = "10";*/
-                status = "open";
-                meters = "200";
 
 //                create a callback
                 client = ServiceGenerator.createService(ServiceClient.class);
@@ -174,23 +174,23 @@ public class Tab2Fragment extends Fragment  {
         }
     }
 
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode) {
-            case LOCATIE_KIEZEN:
-                if(resultCode == RESULT_OK) {
-                    if (data.hasExtra("long") && data.hasExtra("lat")) {
-                        double lng = data.getDoubleExtra("long", 1);
-                        double lat = data.getDoubleExtra("lat", 1);
-                        location = new Locatie(lng, lat);
-                        Log.i("long: ", "" + location.getLongitude());
-                        Log.i("lat: ", "" + location.getLatitude());
-
-                    }
-                }
-
-        }
-    }
+//    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//        switch (requestCode) {
+//            case LOCATIE_KIEZEN:
+//                if(resultCode == RESULT_OK) {
+//                    if (data.hasExtra("long") && data.hasExtra("lat")) {
+//                        double lng = data.getDoubleExtra("long", 1);
+//                        double lat = data.getDoubleExtra("lat", 1);
+//                        location = new LatLng(lat, lat);
+//                        Log.i("long: ", "" + location.longitude);
+//                        Log.i("lat: ", "" + location.latitude);
+//
+//                    }
+//                }
+//
+//        }
+//    }
 
     /**
      * Accepts current location of the user (or the location of the camera on the Google map

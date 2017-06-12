@@ -94,6 +94,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
     private CheckBox onthoudCheckbox;
     private String descr, sc, lName, fName, email, address_string, address_id, jurisdiction_id, imgUrl;
     private Double lon, lat;
+    private Float zoom;
     private String[] attribute = {};
     private boolean marker;
 
@@ -121,6 +122,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
         if (in.hasExtra("long")) {
             lon = in.getDoubleExtra("long", 1);
             lat = in.getDoubleExtra("lat", 1);
+            zoom = in.getFloatExtra("zoom", 16.0f);
             location = new LatLng(lat, lon);
         }
 
@@ -133,7 +135,9 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                 if (location != null) {
                     intent.putExtra("long", location.longitude);
                     intent.putExtra("lat", location.latitude);
+                    intent.putExtra("zoom", zoom);
                 }
+
                 if (marker) {
                     intent.putExtra("marker", "true");
                 }
@@ -751,8 +755,10 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                     if (data.hasExtra("long")) {
                         double lng = data.getDoubleExtra("long", 1);
                         double lat = data.getDoubleExtra("lat", 1);
+                        zoom = data.getFloatExtra("zoom", 16.0f);
                         mapLocation = new LatLng(lat, lng);
                         location = mapLocation;
+
                         Log.e("long: ", "" + mapLocation.longitude);
                         Log.e("lat: ", "" + mapLocation.latitude);
                         marker = true;

@@ -76,6 +76,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     private String currentRadius;
     private String servCodeQ;
     private boolean eersteKeer = true;
+    public float zoomLevel;
 
     public void onCreate(Bundle savedInstaceState) {
         super.onCreate(savedInstaceState);
@@ -186,14 +187,16 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     }
 
 
-    //set up map
+    /**
+     * Opzetten van de map
+     */
     private void setUpMap() {
         //setup map settings
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         mMap.getUiSettings().setMapToolbarEnabled(false);
         mMap.setPadding(60, 100, 0, 180);
 
-//        setup Google Api
+
         initApi();
 
         //markerHandler stuff
@@ -202,6 +205,9 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         mHandler.setVisible("category");
     }
 
+    /**
+     * Connectie maken met de Google Api
+     */
     public void initApi() {
         mApiClient = new GoogleApiClient.Builder(this.getContext())
                 .addApi(LocationServices.API)
@@ -209,9 +215,23 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                 .addOnConnectionFailedListener(this).build();
         mApiClient.connect();
 
-        reqFindLocation();
+        SharedPreferences prefs = getActivity().getPreferences(getContext().MODE_PRIVATE);
+        String eersteAanvraag = prefs.getString("eersteAanvraag", "true");
+        if (eersteAanvraag.equalsIgnoreCase("true")) {
+            if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                reqFindLocation();
+            } else {
+                getUserLocation();
+            }
+        } else {
+            getLocation();
+        }
+        prefs.edit().putString("eersteAanvraag", "false").apply();
     }
 
+    /**
+     * Locatie van de gebuiker ophalen
+     */
     public void getUserLocation() {
         LocationRequest locationRequest = LocationRequest.create();
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
@@ -265,18 +285,11 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         // nothing has to be done here
     }
 
+    /**
+     * Standaard locatie tonen eerste keer laden van map als er geen toestemming gegegeven is
+     */
     public void getLocation() {
-        currentLatLng = new LatLng(DEFAULT_LAT, DEFAULT_LONG);
-        new AlertDialog.Builder(this.getContext())
-                .setTitle("Locatie bepalen mislukt")
-                .setMessage("het is niet gelukt uw huidige locatie te bepalen, mogelijk staat locatie voorziening uit, of is er geen internetverbinding. probeer het later opnieuw.")
-                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        // send user back to Tab1Fragment
-                    }
-                }).setIcon(android.R.drawable.ic_dialog_alert).show();
-
-        CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 12.0f);
+        CameraUpdate center = CameraUpdateFactory.newLatLngZoom(new LatLng(DEFAULT_LAT, DEFAULT_LONG), 12.0f);
         mMap.moveCamera(center);
         eersteKeer = false;
     }
@@ -296,7 +309,9 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         // nothing has to happen here
     }
 
-
+    /**
+     * Als de map bewogen wordt de nieuwe locatie meegeven aan de listener
+     */
     @Override
     public void onCameraIdle() {
         //get Current radius selected by user in MainActivity
@@ -312,6 +327,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                 currentLatLng = new LatLng(center.latitude, center.longitude);
                 if (locCallback != null) {
                     locCallback.locationSelected(currentLatLng);
+                    zoomLevel = mMap.getCameraPosition().zoom;
                 }
 
         }
@@ -380,20 +396,16 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         });
     }
 
+    /**
+     * Permissie wordt gevraagd als dit niet al gegeven is
+     */
     public void reqFindLocation() {
         if (ContextCompat.checkSelfPermission(getActivity(),
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(getActivity(),
-                    Manifest.permission.ACCESS_FINE_LOCATION)) {
-                ActivityCompat.requestPermissions(this.getActivity(),
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                        Constants.MY_PERMISSIONS_LOCATION);
-            } else {
                 ActivityCompat.requestPermissions(getActivity(),
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                        Constants.MY_PERMISSIONS_LOCATION);
-            }
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    Constants.MY_PERMISSIONS_LOCATION);
         } else {
             getUserLocation();
         }
@@ -419,15 +431,23 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                     Log.i("onRequestPermResult", "Geen toestemming gekregen, eerste keer dat map geladen wordt default lat/long gepakt");
                     if (currentLatLng == null) {
                         getLocation();
-                    } else {
-                        Log.i("onRequestPermResult", "Geen toestemming gekregen");
-                        Toast.makeText(getContext(), "Kan locatie niet ophalen zonder permissie", Toast.LENGTH_SHORT).show();
                     }
+                    new AlertDialog.Builder(this.getContext())
+                            .setTitle(getString(R.string.eFindLocationTitle))
+                            .setMessage(getString(R.string.eFindLocation))
+                            .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // send user back to Tab1Fragment
+                                }
+                            }).setIcon(android.R.drawable.ic_dialog_alert).show();
                 }
             }
         }
     }
-
+    
+    /**
+     * Permissie wordt gevraagd als dit niet al gegeven is
+     */
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
@@ -435,13 +455,24 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                 if (resultCode == Activity.RESULT_OK) {
                     reqFindLocation();
                 } else {
-                    if (currentLatLng == null) {
+                   new AlertDialog.Builder(this.getContext())
+                        .setTitle(getString(R.string.eFindLocationTitle))
+                       .setMessage(getString(R.string.eFindLocation))
+                       .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+
+                             }
+                        }).setIcon(android.R.drawable.ic_dialog_alert).show();
+
+                    if (currentLatLng == null){
                         getLocation();
                     }
-                    Log.i("onActivityResult", "Gps aanvraag afgewezen");
-                }
+
+            }
+            Log.i("onActivityResult", "Gps aanvraag afgewezen");
         }
     }
+
 
     /**
      * This method will update the radius and service codes connected to the category

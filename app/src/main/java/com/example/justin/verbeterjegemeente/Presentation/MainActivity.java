@@ -213,6 +213,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
                         if (currentLatLng != null) {
                             in.putExtra("long", currentLatLng.longitude);
                             in.putExtra("lat", currentLatLng.latitude);
+                            in.putExtra("zoom", tabFragment.zoomLevel);
                         }
                         startActivity(in);
                         break;

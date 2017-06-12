@@ -43,6 +43,8 @@
     <string name="eGetServices">Could not find any services that meet these criteria</string>
     <string name="FoutOphalenProblemen">Can not retrieve categories at this time. Please try again later.</string>
     <string name="errLoadingServiceRequestList">Cannot obtain service requests. Location unknown.</string>
+    <string name="eFindLocationTitle">Unable to determine location</string>
+    <string name="eFindLocation">It was not possible to determine your current location. Make sure GPS is turned on and you have an internet connection. Please try again later.</string>
 
     <string name="fotoWijzigen">Change picture</string>
     <string name="fotoMaken">Take photo</string>

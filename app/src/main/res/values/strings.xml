@@ -54,6 +54,8 @@
     <string name="eGetServices">Geen services kunnen vinden die voldoen aan deze criteria</string>
     <string name="FoutOphalenProblemen">Kan op het moment geen categorieën ophalen. Probeer het later opnieuw.</string>
     <string name="errLoadingServiceRequestList">Kan op dit moment geen meldingen ophalen. Locatie niet bekend.</string>
+    <string name="eFindLocationTitle">Locatie bepalen mislukt</string>
+    <string name="eFindLocation">Het is niet gelukt uw huidige locatie te bepalen. Mogelijk staat locatievoorziening uit of is er geen internetverbinding. Probeer het later opnieuw.</string>
 
     <string name="fotoWijzigen">Foto wijzigen</string>
     <string name="fotoMaken">Maak foto</string>

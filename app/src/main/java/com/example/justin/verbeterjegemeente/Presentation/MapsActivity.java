@@ -41,12 +41,9 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 /**
- * MapsActivity
- * Laat een map zien met daarop de huidige locatie. door op de kaart te klikken wordt de opgegeven locatie aangepast.
- * met de knop rechtsonderin keer je terug naar het meldingscherm en wordt de locatie meegegeven.
+ * De gebruiker moet hier een locatie kiezen die bij het probleem hoort
+ * De gekozen locatie wordt aangegeven met een rode marker op de map
  */
-
-
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         com.google.android.gms.location.LocationListener {
@@ -56,14 +53,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Location currentLocation;
     private GoogleApiClient mApiClient;
     private LatLng currentLatLng;
+    private Float zoom;
 
     /**
-     * onCreate wordt opgeroepen wanneer de klasse wordt gemaakt. hierbij wordt de map opgeroepen,
-     * een GoogleApiCLient aangemaakt en de savebutton gemaakt.
-     * <p>
-     * de savebutton linked terug naar de meldingAcitivity en geeft de longitude en latitude mee.
+     * Savebutton geeft de LatLng mee aan MeldingActivity
+     * Gps button zoekt de locatie van de gebruiker
      */
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,6 +68,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (in.hasExtra("long")) {
             double lon = in.getDoubleExtra("long", 1);
             double lat = in.getDoubleExtra("lat", 1);
+            zoom = in.getFloatExtra("zoom", 16.0f);
             currentLatLng = new LatLng(lat, lon);
 
         }
@@ -96,6 +92,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     LatLng markerPosition = marker.getPosition();
                     i.putExtra("long", markerPosition.longitude); //post longitude
                     i.putExtra("lat", markerPosition.latitude); //post latitude
+                    i.putExtra("zoom", mMap.getCameraPosition().zoom);
                 }
 
                 setResult(RESULT_OK, i); //set result and return
@@ -113,10 +110,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     /**
-     * onMapReady wordt opgeroepen wanneer de map geladen is. dan wordt er ook een onclicklistener aan de
-     * kaart toegevoegd die de marker verplaatst op de kaart.
+     * Nadat de map geladen is kan door te drukken op de map een marker worden toegevoegd
      */
-
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -144,7 +139,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mApiClient.connect();
     }
 
-
+    /**
+     * Als de gebruiker de locatie wilt wijzigen, de vorige locatie als marker tonen
+     */
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         if (getIntent().hasExtra("marker")) {
@@ -171,17 +168,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+    /**
+     * Na opstarten camera bewegen naar default locatie tenzij de gebruiker een locatie heeft gekozen in fragment 1
+     */
     public void getLocation() {
         if (currentLatLng == null) {
             CameraUpdate center = CameraUpdateFactory.newLatLngZoom(new LatLng(Constants.DEFAULT_LAT, Constants.DEFAULT_LONG), 12.0f);
             mMap.moveCamera(center); //update camera
 
         } else {
-            CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
+            CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, zoom);
             mMap.moveCamera(center); //update camera
         }
     }
 
+    /**
+     * Ervoor zorgen dat teruggaan door middel van back press de marker alsnog meegegeven wordt
+     */
     public void onBackPressed() {
         Intent i = new Intent();
         if (marker != null) {
@@ -189,10 +192,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             i.putExtra("long", markerPosition.longitude); //post longitude
             i.putExtra("lat", markerPosition.latitude); //post latitude
         }
+        i.putExtra("zoom", mMap.getCameraPosition().zoom);
         setResult(RESULT_OK, i); //set result and return
         finish();
     }
 
+    /**
+     * Permissie wordt gevraagd als dit niet al gegeven is
+     */
     public void reqFindLocation() {
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
@@ -207,6 +214,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    /**
+     * Locatie van de gebuiker ophalen
+     */
     public void getUserLocation() {
         LocationRequest locationRequest = LocationRequest.create();
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);

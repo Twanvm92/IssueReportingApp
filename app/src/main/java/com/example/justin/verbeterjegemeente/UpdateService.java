@@ -50,8 +50,9 @@ public class UpdateService extends Service {
     public final class ServiceHandler extends Handler{
         public ServiceHandler(Looper looper){
             super(looper);
-            // Setting a sleep time for the thread, 15 minutes
-            LONG_SLEEP_TIME = 3000;
+            // Setting a sleep time for the th
+            // read, 15 minutes
+            LONG_SLEEP_TIME = 600000;
             count = 0;
 
         }

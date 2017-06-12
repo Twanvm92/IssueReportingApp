@@ -24,8 +24,6 @@ import java.util.Random;
 
 public class Notification {
 
-    ArrayList<String> notificationIDs = new ArrayList<>();
-
     public void makeNotification(Context context, String title, String text, ServiceRequest serviceRequest){
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context);
         // Sets the icon of the notification in the status bar.
@@ -50,11 +48,7 @@ public class Notification {
         mBuilder.setContentIntent(resultPendingIntent);
 
 
-        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        mBuilder.build();
-
-        NotificationManager mNotificationManager =
-                (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
 
 
@@ -68,8 +62,6 @@ public class Notification {
     public int getRandom(){
         Random rand = new Random();
         int  notificationID = rand.nextInt(50) + 1;
-        notificationIDs.add(notificationID + "");
-        Log.i("IDS", notificationIDs.toString());
         return notificationID;
     }
 

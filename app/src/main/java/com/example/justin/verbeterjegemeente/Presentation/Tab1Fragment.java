@@ -17,18 +17,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
-
-import android.widget.ArrayAdapter;
-
-
-
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-
-import android.widget.Button;
-
-import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.API.ConnectionChecker;
@@ -39,7 +27,6 @@ import com.example.justin.verbeterjegemeente.Business.LocationSelectedListener;
 import com.example.justin.verbeterjegemeente.Business.MarkerHandler;
 import com.example.justin.verbeterjegemeente.Constants;
 import com.example.justin.verbeterjegemeente.R;
-import com.example.justin.verbeterjegemeente.domain.Service;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -50,7 +37,6 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
-import com.google.android.gms.location.LocationSettingsStates;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -60,21 +46,11 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.io.IOException;
 import java.util.ArrayList;
-
-import java.util.List;
-
-
-
-import br.com.bloder.magic.view.MagicButton;
-
-
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -100,28 +76,6 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     private String currentRadius;
     private String servCodeQ;
     private boolean eersteKeer = true;
-
-
-    boolean popupShown = false;
-
-
-
-    /*@Nullable
-    @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.tab1_fragment,container,false);
-        btnTEST = (MagicButton) view.findViewById(R.id.meldingmakenbutton);
-        btnTEST.setMagicButtonClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent i = new Intent(getContext(), MeldingActivity.class);
-                startActivity(i);
-            }
-
-        });
-
-        return view;
-    }*/
 
     public void onCreate(Bundle savedInstaceState) {
         super.onCreate(savedInstaceState);

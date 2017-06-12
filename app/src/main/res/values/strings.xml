@@ -2,12 +2,14 @@
     <!--STRINGS DIE NIET IN ANDERE TAAL HOEVEN-->
     <string name="app_name">Verbeter Je Gemeente</string>
     <string name="title_activity_maps">Map</string>
+    <string name="title_activity_button_handler">ButtonHandler</string>
     <string name="email">Email</string>
     <string name="nederlands">Nederlands</string>
     <string name="engels">English</string>
 
 
     <!--STRINGS DIE VERTAALD WORDEN-->
+    <string name="action_settings">Instellingen</string>
     <string name="locatie">Locatie</string>
     <string name="locatieTab2">Locatie:</string>
     <string name="locatieWijzigen">Locatie wijzigen</string>

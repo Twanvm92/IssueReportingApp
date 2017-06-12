@@ -560,9 +560,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                                         "service request is aangemaakt met id: " + psrr.getId(),
                                         Toast.LENGTH_SHORT).show();
 
-                                final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
-                                db.addReport(psrr.getId());
-                                db.close();
+                                insertReport(psrr.getId());
                                 Intent i = new Intent(getApplicationContext(), FollowingActivity.class);
                                 startActivityForResult(i, Constants.BACK_BUTTON);
                             }
@@ -817,14 +815,55 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
         return Base64.encodeToString(imageByteArray, Base64.DEFAULT);
     }
 
+    public void insertReport(String id) {
 
-    @Override
-    public void servicesReady(List<Service> services) {
-        serviceList = services;
-        // update the catagoryList with main categories generated from the service list
-        catagoryList = ServiceManager.genMainCategories(services, catagoryList);
+        ArrayList<String> idList = new ArrayList<>();
+        idList.add(id);
 
-        // let the adapter know that data has changed
-        catagoryAdapter.notifyDataSetChanged();
+        try {
+            if (ConnectionChecker.isConnected()) {  //checking for internet acces.
+
+                for (String s : idList) {
+                    client = ServiceGenerator.createService(ServiceClient.class);
+                    Call<ServiceRequest> RequestResponseCall =
+                            client.getServiceById(s, "1");
+                    RequestResponseCall.enqueue(new retrofit2.Callback<ServiceRequest>() {
+                        @Override
+                        public void onResponse(Call<ServiceRequest> call, Response<ServiceRequest> response) {
+                            if (response.isSuccessful()) {
+                                ServiceRequest sr = response.body();
+
+                                DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
+                                db.addReport(sr);
+
+                            } else {
+                                Log.i("response mis", "yup");
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<ServiceRequest> call, Throwable t) {
+                            Toast.makeText(getApplicationContext(),
+                                    "Something went wrong while getting your requests",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
+
+        @Override
+        public void servicesReady(List<Service> services) {
+            serviceList = services;
+            // update the catagoryList with main categories generated from the service list
+            catagoryList = ServiceManager.genMainCategories(services, catagoryList);
+
+            // let the adapter know that data has changed
+            catagoryAdapter.notifyDataSetChanged();
+        }
 }

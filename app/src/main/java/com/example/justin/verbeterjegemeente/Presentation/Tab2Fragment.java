@@ -75,6 +75,8 @@ public class Tab2Fragment extends Fragment  {
 
         searchServiceRequests();
 
+        client = ServiceGenerator.createService(ServiceClient.class);
+
         serviceList = new ArrayList<>();
 
         ListView meldingListView = (ListView) view.findViewById(R.id.meldingListView);
@@ -130,6 +132,7 @@ public class Tab2Fragment extends Fragment  {
                             lat, lon, null, currentRadius, servCodeQ);
                 }
 //               fire the get request
+
                 serviceCall.enqueue(new Callback<ArrayList<ServiceRequest>>() {
                     @Override
                     public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
@@ -203,3 +206,4 @@ public class Tab2Fragment extends Fragment  {
         searchServiceRequests();
     }
 }
+

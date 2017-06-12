@@ -11,6 +11,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
+
 import com.example.justin.verbeterjegemeente.domain.User;
 
 import java.util.ArrayList;
@@ -24,8 +26,11 @@ public class DatabaseHanlder extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
 
     private static final String MELDING_TABLE_NAME = "melding";
-    private static final String MELDING_COLUMN_ID = "_meldingId";
-    private static final String MELDING_COLUMN_IDAPI = "meldingIdApi";
+
+        private static final String MELDING_COLUMN_ID = "_meldingId";
+        private static final String MELDING_COLUMN_IDAPI = "meldingIdApi";
+    private static final String MELDING_COLUMN_UPDATETIME = "updatetime";
+
 
     private static final String USER_TABLE_NAME = "user";
     private static final String USER_COLUMN_EMAIL = "email";
@@ -45,6 +50,7 @@ public class DatabaseHanlder extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase database) {
         String CREATE_MELDING_TABLE = " CREATE TABLE " + MELDING_TABLE_NAME + " ( " +
                 MELDING_COLUMN_ID + " INTEGER PRIMARY KEY," +
+                MELDING_COLUMN_UPDATETIME + " TEXT , " +
                 MELDING_COLUMN_IDAPI + " TEXT )";
 
         String CREATE_USER_TABLE = "CREATE TABLE " + USER_TABLE_NAME + "(" +
@@ -80,9 +86,14 @@ public class DatabaseHanlder extends SQLiteOpenHelper {
     }
 
     // Adds a report to the database
-    public void addReport(String id) {
+
+    public void addReport(ServiceRequest serviceRequest){
+
+        Log.i("DATABASE", serviceRequest.getRequestedDatetime());
+
         ContentValues values = new ContentValues();
-        values.put(MELDING_COLUMN_IDAPI, id);
+        values.put(MELDING_COLUMN_IDAPI, serviceRequest.getServiceRequestId());
+        values.put(MELDING_COLUMN_UPDATETIME, serviceRequest.getUpdatedDatetime());
 
 
         SQLiteDatabase db = this.getWritableDatabase();
@@ -115,17 +126,24 @@ public class DatabaseHanlder extends SQLiteOpenHelper {
 
 
     // Returns a list of all stored reports
-    public ArrayList<String> getReports() {
 
-        ArrayList<String> list = new ArrayList<>();
+    public ArrayList<ServiceRequest> getReports(){
+
+       ArrayList<ServiceRequest> list = new ArrayList<>();
+
 
         String query = "SELECT * FROM " + MELDING_TABLE_NAME;
 
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(query, null);
 
-        while (cursor.moveToNext()) {
-            list.add(cursor.getString(cursor.getColumnIndex(MELDING_COLUMN_IDAPI)));
+
+        while (cursor.moveToNext()){
+            ServiceRequest serviceRequest = new ServiceRequest();
+            serviceRequest.setUpdatedDatetime(cursor.getString(cursor.getColumnIndex(MELDING_COLUMN_UPDATETIME)));
+            serviceRequest.setServiceRequestId(cursor.getString(cursor.getColumnIndex(MELDING_COLUMN_IDAPI)));
+            list.add(serviceRequest);
+
         }
 
         db.close();

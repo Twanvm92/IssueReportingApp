@@ -32,26 +32,30 @@ public interface ServiceClient {
      * @return List of Service objects
      * @see Service
      */
-    @GET("services.json")
+
+    @GET ("services.json")
+
     Call<List<Service>> getServices(@Query("locale") String Language);
+
+
+
 
 
     /**
      * Sends a Multipart/form-data post request to an already specified endpoint
      * and returns an Arraylist of <code>PostServiceRequestResponse</code> objects
-     *
-     * @param service_code    The service code of a Service Request. Required.
-     * @param description     The description of a Service Request. Required
-     * @param lat             The Latitude of the location of the Service Request. Required.
-     * @param lon             The longitude of the location of the Service Request. Required.
-     * @param address_string  The address string of the Service Request. Required.
-     * @param address_id      The address id of the Service Request. Required.
-     * @param attribute       The attributes of the location of the Service Request. Required.
+     * @param service_code The service code of a Service Request. Required.
+     * @param description The description of a Service Request. Required
+     * @param lat The Latitude of the location of the Service Request. Required.
+     * @param lon The longitude of the location of the Service Request. Required.
+     * @param address_string The address string of the Service Request. Required.
+     * @param address_id The address id of the Service Request. Required.
+     * @param attribute The attributes of the location of the Service Request. Required.
      * @param jurisdiction_id The jurisdiction id of the Service Request.
-     * @param media_url       The optional image file that can be send with the post request
-     * @param email           The optional email of the user that made the Service Request.
-     * @param first_name      The optional front name of the user that made the Service Request
-     * @param last_name       The optional last name of the user that made the Service Request
+     * @param media_url The optional image file that can be send with the post request
+     * @param email The optional email of the user that made the Service Request.
+     * @param first_name The optional front name of the user that made the Service Request
+     * @param last_name The optional last name of the user that made the Service Request
      * @return Arraylist<PostServiceRequestResponse>
      * @see PostServiceRequestResponse
      */
@@ -80,11 +84,13 @@ public interface ServiceClient {
      * @param meters the meters for the radius search
      * @return ArrayList<ServiceRequest> A list of service requests
      */
+
     @GET("requests.json")
     Call<ArrayList<ServiceRequest>> getNearbyServiceRequests(@Query("lat") String lat,
                                                              @Query("long") String lng,
                                                              @Query("status") String status,
                                                              @Query("radius") String meters);
+
 
     /**
      * Get nearby service requests based on a radius with meters and lat and long that
@@ -111,7 +117,9 @@ public interface ServiceClient {
      * @param jurisdiction_id unique identifier for a jurisdiction
      * @return <code>ServiceRequest</code>
      */
-    @GET("request/{id}.json")
-    Call<ServiceRequest> getServiceById(@Path("id") String serviceID,
-                                        @Query("jurisdiction_id") String jurisdiction_id);
+
+    @GET ("request/{id}.json")
+    Call<ServiceRequest> getServiceById (@Path("id") String serviceID,
+                                         @Query("jurisdiction_id") String jurisdiction_id);
 }
+

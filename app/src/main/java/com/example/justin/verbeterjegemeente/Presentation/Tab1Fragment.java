@@ -17,7 +17,17 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
+
 import android.widget.ArrayAdapter;
+
+
+
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
+import android.widget.Button;
+
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -57,7 +67,13 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+
 import java.util.List;
+
+
+
+import br.com.bloder.magic.view.MagicButton;
+
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -85,8 +101,31 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     private String servCodeQ;
     private boolean eersteKeer = true;
 
+
+    boolean popupShown = false;
+
+
+
+    /*@Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.tab1_fragment,container,false);
+        btnTEST = (MagicButton) view.findViewById(R.id.meldingmakenbutton);
+        btnTEST.setMagicButtonClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(getContext(), MeldingActivity.class);
+                startActivity(i);
+            }
+
+        });
+
+        return view;
+    }*/
+
     public void onCreate(Bundle savedInstaceState) {
         super.onCreate(savedInstaceState);
+
 
         // get user selected radius and cat or use default radius and cat
         SharedPreferences prefs = getActivity().getPreferences(Context.MODE_PRIVATE);
@@ -481,6 +520,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
             nearbyServiceRequests = client.getNearbyServiceRequests(
                     currentLat, currentLng, null, currentRadius);
         }
+
 
         nearbyServiceRequests.enqueue(new Callback<ArrayList<ServiceRequest>>() {
             @Override

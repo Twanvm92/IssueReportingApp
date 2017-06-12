@@ -4,6 +4,8 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Point;
 import android.graphics.Rect;
@@ -17,11 +19,14 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.justin.verbeterjegemeente.Database.DatabaseHanlder;
+import com.example.justin.verbeterjegemeente.Notification;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 import com.like.LikeButton;
 import com.like.OnLikeListener;
 import com.squareup.picasso.Picasso;
+
+import org.w3c.dom.Text;
 
 
 /**
@@ -39,7 +44,10 @@ public class DetailedMeldingActivity extends FragmentActivity {
     // duration is ideal for subtle animations or animations that occur
     // very frequently.
     private int mShortAnimationDuration;
-    private TextView statusDetailed, statusDetailedNote, laatstUpdateDetailed, beschrijvingDetailed, hoofdCategorieDetailed, subCategorieDetailed;
+
+
+    private TextView statusDetailed, laatstUpdateDetailed, beschrijvingDetailed, hoofdCategorieDetailed, subCategorieDetailed, statusNotes;
+
     private ImageButton imageSmall;
 
     @Override
@@ -49,51 +57,83 @@ public class DetailedMeldingActivity extends FragmentActivity {
 
         Bundle extras = getIntent().getExtras();
 
+
+
+        /**
+         * for loop to clear all notifications when the detailed view is opened.
+         */
+        for(int i = 0; i < 60; i++){
+            NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.cancel(i);
+        }
+
+
+
+
         final String origin = extras.getString("ORIGIN");
+
 
         final ServiceRequest serviceRequest = (ServiceRequest) getIntent().getSerializableExtra("serviceRequest");
 
 
+
         likeButton = (LikeButton) findViewById(R.id.favorietenknopdetail);
         statusDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_status_DetailedID);
-        statusDetailedNote = (TextView) findViewById(R.id.activityDetailedMelding_tv_status_DetailedNotesID);
         laatstUpdateDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_laatsUpdate_detailedID);
         beschrijvingDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_beschrijving_DetailedID);
         hoofdCategorieDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_hoofdCategorie_detailedID);
         subCategorieDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_subCategorie_detailedID);
         imageSmall = (ImageButton) findViewById(R.id.activityDetailedMelding_imgbtn_imageSmall_ID);
+        statusNotes = (TextView) findViewById(R.id.activityDetailedMelding_tv_status_DetailedNotesID);
+
 
         statusDetailed.setText(serviceRequest.getStatus());
-        statusDetailedNote.setText(serviceRequest.getStatusNotes());
         laatstUpdateDetailed.setText(serviceRequest.getUpdatedDatetime());
         beschrijvingDetailed.setText(serviceRequest.getDescription());
         hoofdCategorieDetailed.setText(serviceRequest.getServiceCode());
         subCategorieDetailed.setText(serviceRequest.getServiceCode());
+        statusNotes.setText(serviceRequest.getStatusNotes());
 
         Picasso.with(getApplicationContext()).load(serviceRequest.getMediaUrl()).into(imageSmall);
 
 
-        final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
+        /**
+         * This if statement checkcs if the selected ServiceReqest is already in the database, if so it sets the like button
+         * to liked, if not, it sets the button to unLiked.
+         */
+        final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1 );
+        if(db.ReportExists(serviceRequest.getServiceRequestId())){
 
-        if (db.ReportExists(serviceRequest.getServiceRequestId())) {
             likeButton.setLiked(true);
         } else {
             likeButton.setLiked(false);
         }
 
+
+
+
         likeButton.setOnLikeListener(new OnLikeListener() {
             @Override
+
+            /**
+             * if the like star is pressed when the button is not liked, the like method is called. This method adds the selected
+             * ServiceRequest to the database and sets the star to liked.
+             */
             public void liked(LikeButton likeButton) {
 
                 try {
                     if (db.ReportExists(serviceRequest.getServiceRequestId()) == false) {
-                        db.addReport(serviceRequest.getServiceRequestId());
+                        db.addReport(serviceRequest);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
 
+            /**
+             *When the star is presses when the button is liked, the unLike method is called. This method deletes the selected
+             * ServiceRequest from the database and set the button to unLiked.
+             */
             @Override
             public void unLiked(LikeButton likeButton) {
                 try {
@@ -106,10 +146,15 @@ public class DetailedMeldingActivity extends FragmentActivity {
             }
         });
 
+
+        /**
+         * This button takes the user back to the previous screen, based on the ORIGIN value.
+         */
         terugButton = (Button) findViewById(R.id.activityDetailedMelding_btn_terugBTN_ID);
         terugButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
 
 
                 if (origin.equals("FollowActivity")) {
@@ -117,7 +162,9 @@ public class DetailedMeldingActivity extends FragmentActivity {
                     startActivity(in);
                 } else if (origin.equals("Tab2Fragment") || origin.equals("MeldingActivityDialog")) {
                     onBackPressed();
+
                 }
+
             }
         });
 

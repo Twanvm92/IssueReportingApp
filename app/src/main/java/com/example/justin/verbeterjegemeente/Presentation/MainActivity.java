@@ -37,6 +37,7 @@ import com.example.justin.verbeterjegemeente.Business.LocationSelectedListener;
 import com.example.justin.verbeterjegemeente.Business.ServiceManager;
 import com.example.justin.verbeterjegemeente.Constants;
 import com.example.justin.verbeterjegemeente.R;
+import com.example.justin.verbeterjegemeente.UpdateService;
 import com.example.justin.verbeterjegemeente.domain.Service;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.GoogleMap;
@@ -76,6 +77,10 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Log.d(TAG, "onCreate: Starting.");
+
+        // Starting service to run in the background.
+        Intent i = new Intent(getApplicationContext(), UpdateService.class);
+        startService(i);
 
         // from here all the API requests will be handled
         reqManager = new RequestManager(this);
@@ -403,14 +408,12 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
         rValue = prefs.getInt(getString(R.string.activityMain_saved_radius), 20); // 20 is default
         String savedservCodeQ = prefs.getString(getString(R.string.activityMain_saved_servcodeQ),
                 getString(R.string.geenFilter));
-
         // check if service code is not default value
         // otherwise make String null
         // this will let API requests not take in account service codes
         if(savedservCodeQ.equals("")) {
             savedservCodeQ = null;
         }
-
         //create bundle and put current saved radius and service code values in the bundle
         Bundle bundle = new Bundle();
         String sValue = Integer.toString(rValue);

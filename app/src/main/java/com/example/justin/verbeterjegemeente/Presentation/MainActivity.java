@@ -308,7 +308,8 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
 
                             setLocale("nl");
                             saveLocale("nl");
-                            recreate();
+                            startActivity(getIntent());
+                            finish();
                         }
                     });
                     Button engels = (Button) mView.findViewById(R.id.alertdialog_btn_engels);
@@ -319,7 +320,8 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
 
                             setLocale("en");
                             saveLocale("en");
-                            recreate();
+                            startActivity(getIntent());
+                            finish();
 
                         }
                     });

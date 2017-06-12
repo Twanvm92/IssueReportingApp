@@ -44,20 +44,21 @@ public interface ServiceClient {
     /**
      * Sends a Multipart/form-data post request to an already specified endpoint
      * and returns an Arraylist of <code>PostServiceRequestResponse</code> objects
-     * @param apiK The API key that is need to be able to be allowed to send a post request to the endpoint.
-     * Required.
-     * @param description The description of a Service Request. Required
      * @param service_code The service code of a Service Request. Required.
+     * @param description The description of a Service Request. Required
      * @param lat The Latitude of the location of the Service Request. Required.
      * @param lon The longitude of the location of the Service Request. Required.
-     * @param media_url media_url The optional image file that can be send with the post request
+     * @param address_string The address string of the Service Request. Required.
+     * @param address_id The address id of the Service Request. Required.
+     * @param attribute The attributes of the location of the Service Request. Required.
+     * @param jurisdiction_id The jurisdiction id of the Service Request.
+     * @param media_url The optional image file that can be send with the post request
      * @param email The optional email of the user that made the Service Request.
      * @param first_name The optional front name of the user that made the Service Request
      * @param last_name The optional last name of the user that made the Service Request
      * @return Arraylist<PostServiceRequestResponse>
      * @see PostServiceRequestResponse
      */
-
     @POST("requests.json")
     Call<ArrayList<PostServiceRequestResponse>> postServiceRequest(@Query("service_code") String service_code,
                                                                    @Query("description") String description,

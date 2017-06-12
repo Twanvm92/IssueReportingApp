@@ -55,9 +55,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Marker marker;
     private Location currentLocation;
     private GoogleApiClient mApiClient;
-    private FloatingActionButton saveButton, gpsButton;
     private LatLng currentLatLng;
-    private double lat, lon;
 
     /**
      * onCreate wordt opgeroepen wanneer de klasse wordt gemaakt. hierbij wordt de map opgeroepen,
@@ -73,8 +71,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         Intent in = getIntent();
         if (in.hasExtra("long")) {
-            lon = in.getDoubleExtra("long", 1);
-            lat = in.getDoubleExtra("lat", 1);
+            double lon = in.getDoubleExtra("long", 1);
+            double lat = in.getDoubleExtra("lat", 1);
             currentLatLng = new LatLng(lat, lon);
 
         }
@@ -89,7 +87,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this).build();
 
-        saveButton = (FloatingActionButton) findViewById(R.id.activityMaps_fbtn_maps_Savebtn);
+        FloatingActionButton saveButton = (FloatingActionButton) findViewById(R.id.activityMaps_fbtn_maps_Savebtn);
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -105,7 +103,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
-        gpsButton = (FloatingActionButton) findViewById(R.id.activityMain_Fbtn_gps);
+        FloatingActionButton gpsButton = (FloatingActionButton) findViewById(R.id.activityMain_Fbtn_gps);
         gpsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

@@ -81,10 +81,6 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     public GoogleApiClient mApiClient;
     ServiceClient client;
     private LocationSelectedListener locCallback;
-    private List<Service> serviceList;
-    ArrayAdapter<String> catagoryAdapter;
-    private ArrayList<String> catagoryList;
-    private Spinner catagorySpinner;
     private String currentRadius;
     private String servCodeQ;
     private boolean eersteKeer = true;
@@ -127,6 +123,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
     }
 
+    @Override
     public void onStart() {
         super.onStart();
         try {
@@ -139,6 +136,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                                 "on and try again")
                         .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
+                                // user will return to Tab1Fragment
                             }
                         }).setIcon(android.R.drawable.ic_dialog_alert).show();
             }
@@ -148,6 +146,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
     }
 
+    @Override
     public void onStop() {
         try {
             if (!ConnectionChecker.isConnected()) {
@@ -166,6 +165,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
 
     //set up map on resume
+    @Override
     public void onResume() {
         super.onResume();
 
@@ -186,7 +186,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
 
         //get Current radius selected by user in MainActivity
-        System.out.println("Current radius: " + currentRadius);
+        Log.i("Current radius: ", currentRadius);
 
         setUpMap();
         Log.e("MAP: ", "map is klaargezet");
@@ -236,7 +236,6 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
             @Override
             public void onResult(@NonNull LocationSettingsResult LSresult) {
                 final Status status = LSresult.getStatus();
-                final LocationSettingsStates states = LSresult.getLocationSettingsStates();
                 switch (status.getStatusCode()) {
                     case LocationSettingsStatusCodes.SUCCESS:
                         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -257,7 +256,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                         try {
                             status.startResolutionForResult(getActivity(), Constants.REQUEST_CHECK_SETTINGS);
                         } catch (IntentSender.SendIntentException e) {
-
+                            e.printStackTrace();
                         }
                         break;
                     case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
@@ -268,15 +267,9 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         });
     }
 
-    //locatie voorziening
-    private void initLocation() {
-
-    }
-
-
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-
+        // nothing has to be done here
     }
 
     public void getLocation() {
@@ -286,6 +279,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                 .setMessage("het is niet gelukt uw huidige locatie te bepalen, mogelijk staat locatie voorziening uit, of is er geen internetverbinding. probeer het later opnieuw.")
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
+                        // send user back to Tab1Fragment
                     }
                 }).setIcon(android.R.drawable.ic_dialog_alert).show();
 
@@ -296,44 +290,42 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
     @Override
     public void onConnectionSuspended(int i) {
-
+        // nothing has to happen here
     }
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
+        // nothing has to happen here
     }
 
     @Override
     public void onLocationChanged(Location location) {
-
+        // nothing has to happen here
     }
 
 
     @Override
     public void onCameraIdle() {
         //get Current radius selected by user in MainActivity
-        System.out.println("Current radius: " + currentRadius);
+        Log.i("Current radius: ", currentRadius);
 
         LatLng center = mMap.getCameraPosition().target;
-        String camLat = "" + center.latitude;
-        String camLng = "" + center.longitude;
+        String camLat = Double.toString(center.latitude);
+        String camLng = Double.toString(center.longitude);
 
-        if (!eersteKeer) {
-            if (Double.compare(center.latitude, Constants.DEFAULT_LAT) != 0 || Double.compare(center.longitude, Constants.DEFAULT_LONG) != 0) {
+        if (!eersteKeer && (Double.compare(center.latitude, Constants.DEFAULT_LAT) != 0 ||
+                Double.compare(center.longitude, Constants.DEFAULT_LONG) != 0)) {
+
                 currentLatLng = new LatLng(center.latitude, center.longitude);
                 if (locCallback != null) {
                     locCallback.locationSelected(currentLatLng);
                 }
-            }
+
         }
 
 
         Log.e("Camera positie: ", "is veranderd");
 
-        // commented this line for testing getting service request based on radius from Helsinki Live API
-//        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(
-//                  camLat, camLng, null, currentRadius, "OV");
         Call<ArrayList<ServiceRequest>> nearbyServiceRequests;
         if (servCodeQ == null) {
             Log.e("oncameraidle sercoeQ: ", "" + servCodeQ);
@@ -374,9 +366,9 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                         JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
                         JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
 
-                        Toast.makeText(getContext(), jObjError.getString("description"),
+                        Toast.makeText(getContext(), jObjError.getString(Constants.DESCRIPTION),
                                 Toast.LENGTH_SHORT).show();
-                        Log.i("Error message: ", jObjError.getString("description"));
+                        Log.i("Error message: ", jObjError.getString(Constants.DESCRIPTION));
                     } catch (IOException e) {
                         e.printStackTrace();
                     } catch (JSONException e) {
@@ -479,16 +471,13 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         } else {
             currentLat = Double.toString(currentLatLng.latitude);
             currentLng = Double.toString(currentLatLng.longitude);
-            Log.e("Radius update tab1: ", currentRadius);
         }
 
         Call<ArrayList<ServiceRequest>> nearbyServiceRequests;
         if (servCodeQ != null) {
             nearbyServiceRequests = client.getNearbyServiceRequests(
                     currentLat, currentLng, null, currentRadius, servCodeQ);
-            Log.e("servCodeq update tab1: ", servCodeQ);
         } else {
-            Log.e("servCodeq update tab1: ", "null");
             nearbyServiceRequests = client.getNearbyServiceRequests(
                     currentLat, currentLng, null, currentRadius);
         }
@@ -512,7 +501,6 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                                         BitmapGenerator.getBitmapFromVectorDrawable(getContext(),
                                                 R.drawable.service_request_marker)))
                         );
-                        Log.e("Opgehaalde serv: ", s.getServiceCode() + "");
                     }
 
                 } else {
@@ -520,9 +508,9 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                         JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
                         JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
 
-                        Toast.makeText(getContext(), jObjError.getString("description"),
+                        Toast.makeText(getContext(), jObjError.getString(Constants.DESCRIPTION),
                                 Toast.LENGTH_SHORT).show();
-                        Log.i("Error message: ", jObjError.getString("description"));
+                        Log.i("Error message: ", jObjError.getString(Constants.DESCRIPTION));
                     } catch (IOException e) {
                         e.printStackTrace();
                     } catch (JSONException e) {

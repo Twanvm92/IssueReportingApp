@@ -35,11 +35,8 @@ import retrofit2.Response;
 
 public class Tab2Fragment extends Fragment  {
 
-    private ListView meldingListView;
-    private ServiceClient client;
     private ArrayAdapter serviceRequestAdapter;
     private ArrayList<ServiceRequest> serviceList;
-    private String lat = "", lon = "";
     private ServiceRequest serviceRequest;
     private LatLng currentLatLng = null;
     private String currentRadius;
@@ -80,7 +77,7 @@ public class Tab2Fragment extends Fragment  {
 
         serviceList = new ArrayList<>();
 
-        meldingListView = (ListView) view.findViewById(R.id.meldingListView);
+        ListView meldingListView = (ListView) view.findViewById(R.id.meldingListView);
 
 
         serviceRequestAdapter = new ServiceRequestAdapter(getContext(), serviceList);
@@ -104,20 +101,26 @@ public class Tab2Fragment extends Fragment  {
         try {
             if (ConnectionChecker.isConnected()) {
 
+                String lat;
+                String lon;
+                String convLng;
+                String convLat;
                 if (currentLatLng != null) {
-                    lat = "" + currentLatLng.latitude;
-                    lon = "" + currentLatLng.longitude;
+                    convLat = Double.toString(currentLatLng.latitude);
+                    convLng = Double.toString(currentLatLng.longitude);
+                    lat = convLat;
+                    lon = convLng;
                 } else {
                     currentLatLng = new LatLng(Constants.DEFAULT_LAT, Constants.DEFAULT_LONG);
-                    lat = "" + currentLatLng.latitude;
-                    lon = "" + currentLatLng.longitude;
+                    convLat = Double.toString(currentLatLng.latitude);
+                    convLng = Double.toString(currentLatLng.longitude);
+                    lat = convLat;
+                    lon = convLng;
                 }
 
 //                create a callback
-                client = ServiceGenerator.createService(ServiceClient.class);
+                ServiceClient client = ServiceGenerator.createService(ServiceClient.class);
 
-                // commented this line for testing getting service request based on radius from Helsinki Live API
-//                Call<ArrayList<ServiceRequest>> serviceCall = client.getNearbyServiceRequests(lat, lon, status, currentRadius, "OV");
                 Call<ArrayList<ServiceRequest>> serviceCall;
                 if (servCodeQ == null) {
                     serviceCall = client.getNearbyServiceRequests(
@@ -142,9 +145,6 @@ public class Tab2Fragment extends Fragment  {
                                         Toast.LENGTH_SHORT).show();
                             }
                             serviceRequestAdapter.notifyDataSetChanged();
-//                            test om te kijken hoeveel resultaten gevonden zijn
-//                            Toast.makeText(getContext(), "" + servicesFound.size(),
-//                                    Toast.LENGTH_SHORT).show();
                         } else {
                             Toast.makeText(getContext(), getResources().getString(R.string.FoutOphalenProblemen),
                                     Toast.LENGTH_SHORT).show();
@@ -163,6 +163,7 @@ public class Tab2Fragment extends Fragment  {
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
+            Thread.currentThread().interrupt();
         } catch (IOException e) {
             e.printStackTrace();
         }

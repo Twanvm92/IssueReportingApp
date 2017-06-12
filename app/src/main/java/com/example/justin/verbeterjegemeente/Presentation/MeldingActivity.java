@@ -28,7 +28,6 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.API.ConnectionChecker;
@@ -76,13 +75,13 @@ import retrofit2.Response;
 public class MeldingActivity extends AppCompatActivity implements RequestManager.OnServicesReady {
 
 
-    private Spinner catagorySpinner;
     private Spinner subCatagorySpinner;
     private ArrayList<String> catagoryList;
     private ArrayList<String> subCategoryList;
-    private Button locatieButton, fotoButton, terugButton, plaatsButton;
-    private EditText beschrijvingEditText, emailEditText,
-            voornaamEditText, achternaamEditText;
+    private Button locatieButton;
+    private Button fotoButton;
+    private EditText beschrijvingEditText, emailEditText;
+    private EditText voornaamEditText, achternaamEditText;
     private CheckBox updateCheckBox;
     private ImageView fotoImageView;
     private List<Service> serviceList;
@@ -96,7 +95,6 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
     private String descr, sc, lName, fName, email, address_string, address_id, jurisdiction_id, imgUrl;
     private Double lon, lat;
     private String[] attribute = {};
-    private RequestManager reqManager;
     private boolean marker;
 
     @Override
@@ -113,7 +111,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
         updateCheckBox = (CheckBox) findViewById(R.id.activityMelding_cb_updateCheckbox);
 
         // from here all the API requests will be handled
-        reqManager = new RequestManager(this);
+        RequestManager reqManager = new RequestManager(this);
         // set callback for data passing
         reqManager.setOnServicesReadyCallb(this);
         // launch Retrofit callback and retrieve services asynchronously
@@ -150,7 +148,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
         // create an arraylist that will contain different categories fetched from an open311 interface
         catagoryList = new ArrayList<String>();
         catagoryList.add(getResources().getString(R.string.kiesProblemen));
-        catagorySpinner = (Spinner) findViewById(R.id.spinner2);
+        Spinner catagorySpinner = (Spinner) findViewById(R.id.spinner2);
         catagoryAdapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_spinner_item, catagoryList) {
             @Override
@@ -291,7 +289,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
         achternaamEditText.setText(foundUser.getLastName());
         db.close();
 
-        terugButton = (Button) findViewById(R.id.terugButton);
+        Button terugButton = (Button) findViewById(R.id.terugButton);
         terugButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -300,7 +298,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
             }
         });
 
-        plaatsButton = (Button) findViewById(R.id.plaatsButton);
+        Button plaatsButton = (Button) findViewById(R.id.plaatsButton);
         plaatsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

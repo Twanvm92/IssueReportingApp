@@ -200,57 +200,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         mMap = googleMap;
         mMap.setOnCameraIdleListener(this);
 
-        try {
-            if(ConnectionChecker.isConnected()) {
-                Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests("" + DEFAULT_LONG, "" + DEFAULT_LAT, null, "300");
-                nearbyServiceRequests.enqueue(new Callback<ArrayList<ServiceRequest>>() {
-                    @Override
-                    public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
-                        if(response.isSuccessful()) {
-                            ArrayList<ServiceRequest> srList = response.body();
 
-                            for (ServiceRequest s : srList) {
-
-                                mMap.addMarker(new MarkerOptions()
-                                        .position(new LatLng(s.getLat(), s.getLong()))
-                                        .title(s.getDescription())
-                                        .icon(BitmapDescriptorFactory.fromBitmap(
-                                                BitmapGenerator.getBitmapFromVectorDrawable(getContext(),
-                                                        R.drawable.service_request_marker))));
-
-                                Log.e("Opgehaalde servicereq: ", s.getDescription());
-                            }
-
-                        } else {
-                            try { //something went wrong. Show the user what went wrong
-                                JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
-                                JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
-
-                                Toast.makeText(getContext(), jObjError.getString("description"),
-                                        Toast.LENGTH_SHORT).show();
-                                Log.i("Error message: ", jObjError.getString("description"));
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<ArrayList<ServiceRequest>> call, Throwable t) {
-                        Toast.makeText(getContext(), getResources().getString(R.string.ePostRequest),
-                                Toast.LENGTH_SHORT).show();
-                        t.printStackTrace();
-                    }
-                });
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
 
         setUpMap();
@@ -271,7 +221,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
 
         //markerHandler stuff
-        mHandler = new MarkerHandler(mMap, getContext());
+        mHandler = new MarkerHandler(mMap, getContext(), this);
         mHandler.init();
         //mHandler.setVisible(1);
     }
@@ -307,6 +257,10 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
     public void getLocation() {
         if (ActivityCompat.checkSelfPermission(this.getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this.getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
+
             if(currentLocation != null) {
                 currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
             } else {
@@ -372,53 +326,65 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         String camLat = "" + center.latitude;
         String camLng = "" + center.longitude;
         Log.e("Camera positie: ", "is veranderd");
-        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(camLat, camLng, null, "300");
-        nearbyServiceRequests.enqueue(new Callback<ArrayList<ServiceRequest>>() {
-            @Override
-            public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
-                if(response.isSuccessful()) {
-                    ArrayList<ServiceRequest> srList = response.body();
-
-                    for (ServiceRequest s : srList) {
-                        mMap.addMarker(new MarkerOptions()
-                                .position(new LatLng(s.getLat(), s.getLong()))
-                                .title(s.getDescription())
-                                .icon(BitmapDescriptorFactory.fromBitmap(
-                                        BitmapGenerator.getBitmapFromVectorDrawable(getContext(),
-                                                R.drawable.service_request_marker)))
-                        );
-                        Log.e("Opgehaalde servicereq: ", s.getDescription());
-                    }
-
-                } else {
-                    try { //something went wrong. Show the user what went wrong
-                        JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
-                        JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
-
-                        Toast.makeText(getContext(), jObjError.getString("description"),
-                                Toast.LENGTH_SHORT).show();
-                        Log.i("Error message: ", jObjError.getString("description"));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ArrayList<ServiceRequest>> call, Throwable t) {
-                Toast.makeText(getContext(), t.getMessage().toString(),
-                        Toast.LENGTH_SHORT).show();
-                t.printStackTrace();
-            }
-        });
+        if(mHandler.initiated()) {
+            mHandler.setVisible(13);
+        }
+//
+//        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(camLat, camLng, null, "300");
+//        nearbyServiceRequests.enqueue(new Callback<ArrayList<ServiceRequest>>() {
+//            @Override
+//            public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
+//                if(response.isSuccessful()) {
+//                    ArrayList<ServiceRequest> srList = response.body();
+//
+//                    for (ServiceRequest s : srList) {
+//                        mMap.addMarker(new MarkerOptions()
+//                                .position(new LatLng(s.getLat(), s.getLong()))
+//                                .title(s.getDescription())
+//                                .icon(BitmapDescriptorFactory.fromBitmap(
+//                                        BitmapGenerator.getBitmapFromVectorDrawable(getContext(),
+//                                                R.drawable.service_request_marker)))
+//                        );
+//                        Log.e("Opgehaalde servicereq: ", s.getDescription());
+//                    }
+//
+//                } else {
+//                    try { //something went wrong. Show the user what went wrong
+//                        JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
+//                        JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
+//
+//                        Toast.makeText(getContext(), jObjError.getString("description"),
+//                                Toast.LENGTH_SHORT).show();
+//                        Log.i("Error message: ", jObjError.getString("description"));
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    } catch (JSONException e) {
+//                        e.printStackTrace();
+//                    }
+//
+//                }
+//            }
+//
+//            @Override
+//            public void onFailure(Call<ArrayList<ServiceRequest>> call, Throwable t) {
+//                Toast.makeText(getContext(), t.getMessage().toString(),
+//                        Toast.LENGTH_SHORT).show();
+//                t.printStackTrace();
+//            }
+//        });
 
         if (locCallback != null) {
             locCallback.locationSelected(center);
         }
 
+    }
+
+    public Marker newMarker(String description, LatLng latlng) {
+        Marker marker = mMap.addMarker(new MarkerOptions().position(new LatLng(latlng.latitude, latlng.longitude)).title(description)
+                .icon(BitmapDescriptorFactory.fromBitmap(
+                        BitmapGenerator.getBitmapFromVectorDrawable(getContext(),
+                                R.drawable.service_request_marker))));
+        return marker;
     }
 }
 

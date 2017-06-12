@@ -91,15 +91,6 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
         mViewPager = (ViewPager) findViewById(R.id.container);
         setupViewPager(mViewPager);
 
-        /*gps = (FloatingActionButton) findViewById(R.id.activityMain_Fbtn_gps);
-        gps.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                tabFragment.reqFindLocation();
-            }
-        });*/
-
-
         // create an arraylist that will contain different categories fetched from an open311 interface
         catagoryList = new ArrayList<String>();
         catagoryList.add(getString(R.string.geenFilter));
@@ -110,6 +101,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
         final FabSpeedDial fabSpeedDial = (FabSpeedDial) findViewById(R.id.activityMain_Fbtn_speeddial);
         fabSpeedDial.setMenuListener(new SimpleMenuListenerAdapter() {
             @Override
+
             public boolean onMenuItemSelected(MenuItem menuItem) {
 
 
@@ -201,11 +193,18 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
 
                         break;
                     case R.id.activityMain_item_report :
-                        if (tabFragment.currentLatLng != null) {
-                            double longCor = tabFragment.currentLatLng.longitude;
-                            double latCor = tabFragment.currentLatLng.latitude;
-                            currentLatLng = new LatLng(longCor, latCor);
-                        }
+//                        if (tabFragment.currentLatLng != null) {
+//                            double longCor = tabFragment.currentLatLng.longitude;
+//                            double latCor = tabFragment.currentLatLng.latitude;
+//                            currentLatLng = new LatLng(longCor, latCor);
+//                        }
+//                        Intent in = new Intent(getApplicationContext(),
+//                                com.example.justin.verbeterjegemeente.Presentation.MeldingActivity.class);
+//                        if (currentLatLng != null) {
+//                            in.putExtra("long", currentLatLng.longitude);
+//                            in.putExtra("lat", currentLatLng.latitude);
+//                        }
+//                        startActivity(in);
                         Intent in = new Intent(getApplicationContext(),
                                 com.example.justin.verbeterjegemeente.Presentation.MeldingActivity.class);
                         if (currentLatLng != null) {
@@ -215,6 +214,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
                         startActivity(in);
                         break;
                     case R.id.activityMain_item_gps :
+                        tabFragment.reqFindLocation();
                         Toast.makeText(getApplicationContext(), "GPS knop is aangeklikt",Toast.LENGTH_SHORT).show();
                 }
 
@@ -436,7 +436,6 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
         }
     }
 
-
     public void getLocation() {
         Location currentLocation = null;
         GoogleMap mMap = tabFragment.mMap;
@@ -478,7 +477,6 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
 
     @Override
     public void locationSelected(LatLng curLatLong) {
-
         Tab2Fragment tab2Frag = (Tab2Fragment)
                 getSupportFragmentManager().getFragments().get(1);
 
@@ -495,26 +493,22 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
             // Create fragment and give it an argument for the selected LatLng
             Tab2Fragment newFragment = new Tab2Fragment();
             Bundle args = new Bundle();
-            args.putDouble("CURRENT_LAT",curLatLong.latitude);
-            args.putDouble("CURRENT_LONG",curLatLong.longitude);
+            args.putDouble("CURRENT_LAT", curLatLong.latitude);
+            args.putDouble("CURRENT_LONG", curLatLong.longitude);
             newFragment.setArguments(args);
 
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
-            // Replace whatever is in the fragment_container view with this fragment,
-            // and add the transaction to the back stack so the user can navigate back
-            transaction.replace(R.id.tab2_fragment_layout, newFragment);
-            transaction.addToBackStack(null);
-
-            // Commit the transaction
-            transaction.commit();
+            // The user selected the headline of an article from the HeadlinesFragment
+            // Do something here to display that article
         }
+        currentLatLng = curLatLong;
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
-            case REQUEST_CHECK_SETTINGS:
+            case Constants.REQUEST_CHECK_SETTINGS:
                 tabFragment.onActivityResult(requestCode, resultCode, data);
         }
     }

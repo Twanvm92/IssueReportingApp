@@ -71,16 +71,11 @@ import static com.example.justin.verbeterjegemeente.Constants.REQUEST_CHECK_SETT
 public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         com.google.android.gms.location.LocationListener, GoogleMap.OnCameraIdleListener {
-    public GoogleMap mMap;
-    private ArrayList<Marker> markerList;
-    private Marker marker;
-    private Button button;
+    public GoogleMap mMap;;
     private MarkerHandler mHandler;
     private Location currentLocation;
     public LatLng currentLatLng;
     public GoogleApiClient mApiClient;
-    public Marker currentMarker;
-
     ServiceClient client;
     private LocationSelectedListener locCallback;
     private List<Service> serviceList;
@@ -89,7 +84,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     private Spinner catagorySpinner;
     private String currentRadius;
     private String servCodeQ;
-
+    private boolean eersteKeer = true;
 
     public void onCreate(Bundle savedInstaceState) {
         super.onCreate(savedInstaceState);
@@ -187,6 +182,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         mMap = googleMap;
         mMap.setOnCameraIdleListener(this);
 
+
         //get Current radius selected by user in MainActivity
         System.out.println("Current radius: " + currentRadius);
 
@@ -244,25 +240,20 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                             currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
                             if (currentLocation != null) {
-                                Log.i("location1", currentLocation.getLatitude() + "");
-                                Log.i("location2", currentLocation.getLongitude() + "");
+                                eersteKeer = false;
                                 currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
                                 CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
                                 mMap.moveCamera(center);
-                                if (locCallback != null) {
-                                    locCallback.locationSelected(currentLatLng);
-                                }
                             } else {
                                 Log.e("getUserLocation", "Kan locatie niet ophalen");
                             }
                         } else {
-                            Log.i("getUserLocation", "Geen toestemming");
-                            Toast.makeText(getContext(), "Kan locatie niet ophalen", Toast.LENGTH_SHORT).show();
+                            Log.e("getUserLocation", "Geen toestemming");
                         }
                         break;
                     case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
                         try{
-                            status.startResolutionForResult(getActivity(), REQUEST_CHECK_SETTINGS);
+                            status.startResolutionForResult(getActivity(), Constants.REQUEST_CHECK_SETTINGS);
                         } catch (IntentSender.SendIntentException e){
 
                         }
@@ -289,7 +280,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     }
 
     public void getLocation() {
-        currentLatLng = new LatLng(DEFAULT_LONG, DEFAULT_LAT);
+        currentLatLng = new LatLng(DEFAULT_LAT, DEFAULT_LONG);
         new AlertDialog.Builder(this.getContext())
                 .setTitle("Locatie bepalen mislukt")
                 .setMessage("het is niet gelukt uw huidige locatie te bepalen, mogelijk staat locatie voorziening uit, of is er geen internetverbinding. probeer het later opnieuw.")
@@ -298,12 +289,9 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                     }
                 }).setIcon(android.R.drawable.ic_dialog_alert).show();
 
-        CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
+        CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 12.0f);
         mMap.moveCamera(center);
-
-        if (locCallback != null) {
-            locCallback.locationSelected(currentLatLng);
-        }
+        eersteKeer = false;
     }
 
     @Override
@@ -330,14 +318,18 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         LatLng center = mMap.getCameraPosition().target;
         String camLat = "" + center.latitude;
         String camLng = "" + center.longitude;
-        double camlatD = Double.parseDouble(camLat);
-        double camLngD = Double.parseDouble((camLng));
-        // update current lattitude and longtitude for updateRadiusCat callback
-        // from MainActivity
-        currentLatLng = new LatLng(camlatD, camLngD);
+
+        if (!eersteKeer) {
+            if (Double.compare(center.latitude, Constants.DEFAULT_LAT) != 0 || Double.compare(center.longitude, Constants.DEFAULT_LONG) != 0) {
+                currentLatLng = new LatLng(center.latitude, center.longitude);
+                if (locCallback != null) {
+                    locCallback.locationSelected(currentLatLng);
+                }
+            }
+        }
+
+
         Log.e("Camera positie: ", "is veranderd");
-//        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(camLat, camLng, null, "300");
-//        moet service_code meegeven...
 
         // commented this line for testing getting service request based on radius from Helsinki Live API
 //        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(
@@ -352,7 +344,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
             nearbyServiceRequests = client.getNearbyServiceRequests(
                     camLat, camLng, null, currentRadius, servCodeQ);
         }
-
+        
         nearbyServiceRequests.enqueue(new Callback<ArrayList<ServiceRequest>>() {
             @Override
             public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
@@ -372,7 +364,9 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                                         BitmapGenerator.getBitmapFromVectorDrawable(getContext(),
                                                 R.drawable.service_request_marker)))
                         );
+
                         Log.e("Opgehaalde servicereq: ", s.getServiceCode() + "");
+
                     }
 
                 } else {
@@ -399,11 +393,6 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
             t.printStackTrace();
         }
         });
-
-        if (locCallback != null) {
-            locCallback.locationSelected(center);
-        }
-
     }
 
     public void reqFindLocation() {
@@ -456,7 +445,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
-            case REQUEST_CHECK_SETTINGS:
+            case Constants.REQUEST_CHECK_SETTINGS:
                 if (resultCode == Activity.RESULT_OK) {
                     reqFindLocation();
                 } else {

@@ -32,20 +32,19 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class Tab2Fragment extends Fragment {
-    private static final String TAG = "Tab2Fragment";
+
+public class Tab2Fragment extends Fragment  {
 
     private ListView meldingListView;
     private ServiceClient client;
     private ArrayAdapter serviceRequestAdapter;
     private ArrayList<ServiceRequest> serviceList;
-    private String lat = "", lon = "", status, meters;
+    private String lat = "", lon = "";
     private ServiceRequest serviceRequest;
-    private static final int LOCATIE_KIEZEN = 3;
     private LatLng currentLatLng = null;
     private String currentRadius;
     private String servCodeQ;
-//    private Button locatieButton;
+
 
     @Nullable
     @Override
@@ -109,16 +108,13 @@ public class Tab2Fragment extends Fragment {
                     lat = "" + currentLatLng.latitude;
                     lon = "" + currentLatLng.longitude;
                 } else {
-                    Toast.makeText(getContext(), getResources().getString(R.string.errLoadingServiceRequestList),
-                            Toast.LENGTH_SHORT).show();
-                    return;
+                    currentLatLng = new LatLng(Constants.DEFAULT_LAT, Constants.DEFAULT_LONG);
+                    lat = "" + currentLatLng.latitude;
+                    lon = "" + currentLatLng.longitude;
                 }
 
 //                create a callback
                 client = ServiceGenerator.createService(ServiceClient.class);
-
-//                moet nog steeds service_code meegegeven worden.. fout van api
-//                Call<ArrayList<ServiceRequest>> serviceCall = client.getNearbyServiceRequests(lat, lon, status, meters);
 
                 // commented this line for testing getting service request based on radius from Helsinki Live API
 //                Call<ArrayList<ServiceRequest>> serviceCall = client.getNearbyServiceRequests(lat, lon, status, currentRadius, "OV");
@@ -171,24 +167,6 @@ public class Tab2Fragment extends Fragment {
             e.printStackTrace();
         }
     }
-
-//    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
-//        switch (requestCode) {
-//            case LOCATIE_KIEZEN:
-//                if(resultCode == RESULT_OK) {
-//                    if (data.hasExtra("long") && data.hasExtra("lat")) {
-//                        double lng = data.getDoubleExtra("long", 1);
-//                        double lat = data.getDoubleExtra("lat", 1);
-//                        location = new LatLng(lat, lat);
-//                        Log.i("long: ", "" + location.longitude);
-//                        Log.i("lat: ", "" + location.latitude);
-//
-//                    }
-//                }
-//
-//        }
-//    }
 
     /**
      * Accepts current location of the user (or the location of the camera on the Google map

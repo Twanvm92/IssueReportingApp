@@ -26,14 +26,11 @@ public class DatabaseHanlder extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
 
     private static final String MELDING_TABLE_NAME = "melding";
-<<<<<<< HEAD
+
         private static final String MELDING_COLUMN_ID = "_meldingId";
         private static final String MELDING_COLUMN_IDAPI = "meldingIdApi";
     private static final String MELDING_COLUMN_UPDATETIME = "updatetime";
-=======
-    private static final String MELDING_COLUMN_ID = "_meldingId";
-    private static final String MELDING_COLUMN_IDAPI = "meldingIdApi";
->>>>>>> ae87ce61c2054e654aebc02f918bf4fce15631cd
+
 
     private static final String USER_TABLE_NAME = "user";
     private static final String USER_COLUMN_EMAIL = "email";
@@ -89,13 +86,11 @@ public class DatabaseHanlder extends SQLiteOpenHelper {
     }
 
     // Adds a report to the database
-<<<<<<< HEAD
+
     public void addReport(ServiceRequest serviceRequest){
 
         Log.i("DATABASE", serviceRequest.getRequestedDatetime());
-=======
-    public void addReport(String id) {
->>>>>>> ae87ce61c2054e654aebc02f918bf4fce15631cd
+
         ContentValues values = new ContentValues();
         values.put(MELDING_COLUMN_IDAPI, serviceRequest.getServiceRequestId());
         values.put(MELDING_COLUMN_UPDATETIME, serviceRequest.getUpdatedDatetime());

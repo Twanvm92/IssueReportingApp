@@ -19,15 +19,15 @@ import android.support.v7.app.AlertDialog;
 import android.util.Log;
 
 import android.widget.ArrayAdapter;
-<<<<<<< HEAD
+
+
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import android.widget.Button;
-=======
->>>>>>> ae87ce61c2054e654aebc02f918bf4fce15631cd
+
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -70,12 +70,11 @@ import java.util.ArrayList;
 
 import java.util.List;
 
-<<<<<<< HEAD
+
 
 import br.com.bloder.magic.view.MagicButton;
 
-=======
->>>>>>> ae87ce61c2054e654aebc02f918bf4fce15631cd
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;

@@ -18,7 +18,8 @@ import java.util.ArrayList;
 import java.util.Random;
 
 /**
- * Created by Mika Krooswijk on 23-5-2017.
+ * This class is responsible for creating and pushing a notification when the UpdateService calls it
+ * @author Mika Krooswijk
  */
 
 public class Notification {
@@ -33,7 +34,6 @@ public class Notification {
         mBuilder.setContentTitle(title);
         // Set the content of the notification.
         mBuilder.setContentText(text);
-
 
         // Sets the intent to open when the notification is clicked, using the serivceRequest in the parameters.
         Intent i = new Intent(context, DetailedMeldingActivity.class);

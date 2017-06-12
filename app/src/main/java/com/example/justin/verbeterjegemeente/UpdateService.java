@@ -32,28 +32,31 @@ import static android.app.Service.START_STICKY;
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 
 /**
- * Created by Mika Krooswijk on 30-5-2017.
+ * This class is a Service that runs in the background even if the app is closed.
+ * Every 15 minutes it checks the timestamps stores in the database with the timestamps it gets from the server.
+ * If they are different is creates a notfication.
+ * @author Mika Krooswijk
  */
 
 public class UpdateService extends Service {
     private Looper serviceLooper;
     private ServiceHandler serviceHandler;
     ServiceClient client;
-    private int LONG_SLEEP_TIME, TEST_SLEEP_TIME;
+    private int LONG_SLEEP_TIME;
 
 
 
     public final class ServiceHandler extends Handler{
         public ServiceHandler(Looper looper){
             super(looper);
-            TEST_SLEEP_TIME = 1000;
+            // Setting a sleep time for the thread, 15 minutes
             LONG_SLEEP_TIME = 600000;
 
         }
 
         public void handleMessage(Message message){
-            //Log.i("SERVICE", "5 sec have past, count = " + count);
 
+            // Connecting to the database and getting a list of serviceRequests(id + timestamp).
             DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
             final ArrayList<ServiceRequest> DatabaseList = db.getReports();
             db.close();
@@ -79,14 +82,12 @@ public class UpdateService extends Service {
 
                                         String dateTime = sr.getRequestedDatetime();
 
-                                        Log.i("API", sr.getRequestedDatetime());
-
+                                        // If the timestamp from the server is different then that from the database
+                                        // a notification is made en pushed to the user.
                                         if (sr.getRequestedDatetime() != dateTime) {
                                             Log.i("CHECK", "changed date time = " + dateTime);
                                             notifyReportChanged(getString(R.string.reportUpdated) + " ",
                                                     getString(R.string.on) + " " + sr.getRequestedDatetime(), sr);
-                                        } else {
-                                            Log.i("CHECK", "not changed date time = " + dateTime);
                                         }
                                     }
 
@@ -121,7 +122,7 @@ public class UpdateService extends Service {
                 Thread.currentThread().interrupt();
             }
 
-
+            // recursice call to keep the service checking for updates
             Message m = new Message();
             handleMessage(m);
 
@@ -150,13 +151,13 @@ public class UpdateService extends Service {
         msg.arg1 = startId;
         serviceHandler.sendMessage(msg);
 
-        // If we get killed, after returning from here, restart
+        // If the service gets killed, after returning from here, restart
         return START_STICKY;
     }
 
     @Override
     public IBinder onBind(Intent intent) {
-        // We don't provide binding, so return null
+        // Binding is not provided in this service, so return null
         return null;
     }
 
@@ -166,6 +167,14 @@ public class UpdateService extends Service {
     }
 
 
+
+
+    /**
+     * Method that calls the Notification class to create and push a notification
+     * @param title The title of the nofication
+     * @param content The conentent of the notification
+     * @param serviceRequest The serviceRequest that has changed (for the DetailedActivity)
+     */
     public void notifyReportChanged(String title, String content, ServiceRequest serviceRequest){
         Notification notification = new Notification();
         notification.makeNotification(getApplicationContext(), title, content, serviceRequest);

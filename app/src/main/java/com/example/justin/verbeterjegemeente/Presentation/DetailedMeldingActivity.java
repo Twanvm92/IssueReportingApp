@@ -35,6 +35,8 @@ import java.util.ArrayList;
 import com.example.justin.verbeterjegemeente.domain.Melding;
 import com.squareup.picasso.Picasso;
 
+import org.w3c.dom.Text;
+
 
 /**
  * Created by Justin on 19-5-2017.
@@ -52,7 +54,7 @@ public class DetailedMeldingActivity extends FragmentActivity {
     // very frequently.
     private int mShortAnimationDuration;
     private Melding melding;
-    private TextView statusDetailed, laatstUpdateDetailed, beschrijvingDetailed, hoofdCategorieDetailed, subCategorieDetailed;
+    private TextView statusDetailed, laatstUpdateDetailed, beschrijvingDetailed, hoofdCategorieDetailed, subCategorieDetailed, statusNotes;
     private ImageButton imageSmall;
 
     @Override
@@ -62,12 +64,14 @@ public class DetailedMeldingActivity extends FragmentActivity {
 
         Bundle extras = getIntent().getExtras();
 
-        for(int i = 0; i < 50; i++){
+        for(int i = 0; i < 60; i++){
             NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
             notificationManager.cancel(i);
         }
 
+
        final String origin  = extras.getString("ORIGIN");
+
 
        final ServiceRequest serviceRequest = (ServiceRequest)getIntent().getSerializableExtra("serviceRequest");
 
@@ -79,6 +83,7 @@ public class DetailedMeldingActivity extends FragmentActivity {
         hoofdCategorieDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_hoofdCategorie_detailedID);
         subCategorieDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_subCategorie_detailedID);
         imageSmall = (ImageButton) findViewById(R.id.activityDetailedMelding_imgbtn_imageSmall_ID);
+        statusNotes = (TextView) findViewById(R.id.activityDetailedMelding_tv_status_DetailedNotesID);
 
 
         statusDetailed.setText(serviceRequest.getStatus());
@@ -86,6 +91,7 @@ public class DetailedMeldingActivity extends FragmentActivity {
         beschrijvingDetailed.setText(serviceRequest.getDescription());
         hoofdCategorieDetailed.setText(serviceRequest.getServiceCode());
         subCategorieDetailed.setText(serviceRequest.getServiceCode());
+        statusNotes.setText(serviceRequest.getStatusNotes());
 
         Picasso.with(getApplicationContext()).load(serviceRequest.getMediaUrl()).into(imageSmall);
 

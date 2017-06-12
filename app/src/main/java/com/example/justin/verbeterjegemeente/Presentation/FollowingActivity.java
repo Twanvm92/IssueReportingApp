@@ -44,7 +44,7 @@ public class FollowingActivity extends AppCompatActivity {
 
         // Filling the ArrayList with the service request id's from the database.
         final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1 );
-        ArrayList<String> idList = new ArrayList<>();
+        ArrayList<ServiceRequest> idList = new ArrayList<>();
         idList = db.getReports();
         Log.i("IDs in userdb", idList.size() + "");
         db.close();
@@ -53,20 +53,19 @@ public class FollowingActivity extends AppCompatActivity {
 
         try{
             if(ConnectionChecker.isConnected()){  //checking for internet acces.
-                for(String s: idList) {
+
+                for(ServiceRequest s: idList) {
                     client = ServiceGenerator.createService(ServiceClient.class);
                     Call<ServiceRequest> RequestResponseCall =
-                            client.getServiceById(s, "1");
-                    RequestResponseCall.enqueue(new Callback<ServiceRequest>() {
+                            client.getServiceById(s.getServiceRequestId(), "1");
+                    RequestResponseCall.enqueue(new retrofit2.Callback<ServiceRequest>() {
                         @Override
                         public void onResponse(Call<ServiceRequest> call, Response<ServiceRequest> response) {
                             if(response.isSuccessful()){
                                 ServiceRequest sr = response.body();
                                 srListFinal.add(sr);
+                                meldingAdapter.notifyDataSetChanged();
 
-                                if(meldingAdapter != null) {
-                                    meldingAdapter.notifyDataSetChanged();
-                                }
                             } else { Log.i("response mis", "yup");}
                         }
 
@@ -84,6 +83,10 @@ public class FollowingActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+
+
+
 
 
         meldingListView = (ListView) findViewById(R.id.activityFollowing_LV_FollowingListView);
@@ -109,17 +112,13 @@ public class FollowingActivity extends AppCompatActivity {
         terugButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent in = new Intent(getApplicationContext(), MainActivity.class);
-                startActivity(in);
-            }
+                    Intent in = new Intent(getApplicationContext(), MainActivity.class);
+                    startActivity(in);
+                }
         });
 
-    }
 
-    @Override
-    public void onBackPressed() {
-        Intent i = new Intent();
-        setResult(RESULT_CANCELED, i);
-        super.onBackPressed();
+
+
     }
 }

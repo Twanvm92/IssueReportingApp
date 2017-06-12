@@ -17,7 +17,13 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
+
 import android.widget.ArrayAdapter;
+
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
 import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -56,7 +62,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
+
 import java.util.List;
+
+
+import br.com.bloder.magic.view.MagicButton;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -78,6 +89,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     public GoogleApiClient mApiClient;
     ServiceClient client;
     private LocationSelectedListener locCallback;
+
     private List<Service> serviceList;
     ArrayAdapter<String> catagoryAdapter;
     private ArrayList<String> catagoryList;
@@ -86,8 +98,31 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     private String servCodeQ;
     private boolean eersteKeer = true;
 
+
+    boolean popupShown = false;
+
+
+
+    /*@Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.tab1_fragment,container,false);
+        btnTEST = (MagicButton) view.findViewById(R.id.meldingmakenbutton);
+        btnTEST.setMagicButtonClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(getContext(), MeldingActivity.class);
+                startActivity(i);
+            }
+
+        });
+
+        return view;
+    }*/
+
     public void onCreate(Bundle savedInstaceState) {
         super.onCreate(savedInstaceState);
+
 
         // get user selected radius and cat or use default radius and cat
         SharedPreferences prefs = getActivity().getPreferences(Context.MODE_PRIVATE);
@@ -331,6 +366,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
         Log.e("Camera positie: ", "is veranderd");
 
+
         // commented this line for testing getting service request based on radius from Helsinki Live API
 //        Call<ArrayList<ServiceRequest>> nearbyServiceRequests = client.getNearbyServiceRequests(
 //                  camLat, camLng, null, currentRadius, "OV");
@@ -491,6 +527,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                     currentLat, currentLng, null, currentRadius);
         }
 
+
         nearbyServiceRequests.enqueue(new Callback<ArrayList<ServiceRequest>>() {
             @Override
             public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
@@ -510,7 +547,9 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                                         BitmapGenerator.getBitmapFromVectorDrawable(getContext(),
                                                 R.drawable.service_request_marker)))
                         );
+
                         Log.e("Opgehaalde serv: ", s.getServiceCode() + "");
+
                     }
 
                 } else {

@@ -78,6 +78,10 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
         setContentView(R.layout.activity_main);
         Log.d(TAG, "onCreate: Starting.");
 
+        // Starting service to run in the background.
+        Intent i = new Intent(getApplicationContext(), UpdateService.class);
+        startService(i);
+
         // from here all the API requests will be handled
         reqManager = new RequestManager(this);
         // set callback for data passing
@@ -218,7 +222,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
                         Toast.makeText(getApplicationContext(), "GPS knop is aangeklikt",Toast.LENGTH_SHORT).show();
                 }
 
-            return true;
+                return true;
             }
         });
 
@@ -295,8 +299,8 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
             mInstellingen.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-            AlertDialog.Builder builder1 = new AlertDialog.Builder(MainActivity.this);
-            View mView = getLayoutInflater().inflate(R.layout.dialog2, null);
+                    AlertDialog.Builder builder1 = new AlertDialog.Builder(MainActivity.this);
+                    View mView = getLayoutInflater().inflate(R.layout.dialog2, null);
                     Button nederlands = (Button) mView.findViewById(R.id.alertdialog_btn_nederlands);
                     nederlands.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -403,14 +407,12 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
         rValue = prefs.getInt(getString(R.string.activityMain_saved_radius), 20); // 20 is default
         String savedservCodeQ = prefs.getString(getString(R.string.activityMain_saved_servcodeQ),
                 getString(R.string.geenFilter));
-
         // check if service code is not default value
         // otherwise make String null
         // this will let API requests not take in account service codes
         if(savedservCodeQ.equals("")) {
             savedservCodeQ = null;
         }
-
         //create bundle and put current saved radius and service code values in the bundle
         Bundle bundle = new Bundle();
         String sValue = Integer.toString(rValue);

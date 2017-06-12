@@ -52,6 +52,11 @@
     <string name="activityMain_item_gps">Location</string>
     <string name="activityMain_item_report">Report</string>
 
+
+    <string name="reportUpdated">Your report has been updated</string>
+    <string name="on">on</string>
+
+
     <string name="soortgelijkeMeldingen">Similar alerts at this location</string>
     <string name="categorieën">Categories</string>
     <string name="activityMain_saved_radius">SAVED_RADIUS</string>

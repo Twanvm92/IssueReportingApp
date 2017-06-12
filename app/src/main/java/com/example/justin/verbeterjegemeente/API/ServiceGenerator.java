@@ -16,9 +16,9 @@ import retrofit2.converter.gson.GsonConverterFactory;
  */
 
 public class ServiceGenerator {
-//    public static String baseUrl = "http://37.34.59.50/breda/CitySDK/";
+    public static String baseUrl = "http://37.34.59.50/breda/CitySDK/";
     // testing get service requests based on radius
-    public static String baseUrl = "https://asiointi.hel.fi/palautews/rest/v1/";
+//    public static String baseUrl = "https://asiointi.hel.fi/palautews/rest/v1/";
 
     private static Gson gson = new GsonBuilder()
             .setLenient()

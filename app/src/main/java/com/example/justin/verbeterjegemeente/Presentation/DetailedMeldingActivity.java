@@ -10,11 +10,7 @@ import android.content.Intent;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Bundle;
-import android.support.design.widget.TabLayout;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
-
-import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.Button;
@@ -25,14 +21,9 @@ import android.widget.TextView;
 import com.example.justin.verbeterjegemeente.Database.DatabaseHanlder;
 import com.example.justin.verbeterjegemeente.Notification;
 import com.example.justin.verbeterjegemeente.R;
-
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 import com.like.LikeButton;
 import com.like.OnLikeListener;
-
-import java.util.ArrayList;
-
-
 import com.squareup.picasso.Picasso;
 
 import org.w3c.dom.Text;
@@ -67,6 +58,7 @@ public class DetailedMeldingActivity extends FragmentActivity {
         Bundle extras = getIntent().getExtras();
 
 
+
         /**
          * for loop to clear all notifications when the detailed view is opened.
          */
@@ -77,11 +69,12 @@ public class DetailedMeldingActivity extends FragmentActivity {
 
 
 
-       final String origin  = extras.getString("ORIGIN");
+
+        final String origin = extras.getString("ORIGIN");
 
 
+        final ServiceRequest serviceRequest = (ServiceRequest) getIntent().getSerializableExtra("serviceRequest");
 
-       final ServiceRequest serviceRequest = (ServiceRequest)getIntent().getSerializableExtra("serviceRequest");
 
 
         likeButton = (LikeButton) findViewById(R.id.favorietenknopdetail);
@@ -110,8 +103,9 @@ public class DetailedMeldingActivity extends FragmentActivity {
          */
         final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1 );
         if(db.ReportExists(serviceRequest.getServiceRequestId())){
+
             likeButton.setLiked(true);
-        }else{
+        } else {
             likeButton.setLiked(false);
         }
 
@@ -131,7 +125,7 @@ public class DetailedMeldingActivity extends FragmentActivity {
                     if (db.ReportExists(serviceRequest.getServiceRequestId()) == false) {
                         db.addReport(serviceRequest);
                     }
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -146,7 +140,7 @@ public class DetailedMeldingActivity extends FragmentActivity {
                     if (db.ReportExists(serviceRequest.getServiceRequestId())) {
                         db.deleteReport(serviceRequest.getServiceRequestId());
                     }
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -161,30 +155,18 @@ public class DetailedMeldingActivity extends FragmentActivity {
             @Override
             public void onClick(View v) {
 
-                if(origin.equals("FollowActivity")){
+
+
+                if (origin.equals("FollowActivity")) {
                     Intent in = new Intent(getApplicationContext(), FollowingActivity.class);
                     startActivity(in);
-                }else if(origin.equals("Tab2Fragment")){
-                    Intent in = new Intent(getApplicationContext(), MainActivity.class);
-                    startActivity(in);
+                } else if (origin.equals("Tab2Fragment") || origin.equals("MeldingActivityDialog")) {
+                    onBackPressed();
+
                 }
 
             }
         });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
         // Hook up clicks on the thumbnail views.
@@ -201,6 +183,7 @@ public class DetailedMeldingActivity extends FragmentActivity {
         mShortAnimationDuration = getResources().getInteger(
                 android.R.integer.config_shortAnimTime);
     }
+
     private void zoomImageFromThumb(final View thumbView, int imageResId) {
         // If there's an animation in progress, cancel it
         // immediately and proceed with this one.
@@ -309,7 +292,7 @@ public class DetailedMeldingActivity extends FragmentActivity {
                         .ofFloat(expandedImageView, View.X, startBounds.left))
                         .with(ObjectAnimator
                                 .ofFloat(expandedImageView,
-                                        View.Y,startBounds.top))
+                                        View.Y, startBounds.top))
                         .with(ObjectAnimator
                                 .ofFloat(expandedImageView,
                                         View.SCALE_X, startScaleFinal))

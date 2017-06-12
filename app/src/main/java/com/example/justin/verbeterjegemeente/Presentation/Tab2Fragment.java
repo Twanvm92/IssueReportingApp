@@ -32,6 +32,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+
 public class Tab2Fragment extends Fragment  {
 
     private ListView meldingListView;
@@ -48,7 +49,7 @@ public class Tab2Fragment extends Fragment  {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.tab2_fragment,container,false);
+        View view = inflater.inflate(R.layout.tab2_fragment, container, false);
 
 
         Bundle bundle = getArguments();
@@ -69,7 +70,7 @@ public class Tab2Fragment extends Fragment  {
         // check if service code is not default value
         // otherwise make String null
         // this will let API requests not take in account service codes
-        if(savedservCodeQ.equals("")) {
+        if (savedservCodeQ.equals("")) {
             servCodeQ = null;
         } else {
             servCodeQ = savedservCodeQ;
@@ -101,9 +102,9 @@ public class Tab2Fragment extends Fragment  {
     }
 
     //moet aangeroepen worden met zoekknop
-    public void searchServiceRequests (){
+    public void searchServiceRequests() {
         try {
-            if(ConnectionChecker.isConnected()) {
+            if (ConnectionChecker.isConnected()) {
 
                 if (currentLatLng != null) {
                     lat = "" + currentLatLng.latitude;
@@ -132,7 +133,7 @@ public class Tab2Fragment extends Fragment  {
                 serviceCall.enqueue(new Callback<ArrayList<ServiceRequest>>() {
                     @Override
                     public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
-                        if(response.isSuccessful()) {
+                        if (response.isSuccessful()) {
                             serviceList.clear();
                             ArrayList<ServiceRequest> servicesFound = response.body();
                             if (!servicesFound.isEmpty()) {
@@ -175,6 +176,7 @@ public class Tab2Fragment extends Fragment  {
      * if user does not have gps activated) that was passed from Tab1Fragment to MainActivity
      * to this Fragment. Also sends a new get request to obtain srvice requests based on the new
      * location given.
+     *
      * @param newLatLong Current location of the user that is determined by
      *                   a gps location or the center of the camera on the Google map
      */
@@ -189,7 +191,8 @@ public class Tab2Fragment extends Fragment  {
      * This method will update the radius and service codes connected to the category
      * set by the user. After that it will get new service requests based on the new radius and
      * category filter and add them as markers on a Google map
-     * @param radius radius in meters
+     *
+     * @param radius    radius in meters
      * @param servCodeQ String with service codes appending by a , delimiter
      *                  that can be used for filtering service requests.
      */

@@ -1,8 +1,8 @@
 package com.example.justin.verbeterjegemeente.Presentation;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -43,30 +43,41 @@ public class FollowingActivity extends AppCompatActivity {
 
 
         // Filling the ArrayList with the service request id's from the database.
-        final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1 );
+
+        final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
         ArrayList<ServiceRequest> idList = new ArrayList<>();
+
         idList = db.getReports();
         Log.i("IDs in userdb", idList.size() + "");
         db.close();
 
         final ArrayList<ServiceRequest> srListFinal = new ArrayList<>();
 
+
         try{
             if(ConnectionChecker.isConnected()){  //checking for internet acces.
 
                 for(ServiceRequest s: idList) {
+
                     client = ServiceGenerator.createService(ServiceClient.class);
                     Call<ServiceRequest> RequestResponseCall =
                             client.getServiceById(s.getServiceRequestId(), "1");
                     RequestResponseCall.enqueue(new retrofit2.Callback<ServiceRequest>() {
                         @Override
                         public void onResponse(Call<ServiceRequest> call, Response<ServiceRequest> response) {
-                            if(response.isSuccessful()){
+                            if (response.isSuccessful()) {
                                 ServiceRequest sr = response.body();
                                 srListFinal.add(sr);
                                 meldingAdapter.notifyDataSetChanged();
 
-                            } else { Log.i("response mis", "yup");}
+
+                                if (meldingAdapter != null) {
+                                    meldingAdapter.notifyDataSetChanged();
+                                }
+                            } else {
+                                Log.i("response mis", "yup");
+                            }
+
                         }
 
                         @Override
@@ -80,6 +91,7 @@ public class FollowingActivity extends AppCompatActivity {
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
+            Thread.currentThread().interrupt();
         } catch (IOException e) {
             e.printStackTrace();
         }

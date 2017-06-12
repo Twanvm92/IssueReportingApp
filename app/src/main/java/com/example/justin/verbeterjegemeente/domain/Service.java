@@ -4,9 +4,10 @@ package com.example.justin.verbeterjegemeente.domain;
  * <code>Service</code> is a class that gets created after a get request for services has been send
  * to an open311 interface. The JSON that gets caught in the response is converted to a <code>Service</code> class
  * by a gson converter in the <code>Retrofit</code> class
+ *
+ * @author Twan van Maastricht
  * @see com.example.justin.verbeterjegemeente.API.ServiceClient#getServices(String)
  * @see retrofit2.Retrofit
- * @author Twan van Maastricht
  */
 
 public class Service {

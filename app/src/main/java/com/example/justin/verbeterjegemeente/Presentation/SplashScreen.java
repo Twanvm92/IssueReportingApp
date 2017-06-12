@@ -13,14 +13,19 @@ import java.util.TimerTask;
 
 /**
  * Deze klasse dient als splashscreen van de app de gebruiker zal eerst dit laadscherm zien voordat hij de app echt kan gebruiken.
+ *
  * @author Justin Kannekens
  */
 public class SplashScreen extends AppCompatActivity {
 
-    /** Duration of wait **/
-    private static final long SPLASH_TIME=500;
+    /**
+     * Duration of wait
+     **/
+    private static final long SPLASH_TIME = 500;
 
-    /** Called when the activity is first created. */
+    /**
+     * Called when the activity is first created.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,14 +38,14 @@ public class SplashScreen extends AppCompatActivity {
                  start your app main activity**/
                 loadLocale();
 
-                Intent mainIntent=new Intent().setClass(SplashScreen.this, MainActivity.class);
+                Intent mainIntent = new Intent().setClass(SplashScreen.this, MainActivity.class);
                 startActivity(mainIntent);
                 // Close this activity
                 finish();
             }
         };
-        Timer timer=new Timer();
-        timer.schedule(task,SPLASH_TIME);
+        Timer timer = new Timer();
+        timer.schedule(task, SPLASH_TIME);
     }
 
     /**
@@ -51,13 +56,14 @@ public class SplashScreen extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("CommonPrefs",
                 getApplicationContext().MODE_PRIVATE);
         String language = prefs.getString("Language", "");
-        if (!language.equals("")){
+        if (!language.equals("")) {
             changeLang(language);
         }
     }
 
     /**
      * Changing language to English unless user specifically chooses Dutch as only 2 languages are supported at the moment
+     *
      * @param lang language user is requesting
      */
     public void changeLang(String lang) {
@@ -72,6 +78,6 @@ public class SplashScreen extends AppCompatActivity {
         Locale.setDefault(myLocale);
         android.content.res.Configuration config = new android.content.res.Configuration();
         config.locale = myLocale;
-        getBaseContext().getResources().updateConfiguration(config,getBaseContext().getResources().getDisplayMetrics());
+        getBaseContext().getResources().updateConfiguration(config, getBaseContext().getResources().getDisplayMetrics());
     }
 }

@@ -11,13 +11,13 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.location.Location;
+import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v4.view.ViewPager;
-import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
@@ -29,26 +29,25 @@ import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.example.justin.verbeterjegemeente.*;
+
 import com.example.justin.verbeterjegemeente.API.RequestManager;
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.Adapters.SectionsPageAdapter;
 import com.example.justin.verbeterjegemeente.Business.LocationSelectedListener;
 import com.example.justin.verbeterjegemeente.Business.ServiceManager;
+import com.example.justin.verbeterjegemeente.Constants;
+import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.Service;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
-import java.util.Locale;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+
 import io.github.yavski.fabspeeddial.FabSpeedDial;
 import io.github.yavski.fabspeeddial.SimpleMenuListenerAdapter;
-
-import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LAT;
-import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LONG;
-import static com.example.justin.verbeterjegemeente.Constants.MY_PERMISSIONS_LOCATION;
-import static com.example.justin.verbeterjegemeente.Constants.REQUEST_CHECK_SETTINGS;
 
 
 public class MainActivity extends AppCompatActivity implements LocationSelectedListener, RequestManager.OnServicesReady {
@@ -110,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
 
 
                 switch (menuItem.getItemId()) {
-                    case R.id.activityMain_item_filters :
+                    case R.id.activityMain_item_filters:
 
                         //create a new custom dialog
                         AlertDialog.Builder builder1 = new AlertDialog.Builder(MainActivity.this);
@@ -133,7 +132,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
                         sbRadius.setProgress(rValue);
                         tvRadiusD.setText(rValue + getString(R.string.radiusMeters));
 
-                        sbRadius.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
+                        sbRadius.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 
                             @Override
                             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -161,10 +160,9 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
                         catagorySpinner = (Spinner) mView.findViewById(R.id.filterdialog_sp_categorieen);
                         catagoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                         catagorySpinner.setAdapter(catagoryAdapter);
-                        if (!savedCat.equals(null)) {
-                            int spinnerPosition = catagoryAdapter.getPosition(savedCat);
-                            catagorySpinner.setSelection(spinnerPosition);
-                        }
+                        int spinnerPosition = catagoryAdapter.getPosition(savedCat);
+                        catagorySpinner.setSelection(spinnerPosition);
+
 
                         builder1.setView(mView);
                         AlertDialog dialog = builder1.create();
@@ -196,7 +194,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
                         });
 
                         break;
-                    case R.id.activityMain_item_report :
+                    case R.id.activityMain_item_report:
 //                        if (tabFragment.currentLatLng != null) {
 //                            double longCor = tabFragment.currentLatLng.longitude;
 //                            double latCor = tabFragment.currentLatLng.latitude;
@@ -217,9 +215,9 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
                         }
                         startActivity(in);
                         break;
-                    case R.id.activityMain_item_gps :
+                    case R.id.activityMain_item_gps:
                         tabFragment.reqFindLocation();
-                        Toast.makeText(getApplicationContext(), "GPS knop is aangeklikt",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "GPS knop is aangeklikt", Toast.LENGTH_SHORT).show();
                 }
 
                 return true;
@@ -248,11 +246,11 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
                         break;
 
                     case 2:
-                        fabSpeedDial.show();
+                        fabSpeedDial.hide();
                         break;
 
                     default:
-                        fabSpeedDial.show();
+                        fabSpeedDial.hide();
                         break;
                 }
 
@@ -305,7 +303,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
                     nederlands.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            Toast.makeText(getApplication(), "Welkom",Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplication(), "Welkom", Toast.LENGTH_SHORT).show();
 
                             setLocale("nl");
                             saveLocale("nl");
@@ -316,7 +314,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
                     engels.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            Toast.makeText(getApplication(), "Welcome",Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplication(), "Welcome", Toast.LENGTH_SHORT).show();
 
                             setLocale("en");
                             saveLocale("en");
@@ -327,11 +325,11 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
 
                     SeekBar radius = (SeekBar) mView.findViewById(R.id.alertdialog_sb_radius);
                     final TextView radius_afstand = (TextView) mView.findViewById(R.id.alertdialog_tv_afstand);
-                    radius.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
+                    radius.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 
                         @Override
                         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                            radius_afstand.setText(String.valueOf(progress) + "Km." );
+                            radius_afstand.setText(String.valueOf(progress) + "Km.");
                         }
 
                         @Override
@@ -352,7 +350,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
 
             mOver.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick (View view) {
+                public void onClick(View view) {
                     //Functie van knop
                 }
             });
@@ -366,6 +364,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
 
     /**
      * Changing language to user's choice
+     *
      * @param lang language user is requesting
      */
     public void setLocale(String lang) {
@@ -384,6 +383,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
 
     /**
      * Saving preferred language
+     *
      * @param lang language user is requesting
      */
     public void saveLocale(String lang) {
@@ -466,8 +466,6 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
 //            }
 
 
-
-
     }
 
     @Override
@@ -519,19 +517,19 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
      * This method will pass the radius that is selected by the user in a custom dialog
      * to the Tab1Fragment where the radius will be used to find service requests and
      * place them on the map and in the
-     * @param value value of the progress of the radius seekbar in custom dialog
-     * @param servCodeQ
      *
+     * @param value     value of the progress of the radius seekbar in custom dialog
+     * @param servCodeQ
      */
     public void radiusCategSelected(int value, String servCodeQ) {
 
-        if(servCodeQ.equals("")) {
+        if (servCodeQ.equals("")) {
             servCodeQ = null;
         }
 
         Tab1Fragment tab1Fragment = null;
 
-        if(getSupportFragmentManager().getFragments() != null) {
+        if (getSupportFragmentManager().getFragments() != null) {
             tab1Fragment = (Tab1Fragment)
                     getSupportFragmentManager().getFragments().get(0);
         }
@@ -544,7 +542,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
 
         Tab2Fragment tab2Fragment = null;
 
-        if(getSupportFragmentManager().getFragments() != null) {
+        if (getSupportFragmentManager().getFragments() != null) {
             tab2Fragment = (Tab2Fragment)
                     getSupportFragmentManager().getFragments().get(1);
         }

@@ -2,24 +2,21 @@ package com.example.justin.verbeterjegemeente.Presentation;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
-import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
-import com.example.justin.verbeterjegemeente.Business.LocationSelectedListener;
 import com.example.justin.verbeterjegemeente.Constants;
 import com.example.justin.verbeterjegemeente.R;
 import com.google.android.gms.common.ConnectionResult;
@@ -43,9 +40,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LAT;
-import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LONG;
-
 /**
  * MapsActivity
  * Laat een map zien met daarop de huidige locatie. door op de kaart te klikken wordt de opgegeven locatie aangepast.
@@ -55,12 +49,12 @@ import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LONG;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        com.google.android.gms.location.LocationListener{
+        com.google.android.gms.location.LocationListener {
 
     private GoogleMap mMap;
     private Marker marker;
     private Location currentLocation;
-    private GoogleApiClient  mApiClient;
+    private GoogleApiClient mApiClient;
     private FloatingActionButton saveButton, gpsButton;
     private LatLng currentLatLng;
     private double lat, lon;
@@ -68,9 +62,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     /**
      * onCreate wordt opgeroepen wanneer de klasse wordt gemaakt. hierbij wordt de map opgeroepen,
      * een GoogleApiCLient aangemaakt en de savebutton gemaakt.
-     *
+     * <p>
      * de savebutton linked terug naar de meldingAcitivity en geeft de longitude en latitude mee.
-     *
      */
 
     @Override
@@ -79,7 +72,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_maps);
 
         Intent in = getIntent();
-        if(in.hasExtra("long")) {
+        if (in.hasExtra("long")) {
             lon = in.getDoubleExtra("long", 1);
             lat = in.getDoubleExtra("lat", 1);
             currentLatLng = new LatLng(lat, lon);
@@ -101,7 +94,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(View v) {
                 Intent i = new Intent();
-                if (marker != null){
+                if (marker != null) {
                     LatLng markerPosition = marker.getPosition();
                     i.putExtra("long", markerPosition.longitude); //post longitude
                     i.putExtra("lat", markerPosition.latitude); //post latitude
@@ -124,7 +117,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     /**
      * onMapReady wordt opgeroepen wanneer de map geladen is. dan wordt er ook een onclicklistener aan de
      * kaart toegevoegd die de marker verplaatst op de kaart.
-     *
      */
 
     @Override
@@ -182,7 +174,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void getLocation() {
-        if (currentLatLng == null){
+        if (currentLatLng == null) {
             CameraUpdate center = CameraUpdateFactory.newLatLngZoom(new LatLng(Constants.DEFAULT_LAT, Constants.DEFAULT_LONG), 12.0f);
             mMap.moveCamera(center); //update camera
 
@@ -194,7 +186,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public void onBackPressed() {
         Intent i = new Intent();
-        if (marker != null){
+        if (marker != null) {
             LatLng markerPosition = marker.getPosition();
             i.putExtra("long", markerPosition.longitude); //post longitude
             i.putExtra("lat", markerPosition.latitude); //post latitude
@@ -207,22 +199,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.ACCESS_FINE_LOCATION)) {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                        Constants.MY_PERMISSIONS_LOCATION);
-            } else {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                        Constants.MY_PERMISSIONS_LOCATION);
-            }
+
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    Constants.MY_PERMISSIONS_LOCATION);
+
         } else {
             getUserLocation();
         }
     }
 
-    public void getUserLocation(){
+    public void getUserLocation() {
         LocationRequest locationRequest = LocationRequest.create();
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         locationRequest.setInterval(30 * 1000);
@@ -234,13 +221,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         final PendingResult<LocationSettingsResult> result =
                 LocationServices.SettingsApi.checkLocationSettings(mApiClient, builder.build());
-        result.setResultCallback(new ResultCallback<LocationSettingsResult>(){
+        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
 
             @Override
             public void onResult(@NonNull LocationSettingsResult LSresult) {
                 final Status status = LSresult.getStatus();
                 final LocationSettingsStates states = LSresult.getLocationSettingsStates();
-                switch (status.getStatusCode()){
+                switch (status.getStatusCode()) {
                     case LocationSettingsStatusCodes.SUCCESS:
                         if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                             currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
@@ -256,9 +243,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         }
                         break;
                     case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                        try{
+                        try {
                             status.startResolutionForResult(MapsActivity.this, Constants.REQUEST_CHECK_SETTINGS);
-                        } catch (IntentSender.SendIntentException e){
+                        } catch (IntentSender.SendIntentException e) {
 
                         }
                         break;
@@ -271,8 +258,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     /**
      * Controleren of permissies goed gekeurd zijn door de gebruiker
-     * @param requestCode meegegeven activiteit nummer die gedaan is
-     * @param permissions permissies die aangevraagd worden
+     *
+     * @param requestCode  meegegeven activiteit nummer die gedaan is
+     * @param permissions  permissies die aangevraagd worden
      * @param grantResults hoeveelheid permissies die goed gekeurd zijn door de gebruiker
      */
     @Override
@@ -294,11 +282,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
             case Constants.REQUEST_CHECK_SETTINGS:
-            if (resultCode == Activity.RESULT_OK) {
-                reqFindLocation();
-            } else {
-                Log.i("onActivityResult", "Gps aanvraag afgewezen");
-            }
+                if (resultCode == Activity.RESULT_OK) {
+                    reqFindLocation();
+                } else {
+                    Log.i("onActivityResult", "Gps aanvraag afgewezen");
+                }
         }
     }
 }

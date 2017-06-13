@@ -196,18 +196,6 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
 
                         break;
                     case R.id.activityMain_item_report:
-//                        if (tabFragment.currentLatLng != null) {
-//                            double longCor = tabFragment.currentLatLng.longitude;
-//                            double latCor = tabFragment.currentLatLng.latitude;
-//                            currentLatLng = new LatLng(longCor, latCor);
-//                        }
-//                        Intent in = new Intent(getApplicationContext(),
-//                                com.example.justin.verbeterjegemeente.Presentation.MeldingActivity.class);
-//                        if (currentLatLng != null) {
-//                            in.putExtra("long", currentLatLng.longitude);
-//                            in.putExtra("lat", currentLatLng.latitude);
-//                        }
-//                        startActivity(in);
                         Intent in = new Intent(getApplicationContext(),
                                 com.example.justin.verbeterjegemeente.Presentation.MeldingActivity.class);
                         if (currentLatLng != null) {
@@ -324,24 +312,6 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
                             startActivity(getIntent());
                             finish();
 
-                        }
-                    });
-
-                    SeekBar radius = (SeekBar) mView.findViewById(R.id.alertdialog_sb_radius);
-                    final TextView radius_afstand = (TextView) mView.findViewById(R.id.alertdialog_tv_afstand);
-                    radius.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-
-                        @Override
-                        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                            radius_afstand.setText(String.valueOf(progress) + "Km.");
-                        }
-
-                        @Override
-                        public void onStartTrackingTouch(SeekBar seekBar) {
-                        }
-
-                        @Override
-                        public void onStopTrackingTouch(SeekBar seekBar) {
                         }
                     });
 

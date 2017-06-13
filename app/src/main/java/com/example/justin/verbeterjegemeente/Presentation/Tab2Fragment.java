@@ -61,17 +61,8 @@ public class Tab2Fragment extends Fragment  {
         SharedPreferences prefs = getActivity().getPreferences(Context.MODE_PRIVATE);
         int rValue = prefs.getInt(getString(R.string.activityMain_saved_radius), 20); // 20 is default
         currentRadius = Integer.toString(rValue);
-        String savedservCodeQ = prefs.getString(getString(R.string.activityMain_saved_servcodeQ),
-                getString(R.string.geenFilter));
+        servCodeQ = prefs.getString(getString(R.string.activityMain_saved_servcodeQ), null);
 
-        // check if service code is not default value
-        // otherwise make String null
-        // this will let API requests not take in account service codes
-        if (savedservCodeQ.equals("")) {
-            servCodeQ = null;
-        } else {
-            servCodeQ = savedservCodeQ;
-        }
 
         searchServiceRequests();
 

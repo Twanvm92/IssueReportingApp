@@ -14,7 +14,6 @@ import android.location.Location;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -33,12 +32,12 @@ import android.widget.Toast;
 import com.example.justin.verbeterjegemeente.API.RequestManager;
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.Adapters.SectionsPageAdapter;
-import com.example.justin.verbeterjegemeente.Business.LocationSelectedListener;
 import com.example.justin.verbeterjegemeente.Business.ServiceManager;
 import com.example.justin.verbeterjegemeente.Constants;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.UpdateService;
 import com.example.justin.verbeterjegemeente.domain.Service;
+import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
@@ -51,14 +50,13 @@ import io.github.yavski.fabspeeddial.FabSpeedDial;
 import io.github.yavski.fabspeeddial.SimpleMenuListenerAdapter;
 
 
-public class MainActivity extends AppCompatActivity implements LocationSelectedListener, RequestManager.OnServicesReady {
+public class MainActivity extends AppCompatActivity implements
+        RequestManager.OnServicesReady, Tab1Fragment.ServiceRequestsReadyListener {
 
     private static final String TAG = "MainActivity";
     private SectionsPageAdapter mSectionsPageAdapter;
     private int rValue;
     private ViewPager mViewPager;
-    private FloatingActionButton fab;
-    private FloatingActionButton gps;
     private Tab1Fragment tabFragment = new Tab1Fragment();
     private Tab2Fragment tab2Fragment = new Tab2Fragment();
     private LatLng currentLatLng;
@@ -66,7 +64,6 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
     ArrayAdapter<String> catagoryAdapter;
     private ArrayList<String> catagoryList;
     private Spinner catagorySpinner;
-    private ServiceClient client;
     private Locale myLocale;
     private RequestManager reqManager;
     private String servCodeQ;
@@ -376,7 +373,7 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
     private void setupViewPager(ViewPager viewPager) {
         SectionsPageAdapter adapter = new SectionsPageAdapter(getSupportFragmentManager());
 
-        /*// get user selected radius and cat or use default radius and cat
+        // get user selected radius and cat or use default radius and cat
         SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
         rValue = prefs.getInt(getString(R.string.activityMain_saved_radius), 20); // 20 is default
         String savedservCodeQ = prefs.getString(getString(R.string.activityMain_saved_servcodeQ),
@@ -391,14 +388,11 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
         Bundle bundle = new Bundle();
         String sValue = Integer.toString(rValue);
         bundle.putString("RADIUS_VALUE",sValue);
-        *//*bundle.putString("SERVICE_CODE_VALUE",savedservCodeQ);*/
+        bundle.putString("SERVICE_CODE_VALUE",savedservCodeQ);
 
         // pass values as a bundle to the Tab1Fragment
-//        tabFragment.setArguments(bundle);
+        tabFragment.setArguments(bundle);
         adapter.addFragment(tabFragment, "");
-
-        // pass values as a bundle to the Tab1Fragment
-//        tab2Fragment.setArguments(bundle);
         adapter.addFragment(tab2Fragment, "");
 
         viewPager.setAdapter(adapter);
@@ -450,36 +444,6 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
     }
 
     @Override
-    public void locationSelected(LatLng curLatLong) {
-        Tab2Fragment tab2Frag = (Tab2Fragment)
-                getSupportFragmentManager().getFragments().get(1);
-
-        if (tab2Frag != null) {
-            // If tab1 frag is available, we're in two-pane layout...
-
-            // Call a method in the Tab1Fragment to update its content
-            Log.e("MainActivity: ", "We are in a two pane layout..");
-
-            tab2Frag.updateCurrentLoc(curLatLong);
-        } else {
-            // Otherwise, we're in the one-pane layout and must swap frags...
-
-            // Create fragment and give it an argument for the selected LatLng
-            Tab2Fragment newFragment = new Tab2Fragment();
-            Bundle args = new Bundle();
-            args.putDouble("CURRENT_LAT", curLatLong.latitude);
-            args.putDouble("CURRENT_LONG", curLatLong.longitude);
-            newFragment.setArguments(args);
-
-            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-
-            // The user selected the headline of an article from the HeadlinesFragment
-            // Do something here to display that article
-        }
-        currentLatLng = curLatLong;
-    }
-
-    @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
             case Constants.REQUEST_CHECK_SETTINGS:
@@ -514,18 +478,6 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
             tab1Fragment.updateRadiusCat(value, servCodeQ);
         }
 
-        Tab2Fragment tab2Fragment = null;
-
-        if (getSupportFragmentManager().getFragments() != null) {
-            tab2Fragment = (Tab2Fragment)
-                    getSupportFragmentManager().getFragments().get(1);
-        }
-
-        if (tab2Fragment != null) {
-
-            // update the radius and category selected in the Tab2Fragment
-            tab2Fragment.updateRadiusCat(value, servCodeQ);
-        }
     }
 
     @Override
@@ -536,6 +488,18 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
 
         // let the adapter know that data has changed
         catagoryAdapter.notifyDataSetChanged();
+
+    }
+
+    @Override
+    public void onServiceRequestsReady(ArrayList<ServiceRequest> srList) {
+        Tab2Fragment tab2Frag = (Tab2Fragment)
+                getSupportFragmentManager().getFragments().get(1);
+
+        if (tab2Frag != null) {
+
+            tab2Frag.updateServiceRequests(srList);
+        }
 
     }
 }

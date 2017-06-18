@@ -23,8 +23,6 @@ import com.example.justin.verbeterjegemeente.API.ConnectionChecker;
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.Business.BitmapGenerator;
-import com.example.justin.verbeterjegemeente.Business.LocationSelectedListener;
-import com.example.justin.verbeterjegemeente.Business.MarkerHandler;
 import com.example.justin.verbeterjegemeente.Constants;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
@@ -66,13 +64,11 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         GoogleApiClient.OnConnectionFailedListener,
         com.google.android.gms.location.LocationListener, GoogleMap.OnCameraIdleListener {
     public GoogleMap mMap;
-    ;
-    private MarkerHandler mHandler;
     private Location currentLocation;
     public LatLng currentLatLng;
     public GoogleApiClient mApiClient;
     ServiceClient client;
-    private LocationSelectedListener locCallback;
+    private ServiceRequestsReadyListener sRequestCallback;
     private String currentRadius;
     private String servCodeQ;
     private boolean eersteKeer = true;
@@ -100,7 +96,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         // This makes sure that the container activity has implemented
         // the callback interface. If not, it throws an exception
         try {
-            locCallback = (LocationSelectedListener) activity;
+            sRequestCallback = (ServiceRequestsReadyListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
                     + " must implement OnHeadlineSelectedListener");
@@ -187,13 +183,8 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         mMap.getUiSettings().setMapToolbarEnabled(false);
         mMap.setPadding(60, 100, 0, 180);
 
-
         initApi();
 
-        //markerHandler stuff
-        mHandler = new MarkerHandler(mMap);
-        mHandler.init();
-        mHandler.setVisible("category");
     }
 
     /**
@@ -316,25 +307,22 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                 Double.compare(center.longitude, Constants.DEFAULT_LONG) != 0)) {
 
                 currentLatLng = new LatLng(center.latitude, center.longitude);
-                if (locCallback != null) {
-                    locCallback.locationSelected(currentLatLng);
-                    zoomLevel = mMap.getCameraPosition().zoom;
-                }
 
+                zoomLevel = mMap.getCameraPosition().zoom;
         }
 
 
         Log.e("Camera positie: ", "is veranderd");
 
         Call<ArrayList<ServiceRequest>> nearbyServiceRequests;
-        if (servCodeQ == null) {
-            Log.e("oncameraidle sercoeQ: ", "" + servCodeQ);
-            nearbyServiceRequests = client.getNearbyServiceRequests(
-                    camLat, camLng, null, currentRadius);
-        } else {
+        if (servCodeQ != null && !servCodeQ.equals("")) {
             Log.e("oncameraidle sercoeQ: ", "" + servCodeQ);
             nearbyServiceRequests = client.getNearbyServiceRequests(
                     camLat, camLng, null, currentRadius, servCodeQ);
+        } else {
+            Log.e("oncameraidle sercoeQ: ", "" + servCodeQ);
+            nearbyServiceRequests = client.getNearbyServiceRequests(
+                    camLat, camLng, null, currentRadius);
         }
 
         nearbyServiceRequests.enqueue(new Callback<ArrayList<ServiceRequest>>() {
@@ -342,6 +330,10 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
             public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
                 if (response.isSuccessful()) {
                     ArrayList<ServiceRequest> srList = response.body();
+
+                    // pass received Service Requests to ActivityMain
+                    // ActivityMain will then pass the requests to Tab2Fragment
+                    sRequestCallback.onServiceRequestsReady(srList);
 
                     // clear all markers on the map before adding new markers
                     mMap.clear();
@@ -489,7 +481,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         }
 
         Call<ArrayList<ServiceRequest>> nearbyServiceRequests;
-        if (servCodeQ != null) {
+        if (servCodeQ != null && !servCodeQ.equals("")) {
             nearbyServiceRequests = client.getNearbyServiceRequests(
                     currentLat, currentLng, null, currentRadius, servCodeQ);
         } else {
@@ -503,6 +495,10 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
             public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
                 if (response.isSuccessful()) {
                     ArrayList<ServiceRequest> srList = response.body();
+
+                    // pass received Service Requests to ActivityMain
+                    // ActivityMain will then pass the requests to Tab2Fragment
+                    sRequestCallback.onServiceRequestsReady(srList);
 
                     // clear all markers on the map before adding new markers
                     mMap.clear();
@@ -544,6 +540,10 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
             }
         });
 
+    }
+
+    public interface ServiceRequestsReadyListener {
+        void onServiceRequestsReady(ArrayList<ServiceRequest> srList);
     }
 }
 

@@ -730,13 +730,15 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                 Uri selectedImage;
                 if (resultCode == RESULT_OK) {
                     Bitmap photo = (Bitmap) data.getExtras().get("data");
-                    selectedImage = getImageUri(getApplicationContext(), photo);
-
-                    File finalFile = new File(getRealPathFromURI(selectedImage));
-//                  test of image_path correct gepakt wordt
-                    fotoImageView.setImageURI(selectedImage);
+//                onderstaande code in commentaar werkt en geeft de image als string mee
+//                end point accepteert de lengte van String niet
+//                    -----------------------------------------------
+//                    selectedImage = getImageUri(getApplicationContext(), photo);
+//                    File finalFile = new File(getRealPathFromURI(selectedImage));
+//                    fotoImageView.setImageURI(selectedImage);
+                    fotoImageView.setImageBitmap(photo);
                     fotoButton.setText(R.string.fotoWijzigen);
-                    imagePath = finalFile.toString();
+//                    imagePath = finalFile.toString();
 
                 }
                 break;

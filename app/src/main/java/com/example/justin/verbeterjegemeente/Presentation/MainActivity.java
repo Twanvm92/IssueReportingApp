@@ -179,12 +179,19 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
                                 // generate a string with appended service codes
                                 // depending on what services are available and what category filter is
                                 // currently active.
-                                servCodeQ = ServiceManager.genServiceCodeQ(serviceList, currCatag);
+                                // remove serviceCode if user selects no filter
+                                if (!currCatag.equalsIgnoreCase(getString(R.string.geenFilter))){
+                                    servCodeQ = ServiceManager.genServiceCodeQ(serviceList, currCatag);
+                                    prefs.edit().putString(getString(R.string.activityMain_saved_servcodeQ), servCodeQ).apply();
+                                } else {
+                                    SharedPreferences.Editor editor = prefs.edit();
+                                    editor.remove(getString(R.string.activityMain_saved_servcodeQ));
+                                    editor.apply();
+                                }
+
                                 // save the currently active category filter and the string of service codes
                                 // that belong to that category in the users preferences
                                 prefs.edit().putString(getString(R.string.activityMain_saved_category), currCatag).apply();
-                                prefs.edit().putString(getString(R.string.activityMain_saved_servcodeQ), servCodeQ).apply();
-
                                 // notify Tab1Fragment and Tab2Fragment that a new radius and category
                                 // was selected
                                 radiusCategSelected(rValue, servCodeQ);
@@ -449,10 +456,6 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
      * @param servCodeQ
      */
     public void radiusCategSelected(int value, String servCodeQ) {
-
-        if (servCodeQ.equals("")) {
-            servCodeQ = null;
-        }
 
         Tab1Fragment tab1Fragment = null;
 

@@ -122,4 +122,11 @@ public class FollowingActivity extends AppCompatActivity {
                 }
         });
     }
+
+    @Override
+    public void onBackPressed() {
+        Intent in = new Intent(getApplicationContext(), MainActivity.class);
+        startActivity(in);
+    }
+
 }

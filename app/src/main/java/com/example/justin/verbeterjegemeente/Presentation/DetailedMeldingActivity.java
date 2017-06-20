@@ -34,12 +34,12 @@ public class DetailedMeldingActivity extends FragmentActivity {
     private Animator mCurrentAnimator;
     private LikeButton likeButton;
     private Button terugButton;
+    private String origin;
 
     // The system "short" animation time duration, in milliseconds. This
     // duration is ideal for subtle animations or animations that occur
     // very frequently.
     private int mShortAnimationDuration;
-
 
     private TextView statusDetailed, laatstUpdateDetailed, beschrijvingDetailed, hoofdCategorieDetailed, subCategorieDetailed, statusNotes;
 
@@ -53,7 +53,6 @@ public class DetailedMeldingActivity extends FragmentActivity {
         Bundle extras = getIntent().getExtras();
 
 
-
         /**
          * for loop to clear all notifications when the detailed view is opened.
          */
@@ -62,15 +61,9 @@ public class DetailedMeldingActivity extends FragmentActivity {
             notificationManager.cancel(i);
         }
 
-
-
-
-        final String origin = extras.getString("ORIGIN");
-
+        origin = extras.getString("ORIGIN");
 
         final ServiceRequest serviceRequest = (ServiceRequest) getIntent().getSerializableExtra("serviceRequest");
-
-
 
         likeButton = (LikeButton) findViewById(R.id.favorietenknopdetail);
         statusDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_status_DetailedID);
@@ -80,7 +73,6 @@ public class DetailedMeldingActivity extends FragmentActivity {
         subCategorieDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_subCategorie_detailedID);
         imageSmall = (ImageButton) findViewById(R.id.activityDetailedMelding_imgbtn_imageSmall_ID);
         statusNotes = (TextView) findViewById(R.id.activityDetailedMelding_tv_status_DetailedNotesID);
-
 
         statusDetailed.setText(serviceRequest.getStatus());
         laatstUpdateDetailed.setText(serviceRequest.getUpdatedDatetime());
@@ -103,9 +95,6 @@ public class DetailedMeldingActivity extends FragmentActivity {
         } else {
             likeButton.setLiked(false);
         }
-
-
-
 
         likeButton.setOnLikeListener(new OnLikeListener() {
             @Override
@@ -150,8 +139,6 @@ public class DetailedMeldingActivity extends FragmentActivity {
             @Override
             public void onClick(View v) {
 
-
-
                 if (origin.equals("FollowActivity")) {
                     Intent in = new Intent(getApplicationContext(), FollowingActivity.class);
                     startActivity(in);
@@ -162,9 +149,6 @@ public class DetailedMeldingActivity extends FragmentActivity {
 
             }
         });
-
-
-
 
         // Hook up clicks on the thumbnail views.
 
@@ -319,16 +303,13 @@ public class DetailedMeldingActivity extends FragmentActivity {
         });
     }
 
-
-
-    public void onBackPressed(){
-        String origin = getIntent().getExtras().getString("ORIGIN");
+    @Override
+    public void onBackPressed() {
         if (origin.equals("FollowActivity")) {
             Intent in = new Intent(getApplicationContext(), FollowingActivity.class);
             startActivity(in);
-        } else if (origin.equals("Tab2Fragment") || origin.equals("MeldingActivityDialog")) {
-            onBackPressed();
-
+        } else {
+            super.onBackPressed();
         }
     }
 }

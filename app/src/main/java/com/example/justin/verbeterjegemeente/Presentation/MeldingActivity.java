@@ -44,7 +44,6 @@ import com.example.justin.verbeterjegemeente.domain.Service;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 import com.example.justin.verbeterjegemeente.domain.User;
 import com.google.android.gms.maps.model.LatLng;
-import com.mifmif.common.regex.Main;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -326,6 +325,39 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
 
                 }
 
+                // initializes a longtitude of the user's current location or a longtitude that
+                // has been provided by the user
+                lon = null;
+                if (mapLocation != null) {
+                    if (mapLocation.longitude != 0.0) {
+                        lon = mapLocation.longitude;
+                    } else {
+                        Toast.makeText(getApplicationContext(),
+                                getResources().getString(R.string.geenLocatie), Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                } else {
+                    Toast.makeText(getApplicationContext(),
+                            getResources().getString(R.string.geenLocatie), Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // initializes a latitude of the user's current location or a latitude that
+                // has been provided by the user
+                lat = null;
+                if (mapLocation != null) {
+                    if (mapLocation.latitude != 0.0) {
+                        lat = mapLocation.latitude;
+                    } else {
+                        Toast.makeText(getApplicationContext(),
+                                getResources().getString(R.string.geenLocatie), Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                } else {
+                    Toast.makeText(getApplicationContext(),
+                            getResources().getString(R.string.geenLocatie), Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
                 // initialize selected category and check if selected category is actually a category
                 String selecIt = "";
@@ -423,39 +455,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                     lName = achternaamEditText.getText().toString();
                 }
 
-                // initializes a longtitude of the user's current location or a longtitude that
-                // has been provided by the user
-                lon = null;
-                if (mapLocation != null) {
-                    if (mapLocation.longitude != 0.0) {
-                        lon = mapLocation.longitude;
-                    } else {
-                        Toast.makeText(getApplicationContext(),
-                                getResources().getString(R.string.geenLocatie), Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                } else {
-                    Toast.makeText(getApplicationContext(),
-                            getResources().getString(R.string.geenLocatie), Toast.LENGTH_SHORT).show();
-                    return;
-                }
 
-                // initializes a latitude of the user's current location or a latitude that
-                // has been provided by the user
-                lat = null;
-                if (mapLocation != null) {
-                    if (mapLocation.latitude != 0.0) {
-                        lat = mapLocation.latitude;
-                    } else {
-                        Toast.makeText(getApplicationContext(),
-                                getResources().getString(R.string.geenLocatie), Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                } else {
-                    Toast.makeText(getApplicationContext(),
-                            getResources().getString(R.string.geenLocatie), Toast.LENGTH_SHORT).show();
-                    return;
-                }
 
                 final ArrayList<ServiceRequest> srListFinal = new ArrayList<>();
 

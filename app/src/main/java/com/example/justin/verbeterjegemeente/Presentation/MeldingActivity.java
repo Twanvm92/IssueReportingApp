@@ -565,8 +565,6 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                                         Toast.LENGTH_SHORT).show();
 
                                 insertReport(psrr.getId());
-                                Intent i = new Intent(getApplicationContext(), FollowingActivity.class);
-                                startActivityForResult(i, Constants.BACK_BUTTON);
                             }
                         } else {
                             try { //something went wrong. Show the user what went wrong
@@ -843,6 +841,8 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
 
                                 DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
                                 db.addReport(sr);
+                                Intent i = new Intent(getApplicationContext(), FollowingActivity.class);
+                                startActivityForResult(i, Constants.BACK_BUTTON);
 
                             } else {
                                 Log.i("response mis", "yup");

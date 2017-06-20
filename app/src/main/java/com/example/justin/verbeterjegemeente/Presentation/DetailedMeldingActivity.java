@@ -164,6 +164,8 @@ public class DetailedMeldingActivity extends FragmentActivity {
         });
 
 
+
+
         // Hook up clicks on the thumbnail views.
 
 //        final View thumb1View = findViewById(R.id.fotomelding);
@@ -315,5 +317,18 @@ public class DetailedMeldingActivity extends FragmentActivity {
                 mCurrentAnimator = set;
             }
         });
+    }
+
+
+
+    public void onBackPressed(){
+        String origin = getIntent().getExtras().getString("ORIGIN");
+        if (origin.equals("FollowActivity")) {
+            Intent in = new Intent(getApplicationContext(), FollowingActivity.class);
+            startActivity(in);
+        } else if (origin.equals("Tab2Fragment") || origin.equals("MeldingActivityDialog")) {
+            onBackPressed();
+
+        }
     }
 }

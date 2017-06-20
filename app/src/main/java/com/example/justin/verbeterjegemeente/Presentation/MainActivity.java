@@ -204,7 +204,6 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
                         break;
                     case R.id.activityMain_item_gps:
                         tabFragment.reqFindLocation();
-                        Toast.makeText(getApplicationContext(), "GPS knop is aangeklikt", Toast.LENGTH_SHORT).show();
                 }
 
                 return true;
@@ -291,7 +290,6 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
                         @Override
                         public void onClick(View view) {
                             if (getLocale().equalsIgnoreCase("en")) {
-                                Toast.makeText(getApplication(), "Welkom", Toast.LENGTH_SHORT).show();
 
                                 setLocale("nl");
                                 saveLocale("nl");

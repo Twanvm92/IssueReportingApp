@@ -10,7 +10,6 @@ import java.util.List;
 /**
  * This class is responsible for getting information out of services
  * and doing something with that information.
- * Created by twanv on 10-6-2017.
  */
 
 public class ServiceManager {

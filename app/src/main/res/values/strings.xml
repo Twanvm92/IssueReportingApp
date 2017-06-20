@@ -6,6 +6,8 @@
     <string name="email">Email</string>
     <string name="nederlands">Nederlands</string>
     <string name="engels">English</string>
+    <string name="taalInGebruikNL">Applicatie maakt al gebruik van deze taal</string>
+    <string name="taalInGebruikEN">Application is already using this language</string>
 
 
     <!--STRINGS DIE VERTAALD WORDEN-->

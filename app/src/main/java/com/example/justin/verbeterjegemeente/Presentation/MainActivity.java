@@ -10,7 +10,6 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
-import android.location.Location;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
@@ -39,8 +38,6 @@ import com.example.justin.verbeterjegemeente.Constants;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.UpdateService;
 import com.example.justin.verbeterjegemeente.domain.Service;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
@@ -293,25 +290,32 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
                     nederlands.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            Toast.makeText(getApplication(), "Welkom", Toast.LENGTH_SHORT).show();
+                            if (getLocale().equalsIgnoreCase("en")) {
+                                Toast.makeText(getApplication(), "Welkom", Toast.LENGTH_SHORT).show();
 
-                            setLocale("nl");
-                            saveLocale("nl");
-                            startActivity(getIntent());
-                            finish();
+                                setLocale("nl");
+                                saveLocale("nl");
+                                startActivity(getIntent());
+                                finish();
+                            } else {
+                            Toast.makeText(getApplication(), getResources().getString(R.string.taalInGebruikNL), Toast.LENGTH_SHORT).show();
+                        }
                         }
                     });
                     Button engels = (Button) mView.findViewById(R.id.alertdialog_btn_engels);
                     engels.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            Toast.makeText(getApplication(), "Welcome", Toast.LENGTH_SHORT).show();
+                            if (getLocale().equalsIgnoreCase("nl")) {
+                                Toast.makeText(getApplication(), "Welcome", Toast.LENGTH_SHORT).show();
 
-                            setLocale("en");
-                            saveLocale("en");
-                            startActivity(getIntent());
-                            finish();
-
+                                setLocale("en");
+                                saveLocale("en");
+                                startActivity(getIntent());
+                                finish();
+                            } else {
+                                Toast.makeText(getApplication(), getResources().getString(R.string.taalInGebruikEN), Toast.LENGTH_SHORT).show();
+                            }
                         }
                     });
 
@@ -349,9 +353,18 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
         Configuration conf = res.getConfiguration();
         conf.locale = myLocale;
         res.updateConfiguration(conf, dm);
-//        Intent refresh = new Intent(this, MainActivity.class);
-//        startActivity(refresh);
+    }
 
+    /**
+     * Get language being used
+     *
+     */
+    public String getLocale() {
+
+        SharedPreferences prefs = getSharedPreferences("CommonPrefs",
+                getApplicationContext().MODE_PRIVATE);
+        String language = prefs.getString("Language", "nl");
+        return language;
     }
 
 
@@ -367,40 +380,12 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
         SharedPreferences.Editor editor = prefs.edit();
         editor.putString(langPref, lang);
         editor.commit();
-
-//        refresh van huidige fragment werkt, backpress naar meldingen ook
-//        andere activiteiten worden nog niet refresht
-//        misschien is er een betere manier ipv elke activiteit apart op te vangen..
     }
 
     private void setupViewPager(ViewPager viewPager) {
         SectionsPageAdapter adapter = new SectionsPageAdapter(getSupportFragmentManager());
-
-        /*// get user selected radius and cat or use default radius and cat
-        SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
-        rValue = prefs.getInt(getString(R.string.activityMain_saved_radius), 20); // 20 is default
-        String savedservCodeQ = prefs.getString(getString(R.string.activityMain_saved_servcodeQ),
-                getString(R.string.geenFilter));
-        // check if service code is not default value
-        // otherwise make String null
-        // this will let API requests not take in account service codes
-        if(savedservCodeQ.equals("")) {
-            savedservCodeQ = null;
-        }
-        //create bundle and put current saved radius and service code values in the bundle
-        Bundle bundle = new Bundle();
-        String sValue = Integer.toString(rValue);
-        bundle.putString("RADIUS_VALUE",sValue);
-        *//*bundle.putString("SERVICE_CODE_VALUE",savedservCodeQ);*/
-
-        // pass values as a bundle to the Tab1Fragment
-//        tabFragment.setArguments(bundle);
         adapter.addFragment(tabFragment, "");
-
-        // pass values as a bundle to the Tab1Fragment
-//        tab2Fragment.setArguments(bundle);
         adapter.addFragment(tab2Fragment, "");
-
         viewPager.setAdapter(adapter);
     }
 
@@ -410,36 +395,6 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
             case Constants.MY_PERMISSIONS_LOCATION:
                 tabFragment.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
-    }
-
-    public void getLocation() {
-        Location currentLocation = null;
-        GoogleMap mMap = tabFragment.mMap;
-        GoogleApiClient mApiClient = tabFragment.mApiClient;
-
-//            if (mApiClient != null) {
-//
-//                // commented for testing purposed. Now jumps to default lat & long in Helsinki.
-//                // uncomment this line
-//                // currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
-//
-//                if (currentLocation != null) {
-//                    currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-//                } else {
-//                    currentLatLng = new LatLng(DEFAULT_LONG, DEFAULT_LAT);
-//
-//                }
-//                CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
-//                mMap.moveCamera(center);
-//            }
-//                else {
-//                currentLatLng = new LatLng(DEFAULT_LONG, DEFAULT_LAT);
-//                CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
-//                mMap.moveCamera(center);
-//
-//            }
-
-
     }
 
     @Override

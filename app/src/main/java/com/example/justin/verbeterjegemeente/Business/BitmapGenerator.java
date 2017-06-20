@@ -8,10 +8,6 @@ import android.os.Build;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.widget.AppCompatDrawableManager;
 
-/**
- * Created by twanv on 25-5-2017.
- */
-
 public class BitmapGenerator {
 
     public static Bitmap getBitmapFromVectorDrawable(Context context, int drawableId) {

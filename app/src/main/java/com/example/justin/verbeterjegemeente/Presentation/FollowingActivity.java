@@ -96,11 +96,6 @@ public class FollowingActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-
-
-
-
-
         meldingListView = (ListView) findViewById(R.id.activityFollowing_LV_FollowingListView);
         meldingAdapter = new ServiceRequestAdapter(getApplicationContext(), srListFinal);
         meldingListView.setAdapter(meldingAdapter);
@@ -116,9 +111,7 @@ public class FollowingActivity extends AppCompatActivity {
             }
         });
 
-
         meldingAdapter.notifyDataSetChanged();
-
 
         terugButton = (Button) findViewById(R.id.activityFollowing_btn_terugBTN_ID);
         terugButton.setOnClickListener(new View.OnClickListener() {
@@ -128,9 +121,5 @@ public class FollowingActivity extends AppCompatActivity {
                     startActivity(in);
                 }
         });
-
-
-
-
     }
 }

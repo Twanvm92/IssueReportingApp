@@ -2,10 +2,6 @@ package com.example.justin.verbeterjegemeente.API;
 
 import java.io.IOException;
 
-/**
- * Created by twanv on 26-5-2017.
- */
-
 public class ConnectionChecker {
 
     /**

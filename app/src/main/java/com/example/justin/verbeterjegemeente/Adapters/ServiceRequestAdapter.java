@@ -13,10 +13,6 @@ import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 
 import java.util.ArrayList;
 
-/**
- * Created by Mika Krooswijk on 17-5-2017.
- */
-
 public class ServiceRequestAdapter extends ArrayAdapter<ServiceRequest> {
 
     public ServiceRequestAdapter(@NonNull Context context, ArrayList<ServiceRequest> requests) {
@@ -37,19 +33,12 @@ public class ServiceRequestAdapter extends ArrayAdapter<ServiceRequest> {
         TextView beschrijving = (TextView) convertview.findViewById(R.id.activitySRA_tv_beschrijvingID);
         beschrijving.setText(serviceRequest.getDescription());
 
-//        TextView voornaam = (TextView) convertview.findViewById(R.id.beschrijvingID);
-//        voornaam.setText(serviceRequest.get());
-
-
         TextView MainCatagory = (TextView) convertview.findViewById(R.id.activitySRA_tv_hoofdCategorieID);
         MainCatagory.setText(serviceRequest.getServiceCode());
 
 
         TextView subCatagory = (TextView) convertview.findViewById(R.id.activitySRA_tv_subCategorieID);
         subCatagory.setText(serviceRequest.getServiceCode());
-
-//        TextView update = (TextView) convertview.findViewById(R.id.activitySRA_tv_laatstUpdateID);
-//        update.setText(serviceRequest.getUpdatedDatetime());
 
         TextView laastUpdate = (TextView) convertview.findViewById(R.id.activitySRA_tv_laatstUpdateID);
         laastUpdate.setText(serviceRequest.getUpdatedDatetime());

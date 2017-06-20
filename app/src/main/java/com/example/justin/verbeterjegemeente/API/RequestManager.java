@@ -21,7 +21,6 @@ import retrofit2.Response;
  * will notify and pass the data out of the response to the
  * activity that implemented the callback.
  * It will need the context of the activity to display toasts.
- * Created by twanv on 9-6-2017.
  */
 
 public class RequestManager {

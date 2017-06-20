@@ -28,11 +28,6 @@ import com.squareup.picasso.Picasso;
 
 import org.w3c.dom.Text;
 
-
-/**
- * Created by Justin on 19-5-2017.
- */
-
 public class DetailedMeldingActivity extends FragmentActivity {
     // Hold a reference to the current animator,
     // so that it can be canceled mid-way.

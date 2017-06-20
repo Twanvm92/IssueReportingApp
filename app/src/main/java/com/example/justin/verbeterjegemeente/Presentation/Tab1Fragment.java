@@ -24,7 +24,6 @@ import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.Business.BitmapGenerator;
 import com.example.justin.verbeterjegemeente.Business.LocationSelectedListener;
-import com.example.justin.verbeterjegemeente.Business.MarkerHandler;
 import com.example.justin.verbeterjegemeente.Constants;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
@@ -58,16 +57,10 @@ import retrofit2.Response;
 import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LAT;
 import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LONG;
 
-/**
- * Created by Justin on 27-4-2017.
- */
-
 public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         com.google.android.gms.location.LocationListener, GoogleMap.OnCameraIdleListener {
     public GoogleMap mMap;
-    ;
-    private MarkerHandler mHandler;
     private Location currentLocation;
     public LatLng currentLatLng;
     public GoogleApiClient mApiClient;
@@ -189,11 +182,6 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
 
         initApi();
-
-        //markerHandler stuff
-        mHandler = new MarkerHandler(mMap);
-        mHandler.init();
-        mHandler.setVisible("category");
     }
 
     /**

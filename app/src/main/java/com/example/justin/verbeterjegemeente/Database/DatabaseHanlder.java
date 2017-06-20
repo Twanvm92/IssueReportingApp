@@ -1,9 +1,5 @@
 package com.example.justin.verbeterjegemeente.Database;
 
-/**
- * Created by Mika Krooswijk on 10-5-2017.
- */
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;

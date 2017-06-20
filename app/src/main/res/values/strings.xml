@@ -72,4 +72,5 @@
     <string name="geenFilter">Geen filter</string>
     <string name="activityMain_saved_category">SAVED_CAT</string>
     <string name="activityMain_saved_servcodeQ">SAVED_SERVICE_CODES</string>
+    <string name="noConnection">Het is niet gelukt om met het internet te verbinden. Probeer later opnieuw</string>
 </resources>

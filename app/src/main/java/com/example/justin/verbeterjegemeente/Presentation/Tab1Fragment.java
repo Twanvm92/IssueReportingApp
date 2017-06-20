@@ -20,6 +20,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.API.ConnectionChecker;
+import com.example.justin.verbeterjegemeente.API.RequestManager;
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.Business.BitmapGenerator;
@@ -62,7 +63,8 @@ import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LONG;
 
 public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        com.google.android.gms.location.LocationListener, GoogleMap.OnCameraIdleListener {
+        com.google.android.gms.location.LocationListener, GoogleMap.OnCameraIdleListener,
+        RequestManager.OnServiceRequestsReady {
     public GoogleMap mMap;
     private Location currentLocation;
     public LatLng currentLatLng;
@@ -124,7 +126,6 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         } catch (Exception e) {
             Log.i("Exception: ", e.getLocalizedMessage());
         }
-
     }
 
     @Override
@@ -311,72 +312,21 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                 zoomLevel = mMap.getCameraPosition().zoom;
         }
 
+        Log.i("Camera positie: ", "is veranderd");
 
-        Log.e("Camera positie: ", "is veranderd");
+        // from here all the API requests will be handled
+        RequestManager reqManager = new RequestManager(getActivity());
+        // set callback for data passing
+        reqManager.setOnServiceReqReadyCallb(this);
 
-        Call<ArrayList<ServiceRequest>> nearbyServiceRequests;
         if (servCodeQ != null && !servCodeQ.equals("")) {
-            Log.e("oncameraidle sercoeQ: ", "" + servCodeQ);
-            nearbyServiceRequests = client.getNearbyServiceRequests(
-                    camLat, camLng, null, currentRadius, servCodeQ);
+            // launch Retrofit callback and retrieve services asynchronously
+            reqManager.getServiceRequests(camLat, camLng, null, currentRadius, servCodeQ);
         } else {
-            Log.e("oncameraidle sercoeQ: ", "" + servCodeQ);
-            nearbyServiceRequests = client.getNearbyServiceRequests(
-                    camLat, camLng, null, currentRadius);
+            // launch Retrofit callback and retrieve services asynchronously
+            reqManager.getServiceRequests(camLat, camLng, null, currentRadius, servCodeQ);
         }
 
-        nearbyServiceRequests.enqueue(new Callback<ArrayList<ServiceRequest>>() {
-            @Override
-            public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
-                if (response.isSuccessful()) {
-                    ArrayList<ServiceRequest> srList = response.body();
-
-                    // pass received Service Requests to ActivityMain
-                    // ActivityMain will then pass the requests to Tab2Fragment
-                    sRequestCallback.onServiceRequestsReady(srList);
-
-                    // clear all markers on the map before adding new markers
-                    mMap.clear();
-
-                    // loop through all the service requests and add their description
-                    // to a new marker on the Google map
-                    for (ServiceRequest s : srList) {
-                        mMap.addMarker(new MarkerOptions()
-                                .position(new LatLng(s.getLat(), s.getLong()))
-                                .title(s.getDescription())
-                                .icon(BitmapDescriptorFactory.fromBitmap(
-                                        BitmapGenerator.getBitmapFromVectorDrawable(getContext(),
-                                                R.drawable.service_request_marker)))
-                        );
-
-                        Log.e("Opgehaalde servicereq: ", s.getServiceCode() + "");
-
-                    }
-
-                } else {
-                    try { //something went wrong. Show the user what went wrong
-                        JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
-                        JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
-
-                        Toast.makeText(getContext(), jObjError.getString(Constants.DESCRIPTION),
-                                Toast.LENGTH_SHORT).show();
-                        Log.i("Error message: ", jObjError.getString(Constants.DESCRIPTION));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ArrayList<ServiceRequest>> call, Throwable t) {
-                Toast.makeText(getContext(), t.getMessage().toString(),
-                        Toast.LENGTH_SHORT).show();
-                t.printStackTrace();
-            }
-        });
     }
 
     /**
@@ -456,7 +406,6 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         }
     }
 
-
     /**
      * This method will update the radius and service codes connected to the category
      * set by the user. After that it will get new service requests based on the new radius and
@@ -467,7 +416,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
      *                  that can be used for filtering service requests.
      */
     public void updateRadiusCat(int radius, String servCodeQ) {
-        String pRadius = (String) Integer.toString(radius);
+        String pRadius = Integer.toString(radius);
         currentRadius = pRadius;
         this.servCodeQ = servCodeQ;
         String currentLat;
@@ -480,68 +429,55 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
             currentLng = Double.toString(currentLatLng.longitude);
         }
 
-        Call<ArrayList<ServiceRequest>> nearbyServiceRequests;
+        // from here all the API requests will be handled
+        RequestManager reqManager = new RequestManager(getActivity());
+        // set callback for data passing
+        reqManager.setOnServiceReqReadyCallb(this);
+
         if (servCodeQ != null && !servCodeQ.equals("")) {
-            nearbyServiceRequests = client.getNearbyServiceRequests(
-                    currentLat, currentLng, null, currentRadius, servCodeQ);
+            // launch Retrofit callback and retrieve services asynchronously
+            reqManager.getServiceRequests(currentLat, currentLng, null, currentRadius, servCodeQ);
         } else {
-            nearbyServiceRequests = client.getNearbyServiceRequests(
-                    currentLat, currentLng, null, currentRadius);
+            // launch Retrofit callback and retrieve services asynchronously
+            reqManager.getServiceRequests(currentLat, currentLng, null, currentRadius);
         }
-
-
-        nearbyServiceRequests.enqueue(new Callback<ArrayList<ServiceRequest>>() {
-            @Override
-            public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
-                if (response.isSuccessful()) {
-                    ArrayList<ServiceRequest> srList = response.body();
-
-                    // pass received Service Requests to ActivityMain
-                    // ActivityMain will then pass the requests to Tab2Fragment
-                    sRequestCallback.onServiceRequestsReady(srList);
-
-                    // clear all markers on the map before adding new markers
-                    mMap.clear();
-
-                    // loop through all the service requests and add their description
-                    // to a new marker on the Google map
-                    for (ServiceRequest s : srList) {
-                        mMap.addMarker(new MarkerOptions()
-                                .position(new LatLng(s.getLat(), s.getLong()))
-                                .title(s.getDescription())
-                                .icon(BitmapDescriptorFactory.fromBitmap(
-                                        BitmapGenerator.getBitmapFromVectorDrawable(getContext(),
-                                                R.drawable.service_request_marker)))
-                        );
-                    }
-
-                } else {
-                    try { //something went wrong. Show the user what went wrong
-                        JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
-                        JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
-
-                        Toast.makeText(getContext(), jObjError.getString(Constants.DESCRIPTION),
-                                Toast.LENGTH_SHORT).show();
-                        Log.i("Error message: ", jObjError.getString(Constants.DESCRIPTION));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ArrayList<ServiceRequest>> call, Throwable t) {
-                Toast.makeText(getContext(), t.getMessage().toString(),
-                        Toast.LENGTH_SHORT).show();
-                t.printStackTrace();
-            }
-        });
 
     }
 
+    /**
+     * Add every newly received <code>ServiceRequest</code> to the Google map as a marker.
+     * @param srList list of service requests obtained with Retrofit from an open311 Interface.
+     */
+    public void addServRequestsToMap(ArrayList<ServiceRequest> srList) {
+        // clear all markers on the map before adding new markers
+        mMap.clear();
+
+        // loop through all the service requests and add their description
+        // to a new marker on the Google map
+        for (ServiceRequest s : srList) {
+            mMap.addMarker(new MarkerOptions()
+                    .position(new LatLng(s.getLat(), s.getLong()))
+                    .title(s.getDescription())
+                    .icon(BitmapDescriptorFactory.fromBitmap(
+                            BitmapGenerator.getBitmapFromVectorDrawable(getContext(),
+                                    R.drawable.service_request_marker)))
+            );
+        }
+    }
+
+    @Override
+    public void serviceRequestsReady(ArrayList<ServiceRequest> serviceRequests) {
+        // pass received Service Requests to ActivityMain
+        // ActivityMain will then pass the requests to Tab2Fragment
+        sRequestCallback.onServiceRequestsReady(serviceRequests);
+
+        addServRequestsToMap(serviceRequests);
+    }
+
+    /**
+     * Listener that passes a list of requested service requests to the MainActivity, so
+     *  the MainActivity can pass them to Tab2Fragment.
+     */
     public interface ServiceRequestsReadyListener {
         void onServiceRequestsReady(ArrayList<ServiceRequest> srList);
     }

@@ -275,7 +275,6 @@ public class MainActivity extends AppCompatActivity implements
             View mView = getLayoutInflater().inflate(R.layout.dialog, null);
             Button mMijnmeldingen = (Button) mView.findViewById(R.id.alertdialog_btn_mijnmeldingen);
             Button mInstellingen = (Button) mView.findViewById(R.id.alertdialog_btn_instellingen);
-            Button mOver = (Button) mView.findViewById(R.id.alertdialog_btn_over);
 
             mMijnmeldingen.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -335,13 +334,6 @@ public class MainActivity extends AppCompatActivity implements
                     AlertDialog dialog = builder1.create();
                     dialog.show();
 
-                }
-            });
-
-            mOver.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    //Functie van knop
                 }
             });
 

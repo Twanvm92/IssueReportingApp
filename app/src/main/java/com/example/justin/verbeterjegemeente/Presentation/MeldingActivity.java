@@ -368,6 +368,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                 } else {
                     Toast.makeText(getApplicationContext(),
                             getResources().getString(R.string.kiesSubCategory), Toast.LENGTH_SHORT).show();
+                    return;
                 }
 
                 // checks which category is selected and initializes the service code tht matches

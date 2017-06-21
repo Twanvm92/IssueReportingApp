@@ -35,6 +35,7 @@ import com.example.justin.verbeterjegemeente.Adapters.SectionsPageAdapter;
 import com.example.justin.verbeterjegemeente.Business.LocationSelectedListener;
 import com.example.justin.verbeterjegemeente.Business.ServiceManager;
 import com.example.justin.verbeterjegemeente.Constants;
+import com.example.justin.verbeterjegemeente.Database.DatabaseHanlder;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.UpdateService;
 import com.example.justin.verbeterjegemeente.domain.Service;
@@ -321,6 +322,15 @@ public class MainActivity extends AppCompatActivity implements LocationSelectedL
                             } else {
                                 Toast.makeText(getApplication(), getResources().getString(R.string.taalInGebruikEN), Toast.LENGTH_SHORT).show();
                             }
+                        }
+                    });
+                    Button wisGegevens = (Button) mView.findViewById(R.id.alertdialog_btn_wis_gegevens);
+                    wisGegevens.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
+                            db.deleteUser();
+                            Toast.makeText(getApplication(), getResources().getString(R.string.gegevensVerwijderd), Toast.LENGTH_SHORT).show();
                         }
                     });
 

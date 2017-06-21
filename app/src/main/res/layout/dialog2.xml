@@ -19,22 +19,11 @@
     <ImageView
         android:id="@+id/alertdialog_iv_containerTaal"
         android:layout_width="250dp"
-        android:layout_height="80dp"
-        app:srcCompat="@android:color/background_light"
-        android:layout_marginTop="25dp"
+        android:layout_height="122dp"
         android:layout_below="@+id/alertdialog_tv_profiel"
-        android:layout_centerHorizontal="true" />
-
-    <TextView
-        android:id="@+id/alertdialog_tv_afstand"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/alertdialog_tv_zoekafstand"
-        android:layout_alignBottom="@+id/alertdialog_tv_zoekafstand"
-        android:layout_alignEnd="@+id/alertdialog_sb_radius"
-        android:layout_alignRight="@+id/alertdialog_sb_radius"
-        android:text=""
-        android:textSize="18sp" />
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="25dp"
+        app:srcCompat="@android:color/background_light" />
 
     <TextView
         android:id="@+id/alertdialog_tv_taal"
@@ -75,4 +64,18 @@
         android:layout_marginLeft="18dp"
         android:layout_marginStart="18dp" />
 
+    <Button
+        android:id="@+id/alertdialog_btn_wis_gegevens"
+        android:layout_width="220dp"
+        android:layout_height="55dp"
+        android:layout_alignLeft="@+id/alertdialog_iv_containerTaal"
+        android:layout_alignStart="@+id/alertdialog_iv_containerTaal"
+        android:layout_below="@+id/alertdialog_btn_nederlands"
+        android:layout_marginLeft="18dp"
+        android:layout_marginStart="18dp"
+        android:backgroundTint="#FF6FDA7F"
+        android:text="@string/verwijderGegevens"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:textSize="14sp"
+        android:textStyle="bold" />
 </RelativeLayout>

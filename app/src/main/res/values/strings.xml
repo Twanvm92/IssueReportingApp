@@ -50,6 +50,7 @@
     <string name="kiesSubCategory">Selecteer eerst een subcategorie.</string>
     <string name="geenLocatie">Geen locatie gevonden. Kies een locatie.</string>
     <string name="eContactGegevens">Uw email is vereist om direct updates te kunnen ontvangen</string>
+    <string name="onjuistEmail">Geef een bestaand email adres op</string>
     <string name="geenBeschrijving">Voeg een beschrijving toe</string>
     <string name="kBeschrijving">Beschrijving moet minimaal 10 karakters bevatten</string>
     <string name="ePostRequest">Kan melding niet versturen. Verbind uw apparaat met het internet en probeer opnieuw.</string>

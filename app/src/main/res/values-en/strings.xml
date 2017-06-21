@@ -37,6 +37,7 @@
     <string name="kiesSubCategory">Please select a sub category.</string>
     <string name="geenLocatie">No location found. Please choose a location.</string>
     <string name="eContactGegevens">Please enter your email to receive instant updates</string>
+    <string name="onjuistEmail">Please enter a valid email address</string>
     <string name="geenBeschrijving">Add a description</string>
     <string name="kBeschrijving">Description must contain at least 10 characters</string>
     <string name="ePostRequest">Unable to send message. Connect your device to the internet and try again.</string>

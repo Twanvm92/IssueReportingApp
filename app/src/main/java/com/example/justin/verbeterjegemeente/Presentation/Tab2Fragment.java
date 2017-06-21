@@ -49,27 +49,24 @@ public class Tab2Fragment extends Fragment  {
         View view = inflater.inflate(R.layout.tab2_fragment, container, false);
 
 
-        Bundle bundle = getArguments();
+        /*Bundle bundle = getArguments();
         if (bundle != null) {
             if (bundle.getDouble("CURRENT_LAT") != 0) {
                 currentLatLng = new LatLng(bundle.getDouble("CURRENT_LAT"), bundle.getDouble("CURRENT_LONG"));
             } else {
                 currentLatLng = new LatLng(Constants.DEFAULT_LAT, Constants.DEFAULT_LONG);
             }
-        }
+        }*/
+
         // get user selected radius and cat or use default radius and cat
         SharedPreferences prefs = getActivity().getPreferences(Context.MODE_PRIVATE);
         int rValue = prefs.getInt(getString(R.string.activityMain_saved_radius), 20); // 20 is default
         currentRadius = Integer.toString(rValue);
         servCodeQ = prefs.getString(getString(R.string.activityMain_saved_servcodeQ), null);
 
-
-        searchServiceRequests();
-
         serviceList = new ArrayList<>();
 
         ListView meldingListView = (ListView) view.findViewById(R.id.meldingListView);
-
 
         serviceRequestAdapter = new ServiceRequestAdapter(getContext(), serviceList);
         meldingListView.setAdapter(serviceRequestAdapter);
@@ -87,112 +84,14 @@ public class Tab2Fragment extends Fragment  {
         return view;
     }
 
-    //moet aangeroepen worden met zoekknop
-    public void searchServiceRequests() {
-        try {
-            if (ConnectionChecker.isConnected()) {
-
-                String lat;
-                String lon;
-                String convLng;
-                String convLat;
-                if (currentLatLng != null) {
-                    convLat = Double.toString(currentLatLng.latitude);
-                    convLng = Double.toString(currentLatLng.longitude);
-                    lat = convLat;
-                    lon = convLng;
-                } else {
-                    currentLatLng = new LatLng(Constants.DEFAULT_LAT, Constants.DEFAULT_LONG);
-                    convLat = Double.toString(currentLatLng.latitude);
-                    convLng = Double.toString(currentLatLng.longitude);
-                    lat = convLat;
-                    lon = convLng;
-                }
-
-//                create a callback
-                ServiceClient client = ServiceGenerator.createService(ServiceClient.class);
-
-                Call<ArrayList<ServiceRequest>> serviceCall;
-                if (servCodeQ == null) {
-                    serviceCall = client.getNearbyServiceRequests(
-                            lat, lon, null, currentRadius);
-                } else {
-                    serviceCall = client.getNearbyServiceRequests(
-                            lat, lon, null, currentRadius, servCodeQ);
-                }
-//               fire the get request
-
-                serviceCall.enqueue(new Callback<ArrayList<ServiceRequest>>() {
-                    @Override
-                    public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
-                        if (response.isSuccessful()) {
-                            serviceList.clear();
-                            ArrayList<ServiceRequest> servicesFound = response.body();
-                            if (!servicesFound.isEmpty()) {
-                                for (ServiceRequest s : servicesFound) {
-                                    serviceList.add(s);
-                                }
-                            } else {
-                                Toast.makeText(getActivity(), getResources().getString(R.string.eGetServices),
-                                        Toast.LENGTH_SHORT).show();
-                            }
-                            serviceRequestAdapter.notifyDataSetChanged();
-                        } else {
-                            Toast.makeText(getContext(), getResources().getString(R.string.FoutOphalenProblemen),
-                                    Toast.LENGTH_SHORT).show();
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<ArrayList<ServiceRequest>> call, Throwable t) {
-                        Toast.makeText(getContext(), getResources().getString(R.string.ePostRequest),
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
-            } else { // user is not connected to the internet
-                Toast.makeText(getContext(), getResources().getString(R.string.FoutOphalenProblemen),
-                        Toast.LENGTH_SHORT).show();
+    public void updateServiceRequests(ArrayList<ServiceRequest> srList) {
+        serviceList.clear();
+        if (!srList.isEmpty() && srList != null) {
+            for (ServiceRequest s : srList) {
+                serviceList.add(s);
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            Thread.currentThread().interrupt();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
-    }
-
-    /**
-     * Accepts current location of the user (or the location of the camera on the Google map
-     * if user does not have gps activated) that was passed from Tab1Fragment to MainActivity
-     * to this Fragment. Also sends a new get request to obtain srvice requests based on the new
-     * location given.
-     *
-     * @param newLatLong Current location of the user that is determined by
-     *                   a gps location or the center of the camera on the Google map
-     */
-    public void updateCurrentLoc(LatLng newLatLong) {
-        currentLatLng = newLatLong;
-        Log.e("Method: ", "Lat: " + currentLatLng.latitude + " Long: " + currentLatLng.longitude);
-
-        searchServiceRequests();
-    }
-
-    /**
-     * This method will update the radius and service codes connected to the category
-     * set by the user. After that it will get new service requests based on the new radius and
-     * category filter and add them as markers on a Google map
-     *
-     * @param radius    radius in meters
-     * @param servCodeQ String with service codes appending by a , delimiter
-     *                  that can be used for filtering service requests.
-     */
-    public void updateRadiusCat(int radius, String servCodeQ) {
-        String pRadius = (String) Integer.toString(radius);
-        currentRadius = pRadius;
-        this.servCodeQ = servCodeQ;
-        Log.e("Radius update tab2: ", currentRadius);
-
-        searchServiceRequests();
+        serviceRequestAdapter.notifyDataSetChanged();
     }
 }
 

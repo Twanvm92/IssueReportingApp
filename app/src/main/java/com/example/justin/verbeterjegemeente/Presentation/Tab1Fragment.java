@@ -194,14 +194,15 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
         SharedPreferences prefs = getActivity().getPreferences(getContext().MODE_PRIVATE);
         String eersteAanvraag = prefs.getString("eersteAanvraag", "true");
-        if (eersteAanvraag.equalsIgnoreCase("true")) {
-            if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            if (eersteAanvraag.equalsIgnoreCase("true")) {
                 reqFindLocation();
             } else {
-                getUserLocation();
+                getLocation();
             }
         } else {
-            getLocation();
+            getUserLocation();
         }
         prefs.edit().putString("eersteAanvraag", "false").apply();
     }

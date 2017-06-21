@@ -86,7 +86,7 @@ public class Tab2Fragment extends Fragment  {
 
     public void updateServiceRequests(ArrayList<ServiceRequest> srList) {
         serviceList.clear();
-        if (!srList.isEmpty()) {
+        if (!srList.isEmpty() && srList != null) {
             for (ServiceRequest s : srList) {
                 serviceList.add(s);
             }

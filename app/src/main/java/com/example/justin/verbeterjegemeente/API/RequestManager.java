@@ -114,7 +114,9 @@ public class RequestManager {
                         // if a response has been received create a list with Services with the responsebody
                         ArrayList<ServiceRequest> servReqList = response.body();
 
-                        servReqCallb.serviceRequestsReady(servReqList);
+                        if (servReqList != null) {
+                            servReqCallb.serviceRequestsReady(servReqList);
+                        }
 
                     }
 
@@ -157,7 +159,9 @@ public class RequestManager {
                         // if a response has been received create a list with Services with the responsebody
                         ArrayList<ServiceRequest> servReqList = response.body();
 
-                        servReqCallb.serviceRequestsReady(servReqList);
+                        if (servReqList != null) {
+                            servReqCallb.serviceRequestsReady(servReqList);
+                        }
 
                     }
 

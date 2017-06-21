@@ -58,7 +58,7 @@ public class FollowingActivity extends AppCompatActivity {
             if(ConnectionChecker.isConnected()){  //checking for internet acces.
 
                 for(ServiceRequest s: idList) {
-
+                    Log.i("Service request ids: ", s.getServiceRequestId());
                     client = ServiceGenerator.createService(ServiceClient.class);
                     Call<ServiceRequest> RequestResponseCall =
                             client.getServiceById(s.getServiceRequestId(), "1");

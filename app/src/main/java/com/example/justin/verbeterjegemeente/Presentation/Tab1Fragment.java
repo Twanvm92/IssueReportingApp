@@ -67,13 +67,13 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     private ServiceRequestsReadyListener sRequestCallback;
     private String currentRadius;
     private String servCodeQ;
-    private boolean eersteKeer = true;
+    private boolean eersteKeer;
     public float zoomLevel;
 
     public void onCreate(Bundle savedInstaceState) {
         super.onCreate(savedInstaceState);
 
-
+        eersteKeer = true;
         // get user selected radius and cat or use default radius and cat
         SharedPreferences prefs = getActivity().getPreferences(Context.MODE_PRIVATE);
         int rValue = prefs.getInt(getString(R.string.activityMain_saved_radius), 20); // 20 is default
@@ -237,6 +237,9 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                                 CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
                                 mMap.moveCamera(center);
                             } else {
+                                if (eersteKeer = true){
+                                    getLocation();
+                                }
                                 Log.e("getUserLocation", "Kan locatie niet ophalen");
                             }
                         } else {

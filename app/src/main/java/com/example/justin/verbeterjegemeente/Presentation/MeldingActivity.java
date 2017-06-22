@@ -57,8 +57,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -441,17 +439,6 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                 email = null;
                 if (!emailEditText.getText().toString().equals("")) {
                     email = emailEditText.getText().toString();
-                }
-
-                if(!email.equals(null)) {
-                    String expression = "^[\\w\\.-]+@([\\w\\-]+\\.)+[A-Z]{2,4}$";
-                    Pattern pattern = Pattern.compile(expression, Pattern.CASE_INSENSITIVE);
-                    Matcher matcher = pattern.matcher(email);
-
-                    if(!matcher.matches()) {
-                        Toast.makeText(getApplicationContext(), R.string.onjuistEmail, Toast.LENGTH_SHORT).show();
-                        return;
-                    }
                 }
 
                 // initializes a last name that the user has provided

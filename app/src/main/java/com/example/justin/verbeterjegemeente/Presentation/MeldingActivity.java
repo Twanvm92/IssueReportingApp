@@ -37,7 +37,7 @@ import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.Adapters.MeldingDialogAdapter;
 import com.example.justin.verbeterjegemeente.Business.ServiceManager;
 import com.example.justin.verbeterjegemeente.Constants;
-import com.example.justin.verbeterjegemeente.Database.DatabaseHanlder;
+import com.example.justin.verbeterjegemeente.Database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.PostServiceRequestResponse;
 import com.example.justin.verbeterjegemeente.domain.Service;
@@ -287,7 +287,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
         voornaamEditText = (EditText) findViewById(R.id.voornaam);
         achternaamEditText = (EditText) findViewById(R.id.achternaam);
 
-        final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
+        final DatabaseHandler db = new DatabaseHandler(getApplicationContext(), null, null, 1);
         User foundUser = db.getUser();
         Log.i("FOUND USER", foundUser.toString());
         emailEditText.setText(foundUser.getEmail());
@@ -314,7 +314,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                         && !voornaamEditText.getText().toString().equals("") &&
                         !achternaamEditText.getText().toString().equals("")) {
 
-                    final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
+                    final DatabaseHandler db = new DatabaseHandler(getApplicationContext(), null, null, 1);
 
                     User user = new User();
                     user.setLastName(achternaamEditText.getText().toString());
@@ -854,7 +854,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                             if (response.isSuccessful()) {
                                 ServiceRequest sr = response.body();
 
-                                DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
+                                DatabaseHandler db = new DatabaseHandler(getApplicationContext(), null, null, 1);
                                 db.addReport(sr);
                                 Intent i = new Intent(getApplicationContext(), FollowingActivity.class);
                                 startActivityForResult(i, Constants.BACK_BUTTON);

@@ -18,15 +18,12 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.example.justin.verbeterjegemeente.Database.DatabaseHanlder;
-import com.example.justin.verbeterjegemeente.Notification;
+import com.example.justin.verbeterjegemeente.Database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 import com.like.LikeButton;
 import com.like.OnLikeListener;
 import com.squareup.picasso.Picasso;
-
-import org.w3c.dom.Text;
 
 public class DetailedMeldingActivity extends FragmentActivity {
     // Hold a reference to the current animator,
@@ -88,7 +85,7 @@ public class DetailedMeldingActivity extends FragmentActivity {
          * This if statement checkcs if the selected ServiceReqest is already in the database, if so it sets the like button
          * to liked, if not, it sets the button to unLiked.
          */
-        final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1 );
+        final DatabaseHandler db = new DatabaseHandler(getApplicationContext(), null, null, 1 );
         if(db.ReportExists(serviceRequest.getServiceRequestId())){
 
             likeButton.setLiked(true);

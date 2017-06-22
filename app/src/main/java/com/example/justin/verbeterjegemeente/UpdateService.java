@@ -7,29 +7,21 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.os.Process;
-import android.os.health.ServiceHealthStats;
-import android.provider.ContactsContract;
 import android.util.Log;
-import android.widget.ArrayAdapter;
 import android.widget.Toast;
 import android.app.Service;
 
 import com.example.justin.verbeterjegemeente.API.ConnectionChecker;
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
-import com.example.justin.verbeterjegemeente.Database.DatabaseHanlder;
+import com.example.justin.verbeterjegemeente.Database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Random;
 
 import retrofit2.Call;
-import retrofit2.Callback;
 import retrofit2.Response;
-
-import static android.app.Service.START_STICKY;
-import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 
 /**
  * This class is a Service that runs in the background even if the app is closed.
@@ -60,7 +52,7 @@ public class UpdateService extends Service {
         public void handleMessage(Message message){
 
             // Connecting to the database and getting a list of serviceRequests(id + timestamp).
-            DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
+            DatabaseHandler db = new DatabaseHandler(getApplicationContext(), null, null, 1);
             final ArrayList<ServiceRequest> DatabaseList = db.getReports();
             db.close();
 

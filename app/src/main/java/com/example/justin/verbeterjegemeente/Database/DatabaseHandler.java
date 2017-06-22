@@ -13,7 +13,7 @@ import com.example.justin.verbeterjegemeente.domain.User;
 
 import java.util.ArrayList;
 
-public class DatabaseHanlder extends SQLiteOpenHelper {
+public class DatabaseHandler extends SQLiteOpenHelper {
 
 
     // Declaring the name, file name and version number of the database in final variable.
@@ -37,7 +37,7 @@ public class DatabaseHanlder extends SQLiteOpenHelper {
 
 
     // Constructor for the databse handler that will create the database if not already done.
-    public DatabaseHanlder(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
+    public DatabaseHandler(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, DATABASE_NAME, factory, DATABASE_VERSION);
     }
 

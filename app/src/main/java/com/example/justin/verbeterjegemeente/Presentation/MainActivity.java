@@ -11,7 +11,6 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
@@ -29,11 +28,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.API.RequestManager;
-import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.Adapters.SectionsPageAdapter;
 import com.example.justin.verbeterjegemeente.Business.ServiceManager;
 import com.example.justin.verbeterjegemeente.Constants;
-import com.example.justin.verbeterjegemeente.Database.DatabaseHanlder;
+import com.example.justin.verbeterjegemeente.Database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.UpdateService;
 import com.example.justin.verbeterjegemeente.domain.Service;
@@ -324,7 +322,7 @@ public class MainActivity extends AppCompatActivity implements
                     wisGegevens.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
+                            final DatabaseHandler db = new DatabaseHandler(getApplicationContext(), null, null, 1);
                             db.deleteUser();
                             Toast.makeText(getApplication(), getResources().getString(R.string.gegevensVerwijderd), Toast.LENGTH_SHORT).show();
                         }

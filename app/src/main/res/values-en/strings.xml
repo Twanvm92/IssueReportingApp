@@ -68,6 +68,6 @@
     <string name="activityMain_saved_servcodeQ">SAVED_SERVICE_CODES</string>
 
     <string name="verwijderGegevens">Remove personal data</string>
-    <string name="gegevensVerwijderd">Personal data succesfully removed</string>
+    <string name="gegevensVerwijderd">Personal data successfully removed</string>
     <string name="noConnection">Oops. Could not connect to the internet. Try again later.</string>
 </resources>

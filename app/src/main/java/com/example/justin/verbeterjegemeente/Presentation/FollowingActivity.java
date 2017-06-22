@@ -15,7 +15,7 @@ import com.example.justin.verbeterjegemeente.API.ConnectionChecker;
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.Adapters.ServiceRequestAdapter;
-import com.example.justin.verbeterjegemeente.Database.DatabaseHanlder;
+import com.example.justin.verbeterjegemeente.Database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 
@@ -24,7 +24,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 import retrofit2.Call;
-import retrofit2.Callback;
 import retrofit2.Response;
 
 public class FollowingActivity extends AppCompatActivity {
@@ -44,7 +43,7 @@ public class FollowingActivity extends AppCompatActivity {
 
         // Filling the ArrayList with the service request id's from the database.
 
-        final DatabaseHanlder db = new DatabaseHanlder(getApplicationContext(), null, null, 1);
+        final DatabaseHandler db = new DatabaseHandler(getApplicationContext(), null, null, 1);
         ArrayList<ServiceRequest> idList = new ArrayList<>();
 
         idList = db.getReports();

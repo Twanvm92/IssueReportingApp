@@ -79,5 +79,6 @@
     <string name="verwijderGegevens">Verwijder persoonlijke gegevens</string>
     <string name="gegevensVerwijderd">Persoonlijke gegevens succesvol verwijderd</string>
     <string name="noConnection">Het is niet gelukt om met het internet te verbinden. Probeer later opnieuw</string>
+    <string name="filters_opslaan">Opslaan</string>
 
 </resources>

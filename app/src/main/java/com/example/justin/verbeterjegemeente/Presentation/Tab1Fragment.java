@@ -317,12 +317,15 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         // set callback for data passing
         reqManager.setOnServiceReqReadyCallb(this);
 
+        Log.i("servCodeq: ", "" + servCodeQ);
+
         if (servCodeQ != null && !servCodeQ.equals("")) {
             // launch Retrofit callback and retrieve services asynchronously
             reqManager.getServiceRequests(camLat, camLng, null, currentRadius, servCodeQ);
         } else {
             // launch Retrofit callback and retrieve services asynchronously
-            reqManager.getServiceRequests(camLat, camLng, null, currentRadius, servCodeQ);
+//            reqManager.getServiceRequests(camLat, camLng, null, currentRadius, servCodeQ);
+            reqManager.getServiceRequests(camLat, camLng, null, currentRadius);
         }
 
     }
@@ -426,6 +429,8 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
             currentLat = Double.toString(currentLatLng.latitude);
             currentLng = Double.toString(currentLatLng.longitude);
         }
+
+        Log.i("servCodeq: ", "" + servCodeQ);
 
         // from here all the API requests will be handled
         RequestManager reqManager = new RequestManager(getActivity());

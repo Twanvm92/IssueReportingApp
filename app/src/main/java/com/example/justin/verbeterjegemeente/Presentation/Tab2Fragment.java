@@ -48,16 +48,6 @@ public class Tab2Fragment extends Fragment  {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.tab2_fragment, container, false);
 
-
-        /*Bundle bundle = getArguments();
-        if (bundle != null) {
-            if (bundle.getDouble("CURRENT_LAT") != 0) {
-                currentLatLng = new LatLng(bundle.getDouble("CURRENT_LAT"), bundle.getDouble("CURRENT_LONG"));
-            } else {
-                currentLatLng = new LatLng(Constants.DEFAULT_LAT, Constants.DEFAULT_LONG);
-            }
-        }*/
-
         // get user selected radius and cat or use default radius and cat
         SharedPreferences prefs = getActivity().getPreferences(Context.MODE_PRIVATE);
         int rValue = prefs.getInt(getString(R.string.activityMain_saved_radius), 20); // 20 is default

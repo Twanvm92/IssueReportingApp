@@ -109,8 +109,12 @@ public class MainActivity extends AppCompatActivity implements
                         AlertDialog.Builder builder1 = new AlertDialog.Builder(MainActivity.this);
                         View mView = getLayoutInflater().inflate(R.layout.activity_main_filters_dialog, null);
 
+                        builder1.setView(mView);
+                        final AlertDialog dialog = builder1.create();
+
                         final TextView tvRadiusD = (TextView) mView.findViewById(R.id.filterdialog_tv_afstand6);
                         final SeekBar sbRadius = (SeekBar) mView.findViewById(R.id.filterdialog_sb_radius);
+                        final Button btnSave = (Button) mView.findViewById(R.id.filterdialog_btn_save);
 
                         // get user selected radius or use default radius
                         SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
@@ -157,42 +161,44 @@ public class MainActivity extends AppCompatActivity implements
                         int spinnerPosition = catagoryAdapter.getPosition(savedCat);
                         catagorySpinner.setSelection(spinnerPosition);
 
-
-                        builder1.setView(mView);
-                        AlertDialog dialog = builder1.create();
-
-
-                        dialog.show();
-
-                        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        btnSave.setOnClickListener(new View.OnClickListener() {
                             @Override
-                            public void onDismiss(DialogInterface dialog) {
+                            public void onClick(View v) {
                                 // get the currently selected category
                                 String currCatag = catagorySpinner.getSelectedItem().toString();
                                 ArrayList<String> catCodeList = new ArrayList<String>();
-                                SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
-
+                                
                                 // generate a string with appended service codes
                                 // depending on what services are available and what category filter is
                                 // currently active.
                                 // remove serviceCode if user selects no filter
                                 if (!currCatag.equalsIgnoreCase(getString(R.string.geenFilter))){
                                     servCodeQ = ServiceManager.genServiceCodeQ(serviceList, currCatag);
+                                    SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
                                     prefs.edit().putString(getString(R.string.activityMain_saved_servcodeQ), servCodeQ).apply();
                                 } else {
-                                    SharedPreferences.Editor editor = prefs.edit();
-                                    editor.remove(getString(R.string.activityMain_saved_servcodeQ));
-                                    editor.apply();
+                                    servCodeQ = null;
+                                    SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
+                                    prefs.edit().remove(getString(R.string.activityMain_saved_servcodeQ)).apply();
                                 }
 
                                 // save the currently active category filter and the string of service codes
                                 // that belong to that category in the users preferences
+                                SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
                                 prefs.edit().putString(getString(R.string.activityMain_saved_category), currCatag).apply();
                                 // notify Tab1Fragment and Tab2Fragment that a new radius and category
                                 // was selected
                                 radiusCategSelected(rValue, servCodeQ);
+                                dialog.dismiss();
                             }
                         });
+
+
+                        if(dialog != null && !dialog.isShowing()) {
+                            dialog.show();
+                        }
+
+                        dialog.setCanceledOnTouchOutside(false);
 
                         break;
                     case R.id.activityMain_item_report:

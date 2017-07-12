@@ -70,4 +70,5 @@
     <string name="verwijderGegevens">Remove personal data</string>
     <string name="gegevensVerwijderd">Personal data successfully removed</string>
     <string name="noConnection">Oops. Could not connect to the internet. Try again later.</string>
+    <string name="filters_opslaan">Save</string>
 </resources>

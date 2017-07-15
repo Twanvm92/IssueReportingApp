@@ -167,7 +167,7 @@ public class MainActivity extends AppCompatActivity implements
                                 // get the currently selected category
                                 String currCatag = catagorySpinner.getSelectedItem().toString();
                                 ArrayList<String> catCodeList = new ArrayList<String>();
-                                
+
                                 // generate a string with appended service codes
                                 // depending on what services are available and what category filter is
                                 // currently active.

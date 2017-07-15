@@ -3,6 +3,7 @@ package com.example.justin.verbeterjegemeente.Business;
 import android.util.Log;
 
 import com.example.justin.verbeterjegemeente.domain.Service;
+import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,6 +68,21 @@ public class ServiceManager {
         }
 
         Log.e("serviceCodeQuery: ", sb.toString());
+        return sb.toString();
+    }
+
+    public static String genServiceRequestIDQ(ArrayList<ServiceRequest> srList) {
+        StringBuilder sb = new StringBuilder();
+        String delim = "";
+
+        if (srList != null) {
+            for (ServiceRequest s : srList) {
+                sb.append(delim).append(s.getServiceRequestId());
+                delim = ",";
+            }
+        }
+
+        Log.e("srIDQ: ", sb.toString());
         return sb.toString();
     }
 }

@@ -828,7 +828,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
         ArrayList<String> idList = new ArrayList<>();
         idList.add(id);
 
-        try {
+        /*try {
             if (ConnectionChecker.isConnected()) {  //checking for internet acces.
 
                 for (String s : idList) {
@@ -864,7 +864,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }*/
     }
 
         @Override

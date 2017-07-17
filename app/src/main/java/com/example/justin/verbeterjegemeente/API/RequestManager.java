@@ -5,6 +5,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.Constants;
+import com.example.justin.verbeterjegemeente.Database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.Service;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
@@ -30,6 +31,7 @@ public class RequestManager {
     private Context context;
     private OnServicesReady servCallb;
     private OnServiceRequestsReady servReqCallb;
+    private DatabaseHandler dbHandler;
 
     /**
      * Accepts the context of an activity and initializes the ServiceClient
@@ -151,6 +153,50 @@ public class RequestManager {
             if (ConnectionChecker.isConnected()) { // check if user is actually connected to the internet
                 // create a callback
                 Call<ArrayList<ServiceRequest>> serviceCall = client.getNearbyServiceRequests(lat, lng, status, radius);
+                // fire the get request
+                serviceCall.enqueue(new Callback<ArrayList<ServiceRequest>>() {
+                    @Override
+                    public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
+                        if(response.isSuccessful()) {
+                            // if a response has been received create a list with Services with the responsebody
+                            ArrayList<ServiceRequest> servReqList = response.body();
+
+                            if (!servReqList.isEmpty()) {
+                                servReqCallb.serviceRequestsReady(servReqList);
+                            }
+                        }
+
+                    }
+
+                    @Override
+                    public void onFailure(Call<ArrayList<ServiceRequest>> call, Throwable t) { // something went wrong
+
+                        Toast.makeText(context, t.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+            } else { // user is not connected to the internet
+                Toast.makeText(context, context.getResources().getString(R.string.noConnection),
+                        Toast.LENGTH_SHORT).show();
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            Thread.currentThread().interrupt();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Gets the service requests from an Open311 interface API using service request IDs and passes these as a list
+     * to a callback interface.
+     * @param sRequestID ID of a service request. Can be several IDs delimited by comma's.
+     */
+    public void getServiceRequestsByID(String sRequestID) {
+        try {
+            if (ConnectionChecker.isConnected()) { // check if user is actually connected to the internet
+                // create a callback
+                Call<ArrayList<ServiceRequest>> serviceCall = client.getServiceById(sRequestID, "1");
                 // fire the get request
                 serviceCall.enqueue(new Callback<ArrayList<ServiceRequest>>() {
                     @Override

@@ -118,8 +118,8 @@ public interface ServiceClient {
      * @return <code>ServiceRequest</code>
      */
 
-    @GET ("request/{id}.json")
-    Call<ServiceRequest> getServiceById (@Path("id") String serviceID,
+    @GET ("requests.json")
+    Call<ArrayList<ServiceRequest>> getServiceById (@Query("service_request_id") String serviceID,
                                          @Query("jurisdiction_id") String jurisdiction_id);
 }
 

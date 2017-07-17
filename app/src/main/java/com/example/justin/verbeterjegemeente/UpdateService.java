@@ -12,8 +12,10 @@ import android.widget.Toast;
 import android.app.Service;
 
 import com.example.justin.verbeterjegemeente.API.ConnectionChecker;
+import com.example.justin.verbeterjegemeente.API.RequestManager;
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
+import com.example.justin.verbeterjegemeente.Business.ServiceManager;
 import com.example.justin.verbeterjegemeente.Database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 
@@ -26,7 +28,7 @@ import retrofit2.Response;
 /**
  * This class is a Service that runs in the background even if the app is closed.
  * Every 15 minutes it checks the timestamps stores in the database with the timestamps it gets from the server.
- * If they are different is creates a notfication.
+ * If they are different is creates a notification.
  * @author Mika Krooswijk
  */
 
@@ -37,9 +39,7 @@ public class UpdateService extends Service {
     private int LONG_SLEEP_TIME;
     private int count;
 
-
-
-    public final class ServiceHandler extends Handler{
+    public final class ServiceHandler extends Handler implements RequestManager.OnServiceRequestsReady {
         public ServiceHandler(Looper looper){
             super(looper);
             // Setting a sleep time for the th
@@ -56,11 +56,13 @@ public class UpdateService extends Service {
             final ArrayList<ServiceRequest> DatabaseList = db.getReports();
             db.close();
 
+            String sRequestIDQ = ServiceManager.genServiceRequestIDQ(DatabaseList);
+            RequestManager requestManager = new RequestManager(getApplicationContext());
+            requestManager.setOnServiceReqReadyCallb(this);
+            requestManager.getServiceRequestsByID(sRequestIDQ);
 
 
-
-
-            try{
+            /*try{
                 if(ConnectionChecker.isConnected()){  //checking for internet acces.
 
                     for(ServiceRequest s: DatabaseList) {
@@ -107,7 +109,7 @@ public class UpdateService extends Service {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
+*/
 
 
             count++;
@@ -128,7 +130,26 @@ public class UpdateService extends Service {
 
         }
 
+        @Override
+        public void serviceRequestsReady(ArrayList<ServiceRequest> serviceRequests) {
+            for (ServiceRequest s : serviceRequests) {
+                String dateTime = s.getRequestedDatetime();
+
+                if(count == 5){
+                    dateTime = "different datetime";
+                }
+
+                // If the timestamp from the server is different then that from the database
+                // a notification is made en pushed to the user.
+                if (s.getRequestedDatetime() != dateTime) {
+                    Log.i("CHECK", "changed date time = " + dateTime);
+                    notifyReportChanged(getString(R.string.reportUpdated) + " ",
+                            getString(R.string.on) + " " + s.getRequestedDatetime(), s);
+                }
+            }
         }
+    }
+
     @Override
     public void onCreate(){
         HandlerThread thread = new HandlerThread("ServiceStartArguments",
@@ -177,6 +198,5 @@ public class UpdateService extends Service {
         Notification notification = new Notification();
         notification.makeNotification(getApplicationContext(), title, content, serviceRequest);
     }
-
 
 }

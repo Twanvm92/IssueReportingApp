@@ -30,7 +30,6 @@ public class FollowingActivity extends AppCompatActivity {
 
 
     ServiceClient client;
-    ArrayList<ServiceRequest> list;
     ListView meldingListView;
     private ArrayAdapter meldingAdapter;
     private Button terugButton;
@@ -44,7 +43,7 @@ public class FollowingActivity extends AppCompatActivity {
         // Filling the ArrayList with the service request id's from the database.
 
         final DatabaseHandler db = new DatabaseHandler(getApplicationContext(), null, null, 1);
-        ArrayList<ServiceRequest> idList = new ArrayList<>();
+        ArrayList<ServiceRequest> idList;
 
         idList = db.getReports();
         Log.i("IDs in userdb", idList.size() + "");
@@ -59,16 +58,16 @@ public class FollowingActivity extends AppCompatActivity {
                 for(ServiceRequest s: idList) {
                     Log.i("Service request ids: ", s.getServiceRequestId());
                     client = ServiceGenerator.createService(ServiceClient.class);
-                    Call<ServiceRequest> RequestResponseCall =
+                    Call<ArrayList<ServiceRequest>> RequestResponseCall =
                             client.getServiceById(s.getServiceRequestId(), "1");
-                    RequestResponseCall.enqueue(new retrofit2.Callback<ServiceRequest>() {
+                    RequestResponseCall.enqueue(new retrofit2.Callback<ArrayList<ServiceRequest>>() {
                         @Override
-                        public void onResponse(Call<ServiceRequest> call, Response<ServiceRequest> response) {
+                        public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
                             if (response.isSuccessful()) {
-                                ServiceRequest sr = response.body();
-                                srListFinal.add(sr);
-                                meldingAdapter.notifyDataSetChanged();
 
+                                for(ServiceRequest s : response.body()) {
+                                    srListFinal.add(s);
+                                }
 
                                 if (meldingAdapter != null) {
                                     meldingAdapter.notifyDataSetChanged();
@@ -80,7 +79,7 @@ public class FollowingActivity extends AppCompatActivity {
                         }
 
                         @Override
-                        public void onFailure(Call<ServiceRequest> call, Throwable t) {
+                        public void onFailure(Call<ArrayList<ServiceRequest>> call, Throwable t) {
                             Toast.makeText(getApplicationContext(),
                                     "Something went wrong while getting your requests",
                                     Toast.LENGTH_SHORT).show();

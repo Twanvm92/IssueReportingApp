@@ -135,9 +135,9 @@ public class UpdateService extends Service {
             for (ServiceRequest s : serviceRequests) {
                 String dateTime = s.getRequestedDatetime();
 
-                if(count == 5){
-                    dateTime = "different datetime";
-                }
+//                if(count == 5){
+//                    dateTime = "different datetime";
+//                }
 
                 // If the timestamp from the server is different then that from the database
                 // a notification is made en pushed to the user.

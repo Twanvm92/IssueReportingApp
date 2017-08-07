@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Log.d(TAG, "onCreate: Starting.");
-        
+
         // Starting service to run in the background.
         Intent i = new Intent(getApplicationContext(), UpdateService.class);
         startService(i);

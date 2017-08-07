@@ -470,15 +470,28 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
         // loop through all the service requests and add their description
         // to a new marker on the Google map
-        for (ServiceRequest s : srList) {
-            mMap.addMarker(new MarkerOptions()
-                    .position(new LatLng(s.getLat(), s.getLong()))
-                    .title(s.getDescription())
-                    .icon(BitmapDescriptorFactory.fromBitmap(
-                            BitmapGenerator.getBitmapFromVectorDrawable(getContext(),
-                                    R.drawable.service_request_marker)))
-            );
+        if (!srList.isEmpty()) {
+            String status = srList.get(0).getStatus();
+            if(!status.equals("closed")) { // add different markers to map based on status of SR
+                for (ServiceRequest s : srList) {
+                    mMap.addMarker(new MarkerOptions()
+                            .position(new LatLng(s.getLat(), s.getLong()))
+                            .title(s.getDescription())
+                            .icon(BitmapDescriptorFactory.fromBitmap(
+                                    BitmapGenerator.getBitmapFromVectorDrawable(getContext(),
+                                            R.drawable.service_request_marker)))
+                    );
+                }
+            } else if (status.equals("closed")) { // add different markers to map based on status of SR
+                for (ServiceRequest s : srList) {
+                    mMap.addMarker(new MarkerOptions()
+                            .position(new LatLng(s.getLat(), s.getLong()))
+                            .title(s.getStatus())
+                    );
+                }
+            }
         }
+
     }
 
     @Override

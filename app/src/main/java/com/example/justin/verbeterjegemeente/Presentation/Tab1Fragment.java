@@ -22,6 +22,7 @@ import com.example.justin.verbeterjegemeente.API.RequestManager;
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.Business.BitmapGenerator;
+import com.example.justin.verbeterjegemeente.Business.TimeStampGenerator;
 import com.example.justin.verbeterjegemeente.Constants;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
@@ -310,8 +311,10 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
                 zoomLevel = mMap.getCameraPosition().zoom;
         }
-
         Log.i("Camera positie: ", "is veranderd");
+
+        // generate a timestamp of 2 weeks ago to get closed requests not more than 2 weeks old.
+        String updateDatetime = TimeStampGenerator.genOlderTimestamp();
 
         // from here all the API requests will be handled
         RequestManager reqManager = new RequestManager(getActivity());
@@ -323,10 +326,13 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         if (servCodeQ != null && !servCodeQ.equals("")) {
             // launch Retrofit callback and retrieve services asynchronously
             reqManager.getServiceRequests(camLat, camLng, STATUS_OPEN, currentRadius, servCodeQ);
+            // also request closed service request with an earliest update_datetime included.
+            reqManager.getClosedServiceRequests(camLat, camLng, STATUS_OPEN, currentRadius, servCodeQ, updateDatetime);
         } else {
             // launch Retrofit callback and retrieve services asynchronously
-//            reqManager.getServiceRequests(camLat, camLng, null, currentRadius, servCodeQ);
             reqManager.getServiceRequests(camLat, camLng, STATUS_OPEN, currentRadius);
+            // also request closed service request with an earliest update_datetime included.
+            reqManager.getClosedServiceRequests(camLat, camLng, STATUS_OPEN, currentRadius, updateDatetime);
         }
 
     }
@@ -430,8 +436,10 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
             currentLat = Double.toString(currentLatLng.latitude);
             currentLng = Double.toString(currentLatLng.longitude);
         }
-
         Log.i("servCodeq: ", "" + servCodeQ);
+
+        // generate a timestamp of 2 weeks ago to get closed requests not more than 2 weeks old.
+        String updateDatetime = TimeStampGenerator.genOlderTimestamp();
 
         // from here all the API requests will be handled
         RequestManager reqManager = new RequestManager(getActivity());
@@ -441,9 +449,13 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         if (servCodeQ != null && !servCodeQ.equals("")) {
             // launch Retrofit callback and retrieve services asynchronously
             reqManager.getServiceRequests(currentLat, currentLng, STATUS_OPEN, currentRadius, servCodeQ);
+            // also request closed service request with an earliest update_datetime included.
+            reqManager.getClosedServiceRequests(currentLat, currentLng, STATUS_OPEN, currentRadius, servCodeQ, updateDatetime);
         } else {
             // launch Retrofit callback and retrieve services asynchronously
             reqManager.getServiceRequests(currentLat, currentLng, STATUS_OPEN, currentRadius);
+            // also request closed service request with an earliest update_datetime included.
+            reqManager.getClosedServiceRequests(currentLat, currentLng, STATUS_OPEN, currentRadius, updateDatetime);
         }
 
     }

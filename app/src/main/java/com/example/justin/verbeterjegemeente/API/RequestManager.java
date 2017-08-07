@@ -5,9 +5,15 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.Constants;
+import com.example.justin.verbeterjegemeente.Database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.R;
+import com.example.justin.verbeterjegemeente.domain.PostServiceRequestResponse;
 import com.example.justin.verbeterjegemeente.domain.Service;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,6 +36,8 @@ public class RequestManager {
     private Context context;
     private OnServicesReady servCallb;
     private OnServiceRequestsReady servReqCallb;
+    private OnServiceRequestPosted servReqPostedCallb;
+    private DatabaseHandler dbHandler;
 
     /**
      * Accepts the context of an activity and initializes the ServiceClient
@@ -55,22 +63,37 @@ public class RequestManager {
                 serviceCall.enqueue(new Callback<List<Service>>() {
                     @Override
                     public void onResponse(Call<List<Service>> call, Response<List<Service>> response) {
-                        // if a response has been received create a list with Services with the responsebody
-                        List<Service> serviceList = response.body();
-                        Log.e("empty response: ", response.body().toString());
+                        if(response.isSuccessful()) {
+                            // if a response has been received create a list with Services with the responsebody
+                            List<Service> serviceList = response.body();
+                            Log.e("empty response: ", response.body().toString());
 
-                        // test what services have been caught in the response
-                        if (serviceList != null) {
-                            for (Service s : serviceList) {
-                                Log.i("Response: ", "" + s.getService_name());
+                            // test what services have been caught in the response
+                            if (!serviceList.isEmpty()) {
+                                for (Service s : serviceList) {
+                                    Log.i("Response: ", "" + s.getService_name());
+                                }
+
+                                // let the activity/fragment that implemented the service callback
+                                // know that the services are ready.
+                                servCallb.servicesReady(serviceList);
+                            } else {
+                                Log.i("Response: ", "List was empty");
                             }
-
-                            // let the activity/fragment that implemented the service callback
-                            // know that the services are ready.
-                            servCallb.servicesReady(serviceList);
                         } else {
-                            Log.i("Response: ", "List was empty");
+                        try { //something went wrong. Show the user what went wrong
+                            JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
+                            JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
+
+                            Toast.makeText(context, jObjError.getString("description"),
+                                    Toast.LENGTH_SHORT).show();
+                            Log.i("Error message: ", jObjError.getString("description"));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } catch (JSONException e) {
+                            e.printStackTrace();
                         }
+                    }
                     }
 
                     @Override
@@ -110,12 +133,26 @@ public class RequestManager {
                 serviceCall.enqueue(new Callback<ArrayList<ServiceRequest>>() {
                     @Override
                     public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
-                        // if a response has been received create a list with Services with the responsebody
-                        ArrayList<ServiceRequest> servReqList = response.body();
+                        if(response.isSuccessful()) {
+                            // if a response has been received create a list with Services with the responsebody
+                            ArrayList<ServiceRequest> servReqList = response.body();
+//                            if (!servReqList.isEmpty()) {
+                                servReqCallb.serviceRequestsReady(servReqList);
+//                            }
+                        } else {
+                        try { //something went wrong. Show the user what went wrong
+                            JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
+                            JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
 
-                        if (servReqList != null) {
-                            servReqCallb.serviceRequestsReady(servReqList);
+                            Toast.makeText(context, jObjError.getString("description"),
+                                    Toast.LENGTH_SHORT).show();
+                            Log.i("Error message: ", jObjError.getString("description"));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } catch (JSONException e) {
+                            e.printStackTrace();
                         }
+                    }
 
                     }
 
@@ -155,11 +192,141 @@ public class RequestManager {
                 serviceCall.enqueue(new Callback<ArrayList<ServiceRequest>>() {
                     @Override
                     public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
-                        // if a response has been received create a list with Services with the responsebody
-                        ArrayList<ServiceRequest> servReqList = response.body();
+                        if(response.isSuccessful()) {
+                            // if a response has been received create a list with Services with the responsebody
+                            ArrayList<ServiceRequest> servReqList = response.body();
 
-                        if (servReqList != null) {
+//                            if (!servReqList.isEmpty()) {
+                                servReqCallb.serviceRequestsReady(servReqList);
+//                            }
+                        } else {
+                        try { //something went wrong. Show the user what went wrong
+                            JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
+                            JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
+
+                            Toast.makeText(context, jObjError.getString("description"),
+                                    Toast.LENGTH_SHORT).show();
+                            Log.i("Error message: ", jObjError.getString("description"));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    }
+
+                    @Override
+                    public void onFailure(Call<ArrayList<ServiceRequest>> call, Throwable t) { // something went wrong
+
+                        Toast.makeText(context, t.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+            } else { // user is not connected to the internet
+                Toast.makeText(context, context.getResources().getString(R.string.noConnection),
+                        Toast.LENGTH_SHORT).show();
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            Thread.currentThread().interrupt();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Gets the service requests from an Open311 interface API using service request IDs and passes these as a list
+     * to a callback interface.
+     * @param sRequestID ID of a service request. Can be several IDs delimited by comma's.
+     */
+    public void getServiceRequestsByID(String sRequestID) {
+        try {
+            if (ConnectionChecker.isConnected()) { // check if user is actually connected to the internet
+                // create a callback
+                Call<ArrayList<ServiceRequest>> serviceCall = client.getServiceById(sRequestID, "1");
+                // fire the get request
+                serviceCall.enqueue(new Callback<ArrayList<ServiceRequest>>() {
+                    @Override
+                    public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
+                        if(response.isSuccessful()) {
+                            // if a response has been received create a list with Services with the responsebody
+                            ArrayList<ServiceRequest> servReqList = response.body();
+                            if (!servReqList.isEmpty()) {
+                                servReqCallb.serviceRequestsReady(servReqList);
+                            }
+                        } else {
+                        try { //something went wrong. Show the user what went wrong
+                            JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
+                            JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
+
+                            Toast.makeText(context, jObjError.getString("description"),
+                                    Toast.LENGTH_SHORT).show();
+                            Log.i("Error message: ", jObjError.getString("description"));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    }
+
+                    @Override
+                    public void onFailure(Call<ArrayList<ServiceRequest>> call, Throwable t) { // something went wrong
+
+                        Toast.makeText(context, t.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+            } else { // user is not connected to the internet
+                Toast.makeText(context, context.getResources().getString(R.string.noConnection),
+                        Toast.LENGTH_SHORT).show();
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            Thread.currentThread().interrupt();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Gets the service requests from an Open311 interface APi and passes these as a list
+     * to a callback interface.
+     * @param lat latitude of the camera position on the Google map
+     * @param lng longtitude of the camera position on the Google map
+     * @param status status of service requests that are requested. Can be open, closed or null.
+     * @param radius amount of meters around the given lat and lng.
+     * @param updatedTime earliest updated_datetime of a service request.
+     */
+    public void getClosedServiceRequests(String lat, String lng, String status, String radius, String updatedTime) {
+        try {
+            if (ConnectionChecker.isConnected()) { // check if user is actually connected to the internet
+                // create a callback
+                Call<ArrayList<ServiceRequest>> serviceCall = client.getClosedNearbyServiceRequests(lat, lng, status, radius, updatedTime);
+                // fire the get request
+                serviceCall.enqueue(new Callback<ArrayList<ServiceRequest>>() {
+                    @Override
+                    public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
+                        if (response.isSuccessful()) {
+                            // if a response has been received create a list with Services with the responsebody
+                            ArrayList<ServiceRequest> servReqList = response.body();
+
                             servReqCallb.serviceRequestsReady(servReqList);
+                        } else {
+                            try { //something went wrong. Show the user what went wrong
+                                JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
+                                JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
+
+                                Toast.makeText(context, jObjError.getString("description"),
+                                        Toast.LENGTH_SHORT).show();
+                                Log.i("Error message: ", jObjError.getString("description"));
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
                         }
 
                     }
@@ -190,21 +357,37 @@ public class RequestManager {
      * @param lng longtitude of the camera position on the Google map
      * @param status status of service requests that are requested. Can be open, closed or null.
      * @param radius amount of meters around the given lat and lng.
+     * @param servQ if user filtered on a category, this will be the category code.
+     * @param updatedTime earliest updated_datetime of a service request.
      */
-    public void getServiceRequests(String lat, String lng, String status, String radius) {
+    public void getClosedServiceRequests(String lat, String lng, String status, String radius, String servQ, String updatedTime) {
         try {
             if (ConnectionChecker.isConnected()) { // check if user is actually connected to the internet
                 // create a callback
-                Call<ArrayList<ServiceRequest>> serviceCall = client.getNearbyServiceRequests(lat, lng, status, radius);
+                Call<ArrayList<ServiceRequest>> serviceCall = client.getClosedNearbyServiceRequests(lat, lng, status, radius, servQ, updatedTime);
                 // fire the get request
                 serviceCall.enqueue(new Callback<ArrayList<ServiceRequest>>() {
                     @Override
                     public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
-                        // if a response has been received create a list with Services with the responsebody
-                        ArrayList<ServiceRequest> servReqList = response.body();
-
-                        if (servReqList != null) {
+                        if(response.isSuccessful()) {
+                            // if a response has been received create a list with Services with the responsebody
+                            ArrayList<ServiceRequest> servReqList = response.body();
+//                            if (!servReqList.isEmpty()) {
                             servReqCallb.serviceRequestsReady(servReqList);
+//                            }
+                        } else {
+                            try { //something went wrong. Show the user what went wrong
+                                JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
+                                JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
+
+                                Toast.makeText(context, jObjError.getString("description"),
+                                        Toast.LENGTH_SHORT).show();
+                                Log.i("Error message: ", jObjError.getString("description"));
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
                         }
 
                     }
@@ -218,6 +401,62 @@ public class RequestManager {
 
             } else { // user is not connected to the internet
                 Toast.makeText(context, context.getResources().getString(R.string.noConnection),
+                        Toast.LENGTH_SHORT).show();
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            Thread.currentThread().interrupt();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void postServiceRequest(String sc, String descr, double lat, double lon, String address_string,
+                                   String address_id, String[] attribute, String jurisdiction_id,
+                                   String email, String fName, String lName, String imgUrl) {
+        try {
+            if (ConnectionChecker.isConnected()) {
+
+                Call<ArrayList<PostServiceRequestResponse>> serviceRequestResponseCall =
+                        client.postServiceRequest(sc, descr, lat, lon, address_string,
+                                address_id, attribute, jurisdiction_id, email, fName, lName, imgUrl);
+                // fire the get post request
+                serviceRequestResponseCall.enqueue(new Callback<ArrayList<PostServiceRequestResponse>>() {
+                    @Override
+                    public void onResponse(Call<ArrayList<PostServiceRequestResponse>> call,
+                                           Response<ArrayList<PostServiceRequestResponse>> response) {
+                        if (response.isSuccessful()) {
+                            // if a response was successful get an arraylist of postservicerequestresponses
+                            ArrayList<PostServiceRequestResponse> pRespList = response.body();
+
+                            servReqPostedCallb.serviceRequestPosted(pRespList);
+
+                        } else {
+                            try { //something went wrong. Show the user what went wrong
+                                JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
+                                JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
+
+                                Toast.makeText(context, jObjError.getString("description"),
+                                        Toast.LENGTH_SHORT).show();
+                                Log.i("Error message: ", jObjError.getString("description"));
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+
+                    // a connection could not have been made. Tell the user.
+                    @Override
+                    public void onFailure(Call<ArrayList<PostServiceRequestResponse>> call, Throwable t) {
+                        Toast.makeText(context, context.getResources().getString(R.string.ePostRequest),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+            } else {// a connection could not have been made. Tell the user.
+                Toast.makeText(context, context.getResources().getString(R.string.ePostRequest),
                         Toast.LENGTH_SHORT).show();
             }
         } catch (InterruptedException e) {
@@ -235,6 +474,11 @@ public class RequestManager {
     public void setOnServiceReqReadyCallb(OnServiceRequestsReady servReqCallb) {
         this.servReqCallb = servReqCallb;
     }
+
+    public void setOnServiceReqPostedCallb(OnServiceRequestPosted servReqPostedCallb) {
+        this.servReqPostedCallb = servReqPostedCallb;
+    }
+
 
     /**
      * Callback interface that will pass a list of services to an activity that implemented
@@ -262,5 +506,9 @@ public class RequestManager {
          *                 from an open311 interface
          */
         void serviceRequestsReady(ArrayList<ServiceRequest> serviceRequests);
+    }
+
+    public interface OnServiceRequestPosted {
+        void serviceRequestPosted(ArrayList<PostServiceRequestResponse> pReqRespList);
     }
 }

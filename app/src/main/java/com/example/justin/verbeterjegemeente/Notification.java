@@ -35,7 +35,7 @@ public class Notification {
 
         // Sets the intent to open when the notification is clicked, using the serivceRequest in the parameters.
         Intent i = new Intent(context, DetailedMeldingActivity.class);
-        i.putExtra("serviceRequest", (Serializable) serviceRequest);
+        i.putExtra("serviceRequest", serviceRequest);
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
         stackBuilder.addParentStack(MainActivity.class);
 

@@ -111,6 +111,46 @@ public interface ServiceClient {
                                                              @Query("service_code") String serviceCode);
 
     /**
+     * Get nearby service requests based on a radius with meters and lat and long that
+     * were given as parameters and earliest updated_datetime to include in the search.
+     *
+     * @param lat    the lattitude of the location.
+     * @param lng    the longtitude of the location.
+     * @param status the status of a service request. Can be open or closed
+     * @param meters the meters for the radius search
+     * @param updatedTime earliest updated_datetime of a service request.
+     * @return ArrayList<ServiceRequest> A list of service requests
+     */
+
+    @GET("requests.json")
+    Call<ArrayList<ServiceRequest>> getClosedNearbyServiceRequests(@Query("lat") String lat,
+                                                             @Query("long") String lng,
+                                                             @Query("status") String status,
+                                                             @Query("radius") String meters,
+                                                                   @Query("updated_after") String updatedTime);
+
+    /**
+     * Get nearby service requests based on a radius with meters and lat and long that
+     * were given as parameters and earliest updated_datetime to include in the search.
+     *
+     * @param lat    the lattitude of the location.
+     * @param lng    the longtitude of the location.
+     * @param status the status of a service request. Can be open or closed
+     * @param meters the meters for the radius search
+     * @param updatedTime earliest updated_datetime of a service request.
+     * @param serviceCode the service code of the category that is used as a filter
+     * @return ArrayList<ServiceRequest> A list of service requests
+     */
+
+    @GET("requests.json")
+    Call<ArrayList<ServiceRequest>> getClosedNearbyServiceRequests(@Query("lat") String lat,
+                                                                   @Query("long") String lng,
+                                                                   @Query("status") String status,
+                                                                   @Query("radius") String meters,
+                                                                   @Query("service_code") String serviceCode,
+                                                                   @Query("updated_after") String updatedTime);
+
+    /**
      * Get specific service requests that are identified by a service ID.
      *
      * @param serviceID       unique identifier for a service request
@@ -118,8 +158,8 @@ public interface ServiceClient {
      * @return <code>ServiceRequest</code>
      */
 
-    @GET ("request/{id}.json")
-    Call<ServiceRequest> getServiceById (@Path("id") String serviceID,
+    @GET ("requests.json")
+    Call<ArrayList<ServiceRequest>> getServiceById (@Query("service_request_id") String serviceID,
                                          @Query("jurisdiction_id") String jurisdiction_id);
 }
 

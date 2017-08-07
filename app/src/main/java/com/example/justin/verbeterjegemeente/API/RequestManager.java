@@ -183,6 +183,51 @@ public class RequestManager {
         }
     }
 
+    /**
+     * Gets the service requests from an Open311 interface APi and passes these as a list
+     * to a callback interface.
+     * @param lat latitude of the camera position on the Google map
+     * @param lng longtitude of the camera position on the Google map
+     * @param status status of service requests that are requested. Can be open, closed or null.
+     * @param radius amount of meters around the given lat and lng.
+     */
+    public void getServiceRequests(String lat, String lng, String status, String radius) {
+        try {
+            if (ConnectionChecker.isConnected()) { // check if user is actually connected to the internet
+                // create a callback
+                Call<ArrayList<ServiceRequest>> serviceCall = client.getNearbyServiceRequests(lat, lng, status, radius);
+                // fire the get request
+                serviceCall.enqueue(new Callback<ArrayList<ServiceRequest>>() {
+                    @Override
+                    public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
+                        // if a response has been received create a list with Services with the responsebody
+                        ArrayList<ServiceRequest> servReqList = response.body();
+
+                        if (servReqList != null) {
+                            servReqCallb.serviceRequestsReady(servReqList);
+                        }
+
+                    }
+
+                    @Override
+                    public void onFailure(Call<ArrayList<ServiceRequest>> call, Throwable t) { // something went wrong
+
+                        Toast.makeText(context, t.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+            } else { // user is not connected to the internet
+                Toast.makeText(context, context.getResources().getString(R.string.noConnection),
+                        Toast.LENGTH_SHORT).show();
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            Thread.currentThread().interrupt();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void setOnServicesReadyCallb(OnServicesReady servCallb) {
         this.servCallb = servCallb;
     }

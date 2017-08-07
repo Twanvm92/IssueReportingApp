@@ -54,6 +54,7 @@ import retrofit2.Response;
 
 import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LAT;
 import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LONG;
+import static com.example.justin.verbeterjegemeente.Constants.STATUS_OPEN;
 
 public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
@@ -321,11 +322,11 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
         if (servCodeQ != null && !servCodeQ.equals("")) {
             // launch Retrofit callback and retrieve services asynchronously
-            reqManager.getServiceRequests(camLat, camLng, null, currentRadius, servCodeQ);
+            reqManager.getServiceRequests(camLat, camLng, STATUS_OPEN, currentRadius, servCodeQ);
         } else {
             // launch Retrofit callback and retrieve services asynchronously
 //            reqManager.getServiceRequests(camLat, camLng, null, currentRadius, servCodeQ);
-            reqManager.getServiceRequests(camLat, camLng, null, currentRadius);
+            reqManager.getServiceRequests(camLat, camLng, STATUS_OPEN, currentRadius);
         }
 
     }
@@ -439,10 +440,10 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
         if (servCodeQ != null && !servCodeQ.equals("")) {
             // launch Retrofit callback and retrieve services asynchronously
-            reqManager.getServiceRequests(currentLat, currentLng, null, currentRadius, servCodeQ);
+            reqManager.getServiceRequests(currentLat, currentLng, STATUS_OPEN, currentRadius, servCodeQ);
         } else {
             // launch Retrofit callback and retrieve services asynchronously
-            reqManager.getServiceRequests(currentLat, currentLng, null, currentRadius);
+            reqManager.getServiceRequests(currentLat, currentLng, STATUS_OPEN, currentRadius);
         }
 
     }

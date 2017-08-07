@@ -15,19 +15,14 @@ import java.util.ArrayList;
 
 public class DatabaseHandler extends SQLiteOpenHelper {
 
-
     // Declaring the name, file name and version number of the database in final variable.
     private static final String TAG = "meldingDBHandler";
     private static final String DATABASE_NAME = "testdb.db";
     private static final int DATABASE_VERSION = 1;
-
     private static final String MELDING_TABLE_NAME = "melding";
-
-        private static final String MELDING_COLUMN_ID = "_meldingId";
-        private static final String MELDING_COLUMN_IDAPI = "meldingIdApi";
+    private static final String MELDING_COLUMN_ID = "_meldingId";
+    private static final String MELDING_COLUMN_IDAPI = "meldingIdApi";
     private static final String MELDING_COLUMN_UPDATETIME = "updatetime";
-
-
     private static final String USER_TABLE_NAME = "user";
     private static final String USER_COLUMN_EMAIL = "email";
     private static final String USER_COLUMN_FISTNAME = "firstname";
@@ -35,12 +30,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String USER_COLUMN_PHONENUMBER = "phonenumber";
     private static final String USER_COLUMN_USERID = "_userid";
 
-
     // Constructor for the databse handler that will create the database if not already done.
     public DatabaseHandler(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, DATABASE_NAME, factory, DATABASE_VERSION);
     }
-
 
     // The method that will actually create the database, called by the constructor if the database is not already created.
     public void onCreate(SQLiteDatabase database) {
@@ -82,15 +75,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     // Adds a report to the database
-
-    public void addReport(ServiceRequest serviceRequest){
-
-        Log.i("DATABASE", serviceRequest.getRequestedDatetime());
+    public void addReport(String srID){
+        Log.i("SR ID", srID);
 
         ContentValues values = new ContentValues();
-        values.put(MELDING_COLUMN_IDAPI, serviceRequest.getServiceRequestId());
-        values.put(MELDING_COLUMN_UPDATETIME, serviceRequest.getUpdatedDatetime());
-
+        values.put(MELDING_COLUMN_IDAPI, srID);
 
         SQLiteDatabase db = this.getWritableDatabase();
         db.insert(MELDING_TABLE_NAME, null, values);
@@ -120,19 +109,14 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return user;
     }
 
-
     // Returns a list of all stored reports
-
     public ArrayList<ServiceRequest> getReports(){
 
-       ArrayList<ServiceRequest> list = new ArrayList<>();
-
-
+        ArrayList<ServiceRequest> list = new ArrayList<>();
         String query = "SELECT * FROM " + MELDING_TABLE_NAME;
 
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(query, null);
-
 
         while (cursor.moveToNext()){
             ServiceRequest serviceRequest = new ServiceRequest();
@@ -172,8 +156,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         } else {
             return false;
         }
-
-
     }
 
 

@@ -12,9 +12,11 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.API.ConnectionChecker;
+import com.example.justin.verbeterjegemeente.API.RequestManager;
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.Adapters.ServiceRequestAdapter;
+import com.example.justin.verbeterjegemeente.Business.ServiceManager;
 import com.example.justin.verbeterjegemeente.Database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
@@ -26,74 +28,17 @@ import java.util.ArrayList;
 import retrofit2.Call;
 import retrofit2.Response;
 
-public class FollowingActivity extends AppCompatActivity {
+public class FollowingActivity extends AppCompatActivity implements RequestManager.OnServiceRequestsReady {
 
-
-    ServiceClient client;
-    ArrayList<ServiceRequest> list;
     ListView meldingListView;
     private ArrayAdapter meldingAdapter;
     private Button terugButton;
+    private ArrayList<ServiceRequest> srListFinal = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_following);
-
-
-        // Filling the ArrayList with the service request id's from the database.
-
-        final DatabaseHandler db = new DatabaseHandler(getApplicationContext(), null, null, 1);
-        ArrayList<ServiceRequest> idList = new ArrayList<>();
-
-        idList = db.getReports();
-        Log.i("IDs in userdb", idList.size() + "");
-        db.close();
-
-        final ArrayList<ServiceRequest> srListFinal = new ArrayList<>();
-
-
-        try{
-            if(ConnectionChecker.isConnected()){  //checking for internet acces.
-
-                for(ServiceRequest s: idList) {
-                    Log.i("Service request ids: ", s.getServiceRequestId());
-                    client = ServiceGenerator.createService(ServiceClient.class);
-                    Call<ServiceRequest> RequestResponseCall =
-                            client.getServiceById(s.getServiceRequestId(), "1");
-                    RequestResponseCall.enqueue(new retrofit2.Callback<ServiceRequest>() {
-                        @Override
-                        public void onResponse(Call<ServiceRequest> call, Response<ServiceRequest> response) {
-                            if (response.isSuccessful()) {
-                                ServiceRequest sr = response.body();
-                                srListFinal.add(sr);
-                                meldingAdapter.notifyDataSetChanged();
-
-
-                                if (meldingAdapter != null) {
-                                    meldingAdapter.notifyDataSetChanged();
-                                }
-                            } else {
-                                Log.i("response mis", "yup");
-                            }
-
-                        }
-
-                        @Override
-                        public void onFailure(Call<ServiceRequest> call, Throwable t) {
-                            Toast.makeText(getApplicationContext(),
-                                    "Something went wrong while getting your requests",
-                                    Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                }
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            Thread.currentThread().interrupt();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
         meldingListView = (ListView) findViewById(R.id.activityFollowing_LV_FollowingListView);
         meldingAdapter = new ServiceRequestAdapter(getApplicationContext(), srListFinal);
@@ -103,14 +48,29 @@ public class FollowingActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent i = new Intent(view.getContext(), DetailedMeldingActivity.class);
                 ServiceRequest serviceRequest = srListFinal.get(position);
-                i.putExtra("serviceRequest", (Serializable) serviceRequest);
+                i.putExtra("serviceRequest", serviceRequest);
                 i.putExtra("ORIGIN", "FollowActivity");
                 Log.i("REQUEST", serviceRequest.getStatus());
                 startActivity(i);
             }
         });
 
-        meldingAdapter.notifyDataSetChanged();
+//        meldingAdapter.notifyDataSetChanged();
+
+
+        // Filling the ArrayList with the service request id's from the database.
+
+        final DatabaseHandler db = new DatabaseHandler(getApplicationContext(), null, null, 1);
+        ArrayList<ServiceRequest> idList;
+
+        idList = db.getReports();
+        Log.i("IDs in userdb", idList.size() + "");
+        db.close();
+
+        String sRequestIDQ = ServiceManager.genServiceRequestIDQ(idList);
+        RequestManager requestManager = new RequestManager(this);
+        requestManager.setOnServiceReqReadyCallb(this);
+        requestManager.getServiceRequestsByID(sRequestIDQ);
 
         terugButton = (Button) findViewById(R.id.activityFollowing_btn_terugBTN_ID);
         terugButton.setOnClickListener(new View.OnClickListener() {
@@ -128,4 +88,13 @@ public class FollowingActivity extends AppCompatActivity {
         startActivity(in);
     }
 
+    @Override
+    public void serviceRequestsReady(ArrayList<ServiceRequest> serviceRequests) {
+        for(ServiceRequest s : serviceRequests) {
+            srListFinal.add(s);
+        }
+
+        meldingAdapter.notifyDataSetChanged();
+
+    }
 }

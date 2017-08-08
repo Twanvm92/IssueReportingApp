@@ -125,7 +125,6 @@ public class MainActivity extends AppCompatActivity /*implements LocationSelecte
         viewPager.setAdapter(adapter);
     }
 
-    /*
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         Location currentLocation = null;
         GoogleMap mMap = tabFragment.mMap;
@@ -171,7 +170,7 @@ public class MainActivity extends AppCompatActivity /*implements LocationSelecte
         super.onBackPressed();
     }
 
-    /*@Override
+    @Override
     public void locationSelected(LatLng curLatLong) {
         // The user selected the headline of an article from the HeadlinesFragment
         // Do something here to display that article
@@ -206,5 +205,5 @@ public class MainActivity extends AppCompatActivity /*implements LocationSelecte
             // Commit the transaction
             transaction.commit();
         }
-    }*/
+    }
 }

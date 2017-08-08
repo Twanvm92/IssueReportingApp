@@ -49,7 +49,9 @@
         Geomerk.Map.setFeatureClickCallback(featureClick);
         function featureClick(feature,layer) {
             var object = feature.getProperties();
-            alert(object);
+
+            console.log("request_id: " + object.request_id);
+            Geomerk.Map.addWKTPng('POINT(109766.27532491283 402884.3110125257)', 0.5, 46, 'http://openlayers.org/en/v3.7.0/examples/data/icon.png', { testdata: 'asfafs', request_id: '212' });
         };
 
     </script>

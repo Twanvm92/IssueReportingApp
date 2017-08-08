@@ -61,57 +61,6 @@ public class UpdateService extends Service {
             requestManager.setOnServiceReqReadyCallb(this);
             requestManager.getServiceRequestsByID(sRequestIDQ);
 
-
-            /*try{
-                if(ConnectionChecker.isConnected()){  //checking for internet acces.
-
-                    for(ServiceRequest s: DatabaseList) {
-                        client = ServiceGenerator.createService(ServiceClient.class);
-                        Call<ServiceRequest> RequestResponseCall =
-                                client.getServiceById(s.getServiceRequestId(), "1");
-                        RequestResponseCall.enqueue(new retrofit2.Callback<ServiceRequest>() {
-                            @Override
-                            public void onResponse(Call<ServiceRequest> call, Response<ServiceRequest> response) {
-                                if(response.isSuccessful()){
-                                    ServiceRequest sr = response.body();
-
-                                    if(sr != null) {
-
-                                        String dateTime = sr.getRequestedDatetime();
-
-//                                        if(count == 5){
-//                                            dateTime = "different datetime";
-//                                        }
-
-                                        // If the timestamp from the server is different then that from the database
-                                        // a notification is made en pushed to the user.
-                                        if (sr.getRequestedDatetime() != dateTime) {
-                                            Log.i("CHECK", "changed date time = " + dateTime);
-                                            notifyReportChanged(getString(R.string.reportUpdated) + " ",
-                                                    getString(R.string.on) + " " + sr.getRequestedDatetime(), sr);
-                                        }
-                                    }
-
-                                } else { Log.i("response mis", "yup");}
-                            }
-
-                            @Override
-                            public void onFailure(Call<ServiceRequest> call, Throwable t) {
-                                Toast.makeText(getApplicationContext(),
-                                        "Something went wrong while getting your requests",
-                                        Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                    }
-                }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-*/
-
-
             count++;
 
 

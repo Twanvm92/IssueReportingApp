@@ -14,9 +14,12 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+
+import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
+
 import com.example.justin.verbeterjegemeente.API.ConnectionChecker;
 import com.example.justin.verbeterjegemeente.API.RequestManager;
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
@@ -30,6 +33,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
@@ -43,19 +47,26 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.io.IOException;
 import java.util.ArrayList;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import static com.example.justin.verbeterjegemeente.Constants.CONNECTION_FAILURE_RESOLUTION_REQUEST;
 import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LAT;
 import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LONG;
 
-public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,
+// TODO: 8-8-2017 commented some code for google map
+public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*OnMapReadyCallback,*/ GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         com.google.android.gms.location.LocationListener, GoogleMap.OnCameraIdleListener,
         RequestManager.OnServiceRequestsReady {
@@ -69,6 +80,8 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     private String servCodeQ;
     private boolean eersteKeer;
     public float zoomLevel;
+    private FusedLocationProviderClient mFusedLocationClient;
+    private LocationRequest mLocationRequest;
 
     public void onCreate(Bundle savedInstaceState) {
         super.onCreate(savedInstaceState);
@@ -83,11 +96,17 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
         client = ServiceGenerator.createService(ServiceClient.class);
 
+        // TODO: 8-8-2017 replaced api here
+//        initApi();
+        buildGoogleApiClient();
+        createLocationRequest();
     }
 
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
+
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(activity);
 
         // This makes sure that the container activity has implemented
         // the callback interface. If not, it throws an exception
@@ -103,6 +122,28 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
     @Override
     public void onStart() {
         super.onStart();
+    }
+
+    @Override
+    public void onStop() {
+        /*try {
+            if (!ConnectionChecker.isConnected()) {
+                LocationServices.FusedLocationApi.removeLocationUpdates(mApiClient, this);
+                if (mApiClient != null) {
+                    mApiClient.disconnect();
+
+                }
+            }
+        } catch (Exception e) {
+            Log.i("EXCEPTION: ", e.getLocalizedMessage());
+        }*/
+
+        super.onStop();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
         try {
             if (ConnectionChecker.isConnected()) {
                 mApiClient.connect();
@@ -120,43 +161,23 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         } catch (Exception e) {
             Log.i("Exception: ", e.getLocalizedMessage());
         }
+        // TODO: 8-8-2017 googlemap commented
+// commented for map invisible
+//        setUpMapIfNeeded();
     }
 
     @Override
-    public void onStop() {
-        try {
-            if (!ConnectionChecker.isConnected()) {
-                LocationServices.FusedLocationApi.removeLocationUpdates(mApiClient, this);
-                if (mApiClient != null) {
-                    mApiClient.disconnect();
-
-                }
-            }
-        } catch (Exception e) {
-            Log.i("EXCEPTION: ", e.getLocalizedMessage());
-        }
-
-        super.onStop();
-    }
-
-
-    //set up map on resume
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        setUpMapIfNeeded();
-    }
-
-    //load map if needed
-    private void setUpMapIfNeeded() {
-        if (mMap == null) {
-            getMapAsync(this);
+    public void onPause() {
+        super.onPause();
+        if (mApiClient.isConnected()) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(mApiClient, this);
+            mApiClient.disconnect();// TODO: 8-8-2017 googlemap commented
         }
     }
 
     //set up map when map is loaded
-    public void onMapReady(GoogleMap googleMap) {
+    // TODO: 8-8-2017 googlemap commented
+   /* public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         mMap.setOnCameraIdleListener(this);
 
@@ -166,13 +187,14 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
         setUpMap();
         Log.e("MAP: ", "map is klaargezet");
-    }
+    }*/
 
 
     /**
      * Opzetten van de map
      */
-    private void setUpMap() {
+    // TODO: 8-8-2017 googlemap commented
+    /*private void setUpMap() {
         //setup map settings
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         mMap.getUiSettings().setMapToolbarEnabled(false);
@@ -180,7 +202,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
         initApi();
 
-    }
+    }*/
 
     /**
      * Connectie maken met de Google Api
@@ -199,7 +221,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
             if (eersteAanvraag.equalsIgnoreCase("true")) {
                 reqFindLocation();
             } else {
-                getLocation();
+                getDefaultLocation();
             }
         } else {
             getUserLocation();
@@ -211,7 +233,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
      * Locatie van de gebuiker ophalen
      */
     public void getUserLocation() {
-        LocationRequest locationRequest = LocationRequest.create();
+        /*LocationRequest locationRequest = LocationRequest.create();
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         locationRequest.setInterval(30 * 1000);
         locationRequest.setFastestInterval(5 * 1000);
@@ -219,6 +241,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                 .addLocationRequest(locationRequest);
 
         builder.setAlwaysShow(true);
+
 
         final PendingResult<LocationSettingsResult> result =
                 LocationServices.SettingsApi.checkLocationSettings(mApiClient, builder.build());
@@ -230,18 +253,44 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                 switch (status.getStatusCode()) {
                     case LocationSettingsStatusCodes.SUCCESS:
                         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                            currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
+                            *//*currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
                             if (currentLocation != null) {
                                 eersteKeer = false;
                                 currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-                                CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
-                                mMap.moveCamera(center);
+                                // TODO: 8-8-2017 googlemap commented
+//                                CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
+
+                                // see what current location is
+                                Log.d("Tab1Fragment: ", "lat: " + currentLocation.getLatitude() + " long: " + currentLocation.getLongitude());
+                                // TODO: 8-8-2017 googlemap commented
+//                                mMap.moveCamera(center);
                             } else {
                                 if (eersteKeer = true){
                                     getLocation();
                                 }
                                 Log.e("getUserLocation", "Kan locatie niet ophalen");
-                            }
+                            }*//*
+                            mFusedLocationClient.getLastLocation().addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    if (eersteKeer = true) {
+                                        getDefaultLocation();
+                                    }
+                                    Log.e("getUserLocation", "Kan locatie niet ophalen");
+                                }
+                            })
+                                    .addOnSuccessListener(getActivity(), new OnSuccessListener<Location>() {
+                                        @Override
+                                        public void onSuccess(Location location) {
+                                            // Got last known location. In some rare situations this can be null.
+                                            if (location != null) {
+                                                eersteKeer = false;
+                                                // see what current location is
+                                                Log.d("Tab1Fragment: ", "lat: " + location.getLatitude() + " long: " + location.getLongitude());
+                                            }
+                                        }
+                                    });
+
                         } else {
                             Log.e("getUserLocation", "Geen toestemming");
                         }
@@ -258,21 +307,62 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                         break;
                 }
             }
-        });
+        });*/
     }
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         // nothing has to be done here
+
+        /*mFusedLocationClient.getLastLocation()
+                .addOnSuccessListener(getActivity(), new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        // Got last known location. In some rare situations this can be null.
+                        if (location != null) {
+                            // ...
+                        }
+                    }
+                });*/
+
+        // !! gets called everytime request permission dialog closes
+        getLastLocation();
+
+
+
+
     }
 
     /**
      * Standaard locatie tonen eerste keer laden van map als er geen toestemming gegegeven is
      */
-    public void getLocation() {
-        CameraUpdate center = CameraUpdateFactory.newLatLngZoom(new LatLng(DEFAULT_LAT, DEFAULT_LONG), 12.0f);
-        mMap.moveCamera(center);
+    public void getDefaultLocation() {
+        // TODO: 8-8-2017 googlemap commented
+//        CameraUpdate center = CameraUpdateFactory.newLatLngZoom(new LatLng(DEFAULT_LAT, DEFAULT_LONG), 12.0f);
+
+        // see what current location is
+        Log.d("Tab1Fragment: ", "default location is choosen");
+        // TODO: 8-8-2017 googlemap commented
+//        mMap.moveCamera(center);
         eersteKeer = false;
+    }
+
+    public void getLastLocation() {
+        if (ContextCompat.checkSelfPermission(getActivity(),
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    Constants.MY_PERMISSIONS_LOCATION);
+        } else {
+            Location location = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
+            if (location == null) {
+                LocationServices.FusedLocationApi.requestLocationUpdates(mApiClient, mLocationRequest, this);
+            }
+            else {
+                Log.d("Tab1Fragment: ", location.toString());
+            };
+        }
+
     }
 
     @Override
@@ -282,12 +372,21 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        // nothing has to happen here
+        if (connectionResult.hasResolution()) {
+            try {
+                // Start an Activity that tries to resolve the error
+                connectionResult.startResolutionForResult(getActivity(), CONNECTION_FAILURE_RESOLUTION_REQUEST);
+            } catch (IntentSender.SendIntentException e) {
+                e.printStackTrace();
+            }
+        } else {
+            Log.i(" Tab1Fragment", "Location services connection failed with code " + connectionResult.getErrorCode());
+        }
     }
 
     @Override
     public void onLocationChanged(Location location) {
-        // nothing has to happen here
+        Log.d("Tab1Fragment: ", "updated location: " + location.toString());
     }
 
     /**
@@ -305,9 +404,9 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
         if (!eersteKeer && (Double.compare(center.latitude, Constants.DEFAULT_LAT) != 0 ||
                 Double.compare(center.longitude, Constants.DEFAULT_LONG) != 0)) {
 
-                currentLatLng = new LatLng(center.latitude, center.longitude);
+            currentLatLng = new LatLng(center.latitude, center.longitude);
 
-                zoomLevel = mMap.getCameraPosition().zoom;
+            zoomLevel = mMap.getCameraPosition().zoom;
         }
 
         Log.i("Camera positie: ", "is veranderd");
@@ -334,15 +433,37 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
      * Permissie wordt gevraagd als dit niet al gegeven is
      */
     public void reqFindLocation() {
-        if (ContextCompat.checkSelfPermission(getActivity(),
+        /*if (ContextCompat.checkSelfPermission(getActivity(),
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(getActivity(),
+            ActivityCompat.requestPermissions(getActivity(),
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     Constants.MY_PERMISSIONS_LOCATION);
         } else {
             getUserLocation();
-        }
+        }*/
+    }
+
+    protected synchronized void buildGoogleApiClient() {
+        Log.i("Tab1Fragment", "Building GoogleApiClient");
+
+        mApiClient = new GoogleApiClient.Builder(getActivity())
+                .addApi(LocationServices.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
+
+    }
+
+    protected void createLocationRequest() {
+
+        //import should be **import com.google.android.gms.location.LocationListener**;
+        mLocationRequest = LocationRequest.create();
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        mLocationRequest.setInterval(30 * 1000);
+        mLocationRequest.setFastestInterval(5 * 1000);
+
+
     }
 
     /**
@@ -360,11 +481,12 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 //                    Permissie gekregen
-                    getUserLocation();
+//                    getUserLocation();
+                    getLastLocation();
                 } else {
                     Log.i("onRequestPermResult", "Geen toestemming gekregen, eerste keer dat map geladen wordt default lat/long gepakt");
                     if (currentLatLng == null) {
-                        getLocation();
+                        getDefaultLocation();
                     }
                     new AlertDialog.Builder(this.getContext())
                             .setTitle(getString(R.string.eFindLocationTitle))
@@ -399,7 +521,7 @@ public class Tab1Fragment extends SupportMapFragment implements OnMapReadyCallba
                         }).setIcon(android.R.drawable.ic_dialog_alert).show();
 
                     if (currentLatLng == null){
-                        getLocation();
+                        getDefaultLocation();
                     }
 
             }

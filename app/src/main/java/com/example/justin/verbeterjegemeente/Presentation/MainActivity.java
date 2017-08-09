@@ -418,13 +418,13 @@ public class MainActivity extends AppCompatActivity implements
         viewPager.setAdapter(adapter);
     }
 
-    @Override
+   /* @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
             case Constants.MY_PERMISSIONS_LOCATION:
                 tabFragment.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
-    }
+    }*/
 
     @Override
     public void onBackPressed() {

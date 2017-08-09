@@ -27,6 +27,7 @@ public class Constants {
 
 
     // location
+    public final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
     public static final int LOCATIE_KIEZEN = 3;
     public static final double DEFAULT_LAT = 51.57191501488476;
     public static final double DEFAULT_LONG = 4.768322892487049;

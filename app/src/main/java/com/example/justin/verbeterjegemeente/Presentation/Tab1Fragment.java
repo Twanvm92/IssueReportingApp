@@ -16,6 +16,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
@@ -29,16 +30,21 @@ import com.example.justin.verbeterjegemeente.Constants;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -49,6 +55,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -64,6 +71,7 @@ import retrofit2.Response;
 import static com.example.justin.verbeterjegemeente.Constants.CONNECTION_FAILURE_RESOLUTION_REQUEST;
 import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LAT;
 import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LONG;
+import static com.example.justin.verbeterjegemeente.Constants.REQUEST_CHECK_SETTINGS;
 
 // TODO: 8-8-2017 commented some code for google map
 public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*OnMapReadyCallback,*/ GoogleApiClient.ConnectionCallbacks,
@@ -144,35 +152,11 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
     @Override
     public void onResume() {
         super.onResume();
-        try {
-            if (ConnectionChecker.isConnected()) {
-                mApiClient.connect();
-            } else {
-                new AlertDialog.Builder(this.getContext())
-                        .setTitle("No Internet Connection")
-                        .setMessage("It looks like your internet connection is off. Please turn it " +
-                                "on and try again")
-                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                // user will return to Tab1Fragment
-                            }
-                        }).setIcon(android.R.drawable.ic_dialog_alert).show();
-            }
-        } catch (Exception e) {
-            Log.i("Exception: ", e.getLocalizedMessage());
-        }
-        // TODO: 8-8-2017 googlemap commented
-// commented for map invisible
-//        setUpMapIfNeeded();
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        if (mApiClient.isConnected()) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(mApiClient, this);
-            mApiClient.disconnect();// TODO: 8-8-2017 googlemap commented
-        }
     }
 
     //set up map when map is loaded
@@ -203,31 +187,6 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
         initApi();
 
     }*/
-
-    /**
-     * Connectie maken met de Google Api
-     */
-    public void initApi() {
-        mApiClient = new GoogleApiClient.Builder(this.getContext())
-                .addApi(LocationServices.API)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this).build();
-        mApiClient.connect();
-
-        SharedPreferences prefs = getActivity().getPreferences(getContext().MODE_PRIVATE);
-        String eersteAanvraag = prefs.getString("eersteAanvraag", "true");
-
-        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            if (eersteAanvraag.equalsIgnoreCase("true")) {
-                reqFindLocation();
-            } else {
-                getDefaultLocation();
-            }
-        } else {
-            getUserLocation();
-        }
-        prefs.edit().putString("eersteAanvraag", "false").apply();
-    }
 
     /**
      * Locatie van de gebuiker ophalen
@@ -310,6 +269,18 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
         });*/
     }
 
+    protected synchronized void buildGoogleApiClient() {
+        Log.i("Tab1Fragment", "Building GoogleApiClient");
+
+        mApiClient = new GoogleApiClient.Builder(getActivity())
+                .addApi(LocationServices.API)
+                .enableAutoManage(getActivity(), this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
+
+    }
+
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         // nothing has to be done here
@@ -325,44 +296,9 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
                     }
                 });*/
 
-        // !! gets called everytime request permission dialog closes
-        getLastLocation();
-
-
-
-
-    }
-
-    /**
-     * Standaard locatie tonen eerste keer laden van map als er geen toestemming gegegeven is
-     */
-    public void getDefaultLocation() {
-        // TODO: 8-8-2017 googlemap commented
-//        CameraUpdate center = CameraUpdateFactory.newLatLngZoom(new LatLng(DEFAULT_LAT, DEFAULT_LONG), 12.0f);
-
-        // see what current location is
-        Log.d("Tab1Fragment: ", "default location is choosen");
-        // TODO: 8-8-2017 googlemap commented
-//        mMap.moveCamera(center);
-        eersteKeer = false;
-    }
-
-    public void getLastLocation() {
-        if (ContextCompat.checkSelfPermission(getActivity(),
-                Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    Constants.MY_PERMISSIONS_LOCATION);
-        } else {
-            Location location = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
-            if (location == null) {
-                LocationServices.FusedLocationApi.requestLocationUpdates(mApiClient, mLocationRequest, this);
-            }
-            else {
-                Log.d("Tab1Fragment: ", location.toString());
-            };
-        }
-
+        // !! gets called everytime request permission dialog closess
+//        getLastLocation();
+        promptLocationSettings();
     }
 
     @Override
@@ -384,9 +320,197 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
         }
     }
 
+    protected void createLocationRequest() {
+        //import should be **import com.google.android.gms.location.LocationListener**;
+        mLocationRequest = LocationRequest.create();
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        mLocationRequest.setInterval(30 * 1000);
+        mLocationRequest.setFastestInterval(5 * 1000);
+    }
+
+    /**
+     * Standaard locatie tonen eerste keer laden van map als er geen toestemming gegegeven is
+     */
+    public void getDefaultLocation() {
+        // TODO: 8-8-2017 googlemap commented
+//        CameraUpdate center = CameraUpdateFactory.newLatLngZoom(new LatLng(DEFAULT_LAT, DEFAULT_LONG), 12.0f);
+
+        // see what current location is
+        Log.d("Tab1Fragment: ", "default location is choosen");
+        // TODO: 8-8-2017 googlemap commented
+//        mMap.moveCamera(center);
+    }
+
+    public void getLastLocation() {
+        /*if (ContextCompat.checkSelfPermission(getActivity(),
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    Constants.MY_PERMISSIONS_LOCATION);
+        } else {
+            *//*Location location = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
+            if (location == null) {
+                LocationServices.FusedLocationApi.requestLocationUpdates(mApiClient, mLocationRequest, this);
+            }
+            else {
+                Log.d("Tab1Fragment: ", location.toString());
+            };*//*
+            promptLocationSettings();
+        }*/
+
+        if (ContextCompat.checkSelfPermission(getActivity(),
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            Location location = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
+            if (location == null) {
+                LocationServices.FusedLocationApi.requestLocationUpdates(mApiClient, mLocationRequest, Tab1Fragment.this);
+            } else {
+                Log.d("Tab1Fragment: ", location.toString());
+            }
+        } else {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    Constants.MY_PERMISSIONS_LOCATION);
+        }
+    }
+
+    public void promptLocationSettings() {
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(mLocationRequest);
+
+        SettingsClient client = LocationServices.getSettingsClient(getActivity());
+        Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
+        task.addOnSuccessListener(getActivity(), new OnSuccessListener<LocationSettingsResponse>() {
+            @Override
+            public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
+                // All location settings are satisfied. The client can initialize
+                // location requests here.
+                /*if (ContextCompat.checkSelfPermission(getActivity(),
+                        Manifest.permission.ACCESS_FINE_LOCATION)
+                        == PackageManager.PERMISSION_GRANTED) {
+                    Location location = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
+                    if (location == null) {
+                        LocationServices.FusedLocationApi.requestLocationUpdates(mApiClient, mLocationRequest, Tab1Fragment.this);
+                    } else {
+                        Log.d("Tab1Fragment: ", location.toString());
+                    }
+                } else {
+                    requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                            Constants.MY_PERMISSIONS_LOCATION);
+                }*/
+
+                getLastLocation();
+            }
+        });
+
+        task.addOnFailureListener(getActivity(), new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                int statusCode = ((ApiException) e).getStatusCode();
+                switch (statusCode) {
+                    case CommonStatusCodes.RESOLUTION_REQUIRED:
+                        // Location settings are not satisfied, but this can be fixed
+                        // by showing the user a dialog.
+                        try {
+                            // Show the dialog by calling startResolutionForResult(),
+                            // and check the result in onActivityResult().
+                            ResolvableApiException resolvable = (ResolvableApiException) e;
+                            resolvable.startResolutionForResult(getActivity(),
+                                    REQUEST_CHECK_SETTINGS);
+                        } catch (IntentSender.SendIntentException sendEx) {
+                            // Ignore the error.
+                        }
+                        break;
+                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                        // Location settings are not satisfied. However, we have no way
+                        // to fix the settings so we won't show the dialog.
+                        break;
+                }
+            }
+        });
+    }
+
     @Override
     public void onLocationChanged(Location location) {
         Log.d("Tab1Fragment: ", "updated location: " + location.toString());
+    }
+
+    /**
+     * Controleren of permissies goed gekeurd zijn door de gebruiker
+     *
+     * @param requestCode  meegegeven activiteit nummer die gedaan is
+     * @param permissions  permissies die aangevraagd worden
+     * @param grantResults hoeveelheid permissies die goed gekeurd zijn door de gebruiker
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case Constants.MY_PERMISSIONS_LOCATION: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                    Permissie gekregen
+                    getLastLocation();
+//                    promptLocationSettings();
+                } else {
+                    if (ActivityCompat.shouldShowRequestPermissionRationale(getActivity(),Manifest.permission.ACCESS_FINE_LOCATION)) {
+                        // user has declined permission to access fine location at least once before
+                        new AlertDialog.Builder(getActivity()) // show user why getting access to fine location is important
+                                .setMessage(getResources().getText(R.string.eFineLocationPermissionExplain))
+                                .setCancelable(false)
+                                .setPositiveButton(getResources().getText(R.string.eImSure),
+                                        new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int id) {
+                                                // user decided not to give permission
+                                                if (currentLatLng == null) {
+                                                    getDefaultLocation();
+                                                }
+                                            }
+                                        })
+                                .setNegativeButton(getResources().getText(R.string.eRetry), new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        promptLocationSettings();
+                                    }
+                                })
+                                .show();
+                    } else {
+                        Log.i("onRequestPermResult", "Geen toestemming gekregen, eerste keer dat map geladen wordt default lat/long gepakt");
+                        if (currentLatLng == null) {
+                            getDefaultLocation();
+                        }
+                    }
+
+                }
+            }
+        }
+    }
+
+    /**
+     * Permissie wordt gevraagd als dit niet al gegeven is
+     */
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case REQUEST_CHECK_SETTINGS:
+                if (resultCode == Activity.RESULT_OK) {
+                    getLastLocation();
+                } else {
+                    new AlertDialog.Builder(this.getContext())
+                            .setTitle(getString(R.string.eFindLocationTitle))
+                            .setMessage(getString(R.string.eFindLocation))
+                            .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                }
+                            }).setIcon(android.R.drawable.ic_dialog_alert).show();
+
+                    if (currentLatLng == null){
+                        getDefaultLocation();
+                    }
+
+                }
+                Log.i("onActivityResult", "Gps aanvraag afgewezen");
+        }
     }
 
     /**
@@ -427,106 +551,6 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
             reqManager.getServiceRequests(camLat, camLng, null, currentRadius);
         }
 
-    }
-
-    /**
-     * Permissie wordt gevraagd als dit niet al gegeven is
-     */
-    public void reqFindLocation() {
-        /*if (ContextCompat.checkSelfPermission(getActivity(),
-                Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(getActivity(),
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    Constants.MY_PERMISSIONS_LOCATION);
-        } else {
-            getUserLocation();
-        }*/
-    }
-
-    protected synchronized void buildGoogleApiClient() {
-        Log.i("Tab1Fragment", "Building GoogleApiClient");
-
-        mApiClient = new GoogleApiClient.Builder(getActivity())
-                .addApi(LocationServices.API)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build();
-
-    }
-
-    protected void createLocationRequest() {
-
-        //import should be **import com.google.android.gms.location.LocationListener**;
-        mLocationRequest = LocationRequest.create();
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        mLocationRequest.setInterval(30 * 1000);
-        mLocationRequest.setFastestInterval(5 * 1000);
-
-
-    }
-
-    /**
-     * Controleren of permissies goed gekeurd zijn door de gebruiker
-     *
-     * @param requestCode  meegegeven activiteit nummer die gedaan is
-     * @param permissions  permissies die aangevraagd worden
-     * @param grantResults hoeveelheid permissies die goed gekeurd zijn door de gebruiker
-     */
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case Constants.MY_PERMISSIONS_LOCATION: {
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                    Permissie gekregen
-//                    getUserLocation();
-                    getLastLocation();
-                } else {
-                    Log.i("onRequestPermResult", "Geen toestemming gekregen, eerste keer dat map geladen wordt default lat/long gepakt");
-                    if (currentLatLng == null) {
-                        getDefaultLocation();
-                    }
-                    new AlertDialog.Builder(this.getContext())
-                            .setTitle(getString(R.string.eFindLocationTitle))
-                            .setMessage(getString(R.string.eFindLocation))
-                            .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    // send user back to Tab1Fragment
-                                }
-                            }).setIcon(android.R.drawable.ic_dialog_alert).show();
-                }
-            }
-        }
-    }
-    
-    /**
-     * Permissie wordt gevraagd als dit niet al gegeven is
-     */
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
-            case Constants.REQUEST_CHECK_SETTINGS:
-                if (resultCode == Activity.RESULT_OK) {
-                    reqFindLocation();
-                } else {
-                   new AlertDialog.Builder(this.getContext())
-                        .setTitle(getString(R.string.eFindLocationTitle))
-                       .setMessage(getString(R.string.eFindLocation))
-                       .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-
-                             }
-                        }).setIcon(android.R.drawable.ic_dialog_alert).show();
-
-                    if (currentLatLng == null){
-                        getDefaultLocation();
-                    }
-
-            }
-            Log.i("onActivityResult", "Gps aanvraag afgewezen");
-        }
     }
 
     /**

@@ -80,5 +80,8 @@
     <string name="gegevensVerwijderd">Persoonlijke gegevens succesvol verwijderd</string>
     <string name="noConnection">Het is niet gelukt om met het internet te verbinden. Probeer later opnieuw</string>
     <string name="filters_opslaan">Opslaan</string>
+    <string name="eFineLocationPermissionExplain">Zonder deze permissie kan de app uw locatie niet vinden. U wordt dan niet naar uw eigen locatie gebracht op de kaart. Weet u zeker dat u deze permissie niet toe wilt staan?</string>
+    <string name="eRetry">OPNIEUW PROBEREN</string>
+    <string name="eImSure">JA</string>
 
 </resources>

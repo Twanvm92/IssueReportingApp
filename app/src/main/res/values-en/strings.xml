@@ -71,4 +71,7 @@
     <string name="gegevensVerwijderd">Personal data successfully removed</string>
     <string name="noConnection">Oops. Could not connect to the internet. Try again later.</string>
     <string name="filters_opslaan">Save</string>
+    <string name="eFineLocationPermissionExplain">Without this permission the app is unable to determine your location. You will not be pointed to your location on the map. Are you sure you want to deny this permission?</string>
+    <string name="eRetry">RE-TRY</string>
+    <string name="eImSure">I\'M SURE</string>
 </resources>

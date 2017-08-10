@@ -212,7 +212,8 @@ public class MainActivity extends AppCompatActivity implements
                         startActivity(in);
                         break;
                     case R.id.activityMain_item_gps:
-                        tabFragment.reqFindLocation();
+//                        tabFragment.reqFindLocation();
+                        tabFragment.promptLocationSettings();
                 }
 
                 return true;

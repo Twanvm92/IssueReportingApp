@@ -112,7 +112,6 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
 
         client = ServiceGenerator.createService(ServiceClient.class);
 
-        setUpMap();
         buildGoogleApiClient();
         createLocationRequest();
     }
@@ -122,7 +121,7 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.tab1_fragment, container, false);
 
-        wbMap = (WebView) view.findViewById(R.id.tab1Fragment_webview);
+        wbMap = (WebView) view.findViewById(R.id.tab1fragment_wv_kaartBreda);
         setUpMap();
 
         return view;
@@ -171,41 +170,16 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
     }
 
     /**
-     * Opzetten van de map
+     * Build the webview with additional settings and load a map from a URL.
      */
     // TODO: 8-8-2017 googlemap commented
     private void setUpMap() {
         //setup map settings
 
         wbMap.getSettings().setJavaScriptEnabled(true);
-        wbMap.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
         wbMap.getSettings().setAllowFileAccessFromFileURLs(true);
-        wbMap.getSettings().setAllowUniversalAccessFromFileURLs(true);
         wbMap.getSettings().setDomStorageEnabled(true);
-
-        /*StringBuilder buf = new StringBuilder();
-        InputStream json= null;
-        try {
-            json = getActivity().getAssets().open("html/mapTest.html");
-
-            BufferedReader in= null;
-
-            in = new BufferedReader(new InputStreamReader(json, "UTF-8"));
-            String str;
-
-            while ((str=in.readLine()) != null) {
-                buf.append(str);
-            }
-
-
-
-            in.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-
-        wbMap.loadDataWithBaseURL("file:///android_asset/", buf.toString(), "text/html", "utf-8", null);*/
+        wbMap.getSettings().setLightTouchEnabled(true);
 
         wbMap.loadUrl("http://37.34.59.50/mapTest.html");
 

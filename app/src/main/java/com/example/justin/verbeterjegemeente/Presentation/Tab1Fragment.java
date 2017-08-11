@@ -104,27 +104,30 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
 
         client = ServiceGenerator.createService(ServiceClient.class);
 
-        // TODO: 8-8-2017 replaced api here
-//        initApi();
         buildGoogleApiClient();
         createLocationRequest();
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
+    public void onAttach(Context context) {
+        super.onAttach(context);
 
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(activity);
+        Activity a;
 
-        // This makes sure that the container activity has implemented
-        // the callback interface. If not, it throws an exception
-        try {
-            sRequestCallback = (ServiceRequestsReadyListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement OnHeadlineSelectedListener");
+        if (context instanceof Activity) {
+            a = (Activity) context;
+
+            mFusedLocationClient = LocationServices.getFusedLocationProviderClient(a);
+
+            // This makes sure that the container activity has implemented
+            // the callback interface. If not, it throws an exception
+            try {
+                sRequestCallback = (ServiceRequestsReadyListener) a;
+            } catch (ClassCastException e) {
+                throw new ClassCastException(a.toString()
+                        + " must implement OnHeadlineSelectedListener");
+            }
         }
-
     }
 
     @Override
@@ -134,18 +137,6 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
 
     @Override
     public void onStop() {
-        /*try {
-            if (!ConnectionChecker.isConnected()) {
-                LocationServices.FusedLocationApi.removeLocationUpdates(mApiClient, this);
-                if (mApiClient != null) {
-                    mApiClient.disconnect();
-
-                }
-            }
-        } catch (Exception e) {
-            Log.i("EXCEPTION: ", e.getLocalizedMessage());
-        }*/
-
         super.onStop();
     }
 
@@ -159,26 +150,11 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
         super.onPause();
     }
 
-    //set up map when map is loaded
-    // TODO: 8-8-2017 googlemap commented
-   /* public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-        mMap.setOnCameraIdleListener(this);
-
-
-        //get Current radius selected by user in MainActivity
-        Log.i("Current radius: ", currentRadius);
-
-        setUpMap();
-        Log.e("MAP: ", "map is klaargezet");
-    }*/
-
-
     /**
      * Opzetten van de map
      */
     // TODO: 8-8-2017 googlemap commented
-    /*private void setUpMap() {
+    private void setUpMap() {
         //setup map settings
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         mMap.getUiSettings().setMapToolbarEnabled(false);
@@ -186,89 +162,11 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
 
         initApi();
 
-    }*/
-
-    /**
-     * Locatie van de gebuiker ophalen
-     */
-    public void getUserLocation() {
-        /*LocationRequest locationRequest = LocationRequest.create();
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        locationRequest.setInterval(30 * 1000);
-        locationRequest.setFastestInterval(5 * 1000);
-        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
-                .addLocationRequest(locationRequest);
-
-        builder.setAlwaysShow(true);
-
-
-        final PendingResult<LocationSettingsResult> result =
-                LocationServices.SettingsApi.checkLocationSettings(mApiClient, builder.build());
-        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
-
-            @Override
-            public void onResult(@NonNull LocationSettingsResult LSresult) {
-                final Status status = LSresult.getStatus();
-                switch (status.getStatusCode()) {
-                    case LocationSettingsStatusCodes.SUCCESS:
-                        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                            *//*currentLocation = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
-                            if (currentLocation != null) {
-                                eersteKeer = false;
-                                currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-                                // TODO: 8-8-2017 googlemap commented
-//                                CameraUpdate center = CameraUpdateFactory.newLatLngZoom(currentLatLng, 16.0f);
-
-                                // see what current location is
-                                Log.d("Tab1Fragment: ", "lat: " + currentLocation.getLatitude() + " long: " + currentLocation.getLongitude());
-                                // TODO: 8-8-2017 googlemap commented
-//                                mMap.moveCamera(center);
-                            } else {
-                                if (eersteKeer = true){
-                                    getLocation();
-                                }
-                                Log.e("getUserLocation", "Kan locatie niet ophalen");
-                            }*//*
-                            mFusedLocationClient.getLastLocation().addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    if (eersteKeer = true) {
-                                        getDefaultLocation();
-                                    }
-                                    Log.e("getUserLocation", "Kan locatie niet ophalen");
-                                }
-                            })
-                                    .addOnSuccessListener(getActivity(), new OnSuccessListener<Location>() {
-                                        @Override
-                                        public void onSuccess(Location location) {
-                                            // Got last known location. In some rare situations this can be null.
-                                            if (location != null) {
-                                                eersteKeer = false;
-                                                // see what current location is
-                                                Log.d("Tab1Fragment: ", "lat: " + location.getLatitude() + " long: " + location.getLongitude());
-                                            }
-                                        }
-                                    });
-
-                        } else {
-                            Log.e("getUserLocation", "Geen toestemming");
-                        }
-                        break;
-                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                        try {
-                            status.startResolutionForResult(getActivity(), Constants.REQUEST_CHECK_SETTINGS);
-                        } catch (IntentSender.SendIntentException e) {
-                            e.printStackTrace();
-                        }
-                        break;
-                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-
-                        break;
-                }
-            }
-        });*/
     }
 
+    /**
+     * Build the Google API Client that will be used to access Google Play Services
+     */
     protected synchronized void buildGoogleApiClient() {
         Log.i("Tab1Fragment", "Building GoogleApiClient");
 
@@ -278,26 +176,10 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
-
     }
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        // nothing has to be done here
-
-        /*mFusedLocationClient.getLastLocation()
-                .addOnSuccessListener(getActivity(), new OnSuccessListener<Location>() {
-                    @Override
-                    public void onSuccess(Location location) {
-                        // Got last known location. In some rare situations this can be null.
-                        if (location != null) {
-                            // ...
-                        }
-                    }
-                });*/
-
-        // !! gets called everytime request permission dialog closess
-//        getLastLocation();
         promptLocationSettings();
     }
 
@@ -308,20 +190,15 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        if (connectionResult.hasResolution()) {
-            try {
-                // Start an Activity that tries to resolve the error
-                connectionResult.startResolutionForResult(getActivity(), CONNECTION_FAILURE_RESOLUTION_REQUEST);
-            } catch (IntentSender.SendIntentException e) {
-                e.printStackTrace();
-            }
-        } else {
-            Log.i(" Tab1Fragment", "Location services connection failed with code " + connectionResult.getErrorCode());
-        }
+        // gets managed by api client automatically
     }
 
+    /**
+     * Create a location request that can be used later on to
+     * prompt location settings for the user.
+     * @see Tab1Fragment#promptLocationSettings()
+     */
     protected void createLocationRequest() {
-        //import should be **import com.google.android.gms.location.LocationListener**;
         mLocationRequest = LocationRequest.create();
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         mLocationRequest.setInterval(30 * 1000);
@@ -329,7 +206,7 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
     }
 
     /**
-     * Standaard locatie tonen eerste keer laden van map als er geen toestemming gegegeven is
+     * Shows default location on the map if location of user could not be found.
      */
     public void getDefaultLocation() {
         // TODO: 8-8-2017 googlemap commented
@@ -341,38 +218,35 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
 //        mMap.moveCamera(center);
     }
 
+    /**
+     * Will try to retrieve users' last location after permission to access fine location
+     * is granted. Will ask for user to give permission otherwise and onRequestPermissionResult
+     * will be triggered.
+     */
     public void getLastLocation() {
-        /*if (ContextCompat.checkSelfPermission(getActivity(),
-                Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    Constants.MY_PERMISSIONS_LOCATION);
-        } else {
-            *//*Location location = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
-            if (location == null) {
-                LocationServices.FusedLocationApi.requestLocationUpdates(mApiClient, mLocationRequest, this);
-            }
-            else {
-                Log.d("Tab1Fragment: ", location.toString());
-            };*//*
-            promptLocationSettings();
-        }*/
-
         if (ContextCompat.checkSelfPermission(getActivity(),
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
+            // try to retrieve users' last location.
             Location location = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
             if (location == null) {
+                // something went wrong. Try to get a location update.
                 LocationServices.FusedLocationApi.requestLocationUpdates(mApiClient, mLocationRequest, Tab1Fragment.this);
-            } else {
+            } else { // location was successfully retrieved
                 Log.d("Tab1Fragment: ", location.toString());
             }
         } else {
+            // request the user for permission.
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     Constants.MY_PERMISSIONS_LOCATION);
         }
     }
 
+    /**
+     * Prompt the location settings of the users' phone.
+     * Will try to resolve the users' location settings if they are not satisfied.
+     * Will try to get users' last location if location settings are satisfied
+     */
     public void promptLocationSettings() {
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
                 .addLocationRequest(mLocationRequest);
@@ -382,22 +256,6 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
         task.addOnSuccessListener(getActivity(), new OnSuccessListener<LocationSettingsResponse>() {
             @Override
             public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
-                // All location settings are satisfied. The client can initialize
-                // location requests here.
-                /*if (ContextCompat.checkSelfPermission(getActivity(),
-                        Manifest.permission.ACCESS_FINE_LOCATION)
-                        == PackageManager.PERMISSION_GRANTED) {
-                    Location location = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
-                    if (location == null) {
-                        LocationServices.FusedLocationApi.requestLocationUpdates(mApiClient, mLocationRequest, Tab1Fragment.this);
-                    } else {
-                        Log.d("Tab1Fragment: ", location.toString());
-                    }
-                } else {
-                    requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                            Constants.MY_PERMISSIONS_LOCATION);
-                }*/
-
                 getLastLocation();
             }
         });
@@ -430,17 +288,12 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
     }
 
     @Override
-    public void onLocationChanged(Location location) {
+    public void onLocationChanged(Location location) { // gets called when there is a location update from google play services
+        // after updated location is available, make sure that location services does not keep updating locations
+        LocationServices.FusedLocationApi.removeLocationUpdates(mApiClient, this);
         Log.d("Tab1Fragment: ", "updated location: " + location.toString());
     }
 
-    /**
-     * Controleren of permissies goed gekeurd zijn door de gebruiker
-     *
-     * @param requestCode  meegegeven activiteit nummer die gedaan is
-     * @param permissions  permissies die aangevraagd worden
-     * @param grantResults hoeveelheid permissies die goed gekeurd zijn door de gebruiker
-     */
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
@@ -448,9 +301,8 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
             case Constants.MY_PERMISSIONS_LOCATION: {
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                    Permissie gekregen
-                    getLastLocation();
-//                    promptLocationSettings();
+                    // received permission from user to access fine location
+                    getLastLocation(); // location settings are already set so jump to getting last location
                 } else {
                     if (ActivityCompat.shouldShowRequestPermissionRationale(getActivity(),Manifest.permission.ACCESS_FINE_LOCATION)) {
                         // user has declined permission to access fine location at least once before
@@ -462,18 +314,19 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
                                             public void onClick(DialogInterface dialog, int id) {
                                                 // user decided not to give permission
                                                 if (currentLatLng == null) {
-                                                    getDefaultLocation();
+                                                    getDefaultLocation(); // use default location instead of users' location
                                                 }
                                             }
                                         })
                                 .setNegativeButton(getResources().getText(R.string.eRetry), new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
+                                        // user wants to try again
                                         promptLocationSettings();
                                     }
                                 })
                                 .show();
-                    } else {
+                    } else { // user has not declined permission before
                         Log.i("onRequestPermResult", "Geen toestemming gekregen, eerste keer dat map geladen wordt default lat/long gepakt");
                         if (currentLatLng == null) {
                             getDefaultLocation();
@@ -485,9 +338,7 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
         }
     }
 
-    /**
-     * Permissie wordt gevraagd als dit niet al gegeven is
-     */
+    // gets called after trying to resolve the users' location settings
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {

@@ -20,6 +20,10 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.webkit.WebView;
 
 import com.example.justin.verbeterjegemeente.API.ConnectionChecker;
 import com.example.justin.verbeterjegemeente.API.RequestManager;
@@ -61,7 +65,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 import retrofit2.Call;
@@ -90,11 +97,12 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
     public float zoomLevel;
     private FusedLocationProviderClient mFusedLocationClient;
     private LocationRequest mLocationRequest;
+    WebView wbMap;
+
 
     public void onCreate(Bundle savedInstaceState) {
         super.onCreate(savedInstaceState);
 
-        eersteKeer = true;
         // get user selected radius and cat or use default radius and cat
         SharedPreferences prefs = getActivity().getPreferences(Context.MODE_PRIVATE);
         int rValue = prefs.getInt(getString(R.string.activityMain_saved_radius), 20); // 20 is default
@@ -104,8 +112,20 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
 
         client = ServiceGenerator.createService(ServiceClient.class);
 
+        setUpMap();
         buildGoogleApiClient();
         createLocationRequest();
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.tab1_fragment, container, false);
+
+        wbMap = (WebView) view.findViewById(R.id.tab1Fragment_webview);
+        setUpMap();
+
+        return view;
     }
 
     @Override
@@ -156,11 +176,38 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
     // TODO: 8-8-2017 googlemap commented
     private void setUpMap() {
         //setup map settings
-        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-        mMap.getUiSettings().setMapToolbarEnabled(false);
-        mMap.setPadding(60, 100, 0, 180);
 
-        initApi();
+        wbMap.getSettings().setJavaScriptEnabled(true);
+        wbMap.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
+        wbMap.getSettings().setAllowFileAccessFromFileURLs(true);
+        wbMap.getSettings().setAllowUniversalAccessFromFileURLs(true);
+        wbMap.getSettings().setDomStorageEnabled(true);
+
+        /*StringBuilder buf = new StringBuilder();
+        InputStream json= null;
+        try {
+            json = getActivity().getAssets().open("html/mapTest.html");
+
+            BufferedReader in= null;
+
+            in = new BufferedReader(new InputStreamReader(json, "UTF-8"));
+            String str;
+
+            while ((str=in.readLine()) != null) {
+                buf.append(str);
+            }
+
+
+
+            in.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+        wbMap.loadDataWithBaseURL("file:///android_asset/", buf.toString(), "text/html", "utf-8", null);*/
+
+        wbMap.loadUrl("http://37.34.59.50/mapTest.html");
 
     }
 

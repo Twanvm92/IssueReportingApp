@@ -212,7 +212,8 @@ public class MainActivity extends AppCompatActivity implements
                         startActivity(in);
                         break;
                     case R.id.activityMain_item_gps:
-                        tabFragment.reqFindLocation();
+//                        tabFragment.reqFindLocation();
+                        tabFragment.promptLocationSettings();
                 }
 
                 return true;
@@ -418,13 +419,13 @@ public class MainActivity extends AppCompatActivity implements
         viewPager.setAdapter(adapter);
     }
 
-    @Override
+   /* @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
             case Constants.MY_PERMISSIONS_LOCATION:
                 tabFragment.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
-    }
+    }*/
 
     @Override
     public void onBackPressed() {

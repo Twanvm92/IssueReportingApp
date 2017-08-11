@@ -372,9 +372,9 @@ public class RequestManager {
                         if(response.isSuccessful()) {
                             // if a response has been received create a list with Services with the responsebody
                             ArrayList<ServiceRequest> servReqList = response.body();
-//                            if (!servReqList.isEmpty()) {
+
                             servReqCallb.serviceRequestsReady(servReqList);
-//                            }
+
                         } else {
                             try { //something went wrong. Show the user what went wrong
                                 JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());

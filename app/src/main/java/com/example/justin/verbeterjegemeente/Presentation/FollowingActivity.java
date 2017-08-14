@@ -1,5 +1,7 @@
 package com.example.justin.verbeterjegemeente.Presentation;
 
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -17,8 +19,10 @@ import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.Adapters.ServiceRequestAdapter;
 import com.example.justin.verbeterjegemeente.Business.ServiceManager;
+import com.example.justin.verbeterjegemeente.Constants;
 import com.example.justin.verbeterjegemeente.Database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.R;
+import com.example.justin.verbeterjegemeente.UpdateService;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 
 import java.io.IOException;
@@ -83,6 +87,17 @@ public class FollowingActivity extends AppCompatActivity implements RequestManag
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        // reset the notification counter
+        UpdateService.resetNotificationCounter();
+
+        // remove the notification on the users phone
+        NotificationManager notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+        notificationManager.cancel(Constants.NOTIFICATION_ID);
+    }
+
+    @Override
     public void onBackPressed() {
         Intent in = new Intent(getApplicationContext(), MainActivity.class);
         startActivity(in);
@@ -90,11 +105,14 @@ public class FollowingActivity extends AppCompatActivity implements RequestManag
 
     @Override
     public void serviceRequestsReady(ArrayList<ServiceRequest> serviceRequests) {
-        for(ServiceRequest s : serviceRequests) {
-            srListFinal.add(s);
+        srListFinal.clear();
+
+        if (!serviceRequests.isEmpty()) {
+            for(ServiceRequest s : serviceRequests) {
+                srListFinal.add(s);
+            }
         }
 
         meldingAdapter.notifyDataSetChanged();
-
     }
 }

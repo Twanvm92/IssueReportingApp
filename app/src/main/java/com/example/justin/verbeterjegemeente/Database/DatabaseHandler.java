@@ -86,6 +86,19 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.close();
     }
 
+    // Adds a report to the database
+    public void updateReportUpdatetime(String srID, String srUpdateTime){
+        Log.i("DatabaseHandler: ", "SR ID: " +  srID);
+        Log.i("DatabaseHandler: ", "SR Updatetime: " + srUpdateTime);
+
+        ContentValues values = new ContentValues();
+        values.put(MELDING_COLUMN_UPDATETIME, srUpdateTime);
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.update(MELDING_TABLE_NAME, values, MELDING_COLUMN_IDAPI + " = ?", new String[]{srID});
+        db.close();
+    }
+
     // Gets the user stored in the database
     public User getUser() {
 

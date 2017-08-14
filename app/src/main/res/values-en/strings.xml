@@ -55,8 +55,7 @@
     <string name="activityMain_item_report">Report</string>
 
 
-    <string name="reportUpdated">Your report has been updated</string>
-    <string name="on">on</string>
+    <string name="reportUpdated">reports have been updated</string>
 
 
     <string name="soortgelijkeMeldingen">Similar alerts at this location</string>
@@ -74,4 +73,5 @@
     <string name="eFineLocationPermissionExplain">Without this permission the app is unable to determine your location. You will not be pointed to your location on the map. Are you sure you want to deny this permission?</string>
     <string name="eRetry">RE-TRY</string>
     <string name="eImSure">I\'M SURE</string>
+    <string name="app_name">Meld Probleem-Weg Probleem</string>
 </resources>

@@ -103,7 +103,7 @@ public class DetailedMeldingActivity extends FragmentActivity {
             public void liked(LikeButton likeButton) {
 
                 try {
-                    if (db.ReportExists(serviceRequest.getServiceRequestId()) == false) {
+                    if (!db.ReportExists(serviceRequest.getServiceRequestId())) {
                         db.addReport(serviceRequest.getServiceRequestId());
                     }
                 } catch (Exception e) {
@@ -135,14 +135,18 @@ public class DetailedMeldingActivity extends FragmentActivity {
         terugButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (origin != null) {
+                    if (origin.equals("FollowActivity")) {
+                        Intent in = new Intent(getApplicationContext(), FollowingActivity.class);
+                        startActivity(in);
+                    } else if (origin.equals("Tab2Fragment") || origin.equals("MeldingActivityDialog")) {
+                        onBackPressed();
 
-                if (origin.equals("FollowActivity")) {
-                    Intent in = new Intent(getApplicationContext(), FollowingActivity.class);
-                    startActivity(in);
-                } else if (origin.equals("Tab2Fragment") || origin.equals("MeldingActivityDialog")) {
+                    }
+                } else {
                     onBackPressed();
-
                 }
+
 
             }
         });
@@ -302,9 +306,12 @@ public class DetailedMeldingActivity extends FragmentActivity {
 
     @Override
     public void onBackPressed() {
-        if (origin.equals("FollowActivity")) {
-            Intent in = new Intent(getApplicationContext(), FollowingActivity.class);
-            startActivity(in);
+        if (origin != null) {
+            if(origin.equals("FollowActivity")) {
+                Intent in = new Intent(getApplicationContext(), FollowingActivity.class);
+                startActivity(in);
+            }
+
         } else {
             super.onBackPressed();
         }

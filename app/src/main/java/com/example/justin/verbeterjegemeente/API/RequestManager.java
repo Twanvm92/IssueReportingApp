@@ -213,9 +213,14 @@ public class RequestManager {
                         if(response.isSuccessful()) {
                             // if a response has been received create a list with Services with the responsebody
                             ArrayList<ServiceRequest> servReqList = response.body();
+
                             if (!servReqList.isEmpty()) {
-                                servReqCallb.serviceRequestsReady(servReqList);
+                                for (ServiceRequest sr : servReqList) {
+                                    sr.setUpdatedDatetime("2017-08-07T16:59:42Z");
+                                }
                             }
+
+                            servReqCallb.serviceRequestsReady(servReqList);
                         }
 
                     }

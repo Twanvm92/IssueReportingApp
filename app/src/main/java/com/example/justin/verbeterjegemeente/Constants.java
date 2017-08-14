@@ -37,4 +37,7 @@ public class Constants {
     // back button
     public static final int BACK_BUTTON = 999;
 
+    //
+    public static final int NOTIFICATION_ID = 1;
+
 }

@@ -1,12 +1,18 @@
 package com.example.justin.verbeterjegemeente;
 
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.os.Process;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 import android.widget.Toast;
 import android.app.Service;
@@ -17,9 +23,11 @@ import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.Business.ServiceManager;
 import com.example.justin.verbeterjegemeente.Database.DatabaseHandler;
+import com.example.justin.verbeterjegemeente.Presentation.FollowingActivity;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 import retrofit2.Call;
@@ -33,87 +41,39 @@ import retrofit2.Response;
  */
 
 public class UpdateService extends Service {
-    private Looper serviceLooper;
     private ServiceHandler serviceHandler;
-    ServiceClient client;
-    private int LONG_SLEEP_TIME;
-    private int count;
+    private static int count = 0;
 
-    public final class ServiceHandler extends Handler implements RequestManager.OnServiceRequestsReady {
-        public ServiceHandler(Looper looper){
+    private static class ServiceHandler extends Handler implements RequestManager.OnServiceRequestsReady {
+        // A weak reference to the enclosing context
+        private final WeakReference<UpdateService> mContext;
+        private int LONG_SLEEP_TIME;
+        ArrayList<ServiceRequest> databaseList;
+
+        private final UpdateService context;
+
+        ServiceHandler(Looper looper, UpdateService context){
             super(looper);
+            mContext = new WeakReference<UpdateService>(context);
+            this.context = mContext.get();
             // Setting a sleep time for the th
-            // read, 15 minutes
-            LONG_SLEEP_TIME = 600000;
-            count = 0;
+            // read, 10 minutes
+//            LONG_SLEEP_TIME = 600000;
+            LONG_SLEEP_TIME = 30000;
 
+            // TODO: 11-8-2017 remove after testing notification update
         }
 
         public void handleMessage(Message message){
-
             // Connecting to the database and getting a list of serviceRequests(id + timestamp).
-            DatabaseHandler db = new DatabaseHandler(getApplicationContext(), null, null, 1);
-            final ArrayList<ServiceRequest> DatabaseList = db.getReports();
+            DatabaseHandler db = new DatabaseHandler(context, null, null, 1);
+            databaseList = db.getReports();
             db.close();
 
-            String sRequestIDQ = ServiceManager.genServiceRequestIDQ(DatabaseList);
-            RequestManager requestManager = new RequestManager(getApplicationContext());
+            String sRequestIDQ = ServiceManager.genServiceRequestIDQ(databaseList);
+            RequestManager requestManager = new RequestManager(context);
             requestManager.setOnServiceReqReadyCallb(this);
             requestManager.getServiceRequestsByID(sRequestIDQ);
-
-
-            /*try{
-                if(ConnectionChecker.isConnected()){  //checking for internet acces.
-
-                    for(ServiceRequest s: DatabaseList) {
-                        client = ServiceGenerator.createService(ServiceClient.class);
-                        Call<ServiceRequest> RequestResponseCall =
-                                client.getServiceById(s.getServiceRequestId(), "1");
-                        RequestResponseCall.enqueue(new retrofit2.Callback<ServiceRequest>() {
-                            @Override
-                            public void onResponse(Call<ServiceRequest> call, Response<ServiceRequest> response) {
-                                if(response.isSuccessful()){
-                                    ServiceRequest sr = response.body();
-
-                                    if(sr != null) {
-
-                                        String dateTime = sr.getRequestedDatetime();
-
-//                                        if(count == 5){
-//                                            dateTime = "different datetime";
-//                                        }
-
-                                        // If the timestamp from the server is different then that from the database
-                                        // a notification is made en pushed to the user.
-                                        if (sr.getRequestedDatetime() != dateTime) {
-                                            Log.i("CHECK", "changed date time = " + dateTime);
-                                            notifyReportChanged(getString(R.string.reportUpdated) + " ",
-                                                    getString(R.string.on) + " " + sr.getRequestedDatetime(), sr);
-                                        }
-                                    }
-
-                                } else { Log.i("response mis", "yup");}
-                            }
-
-                            @Override
-                            public void onFailure(Call<ServiceRequest> call, Throwable t) {
-                                Toast.makeText(getApplicationContext(),
-                                        "Something went wrong while getting your requests",
-                                        Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                    }
-                }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-*/
-
-
-            count++;
-
 
             try{
                Thread.sleep(LONG_SLEEP_TIME);
@@ -132,19 +92,32 @@ public class UpdateService extends Service {
 
         @Override
         public void serviceRequestsReady(ArrayList<ServiceRequest> serviceRequests) {
-            for (ServiceRequest s : serviceRequests) {
-                String dateTime = s.getRequestedDatetime();
 
-//                if(count == 5){
-//                    dateTime = "different datetime";
-//                }
+            for (int i = 0; i < serviceRequests.size(); i++) {
+                String apiDateTime = serviceRequests.get(i).getUpdatedDatetime();
+                String localdbDateTime = databaseList.get(i).getUpdatedDatetime();
+
+                Log.i("UpdateService: ", "apiDateTime: " + apiDateTime);
+                Log.i("UpdateService: ", "localdbDateTime: " + localdbDateTime);
+                Log.i("UpdateService: ", "beschrijving: " + serviceRequests.get(i).getDescription());
 
                 // If the timestamp from the server is different then that from the database
                 // a notification is made en pushed to the user.
-                if (s.getRequestedDatetime() != dateTime) {
-                    Log.i("CHECK", "changed date time = " + dateTime);
-                    notifyReportChanged(getString(R.string.reportUpdated) + " ",
-                            getString(R.string.on) + " " + s.getRequestedDatetime(), s);
+                if (!apiDateTime.equals(localdbDateTime)) {
+                    Log.i("UpdateService", "changed date time = " + apiDateTime);
+
+                    String nTitle = context.getResources().getString(R.string.app_name);
+                    String nContent = context.getResources().getString(R.string.reportUpdated);
+
+                    context.notifyReportChanged(nTitle + " ",
+                            nContent, serviceRequests.get(i));
+
+                    // Connecting to the database and updating the local service request
+                    // with a new update time
+                    String localSrID = databaseList.get(i).getServiceRequestId();
+                    DatabaseHandler db = new DatabaseHandler(context, null, null, 1);
+                    db.updateReportUpdatetime(localSrID, apiDateTime);
+                    db.close();
                 }
             }
         }
@@ -157,8 +130,8 @@ public class UpdateService extends Service {
 
         thread.start();
 
-        serviceLooper = thread.getLooper();
-        serviceHandler = new ServiceHandler(serviceLooper);
+        Looper serviceLooper = thread.getLooper();
+        serviceHandler = new ServiceHandler(serviceLooper, this);
 
     }
 
@@ -185,18 +158,50 @@ public class UpdateService extends Service {
         Toast.makeText(this, "service done", Toast.LENGTH_SHORT).show();
     }
 
-
-
-
     /**
-     * Method that calls the Notification class to create and push a notification
-     * @param title The title of the nofication
-     * @param content The conentent of the notification
+     * Push a new notification to the user.
+     * @param title The title of the notification
+     * @param content The content of the notification
      * @param serviceRequest The serviceRequest that has changed (for the DetailedActivity)
      */
     public void notifyReportChanged(String title, String content, ServiceRequest serviceRequest){
-        Notification notification = new Notification();
-        notification.makeNotification(getApplicationContext(), title, content, serviceRequest);
+        SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
+        prefs.edit().putString(getString(R.string.activityMain_saved_servcodeQ), servCodeQ).apply();
+
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this);
+        // Sets the icon of the notification in the status bar.
+        mBuilder.setSmallIcon(R.drawable.statusicon);
+        // Set the Title of the notification in the status bar.
+        mBuilder.setContentTitle(title);
+        // Set the content of the notification.
+        mBuilder.setContentText(content);
+        // cancel notification after user clicks on it
+        mBuilder.setAutoCancel(true);
+        // Set number of service requests
+        mBuilder.setNumber(++count);
+
+        // Sets the intent to open when the notification is clicked, using the serviceRequest in the parameters.
+        Intent i = new Intent(this, FollowingActivity.class);
+//        i.putExtra("serviceRequest", serviceRequest);
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+
+        stackBuilder.addParentStack(FollowingActivity.class);
+
+        stackBuilder.addNextIntent(i);
+        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(
+                0,
+                PendingIntent. FLAG_UPDATE_CURRENT
+        );
+
+        mBuilder.setContentIntent(resultPendingIntent);
+
+        NotificationManager mNotificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
+
+        mNotificationManager.notify(Constants.NOTIFICATION_ID, mBuilder.build());
+    }
+
+    public static void resetNotificationCounter() {
+        count = 0;
     }
 
 }

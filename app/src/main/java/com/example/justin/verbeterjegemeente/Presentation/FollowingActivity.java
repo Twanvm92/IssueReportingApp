@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.Locale;
 import java.util.function.Predicate;
 
 import retrofit2.Call;
@@ -60,12 +61,8 @@ public class FollowingActivity extends AppCompatActivity implements RequestManag
                 Intent i = new Intent(view.getContext(), DetailedMeldingActivity.class);
                 ServiceRequest serviceRequest = srListFinal.get(position);
 
-                ArrayList<String> srIDList = UpdateService.getUnreadServiceRequests();
-
                 // remove this service request as unread if it was unread
                 UpdateService.resetUnreadServiceRequest(serviceRequest);
-
-                Log.i("FollowingActivity: ", "unread srs: " + srIDList.size());
 
                 i.putExtra("serviceRequest", serviceRequest);
                 i.putExtra("ORIGIN", "FollowActivity");
@@ -121,26 +118,50 @@ public class FollowingActivity extends AppCompatActivity implements RequestManag
     public void serviceRequestsReady(ArrayList<ServiceRequest> serviceRequests) {
         srListFinal.clear();
 
-        Comparator<ServiceRequest> comp = Collections.reverseOrder(new Comparator<ServiceRequest>() {
-            DateFormat f = new SimpleDateFormat("dd/MM/yyyy'T'HH:mm:ss'Z'");
-            @Override
-            public int compare(ServiceRequest o1, ServiceRequest o2) {
-                try {
-                    return f.parse(o1.getUpdatedDatetime()).compareTo(f.parse(o2.getUpdatedDatetime()));
-                } catch (ParseException e) {
-                    throw new IllegalArgumentException(e);
-                }
-            }
-        });
-
-        Collections.sort(serviceRequests,comp );
+        ArrayList<ServiceRequest> orderedServiceRequests = orderServiceRequests(serviceRequests);
 
         if (!serviceRequests.isEmpty()) {
-            for(ServiceRequest s : serviceRequests) {
+            for(ServiceRequest s : orderedServiceRequests) {
                 srListFinal.add(s);
                 Log.i("FollowActivity: ", "sr: " + s.getServiceRequestId());
             }
         }
         meldingAdapter.notifyDataSetChanged();
+    }
+
+    public ArrayList<ServiceRequest> orderServiceRequests(ArrayList<ServiceRequest> serviceRequests) {
+        Comparator<ServiceRequest> comp = Collections.reverseOrder(new Comparator<ServiceRequest>() {
+            DateFormat f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ENGLISH);
+            @Override
+            public int compare(ServiceRequest o1, ServiceRequest o2) {
+                Date firstDate;
+                Date secondDate;
+                try {
+                    if (o1.getUpdatedDatetime() == null && o2.getUpdatedDatetime() == null) {
+                        return 0;
+                    }
+
+                    if (o1.getUpdatedDatetime() != null) {
+                        firstDate = f.parse(o1.getUpdatedDatetime());
+                    } else {
+                        return -1;
+                    }
+
+                    if (o2.getUpdatedDatetime() != null) {
+                        secondDate = f.parse(o2.getUpdatedDatetime());
+                    } else {
+                        return +1;
+                    }
+
+                } catch (ParseException e) {
+                    throw new IllegalArgumentException(e);
+                }
+                return firstDate.compareTo(secondDate);
+            }
+        });
+
+        Collections.sort(serviceRequests,comp );
+
+        return serviceRequests;
     }
 }

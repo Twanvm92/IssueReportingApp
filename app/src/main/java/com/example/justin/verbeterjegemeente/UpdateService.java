@@ -204,19 +204,9 @@ public class UpdateService extends Service {
     }
 
     public static void resetUnreadServiceRequest(ServiceRequest sr){
-/*
-
-        for (Iterator<String> it = srIDList.iterator(); it.hasNext();) {
-            if (!it.next().equals(sr.getServiceRequestId()))
-                it.remove(); // NOTE: Iterator's remove method, not ArrayList's, is used.
-                Log.i("UpdateService: ", sr.getServiceRequestId() + " got removed");
-        }
-*/
-
         for ( int i = 0;  i < srIDList.size(); i++){
             String unreadSR = srIDList.get(i);
-            if(unreadSR.equals(sr.getServiceRequestId()))
-            {
+            if(unreadSR.equals(sr.getServiceRequestId())) {
                 srIDList.remove(i);
                 i--;
             }

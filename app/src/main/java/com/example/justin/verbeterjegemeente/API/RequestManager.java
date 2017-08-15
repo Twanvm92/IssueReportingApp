@@ -216,7 +216,7 @@ public class RequestManager {
 //                                    sr.setUpdatedDatetime("2017-08-02T16:59:42Z");
 //                                }
 
-                                for (int i = 0; i < servReqList.size(); i++) {
+                                for (int i = 0; i < servReqList.size() - 1; i++) {
                                     servReqList.get(i).setUpdatedDatetime("2017-08-0" + (i + 5) + "T16:59:42Z");
                                 }
 

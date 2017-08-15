@@ -29,10 +29,12 @@ import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 import java.io.IOException;
 import java.io.Serializable;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.function.Predicate;
 
 import retrofit2.Call;
@@ -119,13 +121,19 @@ public class FollowingActivity extends AppCompatActivity implements RequestManag
     public void serviceRequestsReady(ArrayList<ServiceRequest> serviceRequests) {
         srListFinal.clear();
 
-        Collections.sort(serviceRequests, new Comparator<ServiceRequest>() {
-            DateFormat f = new SimpleDateFormat("dd/MM/yyyy '@'hh:mm a");
+        Comparator<ServiceRequest> comp = Collections.reverseOrder(new Comparator<ServiceRequest>() {
+            DateFormat f = new SimpleDateFormat("dd/MM/yyyy'T'HH:mm:ss'Z'");
             @Override
             public int compare(ServiceRequest o1, ServiceRequest o2) {
-                return o1.getUpdatedDatetime().compareTo(o2.getUpdatedDatetime());
+                try {
+                    return f.parse(o1.getUpdatedDatetime()).compareTo(f.parse(o2.getUpdatedDatetime()));
+                } catch (ParseException e) {
+                    throw new IllegalArgumentException(e);
+                }
             }
         });
+
+        Collections.sort(serviceRequests,comp );
 
         if (!serviceRequests.isEmpty()) {
             for(ServiceRequest s : serviceRequests) {

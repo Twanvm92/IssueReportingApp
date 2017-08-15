@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -27,7 +28,12 @@ import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.function.Predicate;
 
 import retrofit2.Call;
 import retrofit2.Response;
@@ -36,7 +42,6 @@ public class FollowingActivity extends AppCompatActivity implements RequestManag
 
     ListView meldingListView;
     private ArrayAdapter meldingAdapter;
-    private Button terugButton;
     private ArrayList<ServiceRequest> srListFinal = new ArrayList<>();
 
     @Override
@@ -52,15 +57,20 @@ public class FollowingActivity extends AppCompatActivity implements RequestManag
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent i = new Intent(view.getContext(), DetailedMeldingActivity.class);
                 ServiceRequest serviceRequest = srListFinal.get(position);
+
+                ArrayList<String> srIDList = UpdateService.getUnreadServiceRequests();
+
+                // remove this service request as unread if it was unread
+                UpdateService.resetUnreadServiceRequest(serviceRequest);
+
+                Log.i("FollowingActivity: ", "unread srs: " + srIDList.size());
+
                 i.putExtra("serviceRequest", serviceRequest);
                 i.putExtra("ORIGIN", "FollowActivity");
-                Log.i("REQUEST", serviceRequest.getStatus());
-                startActivity(i);
+                Log.i("Followingactivity: ", serviceRequest.getServiceRequestId() + " was clicked");
+                FollowingActivity.this.startActivity(i);
             }
         });
-
-//        meldingAdapter.notifyDataSetChanged();
-
 
         // Filling the ArrayList with the service request id's from the database.
 
@@ -76,13 +86,13 @@ public class FollowingActivity extends AppCompatActivity implements RequestManag
         requestManager.setOnServiceReqReadyCallb(this);
         requestManager.getServiceRequestsByID(sRequestIDQ);
 
-        terugButton = (Button) findViewById(R.id.activityFollowing_btn_terugBTN_ID);
+        Button terugButton = (Button) findViewById(R.id.activityFollowing_btn_terugBTN_ID);
         terugButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                    Intent in = new Intent(getApplicationContext(), MainActivity.class);
-                    startActivity(in);
-                }
+                Intent in = new Intent(FollowingActivity.this.getApplicationContext(), MainActivity.class);
+                FollowingActivity.this.startActivity(in);
+            }
         });
     }
 
@@ -95,6 +105,8 @@ public class FollowingActivity extends AppCompatActivity implements RequestManag
         // remove the notification on the users phone
         NotificationManager notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
         notificationManager.cancel(Constants.NOTIFICATION_ID);
+
+
     }
 
     @Override
@@ -107,12 +119,20 @@ public class FollowingActivity extends AppCompatActivity implements RequestManag
     public void serviceRequestsReady(ArrayList<ServiceRequest> serviceRequests) {
         srListFinal.clear();
 
+        Collections.sort(serviceRequests, new Comparator<ServiceRequest>() {
+            DateFormat f = new SimpleDateFormat("dd/MM/yyyy '@'hh:mm a");
+            @Override
+            public int compare(ServiceRequest o1, ServiceRequest o2) {
+                return o1.getUpdatedDatetime().compareTo(o2.getUpdatedDatetime());
+            }
+        });
+
         if (!serviceRequests.isEmpty()) {
             for(ServiceRequest s : serviceRequests) {
                 srListFinal.add(s);
+                Log.i("FollowActivity: ", "sr: " + s.getServiceRequestId());
             }
         }
-
         meldingAdapter.notifyDataSetChanged();
     }
 }

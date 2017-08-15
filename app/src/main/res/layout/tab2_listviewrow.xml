@@ -7,7 +7,8 @@
     android:paddingLeft="10dp"
     android:paddingRight="10dp"
     android:foreground="@drawable/imageborder"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:id="@+id/tab2fragment_ll_parentLayout">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -22,7 +23,7 @@
             android:fontFamily="sans-serif-condensed"
             android:text="@string/locatieTab2"
             android:textAppearance="@style/TextAppearance.AppCompat.Light.Widget.PopupMenu.Large"
-            android:textColor="@android:color/holo_green_light"
+            android:textColor="@android:color/holo_green_dark"
             android:textSize="19sp"
             android:textStyle="bold" />
 
@@ -52,7 +53,7 @@
             android:fontFamily="sans-serif-condensed"
             android:text="@string/hoofdcategorieTab2"
             android:textAppearance="@style/TextAppearance.AppCompat.Light.Widget.PopupMenu.Large"
-            android:textColor="@android:color/holo_green_light"
+            android:textColor="@android:color/holo_green_dark"
             android:textSize="19sp"
             android:textStyle="bold" />
 
@@ -126,7 +127,7 @@
             android:paddingBottom="5dp"
             android:fontFamily="sans-serif-condensed"
             android:text="@string/laatsteupdateTab2"
-            android:textColor="@android:color/holo_green_light" />
+            android:textColor="@android:color/holo_green_dark" />
 
         <TextView
             android:id="@+id/activitySRA_tv_laatstUpdateID"

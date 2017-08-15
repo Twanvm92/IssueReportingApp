@@ -123,9 +123,8 @@ public class RequestManager {
                         if(response.isSuccessful()) {
                             // if a response has been received create a list with Services with the responsebody
                             ArrayList<ServiceRequest> servReqList = response.body();
-//                            if (!servReqList.isEmpty()) {
-                                servReqCallb.serviceRequestsReady(servReqList);
-//                            }
+
+                            servReqCallb.serviceRequestsReady(servReqList);
                         }
 
                     }
@@ -170,9 +169,7 @@ public class RequestManager {
                             // if a response has been received create a list with Services with the responsebody
                             ArrayList<ServiceRequest> servReqList = response.body();
 
-//                            if (!servReqList.isEmpty()) {
                                 servReqCallb.serviceRequestsReady(servReqList);
-//                            }
                         }
 
                     }
@@ -215,9 +212,14 @@ public class RequestManager {
                             ArrayList<ServiceRequest> servReqList = response.body();
 
                             if (!servReqList.isEmpty()) {
-                                for (ServiceRequest sr : servReqList) {
-                                    sr.setUpdatedDatetime("2017-08-07T16:59:42Z");
+//                                for (ServiceRequest sr : servReqList) {
+//                                    sr.setUpdatedDatetime("2017-08-02T16:59:42Z");
+//                                }
+
+                                for (int i = 0; i < servReqList.size(); i++) {
+                                    servReqList.get(i).setUpdatedDatetime("2017-08-0" + (i + 4) + "T16:59:42Z");
                                 }
+
                             }
 
                             servReqCallb.serviceRequestsReady(servReqList);

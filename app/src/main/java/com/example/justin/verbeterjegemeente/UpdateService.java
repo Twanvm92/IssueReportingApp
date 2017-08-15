@@ -2,9 +2,9 @@ package com.example.justin.verbeterjegemeente;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
@@ -15,23 +15,17 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 import android.widget.Toast;
-import android.app.Service;
 
-import com.example.justin.verbeterjegemeente.API.ConnectionChecker;
 import com.example.justin.verbeterjegemeente.API.RequestManager;
-import com.example.justin.verbeterjegemeente.API.ServiceClient;
-import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.Business.ServiceManager;
 import com.example.justin.verbeterjegemeente.Database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.Presentation.FollowingActivity;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 
-import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-
-import retrofit2.Call;
-import retrofit2.Response;
+import java.util.Iterator;
+import java.util.function.Predicate;
 
 /**
  * This class is a Service that runs in the background even if the app is closed.
@@ -43,6 +37,7 @@ import retrofit2.Response;
 public class UpdateService extends Service {
     private ServiceHandler serviceHandler;
     private static int count = 0;
+    private static ArrayList<String> srIDList = new ArrayList<>();
 
     private static class ServiceHandler extends Handler implements RequestManager.OnServiceRequestsReady {
         // A weak reference to the enclosing context
@@ -58,8 +53,8 @@ public class UpdateService extends Service {
             this.context = mContext.get();
             // Setting a sleep time for the th
             // read, 10 minutes
-//            LONG_SLEEP_TIME = 600000;
-            LONG_SLEEP_TIME = 30000;
+            LONG_SLEEP_TIME = 600000;
+//            LONG_SLEEP_TIME = 30000;
 
             // TODO: 11-8-2017 remove after testing notification update
         }
@@ -101,9 +96,9 @@ public class UpdateService extends Service {
                 Log.i("UpdateService: ", "localdbDateTime: " + localdbDateTime);
                 Log.i("UpdateService: ", "beschrijving: " + serviceRequests.get(i).getDescription());
 
-                // If the timestamp from the server is different then that from the database
+                // If the timestamp from the server is different than that from the database
                 // a notification is made en pushed to the user.
-                if (!apiDateTime.equals(localdbDateTime)) {
+                if (apiDateTime != null && !apiDateTime.equals(localdbDateTime)) {
                     Log.i("UpdateService", "changed date time = " + apiDateTime);
 
                     String nTitle = context.getResources().getString(R.string.app_name);
@@ -165,8 +160,8 @@ public class UpdateService extends Service {
      * @param serviceRequest The serviceRequest that has changed (for the DetailedActivity)
      */
     public void notifyReportChanged(String title, String content, ServiceRequest serviceRequest){
-        SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
-        prefs.edit().putString(getString(R.string.activityMain_saved_servcodeQ), servCodeQ).apply();
+
+        srIDList.add(serviceRequest.getServiceRequestId());
 
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this);
         // Sets the icon of the notification in the status bar.
@@ -202,6 +197,30 @@ public class UpdateService extends Service {
 
     public static void resetNotificationCounter() {
         count = 0;
+    }
+
+    public static ArrayList<String> getUnreadServiceRequests() {
+        return srIDList;
+    }
+
+    public static void resetUnreadServiceRequest(ServiceRequest sr){
+/*
+
+        for (Iterator<String> it = srIDList.iterator(); it.hasNext();) {
+            if (!it.next().equals(sr.getServiceRequestId()))
+                it.remove(); // NOTE: Iterator's remove method, not ArrayList's, is used.
+                Log.i("UpdateService: ", sr.getServiceRequestId() + " got removed");
+        }
+*/
+
+        for ( int i = 0;  i < srIDList.size(); i++){
+            String unreadSR = srIDList.get(i);
+            if(unreadSR.equals(sr.getServiceRequestId()))
+            {
+                srIDList.remove(i);
+                i--;
+            }
+        }
     }
 
 }

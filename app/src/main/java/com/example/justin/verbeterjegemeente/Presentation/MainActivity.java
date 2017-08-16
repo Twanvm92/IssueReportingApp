@@ -3,7 +3,6 @@ package com.example.justin.verbeterjegemeente.Presentation;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -38,10 +37,7 @@ import com.example.justin.verbeterjegemeente.domain.Service;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 import com.google.android.gms.maps.model.LatLng;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -207,11 +203,6 @@ public class MainActivity extends AppCompatActivity implements
                     case R.id.activityMain_item_report:
                         Intent in = new Intent(getApplicationContext(),
                                 com.example.justin.verbeterjegemeente.Presentation.MeldingActivity.class);
-                        if (currentLatLng != null) {
-                            in.putExtra("long", currentLatLng.longitude);
-                            in.putExtra("lat", currentLatLng.latitude);
-                            in.putExtra("zoom", tabFragment.zoomLevel);
-                        }
                         startActivity(in);
                         break;
                     case R.id.activityMain_item_gps:

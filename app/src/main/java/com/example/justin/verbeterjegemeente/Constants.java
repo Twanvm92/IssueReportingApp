@@ -27,7 +27,6 @@ public class Constants {
 
     public static final String PERMISSION = "PERMISSION";
 
-
     // location
     public final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
     public static final int LOCATIE_KIEZEN = 3;
@@ -35,14 +34,10 @@ public class Constants {
     public static final double DEFAULT_LONG = 4.768322892487049;
     public static final int REQUEST_CHECK_SETTINGS = 0x1;
 
-
     // back button
     public static final int BACK_BUTTON = 999;
 
     // notifications
     public static final int NOTIFICATION_ID = 1;
-    public static final String UNREAD_NOTIFICATIONS_FILE = "unread notifications file";
-    public static final String UNREAD_NOTIFICATIONS_ = "unread notifications";
-
 
 }

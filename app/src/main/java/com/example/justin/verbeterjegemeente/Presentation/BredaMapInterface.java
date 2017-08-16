@@ -8,6 +8,5 @@ import android.webkit.JavascriptInterface;
 
 public class BredaMapInterface {
 
-    @JavascriptInterface
-    public void
+
 }

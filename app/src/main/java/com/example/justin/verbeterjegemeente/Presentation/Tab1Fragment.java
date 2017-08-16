@@ -180,7 +180,7 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
         StringBuilder buf = new StringBuilder();
         InputStream json= null;
         try {
-            json = getActivity().getAssets().open("html/mapTest.html");
+            json = getActivity().getAssets().open("html/bredaKaart.html");
 
             BufferedReader in= null;
 

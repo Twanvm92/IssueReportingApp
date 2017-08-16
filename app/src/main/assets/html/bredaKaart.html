@@ -1,0 +1,70 @@
+
+
+
+<!doctype html>
+<html lang="en">
+<head>
+
+    <!-- Stylesheet nodig voor de map div-->
+
+
+    <script src="GeomerkBeheerLib.js"></script>
+    <link rel="stylesheet" href="GeomerkBeheerLib.css">
+    <!--<link rel="stylesheet" href="http://rawgit.com/webgeodatavore/ol3-extras-demos/master/french-geoapi-autocomplete/auto-complete.css">-->
+
+
+
+    <script>
+
+        //Deze token moet worden opgehaald met onze Api.
+        var accessToken = "q6APA7725jJTnTHPjzUhZYSlEMVcVl2d3MZbRDrgLSkkfg9MmqtDBOURRaMWqwjccdxqaAwu4nbD__-GYB0pMF6S3RAz660MQJ4--yUlYBeK3evrcR2BelvJfPB_VMuWmqs9D-XedSH8DxzbybBKSGcRV6Nqg_pEVVZEU88jcJlKdo_fXRKNBdbgmesf1ytYB9BuCvBlnFTdHw5jLeT2_E2FqM8xQwqmzLcd1UrFFdCXoMn9C8zJRNAk7nJE-LQntyXKzX-9-REz29Ym2IakZf71-PzYC3up2r5cgDnv_2uEdOB-H9-jiZk6hxWIdZImbjwN9YLpHmKyyU_DNaNmO4aUUx8XB86s-PD_xs0up_MFrXnQeVTb-Rwb78G7sj9mDvIXufSueRoTBzhcwpfEn7wJY841lhEDVznXzB-8h1rF6L8ZZu0bgACtIUW33RwFu4JuPUWNRU3UyAGCrdqNlX-UOeRKNC4Ra70zd_mvP1ZtFN1rkDazxR6TOxOJiJFGe0eiDf6-3DKkERNBFigvcUr2BWw1J8v6YY1ISNiNVyZdT-Ftxvlz3KxifRQ81Cv-";
+        localStorage.setItem('token', accessToken);
+        var p = {
+            div: 'testmap',  //Naam van de div in de html
+            type: 'full',
+            mapControls: [
+                Geomerk.Map.interactions.fullScreen
+            ]
+        };
+        //Callback na het tekenen van een punt/lijn of polygoon
+        function callbackGeom(wkt)
+        {
+            alert(wkt);
+        }
+    </script>
+    <!--Style om de size van de div te manupuleren-->
+    <style>
+        .map {
+            height: 800px;
+            width: 100%;
+        }
+    </style>
+    <title>Geomerk Openmap</title>
+</head>
+<body onload="Geomerk.Map.initMap(p);">
+<h2>My Map</h2>
+<button onclick="Geomerk.Map.drawGeo('Point', callbackGeom);">Draw Point</button>
+<button onclick="Geomerk.Map.addWKT('POLYGON((109766.27532491283 402884.3110125257,108266.19864481625 401565.7722746064,110263.11600876648 400256.78816522274,111342.7890332946 401260.0241614657,109766.27532491283 402884.3110125257))', { testdata: 'asfafs', request_id: '212' })">AddWKT</button>
+<button onclick="Geomerk.Map.addWKTPng('POINT(109766.27532491283 402884.3110125257)', 0.5, 46, 'http://openlayers.org/en/v3.7.0/examples/data/icon.png', { testdata: 'asfafs', request_id: '212' })">AddWKT PNG</button>
+<button onclick="Geomerk.Map.zoomToWKT('POINT(109766.27532491283 402884.3110125257)',17)">Zoom 2 WKT point</button>
+<button onclick="Geomerk.Map.zoomToWKT('POLYGON((109766.27532491283 402884.3110125257,108266.19864481625 401565.7722746064,110263.11600876648 400256.78816522274,111342.7890332946 401260.0241614657,109766.27532491283 402884.3110125257))',16)">Zoom2Polygon</button>
+<button onclick="Geomerk.Map.drawGeo('LineString', callbackGeom);">Draw line</button>
+<button onclick="Geomerk.Map.drawGeo('Polygon', callbackGeom);">Draw Polygon</button>
+<button onclick="callbackGeom(Geomerk.Map.convertRDtoLatLon(527001.2672291618, 6730453.568916777))">ConvertRDToLatLonCoordinate</button>
+<button onclick="callbackGeom(Geomerk.Map.convertLatLontoRD(174.64349764280743, 75.33220614884432))">ConvertLatLonToRDCoordinate</button>
+
+<form onsubmit="return false;" style="border-top: 1px solid #eee;border-bottom:1px solid #eee;background:#fafafa;margin:30px 0;padding:20px 10px;text-align:center">
+    <input id="places-search" autofocus type="text" name="q" placeholder="Zoek adres ..." style="width:100%;max-width:600px;outline:0">
+</form>
+<div id="testmap" class="map"></div>
+<script type="text/javascript">
+        Geomerk.Map.setLoadedCallback(Geomerk.Map.initSearchRD('places-search'));
+        Geomerk.Map.setFeatureClickCallback(featureClick);
+        function featureClick(feature,layer) {
+            var object = feature.getProperties();
+            alert(object);
+        };
+
+    </script>
+</body>
+</html>

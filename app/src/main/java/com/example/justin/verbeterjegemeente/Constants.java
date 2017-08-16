@@ -13,6 +13,8 @@ public class Constants {
     public static final String TEST_BASE_URL = "https://asiointi.hel.fi/palautews/rest/v1/";
     public static final String TEST_API_KEY = "f1301b1ded935eabc5faa6a2ce975f6";
     public static final String DESCRIPTION = "description";
+    public static final String STATUS_OPEN = "open";
+
 
     // Camera - gallery
     public static final int MY_PERMISSIONS_CAMERA = 1;

@@ -14,9 +14,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
@@ -25,11 +23,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
 
-import com.example.justin.verbeterjegemeente.API.ConnectionChecker;
 import com.example.justin.verbeterjegemeente.API.RequestManager;
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.Business.BitmapGenerator;
+import com.example.justin.verbeterjegemeente.Business.TimeStampGenerator;
 import com.example.justin.verbeterjegemeente.Constants;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
@@ -37,23 +35,14 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResolvableApiException;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
-import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResponse;
-import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.SettingsClient;
-import com.google.android.gms.maps.CameraUpdate;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -61,27 +50,13 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-
-import static com.example.justin.verbeterjegemeente.Constants.CONNECTION_FAILURE_RESOLUTION_REQUEST;
-import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LAT;
-import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LONG;
 import static com.example.justin.verbeterjegemeente.Constants.REQUEST_CHECK_SETTINGS;
+import static com.example.justin.verbeterjegemeente.Constants.STATUS_OPEN;
 
 // TODO: 8-8-2017 commented some code for google map
-public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*OnMapReadyCallback,*/ GoogleApiClient.ConnectionCallbacks,
+public class Tab1Fragment extends Fragment implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         com.google.android.gms.location.LocationListener, GoogleMap.OnCameraIdleListener,
         RequestManager.OnServiceRequestsReady {
@@ -93,9 +68,7 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
     private ServiceRequestsReadyListener sRequestCallback;
     private String currentRadius;
     private String servCodeQ;
-    private boolean eersteKeer;
     public float zoomLevel;
-    private FusedLocationProviderClient mFusedLocationClient;
     private LocationRequest mLocationRequest;
     WebView wbMap;
 
@@ -135,8 +108,6 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
 
         if (context instanceof Activity) {
             a = (Activity) context;
-
-            mFusedLocationClient = LocationServices.getFusedLocationProviderClient(a);
 
             // This makes sure that the container activity has implemented
             // the callback interface. If not, it throws an exception
@@ -179,7 +150,6 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
         wbMap.getSettings().setJavaScriptEnabled(true);
         wbMap.getSettings().setAllowFileAccessFromFileURLs(true);
         wbMap.getSettings().setDomStorageEnabled(true);
-        wbMap.getSettings().setLightTouchEnabled(true);
 
         wbMap.loadUrl("http://37.34.59.50/mapTest.html");
 
@@ -397,15 +367,17 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
         String camLat = Double.toString(center.latitude);
         String camLng = Double.toString(center.longitude);
 
-        if (!eersteKeer && (Double.compare(center.latitude, Constants.DEFAULT_LAT) != 0 ||
-                Double.compare(center.longitude, Constants.DEFAULT_LONG) != 0)) {
+        if (Double.compare(center.latitude, Constants.DEFAULT_LAT) != 0 ||
+                Double.compare(center.longitude, Constants.DEFAULT_LONG) != 0) {
 
             currentLatLng = new LatLng(center.latitude, center.longitude);
 
             zoomLevel = mMap.getCameraPosition().zoom;
         }
-
         Log.i("Camera positie: ", "is veranderd");
+
+        // generate a timestamp of 2 weeks ago to get closed requests not more than 2 weeks old.
+        String updateDatetime = TimeStampGenerator.genOlderTimestamp();
 
         // from here all the API requests will be handled
         RequestManager reqManager = new RequestManager(getActivity());
@@ -416,11 +388,14 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
 
         if (servCodeQ != null && !servCodeQ.equals("")) {
             // launch Retrofit callback and retrieve services asynchronously
-            reqManager.getServiceRequests(camLat, camLng, null, currentRadius, servCodeQ);
+            reqManager.getServiceRequests(camLat, camLng, STATUS_OPEN, currentRadius, servCodeQ);
+            // also request closed service request with an earliest update_datetime included.
+            reqManager.getClosedServiceRequests(camLat, camLng, STATUS_OPEN, currentRadius, servCodeQ, updateDatetime);
         } else {
             // launch Retrofit callback and retrieve services asynchronously
-//            reqManager.getServiceRequests(camLat, camLng, null, currentRadius, servCodeQ);
-            reqManager.getServiceRequests(camLat, camLng, null, currentRadius);
+            reqManager.getServiceRequests(camLat, camLng, STATUS_OPEN, currentRadius);
+            // also request closed service request with an earliest update_datetime included.
+            reqManager.getClosedServiceRequests(camLat, camLng, STATUS_OPEN, currentRadius, updateDatetime);
         }
 
     }
@@ -435,8 +410,7 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
      *                  that can be used for filtering service requests.
      */
     public void updateRadiusCat(int radius, String servCodeQ) {
-        String pRadius = Integer.toString(radius);
-        currentRadius = pRadius;
+        currentRadius = Integer.toString(radius);
         this.servCodeQ = servCodeQ;
         String currentLat;
         String currentLng;
@@ -447,8 +421,10 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
             currentLat = Double.toString(currentLatLng.latitude);
             currentLng = Double.toString(currentLatLng.longitude);
         }
-
         Log.i("servCodeq: ", "" + servCodeQ);
+
+        // generate a timestamp of 2 weeks ago to get closed requests not more than 2 weeks old.
+        String updateDatetime = TimeStampGenerator.genOlderTimestamp();
 
         // from here all the API requests will be handled
         RequestManager reqManager = new RequestManager(getActivity());
@@ -457,10 +433,14 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
 
         if (servCodeQ != null && !servCodeQ.equals("")) {
             // launch Retrofit callback and retrieve services asynchronously
-            reqManager.getServiceRequests(currentLat, currentLng, null, currentRadius, servCodeQ);
+            reqManager.getServiceRequests(currentLat, currentLng, STATUS_OPEN, currentRadius, servCodeQ);
+            // also request closed service request with an earliest update_datetime included.
+            reqManager.getClosedServiceRequests(currentLat, currentLng, STATUS_OPEN, currentRadius, servCodeQ, updateDatetime);
         } else {
             // launch Retrofit callback and retrieve services asynchronously
-            reqManager.getServiceRequests(currentLat, currentLng, null, currentRadius);
+            reqManager.getServiceRequests(currentLat, currentLng, STATUS_OPEN, currentRadius);
+            // also request closed service request with an earliest update_datetime included.
+            reqManager.getClosedServiceRequests(currentLat, currentLng, STATUS_OPEN, currentRadius, updateDatetime);
         }
 
     }
@@ -475,15 +455,28 @@ public class Tab1Fragment extends /*SupportMapFragment*/ Fragment implements /*O
 
         // loop through all the service requests and add their description
         // to a new marker on the Google map
-        for (ServiceRequest s : srList) {
-            mMap.addMarker(new MarkerOptions()
-                    .position(new LatLng(s.getLat(), s.getLong()))
-                    .title(s.getDescription())
-                    .icon(BitmapDescriptorFactory.fromBitmap(
-                            BitmapGenerator.getBitmapFromVectorDrawable(getContext(),
-                                    R.drawable.service_request_marker)))
-            );
+        if (!srList.isEmpty()) {
+            String status = srList.get(0).getStatus();
+            if(!status.equals("closed")) { // add different markers to map based on status of SR
+                for (ServiceRequest s : srList) {
+                    mMap.addMarker(new MarkerOptions()
+                            .position(new LatLng(s.getLat(), s.getLong()))
+                            .title(s.getDescription())
+                            .icon(BitmapDescriptorFactory.fromBitmap(
+                                    BitmapGenerator.getBitmapFromVectorDrawable(getContext(),
+                                            R.drawable.service_request_marker)))
+                    );
+                }
+            } else if (status.equals("closed")) { // add different markers to map based on status of SR
+                for (ServiceRequest s : srList) {
+                    mMap.addMarker(new MarkerOptions()
+                            .position(new LatLng(s.getLat(), s.getLong()))
+                            .title(s.getStatus())
+                    );
+                }
+            }
         }
+
     }
 
     @Override

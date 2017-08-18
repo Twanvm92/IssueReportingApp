@@ -74,4 +74,8 @@
     <string name="eRetry">RE-TRY</string>
     <string name="eImSure">I\'M SURE</string>
     <string name="app_name">Meld Probleem-Weg Probleem</string>
+    <string name="detailedStatus">Detailed status</string>
+    <string name="activityDetailedMelding_bt_upvoten">Give priority</string>
+    <string name="activityDetailedMelding_bt_follow">Follow</string>
+    <string name="numberOfUpvotes">"Upvotes: "</string>
 </resources>

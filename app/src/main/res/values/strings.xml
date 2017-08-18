@@ -84,5 +84,9 @@
     <string name="eRetry">OPNIEUW PROBEREN</string>
     <string name="eImSure">JA</string>
     <string name="reportUpdated">meldingen zijn geüpdatet</string>
+    <string name="detailedStatus">Gedetailleerde status</string>
+    <string name="activityDetailedMelding_bt_upvoten">Prioriteit geven</string>
+    <string name="activityDetailedMelding_bt_follow">Volgen</string>
+    <string name="numberOfUpvotes">Aantal upvotes:</string>
 
 </resources>

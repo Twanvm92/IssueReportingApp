@@ -5,13 +5,11 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.Constants;
-import com.example.justin.verbeterjegemeente.Database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.PostServiceRequestResponse;
 import com.example.justin.verbeterjegemeente.domain.Service;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -24,7 +22,6 @@ import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.http.HEAD;
 
 /**
  * This class will manage all the Retrofit API requests.
@@ -40,7 +37,6 @@ public class RequestManager {
     private OnServicesReady servCallb;
     private OnServiceRequestsReady servReqCallb;
     private OnServiceRequestPosted servReqPostedCallb;
-    private DatabaseHandler dbHandler;
 
     /**
      * Accepts the context of an activity and initializes the ServiceClient
@@ -85,18 +81,15 @@ public class RequestManager {
                             }
                         } else {
                         try { //something went wrong. Show the user what went wrong
-                            JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
-                            JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
+                            JSONObject jObjError = new JSONObject(response.errorBody().string());
 
-                            Toast.makeText(context, jObjError.getString("description"),
+                            Toast.makeText(context, jObjError.getString(Constants.ERROR_MESSAGE),
                                     Toast.LENGTH_SHORT).show();
-                            Log.i("Error message: ", jObjError.getString("description"));
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        } catch (JSONException e) {
+                            Log.i("Error message: ", jObjError.getString(Constants.ERROR_MESSAGE));
+                        } catch (IOException | JSONException e) {
                             e.printStackTrace();
                         }
-                    }
+                        }
                     }
 
                     @Override
@@ -142,18 +135,15 @@ public class RequestManager {
                             servReqCallb.serviceRequestsReady(servReqList);
                         } else {
                         try { //something went wrong. Show the user what went wrong
-                            JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
-                            JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
+                            JSONObject jObjError = new JSONObject(response.errorBody().string());
 
-                            Toast.makeText(context, jObjError.getString("description"),
+                            Toast.makeText(context, jObjError.getString(Constants.ERROR_MESSAGE),
                                     Toast.LENGTH_SHORT).show();
-                            Log.i("Error message: ", jObjError.getString("description"));
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        } catch (JSONException e) {
+                            Log.i("Error message: ", jObjError.getString(Constants.ERROR_MESSAGE));
+                        } catch (IOException | JSONException e) {
                             e.printStackTrace();
                         }
-                    }
+                        }
 
                     }
 
@@ -201,12 +191,11 @@ public class RequestManager {
 
                         } else {
                         try { //something went wrong. Show the user what went wrong
-                            JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
-                            JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
+                            JSONObject jObjError = new JSONObject(response.errorBody().string());
 
-                            Toast.makeText(context, jObjError.getString("description"),
+                            Toast.makeText(context, jObjError.getString(Constants.ERROR_MESSAGE),
                                     Toast.LENGTH_SHORT).show();
-                            Log.i("Error message: ", jObjError.getString("description"));
+                            Log.i("Error message: ", jObjError.getString(Constants.ERROR_MESSAGE));
                         } catch (IOException | JSONException e) {
                             e.printStackTrace();
                         }
@@ -266,12 +255,11 @@ public class RequestManager {
 
                         } else {
                         try { //something went wrong. Show the user what went wrong
-                            JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
-                            JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
+                            JSONObject jObjError = new JSONObject(response.errorBody().string());
 
-                            Toast.makeText(context, jObjError.getString("description"),
+                            Toast.makeText(context, jObjError.getString(Constants.ERROR_MESSAGE),
                                     Toast.LENGTH_SHORT).show();
-                            Log.i("Error message: ", jObjError.getString("description"));
+                            Log.i("Error message: ", jObjError.getString(Constants.ERROR_MESSAGE));
                         } catch (IOException | JSONException e) {
                             e.printStackTrace();
                         }
@@ -323,15 +311,12 @@ public class RequestManager {
                             servReqCallb.serviceRequestsReady(servReqList);
                         } else {
                             try { //something went wrong. Show the user what went wrong
-                                JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
-                                JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
+                                JSONObject jObjError = new JSONObject(response.errorBody().string());
 
-                                Toast.makeText(context, jObjError.getString("description"),
+                                Toast.makeText(context, jObjError.getString(Constants.ERROR_MESSAGE),
                                         Toast.LENGTH_SHORT).show();
-                                Log.i("Error message: ", jObjError.getString("description"));
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            } catch (JSONException e) {
+                                Log.i("Error message: ", jObjError.getString(Constants.ERROR_MESSAGE));
+                            } catch (IOException | JSONException e) {
                                 e.printStackTrace();
                             }
                         }
@@ -384,15 +369,12 @@ public class RequestManager {
 
                         } else {
                             try { //something went wrong. Show the user what went wrong
-                                JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
-                                JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
+                                JSONObject jObjError = new JSONObject(response.errorBody().string());
 
-                                Toast.makeText(context, jObjError.getString("description"),
+                                Toast.makeText(context, jObjError.getString(Constants.ERROR_MESSAGE),
                                         Toast.LENGTH_SHORT).show();
-                                Log.i("Error message: ", jObjError.getString("description"));
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            } catch (JSONException e) {
+                                Log.i("Error message: ", jObjError.getString(Constants.ERROR_MESSAGE));
+                            } catch (IOException | JSONException e) {
                                 e.printStackTrace();
                             }
                         }
@@ -441,15 +423,14 @@ public class RequestManager {
 
                         } else {
                             try { //something went wrong. Show the user what went wrong
-                                JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
-                                JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
+//                                JSONObject jObjError = new JSONObject(response.errorBody().string());
 
-                                Toast.makeText(context, jObjError.getString("description"),
-                                        Toast.LENGTH_SHORT).show();
-                                Log.i("Error message: ", jObjError.getString("description"));
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            } catch (JSONException e) {
+
+//                                Toast.makeText(context, jObjError.getString(Constants.ERROR_MESSAGE),
+//                                        Toast.LENGTH_SHORT).show();
+//                                Log.i("Error message: ", jObjError.getString(Constants.ERROR_MESSAGE));
+                                Log.i("Error message: ", response.errorBody().string());
+                            } catch (IOException/* | JSONException */e) {
                                 e.printStackTrace();
                             }
                         }

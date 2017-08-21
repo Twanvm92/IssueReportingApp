@@ -63,7 +63,7 @@ public interface ServiceClient {
      * @return Arraylist<PostServiceRequestResponse>
      * @see PostServiceRequestResponse
      */
-    // TODO: 21-8-2017 Commented Attribute parameter. Will this be removed?
+
     @Multipart
     @POST("requests.json")
     Call<ArrayList<PostServiceRequestResponse>> postServiceRequest(@Part("service_code") RequestBody service_code,
@@ -77,7 +77,7 @@ public interface ServiceClient {
                                                                    @Part("email") RequestBody email,
                                                                    @Part("first_name") RequestBody first_name,
                                                                    @Part("last_name") RequestBody last_name,
-                                                                   @Part("media_url") MultipartBody.Part media_url);
+                                                                   @Part MultipartBody.Part media_url);
 
 
     /**

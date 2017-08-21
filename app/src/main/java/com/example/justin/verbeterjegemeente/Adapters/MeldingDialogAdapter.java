@@ -24,7 +24,7 @@ public class MeldingDialogAdapter extends ArrayAdapter<ServiceRequest> {
         ServiceRequest serviceRequest = getItem(position);
 
         if (convertview == null) {
-            convertview = LayoutInflater.from(getContext()).inflate(R.layout.activity_melding_dialog_listviewrow, parent, false);
+            convertview = LayoutInflater.from(getContext()).inflate(R.layout.activity_melding_dialog_listviewrowww, parent, false);
         }
 
         ImageView imageSmall = (ImageView) convertview.findViewById(R.id.meldingDialog_iv_imageSmall_ID);

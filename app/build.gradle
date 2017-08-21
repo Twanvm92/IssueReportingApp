@@ -13,9 +13,9 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
 
-        jackOptions {
+       /* jackOptions {
             enabled true
-        }
+        }*/
 
     }
     buildTypes {
@@ -28,8 +28,8 @@ android {
         exclude 'META-INF/rxjava.properties'
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+       /* sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8*/
     }
 }
 

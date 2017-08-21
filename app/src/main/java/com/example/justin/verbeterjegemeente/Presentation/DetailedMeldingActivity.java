@@ -45,7 +45,7 @@ public class DetailedMeldingActivity extends FragmentActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_detailed_melding);
+        setContentView(R.layout.activity_detailed_meldinggg);
 
         Bundle extras = getIntent().getExtras();
 

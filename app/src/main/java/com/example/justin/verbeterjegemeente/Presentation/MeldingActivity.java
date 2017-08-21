@@ -50,6 +50,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+
 /**
  * This class provides the ability for the user to fill in a service request report that then will be send through an
  * open311 Interface. The uer can choose to store some personal information in the users phone.
@@ -81,6 +85,9 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
     private LatLng location, mapLocation;
     private CheckBox onthoudCheckbox;
     private String descr, sc, lName, fName, email, address_string, address_id, jurisdiction_id, imgUrl, selectedItem;
+    private RequestBody pDescr, pSc, pLastName, pFirstName, pEmail, pAddressString, pAddressID,
+        pJurisdictionID, pImgUrl, pSelectedItem, pLon, pLat;
+    MultipartBody.Part imgBody;
     private Double lon, lat;
     private Float zoom;
     private String[] attribute = {};
@@ -583,6 +590,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
         lon = 0.0;
         if (mapLocation != null) {
             lon = mapLocation.longitude;
+            pLon = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(lon));
             longAssigned = true;
         } else {
             Toast.makeText(getApplicationContext(),
@@ -602,6 +610,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
         lat = 0.0;
         if (mapLocation != null) {
             lat = mapLocation.latitude;
+            pLat = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(lat));
             latAssigned = true;
         } else {
             Toast.makeText(getApplicationContext(),
@@ -622,6 +631,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
         if (!subCatagorySpinner.getSelectedItem()
                 .equals(getResources().getString(R.string.kiesSubProblemen))) {
             selectedItem = subCatagorySpinner.getSelectedItem().toString();
+            pSelectedItem = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(selectedItem));
             itemSelected = true;
         } else {
             Toast.makeText(getApplicationContext(),
@@ -639,6 +649,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
             for (Service s : serviceList) {
                 if (s.getService_name().equals(selectedItem)) {
                     sc = s.getService_code();
+                    pSc = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(sc));
                     Log.i("Service code: ", sc);
                 }
             }
@@ -655,6 +666,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
         boolean descrAssigned = false;
         if (!beschrijvingEditText.getText().toString().equals("")) {
             descr = beschrijvingEditText.getText().toString();
+            pDescr = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(descr));
             descrAssigned = true;
         } else {
             Toast.makeText(getApplicationContext(),
@@ -672,6 +684,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
         email = null;
         if (!emailEditText.getText().toString().equals("")) {
             email = emailEditText.getText().toString();
+            pEmail = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(email));
         }
     }
 
@@ -684,7 +697,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
         fName = null;
         if (!voornaamEditText.getText().toString().equals("")) {
             fName = voornaamEditText.getText().toString();
-
+            pFirstName = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(fName));
         }
     }
 
@@ -697,6 +710,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
         lName = null;
         if (!achternaamEditText.getText().toString().equals("")) {
             lName = achternaamEditText.getText().toString();
+            pLastName = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(lName));
         }
     }
 
@@ -781,8 +795,8 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
      * This image url will added as a parameter in a POST Service Request.
      * @return The image url that was created from the image path of the image provided by the user.
      */
-    public String createImgUrl() {
-        imgUrl = null;
+    public MultipartBody.Part createImgUrl() {
+        /*imgUrl = null;
         FileInputStream imageInFile = null;
         if (imagePath != null) {
             try {
@@ -807,7 +821,17 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                 }
             }
         }
-        return imgUrl;
+        return imgUrl;*/
+
+        imgBody = null;
+        if (imagePath != null) {
+            File imgFile = new File(imagePath);
+            RequestBody requestFile =
+                    RequestBody.create(MediaType.parse("multipart/form-data"), imgFile);
+            imgBody = MultipartBody.Part.createFormData("image", imgFile.getName(), requestFile);
+        }
+
+        return imgBody;
     }
 
     /**

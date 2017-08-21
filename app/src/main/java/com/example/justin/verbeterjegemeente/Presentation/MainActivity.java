@@ -53,18 +53,13 @@ public class MainActivity extends AppCompatActivity implements
         RequestManager.OnServicesReady, Tab1Fragment.ServiceRequestsReadyListener {
 
     private static final String TAG = "MainActivity";
-    private SectionsPageAdapter mSectionsPageAdapter;
     private int rValue;
-    private ViewPager mViewPager;
     private Tab1Fragment tabFragment = new Tab1Fragment();
     private Tab2Fragment tab2Fragment = new Tab2Fragment();
-    private LatLng currentLatLng;
     private List<Service> serviceList;
     ArrayAdapter<String> catagoryAdapter;
     private ArrayList<String> catagoryList;
     private Spinner catagorySpinner;
-    private Locale myLocale;
-    private RequestManager reqManager;
     private String servCodeQ;
 
 
@@ -79,16 +74,14 @@ public class MainActivity extends AppCompatActivity implements
         startService(i);
 
         // from here all the API requests will be handled
-        reqManager = new RequestManager(this);
+        RequestManager reqManager = new RequestManager(this);
         // set callback for data passing
         reqManager.setOnServicesReadyCallb(this);
         // launch Retrofit callback and retrieve services asynchronously
         reqManager.getServices();
 
-        mSectionsPageAdapter = new SectionsPageAdapter(getSupportFragmentManager());
-
         // Set up the ViewPager with the sections adapter.
-        mViewPager = (ViewPager) findViewById(R.id.container);
+        ViewPager mViewPager = (ViewPager) findViewById(R.id.container);
         setupViewPager(mViewPager);
 
         // create an arraylist that will contain different categories fetched from an open311 interface
@@ -138,7 +131,7 @@ public class MainActivity extends AppCompatActivity implements
                             @Override
                             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                                 // show progress in a Textview
-                                tvRadiusD.setText(String.valueOf(progress) + getString(R.string.radiusMeters));
+                                tvRadiusD.setText(String.format("%s%s", String.valueOf(progress), getString(R.string.radiusMeters)));
 
                             }
 
@@ -199,23 +192,18 @@ public class MainActivity extends AppCompatActivity implements
 
                         if(dialog != null && !dialog.isShowing()) {
                             dialog.show();
+                            dialog.setCanceledOnTouchOutside(false);
                         }
 
-                        dialog.setCanceledOnTouchOutside(false);
+
 
                         break;
                     case R.id.activityMain_item_report:
                         Intent in = new Intent(getApplicationContext(),
                                 com.example.justin.verbeterjegemeente.Presentation.MeldingActivity.class);
-                        if (currentLatLng != null) {
-                            in.putExtra("long", currentLatLng.longitude);
-                            in.putExtra("lat", currentLatLng.latitude);
-                            in.putExtra("zoom", tabFragment.zoomLevel);
-                        }
                         startActivity(in);
                         break;
                     case R.id.activityMain_item_gps:
-//                        tabFragment.reqFindLocation();
                         tabFragment.promptLocationSettings();
                 }
 
@@ -359,7 +347,7 @@ public class MainActivity extends AppCompatActivity implements
      */
     public void setLocale(String lang) {
 
-        myLocale = new Locale(lang);
+        Locale myLocale = new Locale(lang);
         Resources res = getResources();
         DisplayMetrics dm = res.getDisplayMetrics();
         Configuration conf = res.getConfiguration();
@@ -375,8 +363,7 @@ public class MainActivity extends AppCompatActivity implements
 
         SharedPreferences prefs = getSharedPreferences("CommonPrefs",
                 getApplicationContext().MODE_PRIVATE);
-        String language = prefs.getString("Language", "nl");
-        return language;
+        return prefs.getString("Language", "nl");
     }
 
 
@@ -421,14 +408,6 @@ public class MainActivity extends AppCompatActivity implements
         adapter.addFragment(tab2Fragment, "");
         viewPager.setAdapter(adapter);
     }
-
-   /* @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case Constants.MY_PERMISSIONS_LOCATION:
-                tabFragment.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        }
-    }*/
 
     @Override
     public void onBackPressed() {

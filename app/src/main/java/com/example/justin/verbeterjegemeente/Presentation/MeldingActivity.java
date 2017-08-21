@@ -84,9 +84,10 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
     private String imagePath = null;
     private LatLng location, mapLocation;
     private CheckBox onthoudCheckbox;
-    private String descr, sc, lName, fName, email, address_string, address_id, jurisdiction_id, imgUrl, selectedItem;
+    private String sc;
+    private String selectedItem;
     private RequestBody pDescr, pSc, pLastName, pFirstName, pEmail, pAddressString, pAddressID,
-        pJurisdictionID, pImgUrl, pSelectedItem, pLon, pLat;
+        pJurisdictionID, pLon, pLat;
     MultipartBody.Part imgBody;
     private Double lon, lat;
     private Float zoom;
@@ -203,9 +204,9 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                 assignLastName();
 
 //              this has to be added to service request
-                address_string = "adress_string";
-                address_id = "address_id";
-                jurisdiction_id = "1";
+                pAddressString = RequestBody.create(MediaType.parse("text/plain"), "adress_string");
+                pAddressID = RequestBody.create(MediaType.parse("text/plain"), "address_id");
+                pJurisdictionID = RequestBody.create(MediaType.parse("text/plain"), "1");
 
                 getSimilarServiceRequests();
             }
@@ -219,8 +220,10 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
     public void postNotification() {
         RequestManager requestManager = new RequestManager(this);
         requestManager.setOnServiceReqPostedCallb(this);
-        requestManager.postServiceRequest(sc, descr, lat, lon, address_string,
-                address_id, attribute, jurisdiction_id, email, fName, lName, imgUrl);
+        // TODO: 21-8-2017 commented Attribute parameter will this be removed?
+        requestManager.postServiceRequest(pSc, pDescr, pLat, pLon, pAddressString,
+                pAddressID, /*attribute,*/ pJurisdictionID, pEmail, pFirstName, pLastName, imgBody);
+
     }
 
     /**
@@ -352,12 +355,12 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                     Bitmap photo = (Bitmap) data.getExtras().get("data");
 //                The following commented code works but the API doesnt accept the long String URI
 //                    -----------------------------------------------
-//                    selectedImage = getImageUri(getApplicationContext(), photo);
-//                    File finalFile = new File(getRealPathFromURI(selectedImage));
-//                    fotoImageView.setImageURI(selectedImage);
+                    selectedImage = getImageUri(getApplicationContext(), photo);
+                    File finalFile = new File(getRealPathFromURI(selectedImage));
+                    fotoImageView.setImageURI(selectedImage);
                     fotoImageView.setImageBitmap(photo);
                     fotoButton.setText(R.string.fotoWijzigen);
-//                    imagePath = finalFile.toString();
+                    imagePath = finalFile.toString();
 
                 }
                 break;
@@ -420,14 +423,19 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
      * @return the path of the image as a string
      */
     public String getRealPathFromURI(Uri uri) {
+        Cursor cursor = null;
         try {
             String[] proj = {MediaStore.Images.Media.DATA};
-            Cursor cursor = getContentResolver().query(uri, proj, null, null, null);
+            cursor = getContentResolver().query(uri, proj, null, null, null);
             int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
             cursor.moveToFirst();
             return cursor.getString(column_index);
         } catch (Exception e) {
             return uri.getPath();
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
         }
     }
 
@@ -631,7 +639,6 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
         if (!subCatagorySpinner.getSelectedItem()
                 .equals(getResources().getString(R.string.kiesSubProblemen))) {
             selectedItem = subCatagorySpinner.getSelectedItem().toString();
-            pSelectedItem = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(selectedItem));
             itemSelected = true;
         } else {
             Toast.makeText(getApplicationContext(),
@@ -649,7 +656,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
             for (Service s : serviceList) {
                 if (s.getService_name().equals(selectedItem)) {
                     sc = s.getService_code();
-                    pSc = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(sc));
+                    pSc = RequestBody.create(MediaType.parse("text/plain"), sc);
                     Log.i("Service code: ", sc);
                 }
             }
@@ -665,8 +672,8 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
         // to send with the post service request
         boolean descrAssigned = false;
         if (!beschrijvingEditText.getText().toString().equals("")) {
-            descr = beschrijvingEditText.getText().toString();
-            pDescr = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(descr));
+            String descr = beschrijvingEditText.getText().toString();
+            pDescr = RequestBody.create(MediaType.parse("text/plain"), descr);
             descrAssigned = true;
         } else {
             Toast.makeText(getApplicationContext(),
@@ -681,10 +688,10 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
     public void assignEmail() {
         // initializes an e-mailaddress that the user has provided
         // to send with the post service request
-        email = null;
+        String email;
         if (!emailEditText.getText().toString().equals("")) {
             email = emailEditText.getText().toString();
-            pEmail = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(email));
+            pEmail = RequestBody.create(MediaType.parse("text/plain"), email);
         }
     }
 
@@ -694,10 +701,10 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
     public void assignFirstName() {
         // initializes a last name that the user has provided
         // to send with the post service request
-        fName = null;
+        String fName;
         if (!voornaamEditText.getText().toString().equals("")) {
             fName = voornaamEditText.getText().toString();
-            pFirstName = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(fName));
+            pFirstName = RequestBody.create(MediaType.parse("text/plain"), fName);
         }
     }
 
@@ -707,10 +714,10 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
     public void assignLastName() {
         // initializes a last name that the user has provided
         // to send with the post service request
-        lName = null;
+        String lName;
         if (!achternaamEditText.getText().toString().equals("")) {
             lName = achternaamEditText.getText().toString();
-            pLastName = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(lName));
+            pLastName = RequestBody.create(MediaType.parse("text/plain"), lName);
         }
     }
 
@@ -795,7 +802,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
      * This image url will added as a parameter in a POST Service Request.
      * @return The image url that was created from the image path of the image provided by the user.
      */
-    public MultipartBody.Part createImgUrl() {
+    public void createImgUrl() {
         /*imgUrl = null;
         FileInputStream imageInFile = null;
         if (imagePath != null) {
@@ -830,8 +837,6 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                     RequestBody.create(MediaType.parse("multipart/form-data"), imgFile);
             imgBody = MultipartBody.Part.createFormData("image", imgFile.getName(), requestFile);
         }
-
-        return imgBody;
     }
 
     /**

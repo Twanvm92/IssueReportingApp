@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -416,15 +418,16 @@ public class RequestManager {
         }
     }
 
-    public void postServiceRequest(String sc, String descr, double lat, double lon, String address_string,
-                                   String address_id, String[] attribute, String jurisdiction_id,
-                                   String email, String fName, String lName, String imgUrl) {
+    // TODO: 21-8-2017 commented attribute parameter. is this going to be removed?
+    public void postServiceRequest(RequestBody sc, RequestBody descr, RequestBody lat, RequestBody lon, RequestBody address_string,
+                                   RequestBody address_id, /*String[] attribute,*/ RequestBody jurisdiction_id,
+                                   RequestBody email, RequestBody fName, RequestBody lName, MultipartBody.Part imgUrl) {
         try {
             if (ConnectionChecker.isConnected()) {
 
                 Call<ArrayList<PostServiceRequestResponse>> serviceRequestResponseCall =
                         client.postServiceRequest(sc, descr, lat, lon, address_string,
-                                address_id, attribute, jurisdiction_id, email, fName, lName, imgUrl);
+                                address_id, /*attribute,*/ jurisdiction_id, email, fName, lName, imgUrl);
                 // fire the get post request
                 serviceRequestResponseCall.enqueue(new Callback<ArrayList<PostServiceRequestResponse>>() {
                     @Override

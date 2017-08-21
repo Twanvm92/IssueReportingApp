@@ -54,7 +54,7 @@ public interface ServiceClient {
      * @param lon The longitude of the location of the Service Request. Required.
      * @param address_string The address string of the Service Request. Required.
      * @param address_id The address id of the Service Request. Required.
-     * @param attribute The attributes of the location of the Service Request. Required.
+//     * @param attribute The attributes of the location of the Service Request. Required.
      * @param jurisdiction_id The jurisdiction id of the Service Request.
      * @param media_url The optional image file that can be send with the post request
      * @param email The optional email of the user that made the Service Request.
@@ -63,6 +63,7 @@ public interface ServiceClient {
      * @return Arraylist<PostServiceRequestResponse>
      * @see PostServiceRequestResponse
      */
+    // TODO: 21-8-2017 Commented Attribute parameter. Will this be removed?
     @Multipart
     @POST("requests.json")
     Call<ArrayList<PostServiceRequestResponse>> postServiceRequest(@Part("service_code") RequestBody service_code,

@@ -722,7 +722,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
     }
 
     /**
-     * Setup the dialog that is shown after the user chooses to add a picture to the service request.
+     * Setup the dialoggg that is shown after the user chooses to add a picture to the service request.
      * Executes different code based on the decision of the user, that is taking a picture or using a
      * picture that is stored on the user's phone.
      */

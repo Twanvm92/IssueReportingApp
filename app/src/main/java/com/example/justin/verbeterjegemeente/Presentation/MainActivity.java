@@ -3,7 +3,6 @@ package com.example.justin.verbeterjegemeente.Presentation;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -38,10 +37,7 @@ import com.example.justin.verbeterjegemeente.domain.Service;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 import com.google.android.gms.maps.model.LatLng;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -101,7 +97,7 @@ public class MainActivity extends AppCompatActivity implements
                 switch (menuItem.getItemId()) {
                     case R.id.activityMain_item_filters:
 
-                        //create a new custom dialog
+                        //create a new custom dialoggg
                         AlertDialog.Builder builder1 = new AlertDialog.Builder(MainActivity.this);
                         View mView = getLayoutInflater().inflate(R.layout.activity_main_filters_dialog, null);
 
@@ -284,7 +280,7 @@ public class MainActivity extends AppCompatActivity implements
                 @Override
                 public void onClick(View view) {
                     AlertDialog.Builder builder1 = new AlertDialog.Builder(MainActivity.this);
-                    View mView = getLayoutInflater().inflate(R.layout.dialog2, null);
+                    View mView = getLayoutInflater().inflate(R.layout.dialog222, null);
                     Button nederlands = (Button) mView.findViewById(R.id.alertdialog_btn_nederlands);
                     nederlands.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -425,11 +421,11 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     /**
-     * This method will pass the radius that is selected by the user in a custom dialog
+     * This method will pass the radius that is selected by the user in a custom dialoggg
      * to the Tab1Fragment where the radius will be used to find service requests and
      * place them on the map and in the
      *
-     * @param value     value of the progress of the radius seekbar in custom dialog
+     * @param value     value of the progress of the radius seekbar in custom dialoggg
      * @param servCodeQ
      */
     public void radiusCategSelected(int value, String servCodeQ) {

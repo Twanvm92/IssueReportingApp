@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="@color/grijs"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" >
+
+    <TextView
+        android:id="@+id/alertdialog_tv_profiel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="5dp"
+        android:text="@string/instellingen"
+        android:textAlignment="center"
+        android:textSize="25sp"
+        android:textStyle="bold" />
+
+    <ImageView
+        android:id="@+id/alertdialog_iv_containerTaal"
+        android:layout_width="250dp"
+        android:layout_height="130dp"
+        android:layout_below="@+id/alertdialog_tv_profiel"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="20dp"
+        android:layout_marginTop="25dp"
+        app:srcCompat="@android:color/background_light" />
+
+    <TextView
+        android:id="@+id/alertdialog_tv_taal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/taal"
+        android:textSize="18sp"
+        android:layout_alignTop="@+id/alertdialog_iv_containerTaal"
+        android:layout_centerHorizontal="true" />
+
+    <Button
+        android:id="@+id/alertdialog_btn_engels"
+        android:layout_width="100dp"
+        android:layout_height="40dp"
+        android:backgroundTint="#FF6FDA7F"
+        android:text="@string/engels"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_below="@+id/alertdialog_tv_taal"
+        android:layout_alignRight="@+id/alertdialog_iv_containerTaal"
+        android:layout_alignEnd="@+id/alertdialog_iv_containerTaal"
+        android:layout_marginRight="13dp"
+        android:layout_marginEnd="13dp" />
+
+    <Button
+        android:id="@+id/alertdialog_btn_nederlands"
+        android:layout_width="100dp"
+        android:layout_height="40dp"
+        android:backgroundTint="#FF6FDA7F"
+        android:text="@string/nederlands"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_below="@+id/alertdialog_tv_taal"
+        android:layout_alignLeft="@+id/alertdialog_iv_containerTaal"
+        android:layout_alignStart="@+id/alertdialog_iv_containerTaal"
+        android:layout_marginLeft="18dp"
+        android:layout_marginStart="18dp" />
+
+    <Button
+        android:id="@+id/alertdialog_btn_wis_gegevens"
+        android:layout_width="220dp"
+        android:layout_height="55dp"
+        android:layout_alignLeft="@+id/alertdialog_iv_containerTaal"
+        android:layout_alignStart="@+id/alertdialog_iv_containerTaal"
+        android:layout_below="@+id/alertdialog_btn_nederlands"
+        android:layout_marginLeft="18dp"
+        android:layout_marginStart="18dp"
+        android:backgroundTint="#FF6FDA7F"
+        android:text="@string/verwijderGegevens"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+</RelativeLayout>

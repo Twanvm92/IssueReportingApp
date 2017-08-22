@@ -42,8 +42,6 @@ public class Constants {
 
     // notifications
     public static final int NOTIFICATION_ID = 1;
-    public static final String UNREAD_NOTIFICATIONS_FILE = "unread notifications file";
-    public static final String UNREAD_NOTIFICATIONS_ = "unread notifications";
 
 
 }

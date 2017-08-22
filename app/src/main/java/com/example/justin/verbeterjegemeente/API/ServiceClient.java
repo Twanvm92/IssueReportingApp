@@ -79,6 +79,18 @@ public interface ServiceClient {
                                                                    @Part("last_name") RequestBody last_name,
                                                                    @Part MultipartBody.Part media_url);
 
+    /**
+     * Give priority to a service request. Should only be abe to be done once per user.
+     *
+     * @param serviceRequestID the id of the service request you want to upvote
+     * @param extraDescription the extra description for why you want to give priority. Is mandatory
+     * @return
+     */
+    @POST("upvoteRequest.json")
+    Call<ArrayList> upvoteRequest(@Query("service_request_id") String serviceRequestID,
+                                  @Query("extraDescription") String extraDescription
+    );
+
 
     /**
      * Get nearby service requests based on a radius with meters and lat and long that

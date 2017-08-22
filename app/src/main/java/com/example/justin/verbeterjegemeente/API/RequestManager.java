@@ -401,6 +401,7 @@ public class RequestManager {
     }
 
     // TODO: 21-8-2017 commented attribute parameter. is this going to be removed?
+    // TODO: 22-8-2017 add javadoc
     public void postServiceRequest(RequestBody sc, RequestBody descr, RequestBody lat, RequestBody lon, RequestBody address_string,
                                    RequestBody address_id, /*String[] attribute,*/ RequestBody jurisdiction_id,
                                    RequestBody email, RequestBody fName, RequestBody lName, MultipartBody.Part imgUrl) {
@@ -439,6 +440,59 @@ public class RequestManager {
                     // a connection could not have been made. Tell the user.
                     @Override
                     public void onFailure(Call<ArrayList<PostServiceRequestResponse>> call, Throwable t) {
+                        Toast.makeText(context, context.getResources().getString(R.string.ePostRequest),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+            } else {// a connection could not have been made. Tell the user.
+                Toast.makeText(context, context.getResources().getString(R.string.ePostRequest),
+                        Toast.LENGTH_SHORT).show();
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            Thread.currentThread().interrupt();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // TODO: 22-8-2017 add javadoc
+    public void upvoteServiceRequest(String serviceRequestID, String extraDescription) {
+        try {
+            if (ConnectionChecker.isConnected()) {
+
+                Call<ArrayList> serviceRequestResponseCall =
+                        client.upvoteRequest(serviceRequestID, extraDescription);
+                // fire the get post request
+                serviceRequestResponseCall.enqueue(new Callback<ArrayList>() {
+                    @Override
+                    public void onResponse(Call<ArrayList> call,
+                                           Response<ArrayList> response) {
+                        if (response.isSuccessful()) {
+                            // if a response was successful tell Activity where this request was
+                            // fired from
+
+                            Toast.makeText(context, context.getResources().getString(R.string.upvoteSucces),
+                                    Toast.LENGTH_SHORT).show();
+
+                        } else {
+                            try { //something went wrong. Show the user what went wrong
+                                JSONObject jObjError = new JSONObject(response.errorBody().string());
+
+
+//                                Toast.makeText(context, jObjError.getString(Constants.ERROR_MESSAGE),
+//                                        Toast.LENGTH_SHORT).show();
+//                                Log.i("Error message: ", jObjError.getString(Constants.ERROR_MESSAGE));
+                                Log.i("Error message: ", response.errorBody().string());
+                            } catch (IOException | JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                    // a connection could not have been made. Tell the user.
+                    @Override
+                    public void onFailure(Call<ArrayList> call, Throwable t) {
                         Toast.makeText(context, context.getResources().getString(R.string.ePostRequest),
                                 Toast.LENGTH_SHORT).show();
                     }

@@ -18,7 +18,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     // Declaring the name, file name and version number of the database in final variable.
     private static final String TAG = "meldingDBHandler";
     private static final String DATABASE_NAME = "testdb.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
     private static final String MELDING_TABLE_NAME = "melding";
     private static final String MELDING_COLUMN_ID = "_meldingId";
     private static final String MELDING_COLUMN_IDAPI = "meldingIdApi";
@@ -29,8 +29,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String USER_COLUMN_LASTNAME = "lastname";
     private static final String USER_COLUMN_PHONENUMBER = "phonenumber";
     private static final String USER_COLUMN_USERID = "_userid";
+    private static final String UPVOTE_TABLE_NAME = "upvotes";
+    private static final String UPVOTE_COLUMN_SERVICE_REQUEST_ID = "meldingId";
+    private static final String CREATE_UPVOTE_TABLE = "CREATE TABLE " + UPVOTE_TABLE_NAME + "(" +
+            UPVOTE_COLUMN_SERVICE_REQUEST_ID + " INTEGER PRIMARY KEY )";
 
-    // Constructor for the databse handler that will create the database if not already done.
+    // Constructor for the database handler that will create the database if not already done.
     public DatabaseHandler(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, DATABASE_NAME, factory, DATABASE_VERSION);
     }
@@ -49,12 +53,16 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 USER_COLUMN_PHONENUMBER + " INTEGER, " +
                 USER_COLUMN_USERID + " INTEGER PRIMARY KEY )";
 
+        String c = "CREATE TABLE " + UPVOTE_TABLE_NAME + "(" +
+                UPVOTE_COLUMN_SERVICE_REQUEST_ID + " INTEGER PRIMARY KEY )";
+
         database.execSQL(CREATE_MELDING_TABLE);
         database.execSQL(CREATE_USER_TABLE);
+        database.execSQL(CREATE_UPVOTE_TABLE);
     }
 
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
+        db.execSQL(CREATE_UPVOTE_TABLE);
     }
 
     public void addMelding() {
@@ -83,6 +91,18 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         SQLiteDatabase db = this.getWritableDatabase();
         db.insert(MELDING_TABLE_NAME, null, values);
+        db.close();
+    }
+
+    // Adds a report to the database
+    public void addUpvote(String srID){
+        Log.i("SR ID", srID);
+
+        ContentValues values = new ContentValues();
+        values.put(UPVOTE_COLUMN_SERVICE_REQUEST_ID, srID);
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.insert(UPVOTE_TABLE_NAME, null, values);
         db.close();
     }
 
@@ -164,13 +184,16 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(query, null);
 
-        if (cursor.moveToNext()) {
-            return true;
-        } else {
-            return false;
-        }
+        return cursor.moveToNext();
     }
 
+    public boolean upvoteExists(String id) {
+        String query = "SELECT * FROM " + UPVOTE_TABLE_NAME + " WHERE " + UPVOTE_COLUMN_SERVICE_REQUEST_ID + " = '" + id + "'";
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(query, null);
+
+        return cursor.moveToNext();
+    }
 
 }
 

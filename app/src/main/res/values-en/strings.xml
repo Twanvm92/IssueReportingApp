@@ -78,4 +78,8 @@
     <string name="activityDetailedMelding_bt_upvoten">Give priority</string>
     <string name="activityDetailedMelding_bt_follow">Follow</string>
     <string name="numberOfUpvotes">"Upvotes: "</string>
+    <string name="upvoteSucces">The service request has succesfully been upvoted!</string>
+    <string name="saved_upvote">savedUpvote</string>
+    <string name="sharedPreference_upvote">upvotes</string>
+    <string name="alreadyUpvoted">You already upvoted this service request!</string>
 </resources>

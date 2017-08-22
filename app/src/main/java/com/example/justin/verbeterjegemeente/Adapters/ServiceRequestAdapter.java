@@ -2,17 +2,27 @@ package com.example.justin.verbeterjegemeente.Adapters;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.constraint.ConstraintLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.example.justin.verbeterjegemeente.API.RequestManager;
+import com.example.justin.verbeterjegemeente.Database.DatabaseHandler;
+import com.example.justin.verbeterjegemeente.Presentation.DetailedMeldingActivity;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.UpdateService;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
+import com.like.LikeButton;
+import com.like.OnLikeListener;
+
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 
@@ -25,13 +35,81 @@ public class ServiceRequestAdapter extends ArrayAdapter<ServiceRequest> {
     @NonNull
     public View getView(int position, View convertview, @NonNull ViewGroup parent) {
         ServiceRequest serviceRequest = getItem(position);
+        DatabaseHandler db = new DatabaseHandler(getContext(), null, null, 1 );
 
         if (convertview == null) {
             convertview = LayoutInflater.from(getContext()).inflate(R.layout.tab2_listviewrow, parent, false);
         }
 
+        TextView numbOfUpvoted = (TextView) convertview.findViewById(R.id.activitySRA_tv_upvoteText);
+        numbOfUpvoted.setText(String.valueOf(serviceRequest.getUpvotes()));
 
-        TextView locatie = (TextView) convertview.findViewById(R.id.activitySRA_tv_locationID);
+        LikeButton followBtn = (LikeButton) convertview.findViewById(R.id.favorietenknopdetail_ListviewRow);
+
+        String serviceRequestID = serviceRequest.getServiceRequestId();
+        if(db.ReportExists(serviceRequestID)){
+            followBtn.setLiked(true);
+        } else {
+            followBtn.setLiked(false);
+        }
+
+        followBtn.setOnLikeListener(new OnLikeListener() {
+            @Override
+
+            // if the like star is pressed when the button is not liked, the like method is called.
+            // This method adds the selectedServiceRequest to the database and sets the star to liked.
+            public void liked(LikeButton likeButton) {
+
+                try {
+                    if (!db.ReportExists(serviceRequestID)) {
+                        db.addReport(serviceRequestID);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            // When the star is presses when the button is liked, the unLike method is called.
+            // This method deletes the selected.ServiceRequest from the database and set the button to unLiked.
+            @Override
+            public void unLiked(LikeButton likeButton) {
+                try {
+                    if (db.ReportExists(serviceRequestID)) {
+                        db.deleteReport(serviceRequestID);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        ImageButton upvoteButton = (ImageButton) convertview.findViewById(R.id.upvoteknopdetail_ListviewRow);
+
+        /*if(db.upvoteExists(serviceRequestID)) {
+            // make sure user cant see the upvote button anymore
+            upvoteButton.setVisibility(View.INVISIBLE);
+        }*/
+
+        upvoteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(!db.upvoteExists(serviceRequestID)) {
+                    // add upvote to sqlite database
+                    db.addUpvote(serviceRequestID);
+                    // add upvote to service request in Gemeente Database
+                    sendUpvoteToAPI(serviceRequestID);
+                    addUpvoteToTextview(numbOfUpvoted);
+                    // make sure user cant see the upvote button anymore
+//                    upvoteButton.setVisibility(View.INVISIBLE);
+                    // let user know service request is upvoted
+                    Toast.makeText(getContext(), getContext().getString(R.string.upvoteSucces), Toast.LENGTH_SHORT).show();
+                } else {
+                    // let user know he/she already upvoted this service request
+                    Toast.makeText(getContext(), getContext().getString(R.string.alreadyUpvoted), Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+            TextView locatie = (TextView) convertview.findViewById(R.id.activitySRA_tv_locationID);
         locatie.setText(serviceRequest.getLat() + ", " + serviceRequest.getLong());
 
         TextView beschrijving = (TextView) convertview.findViewById(R.id.activitySRA_tv_beschrijvingID);
@@ -59,7 +137,7 @@ public class ServiceRequestAdapter extends ArrayAdapter<ServiceRequest> {
 
                     // if unread service request id equals service request id of listview row,
                     // change the background color of listview row
-                    LinearLayout parentLayout = (LinearLayout) convertview.findViewById(R.id.tab2fragment_ll_parentLayout);
+                    ConstraintLayout parentLayout = (ConstraintLayout) convertview.findViewById(R.id.tab2fragment_ll_parentLayout);
                     parentLayout.setBackgroundResource(R.color.colorUnreadServiceRequest);
                     Log.i("FollowActivity: ", "Looping through list items");
                 }
@@ -68,5 +146,26 @@ public class ServiceRequestAdapter extends ArrayAdapter<ServiceRequest> {
 
 
         return convertview;
+    }
+
+    /**
+     * Send a post request to Open311 Interface notifying about the service request that
+     * has been upvoted.
+     * @param serviceRequestID the ID of the service request that just has been upvoted by the user
+     */
+    private void sendUpvoteToAPI(String serviceRequestID) {
+        String extraDescription = "";
+        RequestManager rManager = new RequestManager(getContext());
+        rManager.upvoteServiceRequest(serviceRequestID, extraDescription);
+    }
+
+    /**
+     * Add + 1 to the number of upvotes that are being shown on the UI.
+     */
+    public void addUpvoteToTextview(TextView numbOfUpvoted) {
+        String upvoteText = numbOfUpvoted.getText().toString();
+        Integer updatedUpvoteNumb = Integer.parseInt(upvoteText) + 1;
+        numbOfUpvoted.setText(String.valueOf(updatedUpvoteNumb));
+        notifyDataSetChanged();
     }
 }

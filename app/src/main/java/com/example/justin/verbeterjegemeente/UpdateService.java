@@ -54,7 +54,6 @@ public class UpdateService extends Service {
             // Setting a sleep time for the th
             // read, 10 minutes
             LONG_SLEEP_TIME = 600000;
-//            LONG_SLEEP_TIME = 30000;
 
             // TODO: 11-8-2017 remove after testing notification update
         }
@@ -203,6 +202,10 @@ public class UpdateService extends Service {
         return srIDList;
     }
 
+    /**
+     *
+     * @param sr
+     */
     public static void resetUnreadServiceRequest(ServiceRequest sr){
         for ( int i = 0;  i < srIDList.size(); i++){
             String unreadSR = srIDList.get(i);

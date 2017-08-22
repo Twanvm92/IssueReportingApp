@@ -52,6 +52,9 @@ public class ServiceRequest implements Serializable {
     @SerializedName("updated_datetime")
     @Expose
     private String updatedDatetime;
+    @SerializedName("upvotes")
+    @Expose
+    private int upvotes;
 
     public String getServiceRequestId() {
         return serviceRequestId;
@@ -149,4 +152,7 @@ public class ServiceRequest implements Serializable {
         this.updatedDatetime = updatedDatetime;
     }
 
+    public int getUpvotes() {
+        return upvotes;
+    }
 }

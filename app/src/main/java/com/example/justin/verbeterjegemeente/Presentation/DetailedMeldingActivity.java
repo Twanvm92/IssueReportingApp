@@ -7,6 +7,7 @@ import android.animation.ObjectAnimator;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Bundle;
@@ -17,7 +18,9 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.example.justin.verbeterjegemeente.API.RequestManager;
 import com.example.justin.verbeterjegemeente.Database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
@@ -29,47 +32,36 @@ public class DetailedMeldingActivity extends FragmentActivity {
     // Hold a reference to the current animator,
     // so that it can be canceled mid-way.
     private Animator mCurrentAnimator;
-    private LikeButton likeButton;
-    private Button terugButton;
     private String origin;
+    private TextView numbOfUpvoted;
 
     // The system "short" animation time duration, in milliseconds. This
     // duration is ideal for subtle animations or animations that occur
     // very frequently.
     private int mShortAnimationDuration;
 
-    private TextView statusDetailed, laatstUpdateDetailed, beschrijvingDetailed, hoofdCategorieDetailed, subCategorieDetailed, statusNotes;
-
-    private ImageButton imageSmall;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_detailed_meldinggg);
+        setContentView(R.layout.activity_detailed_melding);
 
         Bundle extras = getIntent().getExtras();
-
-
-        /**
-         * for loop to clear all notifications when the detailed view is opened.
-         */
-        for(int i = 0; i < 60; i++){
-            NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
-            notificationManager.cancel(i);
-        }
 
         origin = extras.getString("ORIGIN");
 
         final ServiceRequest serviceRequest = (ServiceRequest) getIntent().getSerializableExtra("serviceRequest");
+        String serviceRequestID = serviceRequest.getServiceRequestId();
 
-        likeButton = (LikeButton) findViewById(R.id.favorietenknopdetail);
-        statusDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_status_DetailedID);
-        laatstUpdateDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_laatsUpdate_detailedID);
-        beschrijvingDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_beschrijving_DetailedID);
-        hoofdCategorieDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_hoofdCategorie_detailedID);
-        subCategorieDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_subCategorie_detailedID);
-        imageSmall = (ImageButton) findViewById(R.id.activityDetailedMelding_imgbtn_imageSmall_ID);
-        statusNotes = (TextView) findViewById(R.id.activityDetailedMelding_tv_status_DetailedNotesID);
+        LikeButton likeButton = (LikeButton) findViewById(R.id.favorietenknopdetail);
+        ImageButton upvoteButton = (ImageButton) findViewById(R.id.upvoteknopdetail);
+        TextView statusDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_status_DetailedID);
+        TextView laatstUpdateDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_laatsUpdate_detailedID);
+        TextView beschrijvingDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_beschrijving_DetailedID);
+        TextView hoofdCategorieDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_hoofdCategorie_detailedID);
+        TextView subCategorieDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_subCategorie_detailedID);
+        ImageButton imageSmall = (ImageButton) findViewById(R.id.activityDetailedMelding_imgbtn_imageSmall_ID);
+        TextView statusNotes = (TextView) findViewById(R.id.activityDetailedMelding_tv_status_DetailedNotesID);
+        numbOfUpvoted = (TextView) findViewById(R.id.activityDetailedMelding_tv_numberOfUpvotes);
 
         statusDetailed.setText(serviceRequest.getStatus());
         laatstUpdateDetailed.setText(serviceRequest.getUpdatedDatetime());
@@ -77,16 +69,15 @@ public class DetailedMeldingActivity extends FragmentActivity {
         hoofdCategorieDetailed.setText(serviceRequest.getServiceCode());
         subCategorieDetailed.setText(serviceRequest.getServiceCode());
         statusNotes.setText(serviceRequest.getStatusNotes());
+        numbOfUpvoted.setText(String.valueOf(serviceRequest.getUpvotes()));
 
+        // load image from service request into imageview
         Picasso.with(getApplicationContext()).load(serviceRequest.getMediaUrl()).into(imageSmall);
 
-
-        /**
-         * This if statement checkcs if the selected ServiceReqest is already in the database, if so it sets the like button
-         * to liked, if not, it sets the button to unLiked.
-         */
-        final DatabaseHandler db = new DatabaseHandler(getApplicationContext(), null, null, 1 );
-        if(db.ReportExists(serviceRequest.getServiceRequestId())){
+        // This if statement checks if the selected ServiceRequest is already in the database, if so it sets the like button
+        // liked, if not, it sets the button to unLiked.
+        DatabaseHandler db = new DatabaseHandler(getApplicationContext(), null, null, 1 );
+        if(db.ReportExists(serviceRequestID)){
 
             likeButton.setLiked(true);
         } else {
@@ -96,30 +87,26 @@ public class DetailedMeldingActivity extends FragmentActivity {
         likeButton.setOnLikeListener(new OnLikeListener() {
             @Override
 
-            /**
-             * if the like star is pressed when the button is not liked, the like method is called. This method adds the selected
-             * ServiceRequest to the database and sets the star to liked.
-             */
+            // if the like star is pressed when the button is not liked, the like method is called.
+            // This method adds the selectedServiceRequest to the database and sets the star to liked.
             public void liked(LikeButton likeButton) {
 
                 try {
-                    if (!db.ReportExists(serviceRequest.getServiceRequestId())) {
-                        db.addReport(serviceRequest.getServiceRequestId());
+                    if (!db.ReportExists(serviceRequestID)) {
+                        db.addReport(serviceRequestID);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
 
-            /**
-             *When the star is presses when the button is liked, the unLike method is called. This method deletes the selected
-             * ServiceRequest from the database and set the button to unLiked.
-             */
+            // When the star is presses when the button is liked, the unLike method is called.
+            // This method deletes the selected.ServiceRequest from the database and set the button to unLiked.
             @Override
             public void unLiked(LikeButton likeButton) {
                 try {
-                    if (db.ReportExists(serviceRequest.getServiceRequestId())) {
-                        db.deleteReport(serviceRequest.getServiceRequestId());
+                    if (db.ReportExists(serviceRequestID)) {
+                        db.deleteReport(serviceRequestID);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -127,11 +114,31 @@ public class DetailedMeldingActivity extends FragmentActivity {
             }
         });
 
+        /*if(db.upvoteExists(serviceRequestID)) {
+            // make sure user cant see the upvote button anymore
+            upvoteButton.setVisibility(View.INVISIBLE);
+        }*/
 
-        /**
-         * This button takes the user back to the previous screen, based on the ORIGIN value.
-         */
-        terugButton = (Button) findViewById(R.id.activityDetailedMelding_btn_terugBTN_ID);
+        upvoteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(!db.upvoteExists(serviceRequestID)) {
+                    // add upvote to sqlite database
+                    db.addUpvote(serviceRequestID);
+                    // add upvote to service request in Gemeente Database
+                    sendUpvoteToAPI(serviceRequestID);
+                    addUpvoteToTextview();
+                    // let user know service request is upvoted
+                    Toast.makeText(DetailedMeldingActivity.this, getString(R.string.upvoteSucces), Toast.LENGTH_SHORT).show();
+                } else {
+                    // let user know he/she already upvoted this service request
+                    Toast.makeText(DetailedMeldingActivity.this, getString(R.string.alreadyUpvoted), Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        // This button takes the user back to the previous screen, based on the ORIGIN value.
+        Button terugButton = (Button) findViewById(R.id.activityDetailedMelding_btn_terugBTN_ID);
         terugButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -141,13 +148,10 @@ public class DetailedMeldingActivity extends FragmentActivity {
                         startActivity(in);
                     } else if (origin.equals("Tab2Fragment") || origin.equals("MeldingActivityDialog")) {
                         onBackPressed();
-
                     }
                 } else {
                     onBackPressed();
                 }
-
-
             }
         });
 
@@ -302,6 +306,26 @@ public class DetailedMeldingActivity extends FragmentActivity {
                 mCurrentAnimator = set;
             }
         });
+    }
+
+    /**
+     * Send a post request to Open311 Interface notifying about the service request that
+     * has been upvoted.
+     * @param serviceRequestID the ID of the service request that just has been upvoted by the user
+     */
+    public void sendUpvoteToAPI(String serviceRequestID) {
+        String extraDescription = "";
+        RequestManager rManager = new RequestManager(this);
+        rManager.upvoteServiceRequest(serviceRequestID, extraDescription);
+    }
+
+    /**
+     * Add + 1 to the number of upvotes that are being shown on the UI.
+     */
+    public void addUpvoteToTextview() {
+        String upvoteText = numbOfUpvoted.getText().toString();
+        Integer updatedUpvoteNumb = Integer.parseInt(upvoteText) + 1;
+        numbOfUpvoted.setText(String.valueOf(updatedUpvoteNumb));
     }
 
     @Override

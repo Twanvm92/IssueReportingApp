@@ -292,7 +292,7 @@ public class MainActivity extends AppCompatActivity implements
                 @Override
                 public void onClick(View view) {
                     AlertDialog.Builder builder1 = new AlertDialog.Builder(MainActivity.this);
-                    View mView = getLayoutInflater().inflate(R.layout.dialog2, null);
+                    View mView = getLayoutInflater().inflate(R.layout.dialog222, null);
                     Button nederlands = (Button) mView.findViewById(R.id.alertdialog_btn_nederlands);
                     nederlands.setOnClickListener(new View.OnClickListener() {
                         @Override

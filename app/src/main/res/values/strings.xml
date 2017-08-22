@@ -88,5 +88,9 @@
     <string name="activityDetailedMelding_bt_upvoten">Prioriteit geven</string>
     <string name="activityDetailedMelding_bt_follow">Volgen</string>
     <string name="numberOfUpvotes">Aantal upvotes:</string>
+    <string name="upvoteSucces">Succes! De melding is geüpvotet!</string>
+    <string name="saved_upvote">savedUpvote</string>
+    <string name="sharedPreference_upvote">upvotes</string>
+    <string name="alreadyUpvoted">Je hebt deze melding al een keer geüpvotet!</string>
 
 </resources>

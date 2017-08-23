@@ -53,8 +53,8 @@ public class UpdateService extends Service {
             this.context = mContext.get();
             // Setting a sleep time for the th
             // read, 10 minutes
-            LONG_SLEEP_TIME = 600000;
-//            LONG_SLEEP_TIME = 30000;
+//            LONG_SLEEP_TIME = 600000;
+            LONG_SLEEP_TIME = 200000;
 
             // TODO: 11-8-2017 remove after testing notification update
         }
@@ -104,8 +104,14 @@ public class UpdateService extends Service {
                     String nTitle = context.getResources().getString(R.string.app_name);
                     String nContent = context.getResources().getString(R.string.reportUpdated);
 
-                    context.notifyReportChanged(nTitle + " ",
-                            nContent, serviceRequests.get(i));
+                    // after creating a new service request the localdatetime will be null
+                    // and the apidatetime will be the time the service request was posted.
+                    // we dont want to show the user a notification when the service request
+                    // gets created.
+
+                        context.notifyReportChanged(nTitle + " ",
+                                nContent, serviceRequests.get(i));
+
 
                     // Connecting to the database and updating the local service request
                     // with a new update time
@@ -203,6 +209,10 @@ public class UpdateService extends Service {
         return srIDList;
     }
 
+    /**
+     *
+     * @param sr
+     */
     public static void resetUnreadServiceRequest(ServiceRequest sr){
         for ( int i = 0;  i < srIDList.size(); i++){
             String unreadSR = srIDList.get(i);

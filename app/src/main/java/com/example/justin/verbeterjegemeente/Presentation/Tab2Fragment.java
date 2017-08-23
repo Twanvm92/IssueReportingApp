@@ -38,21 +38,11 @@ public class Tab2Fragment extends Fragment  {
     private ArrayAdapter serviceRequestAdapter;
     private ArrayList<ServiceRequest> serviceList;
     private ServiceRequest serviceRequest;
-    private LatLng currentLatLng = null;
-    private String currentRadius;
-    private String servCodeQ;
-
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.tab2_fragment, container, false);
-
-        // get user selected radius and cat or use default radius and cat
-        SharedPreferences prefs = getActivity().getPreferences(Context.MODE_PRIVATE);
-        int rValue = prefs.getInt(getString(R.string.activityMain_saved_radius), 20); // 20 is default
-        currentRadius = Integer.toString(rValue);
-        servCodeQ = prefs.getString(getString(R.string.activityMain_saved_servcodeQ), null);
 
         serviceList = new ArrayList<>();
 
@@ -64,7 +54,7 @@ public class Tab2Fragment extends Fragment  {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent myIntent = new Intent(view.getContext(), DetailedMeldingActivity.class);
                 serviceRequest = serviceList.get(position);
-                myIntent.putExtra("serviceRequest", (Serializable) serviceRequest);
+                myIntent.putExtra("serviceRequest", serviceRequest);
                 myIntent.putExtra("ORIGIN", "Tab2Fragment");
                 startActivity(myIntent);
 
@@ -76,7 +66,7 @@ public class Tab2Fragment extends Fragment  {
 
     public void updateServiceRequests(ArrayList<ServiceRequest> srList) {
         serviceList.clear();
-        if (!srList.isEmpty() && srList != null) {
+        if (!srList.isEmpty()) {
             for (ServiceRequest s : srList) {
                 serviceList.add(s);
             }

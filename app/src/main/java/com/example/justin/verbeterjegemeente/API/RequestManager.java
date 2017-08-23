@@ -5,13 +5,11 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.Constants;
-import com.example.justin.verbeterjegemeente.Database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.PostServiceRequestResponse;
 import com.example.justin.verbeterjegemeente.domain.Service;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -19,10 +17,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.http.HEAD;
 
 /**
  * This class will manage all the Retrofit API requests.
@@ -38,7 +37,6 @@ public class RequestManager {
     private OnServicesReady servCallb;
     private OnServiceRequestsReady servReqCallb;
     private OnServiceRequestPosted servReqPostedCallb;
-    private DatabaseHandler dbHandler;
 
     /**
      * Accepts the context of an activity and initializes the ServiceClient
@@ -83,18 +81,15 @@ public class RequestManager {
                             }
                         } else {
                         try { //something went wrong. Show the user what went wrong
-                            JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
-                            JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
+                            JSONObject jObjError = new JSONObject(response.errorBody().string());
 
-                            Toast.makeText(context, jObjError.getString("description"),
+                            Toast.makeText(context, jObjError.getString(Constants.ERROR_MESSAGE),
                                     Toast.LENGTH_SHORT).show();
-                            Log.i("Error message: ", jObjError.getString("description"));
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        } catch (JSONException e) {
+                            Log.i("Error message: ", jObjError.getString(Constants.ERROR_MESSAGE));
+                        } catch (IOException | JSONException e) {
                             e.printStackTrace();
                         }
-                    }
+                        }
                     }
 
                     @Override
@@ -140,18 +135,15 @@ public class RequestManager {
                             servReqCallb.serviceRequestsReady(servReqList);
                         } else {
                         try { //something went wrong. Show the user what went wrong
-                            JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
-                            JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
+                            JSONObject jObjError = new JSONObject(response.errorBody().string());
 
-                            Toast.makeText(context, jObjError.getString("description"),
+                            Toast.makeText(context, jObjError.getString(Constants.ERROR_MESSAGE),
                                     Toast.LENGTH_SHORT).show();
-                            Log.i("Error message: ", jObjError.getString("description"));
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        } catch (JSONException e) {
+                            Log.i("Error message: ", jObjError.getString(Constants.ERROR_MESSAGE));
+                        } catch (IOException | JSONException e) {
                             e.printStackTrace();
                         }
-                    }
+                        }
 
                     }
 
@@ -199,12 +191,11 @@ public class RequestManager {
 
                         } else {
                         try { //something went wrong. Show the user what went wrong
-                            JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
-                            JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
+                            JSONObject jObjError = new JSONObject(response.errorBody().string());
 
-                            Toast.makeText(context, jObjError.getString("description"),
+                            Toast.makeText(context, jObjError.getString(Constants.ERROR_MESSAGE),
                                     Toast.LENGTH_SHORT).show();
-                            Log.i("Error message: ", jObjError.getString("description"));
+                            Log.i("Error message: ", jObjError.getString(Constants.ERROR_MESSAGE));
                         } catch (IOException | JSONException e) {
                             e.printStackTrace();
                         }
@@ -259,6 +250,7 @@ public class RequestManager {
                                 }
 
                             }*/
+
 
                             servReqCallb.serviceRequestsReady(servReqList);
 
@@ -326,15 +318,12 @@ public class RequestManager {
                             servReqCallb.serviceRequestsReady(servReqList);
                         } else {
                             try { //something went wrong. Show the user what went wrong
-                                JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
-                                JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
+                                JSONObject jObjError = new JSONObject(response.errorBody().string());
 
-                                Toast.makeText(context, jObjError.getString("description"),
+                                Toast.makeText(context, jObjError.getString(Constants.ERROR_MESSAGE),
                                         Toast.LENGTH_SHORT).show();
-                                Log.i("Error message: ", jObjError.getString("description"));
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            } catch (JSONException e) {
+                                Log.i("Error message: ", jObjError.getString(Constants.ERROR_MESSAGE));
+                            } catch (IOException | JSONException e) {
                                 e.printStackTrace();
                             }
                         }
@@ -387,15 +376,12 @@ public class RequestManager {
 
                         } else {
                             try { //something went wrong. Show the user what went wrong
-                                JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
-                                JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
+                                JSONObject jObjError = new JSONObject(response.errorBody().string());
 
-                                Toast.makeText(context, jObjError.getString("description"),
+                                Toast.makeText(context, jObjError.getString(Constants.ERROR_MESSAGE),
                                         Toast.LENGTH_SHORT).show();
-                                Log.i("Error message: ", jObjError.getString("description"));
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            } catch (JSONException e) {
+                                Log.i("Error message: ", jObjError.getString(Constants.ERROR_MESSAGE));
+                            } catch (IOException | JSONException e) {
                                 e.printStackTrace();
                             }
                         }
@@ -421,15 +407,17 @@ public class RequestManager {
         }
     }
 
-    public void postServiceRequest(String sc, String descr, double lat, double lon, String address_string,
-                                   String address_id, String[] attribute, String jurisdiction_id,
-                                   String email, String fName, String lName, String imgUrl) {
+    // TODO: 21-8-2017 commented attribute parameter. is this going to be removed?
+    // TODO: 22-8-2017 add javadoc
+    public void postServiceRequest(RequestBody sc, RequestBody descr, RequestBody lat, RequestBody lon, RequestBody address_string,
+                                   RequestBody address_id, /*String[] attribute,*/ RequestBody jurisdiction_id,
+                                   RequestBody email, RequestBody fName, RequestBody lName, MultipartBody.Part imgUrl) {
         try {
             if (ConnectionChecker.isConnected()) {
 
                 Call<ArrayList<PostServiceRequestResponse>> serviceRequestResponseCall =
                         client.postServiceRequest(sc, descr, lat, lon, address_string,
-                                address_id, attribute, jurisdiction_id, email, fName, lName, imgUrl);
+                                address_id, /*attribute,*/ jurisdiction_id, email, fName, lName, imgUrl);
                 // fire the get post request
                 serviceRequestResponseCall.enqueue(new Callback<ArrayList<PostServiceRequestResponse>>() {
                     @Override
@@ -443,15 +431,14 @@ public class RequestManager {
 
                         } else {
                             try { //something went wrong. Show the user what went wrong
-                                JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
-                                JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
+//                                JSONObject jObjError = new JSONObject(response.errorBody().string());
 
-                                Toast.makeText(context, jObjError.getString("description"),
-                                        Toast.LENGTH_SHORT).show();
-                                Log.i("Error message: ", jObjError.getString("description"));
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            } catch (JSONException e) {
+
+//                                Toast.makeText(context, jObjError.getString(Constants.ERROR_MESSAGE),
+//                                        Toast.LENGTH_SHORT).show();
+//                                Log.i("Error message: ", jObjError.getString(Constants.ERROR_MESSAGE));
+                                Log.i("Error message: ", response.errorBody().string());
+                            } catch (IOException/* | JSONException */e) {
                                 e.printStackTrace();
                             }
                         }
@@ -460,6 +447,59 @@ public class RequestManager {
                     // a connection could not have been made. Tell the user.
                     @Override
                     public void onFailure(Call<ArrayList<PostServiceRequestResponse>> call, Throwable t) {
+                        Toast.makeText(context, context.getResources().getString(R.string.ePostRequest),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+            } else {// a connection could not have been made. Tell the user.
+                Toast.makeText(context, context.getResources().getString(R.string.ePostRequest),
+                        Toast.LENGTH_SHORT).show();
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            Thread.currentThread().interrupt();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // TODO: 22-8-2017 add javadoc
+    public void upvoteServiceRequest(String serviceRequestID, String extraDescription) {
+        try {
+            if (ConnectionChecker.isConnected()) {
+
+                Call<ArrayList> serviceRequestResponseCall =
+                        client.upvoteRequest(serviceRequestID, extraDescription);
+                // fire the get post request
+                serviceRequestResponseCall.enqueue(new Callback<ArrayList>() {
+                    @Override
+                    public void onResponse(Call<ArrayList> call,
+                                           Response<ArrayList> response) {
+                        if (response.isSuccessful()) {
+                            // if a response was successful tell Activity where this request was
+                            // fired from
+
+                            Toast.makeText(context, context.getResources().getString(R.string.upvoteSucces),
+                                    Toast.LENGTH_SHORT).show();
+
+                        } else {
+                            try { //something went wrong. Show the user what went wrong
+                                JSONObject jObjError = new JSONObject(response.errorBody().string());
+
+
+//                                Toast.makeText(context, jObjError.getString(Constants.ERROR_MESSAGE),
+//                                        Toast.LENGTH_SHORT).show();
+//                                Log.i("Error message: ", jObjError.getString(Constants.ERROR_MESSAGE));
+                                Log.i("Error message: ", response.errorBody().string());
+                            } catch (IOException | JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                    // a connection could not have been made. Tell the user.
+                    @Override
+                    public void onFailure(Call<ArrayList> call, Throwable t) {
                         Toast.makeText(context, context.getResources().getString(R.string.ePostRequest),
                                 Toast.LENGTH_SHORT).show();
                     }

@@ -188,6 +188,7 @@
                 android:layout_weight="1"
                 android:text="@string/optioneel"
                 android:textAlignment="textEnd"
+                android:gravity="end"
                 android:textColor="@android:color/background_light"
                 android:textSize="16sp" />
         </LinearLayout>
@@ -229,6 +230,7 @@
                 android:layout_weight="1"
                 android:text="@string/optioneel"
                 android:textAlignment="textEnd"
+                android:gravity="end"
                 android:textColor="@android:color/background_light"
                 android:textSize="16sp" />
         </LinearLayout>
@@ -271,6 +273,7 @@
                 android:layout_weight="1"
                 android:text="@string/optioneel"
                 android:textAlignment="textEnd"
+                android:gravity="end"
                 android:textColor="@android:color/background_light"
                 android:textSize="16sp" />
         </LinearLayout>

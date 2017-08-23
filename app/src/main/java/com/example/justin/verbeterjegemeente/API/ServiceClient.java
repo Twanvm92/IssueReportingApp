@@ -7,10 +7,14 @@ import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 import java.util.ArrayList;
 import java.util.List;
 
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
+import retrofit2.http.Multipart;
 import retrofit2.http.POST;
+import retrofit2.http.Part;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
@@ -50,7 +54,7 @@ public interface ServiceClient {
      * @param lon The longitude of the location of the Service Request. Required.
      * @param address_string The address string of the Service Request. Required.
      * @param address_id The address id of the Service Request. Required.
-     * @param attribute The attributes of the location of the Service Request. Required.
+//     * @param attribute The attributes of the location of the Service Request. Required.
      * @param jurisdiction_id The jurisdiction id of the Service Request.
      * @param media_url The optional image file that can be send with the post request
      * @param email The optional email of the user that made the Service Request.
@@ -59,19 +63,33 @@ public interface ServiceClient {
      * @return Arraylist<PostServiceRequestResponse>
      * @see PostServiceRequestResponse
      */
+
+    @Multipart
     @POST("requests.json")
-    Call<ArrayList<PostServiceRequestResponse>> postServiceRequest(@Query("service_code") String service_code,
-                                                                   @Query("description") String description,
-                                                                   @Query("lat") Double lat,
-                                                                   @Query("long") Double lon,
-                                                                   @Query("address_string") String address_string,
-                                                                   @Query("address_id") String address_id,
-                                                                   @Body String[] attribute,
-                                                                   @Query("jurisdiction_id") String jurisdiction_id,
-                                                                   @Query("email") String email,
-                                                                   @Query("first_name") String first_name,
-                                                                   @Query("last_name") String last_name,
-                                                                   @Query("media_url") String media_url);
+    Call<ArrayList<PostServiceRequestResponse>> postServiceRequest(@Part("service_code") RequestBody service_code,
+                                                                   @Part("description") RequestBody description,
+                                                                   @Part("lat") RequestBody lat,
+                                                                   @Part("long") RequestBody lon,
+                                                                   @Part("address_string") RequestBody address_string,
+                                                                   @Part("address_id") RequestBody address_id,
+//                                                                   @Body String[] attribute,
+                                                                   @Part("jurisdiction_id") RequestBody jurisdiction_id,
+                                                                   @Part("email") RequestBody email,
+                                                                   @Part("first_name") RequestBody first_name,
+                                                                   @Part("last_name") RequestBody last_name,
+                                                                   @Part MultipartBody.Part media_url);
+
+    /**
+     * Give priority to a service request. Should only be abe to be done once per user.
+     *
+     * @param serviceRequestID the id of the service request you want to upvote
+     * @param extraDescription the extra description for why you want to give priority. Is mandatory
+     * @return
+     */
+    @POST("upvoteRequest.json")
+    Call<ArrayList> upvoteRequest(@Query("service_request_id") String serviceRequestID,
+                                  @Query("extraDescription") String extraDescription
+    );
 
 
     /**

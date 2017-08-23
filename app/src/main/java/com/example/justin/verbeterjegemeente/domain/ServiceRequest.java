@@ -4,6 +4,7 @@ import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * <code>ServiceRequest</code> is a class that gets created after a get request for services requests has been send
@@ -43,15 +44,17 @@ public class ServiceRequest implements Serializable {
     @SerializedName("status_notes")
     @Expose
     private String statusNotes;
-    @SerializedName("media_url")
+    @SerializedName("media_urls")
     @Expose
-    private String mediaUrl;
-    @SerializedName("requested_datetime")
+    private List<String> mediaUrls = null;
     @Expose
     private String requestedDatetime;
     @SerializedName("updated_datetime")
     @Expose
     private String updatedDatetime;
+    @SerializedName("upvotes")
+    @Expose
+    private int upvotes;
 
     public String getServiceRequestId() {
         return serviceRequestId;
@@ -125,14 +128,6 @@ public class ServiceRequest implements Serializable {
         this.statusNotes = statusNotes;
     }
 
-    public String getMediaUrl() {
-        return mediaUrl;
-    }
-
-    public void setMediaUrl(String mediaUrl) {
-        this.mediaUrl = mediaUrl;
-    }
-
     public String getRequestedDatetime() {
         return requestedDatetime;
     }
@@ -149,4 +144,15 @@ public class ServiceRequest implements Serializable {
         this.updatedDatetime = updatedDatetime;
     }
 
+    public int getUpvotes() {
+        return upvotes;
+    }
+
+    public List<String> getMediaUrls() {
+        return mediaUrls;
+    }
+
+    public void setMediaUrls(List<String> mediaUrls) {
+        this.mediaUrls = mediaUrls;
+    }
 }

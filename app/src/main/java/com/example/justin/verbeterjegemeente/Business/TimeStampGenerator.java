@@ -9,6 +9,7 @@ import java.util.Locale;
  * Created by twanv on 7-8-2017.
  */
 
+// TODO: 22-8-2017  add javadoc
 public class TimeStampGenerator {
     private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ENGLISH);
 

@@ -1,258 +1,341 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <FrameLayout
+    <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <LinearLayout
-            android:layout_width="match_parent"
+
+        <TextView
+            android:id="@+id/locatiedetailedid"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:fontFamily="sans-serif-condensed"
+            android:text="@string/locatieTab2"
+            android:textColor="@color/white"
+            android:textSize="30sp"
+            android:layout_marginLeft="16dp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            android:layout_marginBottom="0dp"
+            app:layout_constraintBottom_toBottomOf="@+id/textView5" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal">
 
-                <TextView
-                    android:id="@+id/locatiedetailedid"
-                    android:layout_width="500dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:layout_weight="1"
-                    android:fontFamily="sans-serif-condensed"
-                    android:text="@string/locatieTab2"
-                    android:textColor="@android:color/white"
-                    android:textSize="30sp" />
 
-                <com.like.LikeButton
-                    android:id="@+id/favorietenknopdetail"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_marginTop="11dp"
-                    android:layout_weight="1"
-                    app:circle_end_color="#FF6FDA7F"
-                    app:circle_start_color="#82b236"
-                    app:icon_size="40dp"
-                    app:icon_type="star" />
-            </LinearLayout>
+        <ImageButton
+            android:id="@+id/activityDetailedMelding_imgbtn_imageSmall_ID"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_weight="1"
+            android:scaleType="centerCrop"
+            android:src="@drawable/thumb1"
+            android:layout_marginLeft="0dp"
+            app:layout_constraintLeft_toLeftOf="@+id/locatiedetailedid"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/locatiedetailedid" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal">
 
-                <ImageButton
-                    android:id="@+id/activityDetailedMelding_imgbtn_imageSmall_ID"
-                    android:layout_width="150dp"
-                    android:layout_height="150dp"
-                    android:layout_marginRight="1dp"
-                    android:layout_weight="1"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/thumb1" />
+        <TextView
+            android:id="@+id/activityDetailedMelding_tv_hoofdCategorie_detailedID"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:background="@color/colorBackground2"
+            android:fontFamily="sans-serif-condensed"
+            android:foreground="@drawable/imageborder"
+            android:paddingBottom="5dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:paddingTop="5dp"
+            android:text="Afval"
+            android:textColor="@android:color/white"
+            android:textSize="19sp"
+            android:layout_marginLeft="0dp"
+            app:layout_constraintLeft_toLeftOf="@+id/activityDetailedMelding_tv_hoofdCategorieID"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/activityDetailedMelding_tv_hoofdCategorieID"
+            android:layout_marginRight="8dp"
+            app:layout_constraintRight_toRightOf="parent" />
 
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+        <TextView
+            android:id="@+id/activityDetailedMelding_tv_subCategorieID"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/subcategorieTab2"
+            android:textColor="@android:color/background_light"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginLeft="0dp"
+            app:layout_constraintLeft_toLeftOf="@+id/activityDetailedMelding_tv_hoofdCategorie_detailedID"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/activityDetailedMelding_tv_hoofdCategorie_detailedID" />
 
-                    <TextView
-                        android:id="@+id/activityDetailedMelding_tv_hoofdCategorieID"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
-                        android:layout_marginTop="20dp"
-                        android:text="@string/hoofdcategorieTab2"
-                        android:textColor="@android:color/background_light"
-                        android:textSize="20sp"
-                        android:textStyle="bold" />
+        <TextView
+            android:id="@+id/activityDetailedMelding_tv_subCategorie_detailedID"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:background="@color/colorBackground2"
+            android:fontFamily="sans-serif-condensed"
+            android:foreground="@drawable/imageborder"
+            android:paddingBottom="5dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:paddingTop="5dp"
+            android:text="Straatafval"
+            android:textColor="@android:color/white"
+            android:textSize="19sp"
+            android:layout_marginLeft="0dp"
+            app:layout_constraintLeft_toLeftOf="@+id/activityDetailedMelding_tv_subCategorieID"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/activityDetailedMelding_tv_subCategorieID"
+            android:layout_marginRight="8dp"
+            app:layout_constraintRight_toRightOf="parent" />
 
-                    <TextView
-                        android:id="@+id/activityDetailedMelding_tv_hoofdCategorie_detailedID"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
-                        android:background="@color/colorBackground2"
-                        android:fontFamily="sans-serif-condensed"
-                        android:foreground="@drawable/imageborder"
-                        android:paddingBottom="5px"
-                        android:paddingLeft="10dp"
-                        android:paddingRight="10dp"
-                        android:paddingTop="5px"
-                        android:text="Afval"
-                        android:textColor="@android:color/white"
-                        android:textSize="19sp" />
 
-                    <TextView
-                        android:id="@+id/activityDetailedMelding_tv_subCategorieID"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
-                        android:text="@string/subcategorieTab2"
-                        android:textColor="@android:color/background_light"
-                        android:textSize="20sp"
-                        android:textStyle="bold" />
+        <TextView
+            android:id="@+id/activityDetailedMelding_tv_beschrijvingID"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/beschrijving2"
+            android:textColor="@android:color/background_light"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/activityDetailedMelding_imgbtn_imageSmall_ID"
+            android:layout_marginLeft="8dp"
+            app:layout_constraintLeft_toLeftOf="parent" />
 
-                    <TextView
-                        android:id="@+id/activityDetailedMelding_tv_subCategorie_detailedID"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
-                        android:background="@color/colorBackground2"
-                        android:fontFamily="sans-serif-condensed"
-                        android:foreground="@drawable/imageborder"
-                        android:paddingBottom="5px"
-                        android:paddingLeft="10dp"
-                        android:paddingRight="10dp"
-                        android:paddingTop="5px"
-                        android:text="Straatafval"
-                        android:textColor="@android:color/white"
-                        android:textSize="19sp" />
-                </LinearLayout>
-            </LinearLayout>
+        <TextView
+            android:id="@+id/activityDetailedMelding_tv_beschrijving_DetailedID"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:background="@color/colorBackground2"
+            android:fontFamily="sans-serif-condensed"
+            android:foreground="@drawable/imageborder"
+            android:paddingBottom="5dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:paddingTop="5dp"
+            android:text="The wise man therefore always holds in these matters to this principle of selection: he rejects pleasures to secure other greater pleasures, or else he endures pains to avoid worse pains"
+            android:textColor="@android:color/white"
+            android:textSize="19sp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/activityDetailedMelding_tv_beschrijvingID"
+            android:layout_marginRight="8dp"
+            app:layout_constraintRight_toRightOf="parent"
+            android:layout_marginLeft="8dp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintHorizontal_bias="0.0" />
 
-            <TextView
-                android:id="@+id/activityDetailedMelding_tv_beschrijvingID"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:layout_marginTop="20dp"
-                android:text="@string/beschrijving2"
-                android:textColor="@android:color/background_light"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+        <TextView
+            android:id="@+id/activityDetailedMelding_tv_statusID"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/status"
+            android:textColor="@android:color/background_light"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/activityDetailedMelding_tv_beschrijving_DetailedID"
+            android:layout_marginLeft="0dp"
+            app:layout_constraintLeft_toLeftOf="@+id/activityDetailedMelding_tv_beschrijving_DetailedID" />
 
-            <ScrollView
-                android:id="@+id/child"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
+        <TextView
+            android:id="@+id/activityDetailedMelding_tv_status_DetailedID"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:background="@color/colorBackground2"
+            android:fontFamily="sans-serif-condensed"
+            android:foreground="@drawable/imageborder"
+            android:paddingBottom="5dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:paddingTop="5dp"
+            android:text="Open/gesloten"
+            android:textColor="@android:color/white"
+            android:textSize="19sp"
+            app:layout_constraintLeft_toRightOf="@+id/activityDetailedMelding_tv_statusID"
+            android:layout_marginLeft="8dp"
+            app:layout_constraintTop_toTopOf="@+id/activityDetailedMelding_tv_statusID"
+            android:layout_marginTop="0dp"
+            app:layout_constraintBottom_toBottomOf="@+id/activityDetailedMelding_tv_statusID"
+            android:layout_marginBottom="0dp"
+            android:layout_marginRight="8dp"
+            app:layout_constraintRight_toRightOf="parent" />
 
-                <TextView
-                    android:id="@+id/activityDetailedMelding_tv_beschrijving_DetailedID"
-                    android:layout_width="match_parent"
-                    android:layout_height="150dp"
-                    android:layout_marginLeft="5dp"
-                    android:background="@color/colorBackground2"
-                    android:fontFamily="sans-serif-condensed"
-                    android:foreground="@drawable/imageborder"
-                    android:paddingBottom="5px"
-                    android:paddingLeft="10dp"
-                    android:paddingRight="10dp"
-                    android:paddingTop="5px"
-                    android:text="The wise man therefore always holds in these matters to this principle of selection: he rejects pleasures to secure other greater pleasures, or else he endures pains to avoid worse pains"
-                    android:textColor="@android:color/white"
-                    android:textSize="19sp" />
-            </ScrollView>
+        <TextView
+            android:id="@+id/activityDetailedMelding_tv_statusNotesID"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/detailedStatus"
+            android:textColor="@android:color/background_light"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginLeft="0dp"
+            app:layout_constraintLeft_toLeftOf="@+id/activityDetailedMelding_tv_statusID"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/activityDetailedMelding_tv_status_DetailedID" />
 
-            <TextView
-                android:id="@+id/activityDetailedMelding_tv_statusID"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:text="@string/status"
-                android:textColor="@android:color/background_light"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+        <TextView
+            android:id="@+id/activityDetailedMelding_tv_status_DetailedNotesID"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:background="@color/colorBackground2"
+            android:fontFamily="sans-serif-condensed"
+            android:foreground="@drawable/imageborder"
+            android:paddingBottom="5dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:paddingTop="5dp"
+            android:text="Notes."
+            android:textColor="@android:color/white"
+            android:textSize="19sp"
+            android:layout_marginLeft="0dp"
+            app:layout_constraintLeft_toLeftOf="@+id/activityDetailedMelding_tv_statusNotesID"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/activityDetailedMelding_tv_statusNotesID"
+            android:layout_marginRight="8dp"
+            app:layout_constraintRight_toRightOf="parent" />
 
-            <TextView
-                android:id="@+id/activityDetailedMelding_tv_status_DetailedID"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:background="@color/colorBackground2"
-                android:fontFamily="sans-serif-condensed"
-                android:foreground="@drawable/imageborder"
-                android:paddingBottom="5px"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
-                android:paddingTop="5px"
-                android:text="Open/gesloten"
-                android:textColor="@android:color/white"
-                android:textSize="19sp" />
+        <TextView
+            android:id="@+id/activityDetailedMelding_tv_laatstUpdateID"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/laatsteupdateTab2"
+            android:textColor="@android:color/background_light"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginLeft="0dp"
+            app:layout_constraintLeft_toLeftOf="@+id/activityDetailedMelding_tv_status_DetailedNotesID"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/activityDetailedMelding_tv_status_DetailedNotesID" />
 
-            <TextView
-                android:id="@+id/activityDetailedMelding_tv_statusNotesID"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:text="@string/status"
-                android:textColor="@android:color/background_light"
-                android:textSize="20sp"
-                android:textStyle="bold"  />
+        <TextView
+            android:id="@+id/activityDetailedMelding_tv_laatsUpdate_detailedID"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:background="@color/colorBackground2"
+            android:fontFamily="sans-serif-condensed"
+            android:foreground="@drawable/imageborder"
+            android:paddingBottom="5dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:paddingTop="5dp"
+            android:text="12 minuten geleden"
+            android:textColor="@android:color/white"
+            android:textSize="19sp"
+            app:layout_constraintTop_toTopOf="@+id/activityDetailedMelding_tv_laatstUpdateID"
+            android:layout_marginTop="0dp"
+            app:layout_constraintLeft_toRightOf="@+id/activityDetailedMelding_tv_laatstUpdateID"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintBottom_toBottomOf="@+id/activityDetailedMelding_tv_laatstUpdateID"
+            android:layout_marginBottom="0dp" />
 
-            <TextView
-                android:id="@+id/activityDetailedMelding_tv_status_DetailedNotesID"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:background="@color/colorBackground2"
-                android:fontFamily="sans-serif-condensed"
-                android:foreground="@drawable/imageborder"
-                android:paddingBottom="5px"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
-                android:paddingTop="5px"
-                android:text="Notes."
-                android:textColor="@android:color/white"
-                android:textSize="19sp" />
+        <Button
+            android:id="@+id/activityDetailedMelding_btn_terugBTN_ID"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#FF6FDA7F"
+            android:text="@string/terug"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:textSize="21sp"
+            android:textStyle="bold"
+            android:layout_marginLeft="8dp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            android:layout_marginRight="8dp"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintHorizontal_bias="1.0"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/upvoteknopdetail" />
 
-            <TextView
-                android:id="@+id/activityDetailedMelding_tv_laatstUpdateID"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:text="@string/laatsteupdateTab2"
-                android:textColor="@android:color/background_light"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+        <TextView
+            android:id="@+id/textView5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/favorietenknopdetail"
+            android:layout_centerInParent="true"
+            android:layout_gravity="center"
+            android:text="@string/activityDetailedMelding_bt_follow"
+            android:textColor="@android:color/white"
+            android:layout_marginTop="0dp"
+            app:layout_constraintTop_toBottomOf="@+id/favorietenknopdetail"
+            android:layout_marginRight="0dp"
+            app:layout_constraintRight_toRightOf="@+id/favorietenknopdetail"
+            android:layout_marginLeft="0dp"
+            app:layout_constraintLeft_toLeftOf="@+id/favorietenknopdetail" />
 
-            <TextView
-                android:id="@+id/activityDetailedMelding_tv_laatsUpdate_detailedID"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:background="@color/colorBackground2"
-                android:fontFamily="sans-serif-condensed"
-                android:foreground="@drawable/imageborder"
-                android:paddingBottom="5px"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
-                android:paddingTop="5px"
-                android:text="12 minuten geleden"
-                android:textColor="@android:color/white"
-                android:textSize="19sp" />
+        <TextView
+            android:id="@+id/activityDetailedMelding_tv_hoofdCategorieID"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/hoofdcategorieTab2"
+            android:textColor="@android:color/background_light"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintLeft_toRightOf="@+id/activityDetailedMelding_imgbtn_imageSmall_ID"
+            android:layout_marginLeft="8dp"
+            app:layout_constraintTop_toTopOf="@+id/activityDetailedMelding_imgbtn_imageSmall_ID"
+            android:layout_marginTop="0dp" />
 
-            <Button
-                android:id="@+id/activityDetailedMelding_btn_terugBTN_ID"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:backgroundTint="#FF6FDA7F"
-                android:text="@string/terug"
-                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                android:textSize="21sp"
-                android:textStyle="bold" />
+        <TextView
+            android:id="@+id/activityDetailedMelding_tv_upvotes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/numberOfUpvotes"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"
+            android:layout_marginLeft="8dp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintBottom_toBottomOf="@+id/upvoteknopdetail"
+            android:layout_marginBottom="0dp" />
 
-        </LinearLayout>
+        <TextView
+            android:id="@+id/activityDetailedMelding_tv_numberOfUpvotes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="0dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="0dp"
+            android:textColor="@android:color/white"
+            android:textSize="19sp"
+            app:layout_constraintBottom_toBottomOf="@+id/activityDetailedMelding_tv_upvotes"
+            app:layout_constraintLeft_toRightOf="@+id/activityDetailedMelding_tv_upvotes"
+            app:layout_constraintTop_toTopOf="@+id/activityDetailedMelding_tv_upvotes" />
 
-        <!-- This initially-hidden ImageView will hold the expanded/zoomed version of
-         the images above. Without transformations applied, it takes up the entire
-         screen. To achieve the "zoom" animation, this view's bounds are animated
-         from the bounds of the thumbnail button above, to its final laid-out
-         bounds.
-         -->
+        <com.like.LikeButton
+            android:id="@+id/favorietenknopdetail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            app:anim_scale_factor="1.5"
+            app:circle_end_color="#FF6FDA7F"
+            app:circle_start_color="#82b236"
+            app:dots_primary_color="@color/colorBackground2"
+            app:dots_secondary_color="@color/colorBackground2"
+            app:icon_size="48dp"
+            app:like_drawable="@drawable/ic_favorite_white_48dp"
+            app:unlike_drawable="@drawable/ic_favorite_border_white_48dp"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginTop="8dp"
+            android:layout_marginRight="8dp"
+            app:layout_constraintRight_toRightOf="parent" />
 
-        <ImageView
-            android:id="@+id/expanded_image"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="invisible" />
+        <ImageButton
+            android:id="@+id/upvoteknopdetail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_file_upload_white_24dp"
+            app:layout_constraintLeft_toRightOf="@+id/activityDetailedMelding_tv_numberOfUpvotes"
+            android:background="@null"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/activityDetailedMelding_tv_laatsUpdate_detailedID" />
 
-    </FrameLayout>
+
+    </android.support.constraint.ConstraintLayout>
 </ScrollView>

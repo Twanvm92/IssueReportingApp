@@ -78,6 +78,10 @@ public class FollowingActivity extends AppCompatActivity implements RequestManag
 
         idList = db.getReports();
         Log.i("IDs in userdb", idList.size() + "");
+        for (ServiceRequest sr : idList) {
+
+            Log.i("FollowingActivity: ", sr.getDescription() + " : " + sr.getUpdatedDatetime());
+        }
         db.close();
 
         String sRequestIDQ = ServiceManager.genServiceRequestIDQ(idList);
@@ -131,7 +135,7 @@ public class FollowingActivity extends AppCompatActivity implements RequestManag
 
     public ArrayList<ServiceRequest> orderServiceRequests(ArrayList<ServiceRequest> serviceRequests) {
         Comparator<ServiceRequest> comp = Collections.reverseOrder(new Comparator<ServiceRequest>() {
-            DateFormat f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ENGLISH);
+            DateFormat f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS", Locale.ENGLISH);
             @Override
             public int compare(ServiceRequest o1, ServiceRequest o2) {
                 Date firstDate;

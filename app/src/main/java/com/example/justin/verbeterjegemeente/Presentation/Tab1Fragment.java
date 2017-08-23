@@ -314,9 +314,9 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
                 switch (statusCode) {
                     case CommonStatusCodes.RESOLUTION_REQUIRED:
                         // Location settings are not satisfied, but this can be fixed
-                        // by showing the user a dialog.
+                        // by showing the user a dialoggg.
                         try {
-                            // Show the dialog by calling startResolutionForResult(),
+                            // Show the dialoggg by calling startResolutionForResult(),
                             // and check the result in onActivityResult().
                             ResolvableApiException resolvable = (ResolvableApiException) e;
                             resolvable.startResolutionForResult(getActivity(),
@@ -327,7 +327,7 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
                         break;
                     case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
                         // Location settings are not satisfied. However, we have no way
-                        // to fix the settings so we won't show the dialog.
+                        // to fix the settings so we won't show the dialoggg.
                         break;
                 }
             }

@@ -4,10 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
-import android.app.NotificationManager;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Bundle;
@@ -22,13 +19,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.API.RequestManager;
-import com.example.justin.verbeterjegemeente.Business.SendHttpRequestTask;
 import com.example.justin.verbeterjegemeente.Database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 import com.like.LikeButton;
 import com.like.OnLikeListener;
 import com.squareup.picasso.Picasso;
+
+import java.util.List;
 
 public class DetailedMeldingActivity extends FragmentActivity {
     // Hold a reference to the current animator,
@@ -74,10 +72,20 @@ public class DetailedMeldingActivity extends FragmentActivity {
         statusNotes.setText(serviceRequest.getStatusNotes());
         numbOfUpvoted.setText(String.valueOf(serviceRequest.getUpvotes()));
 
-        // load image from service request into imageview
-        Picasso.with(getApplicationContext()).load(serviceRequest.getMediaUrl()).into(imageSmall);
+        // get the lsit of media urls inside the service request
+        List<String> srMediaUrls = serviceRequest.getMediaUrls();
+        if (!srMediaUrls.isEmpty()) {
+            String mediaURL = serviceRequest.getMediaUrls().get(0);
+            // load image from service request into imageview
+            Picasso.with(getApplicationContext()).load(mediaURL).fit().into(imageSmall);
 
-        Log.i("DetailMeldingActivity: ", "Mediaurl: " + serviceRequest.getMediaUrl());
+            Log.i("DetailMeldingActivity: ", "Mediaurl: " + mediaURL);
+        }
+
+
+
+
+
 
         // This if statement checks if the selected ServiceRequest is already in the database, if so it sets the like button
         // liked, if not, it sets the button to unLiked.
@@ -168,12 +176,6 @@ public class DetailedMeldingActivity extends FragmentActivity {
         // Retrieve and cache the system's default "short" animation time.
         mShortAnimationDuration = getResources().getInteger(
                 android.R.integer.config_shortAnimTime);
-    }
-
-    private void getServiceRequestImage(ServiceRequest sr) {
-        SendHttpRequestTask asyncTask = new SendHttpRequestTask(imageSmall);
-        String[] urls = new String[] {sr.getMediaUrl()};
-        asyncTask.execute(urls);
     }
 
     private void zoomImageFromThumb(final View thumbView, int imageResId) {

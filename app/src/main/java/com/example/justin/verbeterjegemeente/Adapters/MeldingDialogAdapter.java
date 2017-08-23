@@ -1,6 +1,7 @@
 package com.example.justin.verbeterjegemeente.Adapters;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +14,7 @@ import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class MeldingDialogAdapter extends ArrayAdapter<ServiceRequest> {
 
@@ -28,7 +30,16 @@ public class MeldingDialogAdapter extends ArrayAdapter<ServiceRequest> {
         }
 
         ImageView imageSmall = (ImageView) convertview.findViewById(R.id.meldingDialog_iv_imageSmall_ID);
-        Picasso.with(getContext()).load(serviceRequest.getMediaUrl()).into(imageSmall);
+
+        // get the lsit of media urls inside the service request
+        List<String> srMediaUrls = serviceRequest.getMediaUrls();
+        if (!srMediaUrls.isEmpty()) {
+            String mediaURL = serviceRequest.getMediaUrls().get(0);
+            // load image from service request into imageview
+            Picasso.with(getContext()).load(mediaURL).into(imageSmall);
+
+            Log.i("DetailMeldingActivity: ", "Mediaurl: " + mediaURL);
+        }
 
         TextView locatie = (TextView) convertview.findViewById(R.id.meldingDialog_tv_locatieID);
         locatie.setText(serviceRequest.getLat() + ", " + serviceRequest.getLong());

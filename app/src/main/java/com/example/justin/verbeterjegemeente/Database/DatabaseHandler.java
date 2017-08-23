@@ -59,12 +59,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         database.execSQL(CREATE_MELDING_TABLE);
         database.execSQL(CREATE_USER_TABLE);
         database.execSQL(CREATE_UPVOTE_TABLE);
-        database.close();
     }
 
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL(CREATE_UPVOTE_TABLE);
-        db.close();
     }
 
     public void addMelding() {

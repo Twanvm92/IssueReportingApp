@@ -59,10 +59,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         database.execSQL(CREATE_MELDING_TABLE);
         database.execSQL(CREATE_USER_TABLE);
         database.execSQL(CREATE_UPVOTE_TABLE);
+        database.close();
     }
 
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL(CREATE_UPVOTE_TABLE);
+        db.close();
     }
 
     public void addMelding() {
@@ -138,6 +140,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             user.setPhoneNumber(cursor.getInt(cursor.getColumnIndex(USER_COLUMN_PHONENUMBER)));
         }
 
+        cursor.close();
+
         db.close();
         return user;
     }
@@ -158,6 +162,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             list.add(serviceRequest);
 
         }
+        cursor.close();
 
         db.close();
         return list;
@@ -168,6 +173,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         String query = "DELETE FROM " + USER_TABLE_NAME;
         SQLiteDatabase db = this.getWritableDatabase();
         db.execSQL(query);
+        db.close();
         Log.i("DELETE", "all records deleted");
     }
 
@@ -176,23 +182,30 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         String query = "DELETE FROM " + MELDING_TABLE_NAME + " WHERE " + MELDING_COLUMN_IDAPI + " = '" + id + "'";
         SQLiteDatabase db = this.getWritableDatabase();
         db.execSQL(query);
-
+        db.close();
     }
 
     public boolean ReportExists(String id) {
         String query = "SELECT * FROM " + MELDING_TABLE_NAME + " WHERE " + MELDING_COLUMN_IDAPI + " = '" + id + "'";
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(query, null);
+        boolean reportExists = cursor.moveToNext();
+        cursor.close();
+        db.close();
 
-        return cursor.moveToNext();
+        return reportExists;
+
     }
 
     public boolean upvoteExists(String id) {
         String query = "SELECT * FROM " + UPVOTE_TABLE_NAME + " WHERE " + UPVOTE_COLUMN_SERVICE_REQUEST_ID + " = '" + id + "'";
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(query, null);
+        boolean upvoteExists = cursor.moveToNext();
+        cursor.close();
+        db.close();
 
-        return cursor.moveToNext();
+        return upvoteExists;
     }
 
 }

@@ -12,6 +12,7 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.Button;
@@ -21,6 +22,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.API.RequestManager;
+import com.example.justin.verbeterjegemeente.Business.SendHttpRequestTask;
 import com.example.justin.verbeterjegemeente.Database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
@@ -34,6 +36,7 @@ public class DetailedMeldingActivity extends FragmentActivity {
     private Animator mCurrentAnimator;
     private String origin;
     private TextView numbOfUpvoted;
+    private ImageButton imageSmall;
 
     // The system "short" animation time duration, in milliseconds. This
     // duration is ideal for subtle animations or animations that occur
@@ -59,7 +62,7 @@ public class DetailedMeldingActivity extends FragmentActivity {
         TextView beschrijvingDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_beschrijving_DetailedID);
         TextView hoofdCategorieDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_hoofdCategorie_detailedID);
         TextView subCategorieDetailed = (TextView) findViewById(R.id.activityDetailedMelding_tv_subCategorie_detailedID);
-        ImageButton imageSmall = (ImageButton) findViewById(R.id.activityDetailedMelding_imgbtn_imageSmall_ID);
+        imageSmall = (ImageButton) findViewById(R.id.activityDetailedMelding_imgbtn_imageSmall_ID);
         TextView statusNotes = (TextView) findViewById(R.id.activityDetailedMelding_tv_status_DetailedNotesID);
         numbOfUpvoted = (TextView) findViewById(R.id.activityDetailedMelding_tv_numberOfUpvotes);
 
@@ -73,6 +76,8 @@ public class DetailedMeldingActivity extends FragmentActivity {
 
         // load image from service request into imageview
         Picasso.with(getApplicationContext()).load(serviceRequest.getMediaUrl()).into(imageSmall);
+
+        Log.i("DetailMeldingActivity: ", "Mediaurl: " + serviceRequest.getMediaUrl());
 
         // This if statement checks if the selected ServiceRequest is already in the database, if so it sets the like button
         // liked, if not, it sets the button to unLiked.
@@ -163,6 +168,12 @@ public class DetailedMeldingActivity extends FragmentActivity {
         // Retrieve and cache the system's default "short" animation time.
         mShortAnimationDuration = getResources().getInteger(
                 android.R.integer.config_shortAnimTime);
+    }
+
+    private void getServiceRequestImage(ServiceRequest sr) {
+        SendHttpRequestTask asyncTask = new SendHttpRequestTask(imageSmall);
+        String[] urls = new String[] {sr.getMediaUrl()};
+        asyncTask.execute(urls);
     }
 
     private void zoomImageFromThumb(final View thumbView, int imageResId) {

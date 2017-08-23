@@ -835,7 +835,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
             File imgFile = new File(imagePath);
             RequestBody requestFile =
                     RequestBody.create(MediaType.parse("multipart/form-data"), imgFile);
-            imgBody = MultipartBody.Part.createFormData("image", imgFile.getName(), requestFile);
+            imgBody = MultipartBody.Part.createFormData("media", imgFile.getName(), requestFile);
         }
     }
 

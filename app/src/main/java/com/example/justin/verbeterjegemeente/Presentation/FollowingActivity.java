@@ -78,6 +78,10 @@ public class FollowingActivity extends AppCompatActivity implements RequestManag
 
         idList = db.getReports();
         Log.i("IDs in userdb", idList.size() + "");
+        for (ServiceRequest sr : idList) {
+
+            Log.i("FollowingActivity: ", sr.getDescription() + " : " + sr.getUpdatedDatetime());
+        }
         db.close();
 
         String sRequestIDQ = ServiceManager.genServiceRequestIDQ(idList);

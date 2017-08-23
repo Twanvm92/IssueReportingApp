@@ -405,9 +405,9 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
                                 }
                             }).setIcon(android.R.drawable.ic_dialog_alert).show();
 
-                    if (currentLatLng == null){
+//                    if (currentLatLng == null){
                         getDefaultLocation();
-                    }
+//                    }
 
                 }
                 Log.i("onActivityResult", "Gps aanvraag afgewezen");

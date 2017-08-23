@@ -240,16 +240,16 @@ public class RequestManager {
                             // if a response has been received create a list with Services with the responsebody
                             ArrayList<ServiceRequest> servReqList = response.body();
 
-                            if (!servReqList.isEmpty()) {
-//                                for (ServiceRequest sr : servReqList) {
-//                                    sr.setUpdatedDatetime("2017-08-02T16:59:42Z");
+//                            if (!servReqList.isEmpty()) {
+////                                for (ServiceRequest sr : servReqList) {
+////                                    sr.setUpdatedDatetime("2017-08-02T16:59:42Z");
+////                                }
+//
+//                                for (int i = 0; i < servReqList.size() - 1; i++) {
+//                                    servReqList.get(i).setUpdatedDatetime("2017-08-0" + (i + 5) + "T16:59:42Z");
 //                                }
-
-                                for (int i = 0; i < servReqList.size() - 1; i++) {
-                                    servReqList.get(i).setUpdatedDatetime("2017-08-0" + (i + 5) + "T16:59:42Z");
-                                }
-
-                            }
+//
+//                            }
 
                             servReqCallb.serviceRequestsReady(servReqList);
 

@@ -565,6 +565,7 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
 //        addServRequestsToMap(serviceRequests);
     }
 
+    // TODO: 24-8-2017 add javadoc
     public void testGettingServiceRequestsOnCameraChange() {
         //get Current radius selected by user in MainActivity
         Log.i("Current radius: ", currentRadius);

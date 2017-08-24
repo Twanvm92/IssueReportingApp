@@ -178,6 +178,7 @@ public class DetailedMeldingActivity extends FragmentActivity {
                 android.R.integer.config_shortAnimTime);
     }
 
+    // TODO: 24-8-2017 Is this still going to be used?
     private void zoomImageFromThumb(final View thumbView, int imageResId) {
         // If there's an animation in progress, cancel it
         // immediately and proceed with this one.

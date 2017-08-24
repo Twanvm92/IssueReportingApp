@@ -445,6 +445,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
      * @param imageByteArray - byte array
      * @return String a {@link java.lang.String}
      */
+    // TODO: 24-8-2017 remove unused method
     public static String encodeImage(byte[] imageByteArray) {
 //        return Base64.encodeBase64URLSafeString(imageByteArray);
         return Base64.encodeToString(imageByteArray, Base64.DEFAULT);
@@ -803,6 +804,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
      * @return The image url that was created from the image path of the image provided by the user.
      */
     public void createImgUrl() {
+        // TODO: 24-8-2017 Remove commented code
         /*imgUrl = null;
         FileInputStream imageInFile = null;
         if (imagePath != null) {

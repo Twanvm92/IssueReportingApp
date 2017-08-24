@@ -18,16 +18,7 @@
 
     <script>
 
-        //Deze token moet worden opgehaald met onze Api.
-        var accessToken = "q6APA7725jJTnTHPjzUhZYSlEMVcVl2d3MZbRDrgLSkkfg9MmqtDBOURRaMWqwjccdxqaAwu4nbD__-GYB0pMF6S3RAz660MQJ4--yUlYBeK3evrcR2BelvJfPB_VMuWmqs9D-XedSH8DxzbybBKSGcRV6Nqg_pEVVZEU88jcJlKdo_fXRKNBdbgmesf1ytYB9BuCvBlnFTdHw5jLeT2_E2FqM8xQwqmzLcd1UrFFdCXoMn9C8zJRNAk7nJE-LQntyXKzX-9-REz29Ym2IakZf71-PzYC3up2r5cgDnv_2uEdOB-H9-jiZk6hxWIdZImbjwN9YLpHmKyyU_DNaNmO4aUUx8XB86s-PD_xs0up_MFrXnQeVTb-Rwb78G7sj9mDvIXufSueRoTBzhcwpfEn7wJY841lhEDVznXzB-8h1rF6L8ZZu0bgACtIUW33RwFu4JuPUWNRU3UyAGCrdqNlX-UOeRKNC4Ra70zd_mvP1ZtFN1rkDazxR6TOxOJiJFGe0eiDf6-3DKkERNBFigvcUr2BWw1J8v6YY1ISNiNVyZdT-Ftxvlz3KxifRQ81Cv-";
-        localStorage.setItem('token', accessToken);
-        var p = {
-            div: 'testmap',  //Naam van de div in de html
-            type: 'full',
-            mapControls: [
-                Geomerk.Map.interactions.fullScreen
-            ]
-        };
+
         //Callback na het tekenen van een punt/lijn of polygoon
         function callbackGeom(wkt)
         {
@@ -65,6 +56,12 @@
         function featureClick(feature,layer) {
             var object = feature.getProperties();
             alert(object);
+        };
+
+        Geomerk.Map.setMoveEndCallback(moveEnd);
+        function moveEnd(data) {
+            var jsonPositionData = JSON.stringify(data);
+            Android.onCameraChanged(jsonPositionData);
         };
 
     </script>

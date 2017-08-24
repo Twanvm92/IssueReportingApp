@@ -91406,7 +91406,7 @@ var Geomerk = (function (e) {
     var _onClick;
     var _drawId = -1;
     var _drawInteraction, _selectInteraction, _modifyInteraction, _deleteInteraction;
-
+    var _vectorLayer;
 
     proj4.defs('EPSG:28992', '+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +towgs84=565.417,50.3319,465.552,-0.398957,0.343988,-1.8774,4.0725 +units=m +no_defs');
     proj4.defs('urn:ogc:def:crs:EPSG::28992', proj4.defs('EPSG:28992'));
@@ -91676,6 +91676,7 @@ var Geomerk = (function (e) {
                 }),
                 layers: e.Map.addMapLayers(layerProperties),
                 loadTilesWhileAnimating: true,
+                moveTolerance: 20,
                 loadTilesWhileInteracting: true,
                 target: _mapParam.div,
                 view: new ol.View({
@@ -92035,11 +92036,21 @@ var Geomerk = (function (e) {
             //mapLayers.push(_layers.vDraw);
             return mapLayers.reverse();
         },
-        addPngLonLat(lon, lat, anchorX, anchorY, pngLoc, object) {
+        removeFeatures: function()
+        {
+            var source = _vectorLayer.getSource();
+            source.clear(true);
+            if (_vectorLayer != null) {
+                _olmap.removeLayer(_vectorLayer);
+                _olmap.addLayer(_vectorLayer);
+            }
+        },
+        addPngLonLat: function(lon, lat, anchorX, anchorY, pngLoc, object) {
             var coords = Geomerk.Map.convertLonLatToRD(lon,lat)
             var feature = new ol.Feature({
                 geometry: new ol.geom.Point(coords)
             });
+
             feature.setProperties(object);
 
                 var iconStyle = new ol.style.Style({
@@ -92055,13 +92066,23 @@ var Geomerk = (function (e) {
 
 
 
+                if (_vectorLayer == null) {
+                    _vectorLayer = new ol.layer.Vector({
+                        source: new ol.source.Vector({
+                            features: [feature]
+                        })
+                    });
+                    _olmap.addLayer(_vectorLayer);
+                } else {
+                    var vectorSource = _vectorLayer.getSource();
+                    vectorSource.addFeature(feature);
+                    var features = vectorSource.getFeatures();
+                }
 
-            var vector = new ol.layer.Vector({
-                source: new ol.source.Vector({
-                    features: [feature]
-                })
-            });
-            _olmap.addLayer(vector);
+                if (_vectorLayer != null) {
+                    _olmap.removeLayer(_vectorLayer);
+                    _olmap.addLayer(_vectorLayer);
+                }
 
 
         },

@@ -32,13 +32,13 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <android.support.v4.view.ViewPager
+    <com.example.justin.verbeterjegemeente.Presentation.CustomViewPager
         android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" >
 
-    </android.support.v4.view.ViewPager>
+    </com.example.justin.verbeterjegemeente.Presentation.CustomViewPager>
     <io.github.yavski.fabspeeddial.FabSpeedDial
         android:id="@+id/activityMain_Fbtn_speeddial"
         android:layout_width="wrap_content"

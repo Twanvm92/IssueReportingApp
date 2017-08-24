@@ -22,6 +22,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.ConsoleMessage;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -54,6 +55,9 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.gson.Gson;
+
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -184,6 +188,13 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
                 super.onPageFinished(view, url);
                 progress.setVisibility(View.GONE);
                 wbMap.setVisibility(View.VISIBLE);
+            }
+
+            public boolean onConsoleMessage(ConsoleMessage cm) {
+                Log.d("Console: ", cm.message() + " -- From line "
+                        + cm.lineNumber() + " of "
+                        + cm.sourceId() );
+                return true;
             }
         });
 
@@ -562,9 +573,12 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
                 String lat = String.valueOf(sr.getLat());
                 String lng = String.valueOf(sr.getLong());
 
+                Gson gson = new Gson();
+                String serviceRequestJson = gson.toJson(sr);
+
                 wbMap.loadUrl("javascript:Geomerk.Map.addPngLonLat(" + lng + ", " + lat + "," +
                         " 0.5, 46, 'http://openlayers.org/en/v3.7.0/examples/data/icon.png'," +
-                        " { testdata: 'asfafs', request_id: '212' })");
+                        serviceRequestJson + ")");
             }
         }
 

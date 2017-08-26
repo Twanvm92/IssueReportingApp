@@ -53,8 +53,8 @@ public class UpdateService extends Service {
             this.context = mContext.get();
             // Setting a sleep time for the th
             // read, 10 minutes
-//            LONG_SLEEP_TIME = 600000;
-            LONG_SLEEP_TIME = 200000;
+            LONG_SLEEP_TIME = 600000;
+//            LONG_SLEEP_TIME = 200000;
 
             // TODO: 11-8-2017 remove after testing notification update
         }

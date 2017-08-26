@@ -1,0 +1,427 @@
+
+
+
+
+<!doctype html>
+<html lang="en">
+<head>
+
+    <!-- Stylesheet nodig voor de map div-->
+
+    <style>
+        .ol-popup {
+            position: absolute;
+            background-color: white;
+            -webkit-filter: drop-shadow(0 1px 4px rgba(0,0,0,0.2));
+            filter: drop-shadow(0 1px 4px rgba(0,0,0,0.2));
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #cccccc;
+            bottom: 12px;
+            left: -50px;
+            min-width: 280px;
+        }
+
+            .ol-popup:after, .ol-popup:before {
+                top: 100%;
+                border: solid transparent;
+                content: " ";
+                height: 0;
+                width: 0;
+                position: absolute;
+                pointer-events: none;
+            }
+
+            .ol-popup:after {
+                border-top-color: white;
+                border-width: 10px;
+                left: 48px;
+                margin-left: -10px;
+            }
+
+            .ol-popup:before {
+                border-top-color: #cccccc;
+                border-width: 11px;
+                left: 48px;
+                margin-left: -11px;
+            }
+
+        .ol-popup-closer {
+            text-decoration: none;
+            position: absolute;
+            top: 2px;
+            right: 8px;
+        }
+
+            .ol-popup-closer:after {
+                content: "✖";
+            }
+    </style>
+    <script src="scripts/javascript.js"></script>
+    <link rel="stylesheet" href="css/stylesheet.css">
+    <!--<link rel="stylesheet" href="http://rawgit.com/webgeodatavore/ol3-extras-demos/master/french-geoapi-autocomplete/auto-complete.css">-->
+
+
+
+    <!--Style om de size van de div te manupuleren-->
+    <style>
+        .map {
+            height: 800px;
+            width: 100%;
+        }
+    </style>
+    <title>Geomerk Openmap</title>
+</head>
+<body onload="Geomerk.Map.initMap(p);">
+<h2>My Map</h2>
+<button onclick="Geomerk.Map.removeFeatures();">Remove Features</button>
+<button onclick="Geomerk.Map.drawGeo('Point', callbackGeom);">Draw Point</button>
+<button onclick="Geomerk.Map.addWKT('POLYGON((109766.27532491283 402884.3110125257,108266.19864481625 401565.7722746064,110263.11600876648 400256.78816522274,111342.7890332946 401260.0241614657,109766.27532491283 402884.3110125257))', { testdata: 'asfafs', request_id: '212' })">AddWKT</button>
+<button onclick="Geomerk.Map.addWKTPng('POINT(109766.27532491283 402884.3110125257)', 0.5, 46, 'http://openlayers.org/en/v3.7.0/examples/data/icon.png', { testdata: 'asfafs', request_id: '212' })">AddWKT PNG</button>
+<button onclick="Geomerk.Map.zoomToWKT('POINT(109766.27532491283 402884.3110125257)',17)">Zoom 2 WKT point</button>
+<button onclick="Geomerk.Map.zoomToWKT('POLYGON((109766.27532491283 402884.3110125257,108266.19864481625 401565.7722746064,110263.11600876648 400256.78816522274,111342.7890332946 401260.0241614657,109766.27532491283 402884.3110125257))',16)">Zoom2Polygon</button>
+<button onclick="Geomerk.Map.zoomToLonLat(4.811990446365481,51.621205475345256,16)">Zoom2LatLon</button>
+<button onclick="Geomerk.Map.addPngLonLat(4.811990446365481, 51.621205475345256, 0.5, 46, 'http://openlayers.org/en/v3.7.0/examples/data/icon.png', { testdata: 'asfafs', request_id: '212' })">AddLatLonPoint</button>
+<button onclick="Geomerk.Map.drawGeo('LineString', callbackGeom);">Draw line</button>
+<button onclick="Geomerk.Map.drawGeo('Polygon', callbackGeom);">Draw Polygon</button>
+<button onclick="callbackGeom(Geomerk.Map.convertRDtoLonLat(527001.2672291618, 6730453.568916777))">convertRDtoLonLatCoordinate</button>
+<button onclick="callbackGeom(Geomerk.Map.convertLonLatToRD(4.811990446365481, 51.621205475345256))">convertLonLatToRDCoordinate</button>
+
+<form onsubmit="return false;" style="border-top: 1px solid #eee;border-bottom:1px solid #eee;background:#fafafa;margin:30px 0;padding:20px 10px;text-align:center">
+    <input id="places-search" autofocus type="text" name="q" placeholder="Zoek adres ..." style="width:100%;max-width:600px;outline:0">
+</form>
+<div id="testmap" class="map"></div>
+<div id="popup" class="ol-popup">
+    <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+    <div id="popup-content"></div>
+</div>
+<script type="text/javascript">
+
+        var container = document.getElementById('popup');
+        var content = document.getElementById('popup-content');
+        var closer = document.getElementById('popup-closer');
+
+        /**
+         * Create an overlay to anchor the popup to the map.
+         */
+        var overlay = new ol.Overlay(({
+            element: container,
+            autoPan: true,
+            autoPanAnimation: {
+                duration: 250
+            }
+        }));
+
+        /**
+         * close the popup window
+         * @returns {boolean} always has to return false
+         */
+        closer.onclick = function() {
+            overlay.setPosition(undefined);
+            closer.blur();
+            return false;
+        };
+
+        Geomerk.Map.setLoadedCallback(loaded);
+
+        var drawing = false;
+
+        Geomerk.Map.setMoveEndCallback(moveEnd);
+        function featureClick(feature,layer) {
+            var object = feature.getProperties();
+            console.log(object);
+        };
+
+
+        function loaded() {
+            Geomerk.Map.initSearchRD('places-search');
+
+            var map = Geomerk.Map.getMap();
+            map.addOverlay(overlay);
+            map.on('click', function (evt) {
+                var coordinate = evt.coordinate;
+                var feature = map.forEachFeatureAtPixel(evt.pixel,
+                    function (feature) {
+                        if (feature.values_.request_id != null) {
+                            content.innerHTML = '<p>You clicked</p>';
+                            overlay.setPosition(coordinate);
+                            console.log(feature.values_.request_id);
+                        }
+                    });
+            });
+        }
+
+
+
+
+        function moveEnd(data) {
+            var jsonPositionData = JSON.stringify(data);
+            Android.onCameraChanged(jsonPositionData);
+        };
+
+        function callbackGeom(data) {
+
+            var coords = data.flatCoordinates;
+            var lonlat = Geomerk.Map.convertRDtoLonLat(coords[0], coords[1]);
+            var jsonDataPointClicked = JSON.stringify(lonlat);
+
+
+            console.log(Geomerk.Map.geometryToWkt(data));
+        }
+
+
+    </script>
+</body>
+</html>
+
+
+
+<!--
+<!doctype html>
+<html lang="en">
+<head>
+
+    &lt;!&ndash; Stylesheet nodig voor de map div&ndash;&gt;
+
+
+    &lt;!&ndash;<script src="GeomerkBeheerLib.js"></script>
+    <link rel="stylesheet" href="GeomerkBeheerLib.css">&ndash;&gt;
+    <script src="scripts/javascript.js"></script>
+    <link rel="stylesheet" href="css/stylesheet.css">
+    &lt;!&ndash;<link rel="stylesheet" href="http://rawgit.com/webgeodatavore/ol3-extras-demos/master/french-geoapi-autocomplete/auto-complete.css">&ndash;&gt;
+
+    &lt;!&ndash;Style om de size van de div en de popup-window te manipuleren&ndash;&gt;
+    <style>
+        .map {
+            height: 800px;
+            width: 100%;
+        }
+
+        .ol-popup {
+            position: absolute;
+            background-color: white;
+            -webkit-filter: drop-shadow(0 1px 4px rgba(0,0,0,0.2));
+            filter: drop-shadow(0 1px 4px rgba(0,0,0,0.2));
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #cccccc;
+            bottom: 12px;
+            left: -50px;
+            min-width: 280px;
+        }
+        .ol-popup:after, .ol-popup:before {
+            top: 100%;
+            border: solid transparent;
+            content: " ";
+            height: 0;
+            width: 0;
+            position: absolute;
+            pointer-events: none;
+        }
+        .ol-popup:after {
+            border-top-color: white;
+            border-width: 10px;
+            left: 48px;
+            margin-left: -10px;
+        }
+        .ol-popup:before {
+            border-top-color: #cccccc;
+            border-width: 11px;
+            left: 48px;
+            margin-left: -11px;
+        }
+        .ol-popup-closer {
+            text-decoration: none;
+            position: absolute;
+            top: 2px;
+            right: 8px;
+        }
+        .ol-popup-closer:after {
+            content: "✖";
+        }
+    </style>
+    <title>Geomerk Openmap</title>
+</head>
+<body onload="Geomerk.Map.initMap(p);">
+<form onsubmit="return false;" style="border-top: 1px solid #eee;border-bottom:1px solid #eee;background:#fafafa;margin:30px 0;padding:20px 10px;text-align:center">
+    <input id="places-search" autofocus type="text" name="q" placeholder="Zoek adres ..." style="width:100%;max-width:600px;outline:0">
+</form>
+<div id="testmap" class="map"></div>
+<div id="popup" class="ol-popup">
+    <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+    <div id="popup-content"></div>
+</div>
+<script type="text/javascript">
+    Geomerk.Map.setFeatureClickCallback(featureClick);
+    function featureClick(feature,layer) {
+        var object = feature.getProperties();
+        alert(object);
+    };
+
+    Geomerk.Map.setMoveEndCallback(moveEnd);
+    function moveEnd(data) {
+        var jsonPositionData = JSON.stringify(data);
+        Android.onCameraChanged(jsonPositionData);
+    };
+
+    /**
+     * Elements that make up the popup.
+     */
+    var container = document.getElementById('popup');
+    var content = document.getElementById('popup-content');
+    var closer = document.getElementById('popup-closer');
+
+    /**
+     * Create an overlay to anchor the popup to the map.
+     */
+    var overlay = new ol.Overlay(({
+        element: container,
+        autoPan: true,
+        autoPanAnimation: {
+            duration: 250
+        }
+    }));
+
+    closer.onclick = function() {
+        overlay.setPosition(undefined);
+        closer.blur();
+        return false;
+    };
+
+    function callbackGeom(data) {
+        var coords = data.flatCoordinates;
+        var lonlat = Geomerk.Map.convertRDtoLonLat(coords[0], coords[1]);
+        var jsonDataPointClicked = JSON.stringify(lonlat);
+        console.log(Geomerk.Map.geometryToWkt(data));
+    }
+
+    Geomerk.Map.setLoadedCallback(loaded);
+
+    function loaded()
+    {
+        Geomerk.Map.initSearchRD('places-search');
+
+        var selectClick =new ol.interaction.Select({
+            hitTolerance: 500
+        });
+        var map = Geomerk.Map.getMap();
+        map.addOverlay(overlay);
+        map.addInteraction(selectClick);
+        selectClick.on('select', function (e) {
+            var coord = e.mapBrowserEvent.coordinate;
+            if (e.selected.length > 0)
+            {
+                content.innerHTML = '<p>You clicked</p>';
+                overlay.setPosition(coord);
+                console.log(e.selected["0"].values_.description);
+            }
+        });
+    }
+
+
+</script>
+</body>
+</html>-->
+
+
+
+
+<!--
+<!doctype html>
+<html lang="en">
+<head>
+
+&lt;!&ndash; Stylesheet nodig voor de map div&ndash;&gt;
+
+
+&lt;!&ndash;<script src="GeomerkBeheerLib.js"></script>
+<link rel="stylesheet" href="GeomerkBeheerLib.css">&ndash;&gt;
+<script src="scripts/javascript.js"></script>
+<link rel="stylesheet" href="css/stylesheet.css">
+&lt;!&ndash;<link rel="stylesheet" href="http://rawgit.com/webgeodatavore/ol3-extras-demos/master/french-geoapi-autocomplete/auto-complete.css">&ndash;&gt;
+
+
+&lt;!&ndash;Style om de size van de div te manupuleren&ndash;&gt;
+<style>
+    .map {
+        height: 800px;
+        width: 100%;
+    }
+</style>
+<title>Geomerk Openmap</title>
+</head>
+<body onload="Geomerk.Map.initMap(p);">
+<h2>My Map</h2>
+<button onclick="Geomerk.Map.removeFeatures();">Remove Features</button>
+<button onclick="Geomerk.Map.drawGeo('Point', callbackGeom);">Draw Point</button>
+<button onclick="Geomerk.Map.addWKT('POLYGON((109766.27532491283 402884.3110125257,108266.19864481625 401565.7722746064,110263.11600876648 400256.78816522274,111342.7890332946 401260.0241614657,109766.27532491283 402884.3110125257))', { testdata: 'asfafs', request_id: '212' })">AddWKT</button>
+<button onclick="Geomerk.Map.addWKTPng('POINT(109766.27532491283 402884.3110125257)', 0.5, 46, 'http://openlayers.org/en/v3.7.0/examples/data/icon.png', { testdata: 'asfafs', request_id: '212' })">AddWKT PNG</button>
+<button onclick="Geomerk.Map.zoomToWKT('POINT(109766.27532491283 402884.3110125257)',17)">Zoom 2 WKT point</button>
+<button onclick="Geomerk.Map.zoomToWKT('POLYGON((109766.27532491283 402884.3110125257,108266.19864481625 401565.7722746064,110263.11600876648 400256.78816522274,111342.7890332946 401260.0241614657,109766.27532491283 402884.3110125257))',16)">Zoom2Polygon</button>
+<button onclick="Geomerk.Map.zoomToLonLat(4.811990446365481,51.621205475345256,16)">Zoom2LatLon</button>
+<button onclick="Geomerk.Map.addPngLonLat(4.811990446365481, 51.621205475345256, 0.5, 46, 'http://openlayers.org/en/v3.7.0/examples/data/icon.png', { testdata: 'asfafs', request_id: '212' })">AddLatLonPoint</button>
+<button onclick="Geomerk.Map.drawGeo('LineString', callbackGeom);">Draw line</button>
+<button onclick="Geomerk.Map.drawGeo('Polygon', callbackGeom);">Draw Polygon</button>
+<button onclick="callbackGeom(Geomerk.Map.convertRDtoLonLat(527001.2672291618, 6730453.568916777))">convertRDtoLonLatCoordinate</button>
+<button onclick="callbackGeom(Geomerk.Map.convertLonLatToRD(4.811990446365481, 51.621205475345256))">convertLonLatToRDCoordinate</button>
+
+<form onsubmit="return false;" style="border-top: 1px solid #eee;border-bottom:1px solid #eee;background:#fafafa;margin:30px 0;padding:20px 10px;text-align:center">
+<input id="places-search" autofocus type="text" name="q" placeholder="Zoek adres ..." style="width:100%;max-width:600px;outline:0">
+</form>
+<div id="testmap" class="map"></div>
+<script type="text/javascript">
+
+    Geomerk.Map.setLoadedCallback(loaded);
+
+
+    //Geomerk.Map.setFeatureClickCallback(featureClick);
+    Geomerk.Map.setMoveEndCallback(moveEnd);
+    function featureClick(feature,layer) {
+        var object = feature.getProperties();
+        console.log(object);
+    };
+
+    // select interaction working on "click"
+
+    function loaded()
+    {
+     Geomerk.Map.initSearchRD('places-search');
+     var selectClick =new ol.interaction.Select({
+            hitTolerance: 300
+         });
+        var map = Geomerk.Map.getMap();
+        map.addInteraction(selectClick);
+        selectClick.on('select', function (e) {
+            if (e.selected.length > 0)
+            {
+                console.log(e.selected["0"].values_.description);
+
+
+            }
+
+
+        });
+    }
+
+
+    function moveEnd(data) {
+        var jsonPositionData = JSON.stringify(data);
+        Android.onCameraChanged(jsonPositionData);
+    };
+
+    //Callback na het tekenen van een punt/lijn of polygoon
+    function callbackGeom(data) {
+        var coords = data.flatCoordinates;
+        var lonlat = Geomerk.Map.convertRDtoLonLat(coords[0], coords[1]);
+        var jsonDataPointClicked = JSON.stringify(lonlat);
+        console.log(Geomerk.Map.geometryToWkt(data));
+    }
+
+
+
+
+</script>
+</body>
+</html>
+
+-->

@@ -133,6 +133,7 @@ public class FollowingActivity extends AppCompatActivity implements RequestManag
         meldingAdapter.notifyDataSetChanged();
     }
 
+    // TODO: 24-8-2017 Add javadoc
     public ArrayList<ServiceRequest> orderServiceRequests(ArrayList<ServiceRequest> serviceRequests) {
         Comparator<ServiceRequest> comp = Collections.reverseOrder(new Comparator<ServiceRequest>() {
             DateFormat f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS", Locale.ENGLISH);

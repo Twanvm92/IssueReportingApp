@@ -76,8 +76,11 @@ public class MainActivity extends AppCompatActivity implements
         // launch Retrofit callback and retrieve services asynchronously
         reqManager.getServices();
 
-        // Set up the ViewPager with the sections adapter.
-        ViewPager mViewPager = (ViewPager) findViewById(R.id.container);
+        // Set up the custom ViewPager with the sections adapter.
+        CustomViewPager mViewPager = (CustomViewPager) findViewById(R.id.container);
+        // make sure swiping between tabs is not allowed.
+        // webview in Tab1Fragment won't like swiping.
+        mViewPager.setPagingEnabled(false);
         setupViewPager(mViewPager);
 
         // create an arraylist that will contain different categories fetched from an open311 interface

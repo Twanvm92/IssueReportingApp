@@ -150,16 +150,7 @@ public class DetailedMeldingActivity extends FragmentActivity {
         terugButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (origin != null) {
-                    if (origin.equals("FollowActivity")) {
-                        Intent in = new Intent(getApplicationContext(), FollowingActivity.class);
-                        startActivity(in);
-                    } else if (origin.equals("Tab2Fragment") || origin.equals("MeldingActivityDialog")) {
-                        onBackPressed();
-                    }
-                } else {
-                    onBackPressed();
-                }
+                finish();
             }
         });
 
@@ -178,6 +169,7 @@ public class DetailedMeldingActivity extends FragmentActivity {
                 android.R.integer.config_shortAnimTime);
     }
 
+    // TODO: 24-8-2017 Is this still going to be used?
     private void zoomImageFromThumb(final View thumbView, int imageResId) {
         // If there's an animation in progress, cancel it
         // immediately and proceed with this one.
@@ -338,14 +330,6 @@ public class DetailedMeldingActivity extends FragmentActivity {
 
     @Override
     public void onBackPressed() {
-        if (origin != null) {
-            if(origin.equals("FollowActivity")) {
-                Intent in = new Intent(getApplicationContext(), FollowingActivity.class);
-                startActivity(in);
-            }
-
-        } else {
-            super.onBackPressed();
-        }
+        finish();
     }
 }

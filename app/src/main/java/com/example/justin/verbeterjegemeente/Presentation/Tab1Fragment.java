@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -21,7 +22,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.ConsoleMessage;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.API.RequestManager;
 import com.example.justin.verbeterjegemeente.API.ServiceClient;
@@ -49,9 +55,18 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.gson.Gson;
 
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 
+import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LAT;
+import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LONG;
 import static com.example.justin.verbeterjegemeente.Constants.REQUEST_CHECK_SETTINGS;
 import static com.example.justin.verbeterjegemeente.Constants.STATUS_OPEN;
 
@@ -59,7 +74,7 @@ import static com.example.justin.verbeterjegemeente.Constants.STATUS_OPEN;
 public class Tab1Fragment extends Fragment implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         com.google.android.gms.location.LocationListener, GoogleMap.OnCameraIdleListener,
-        RequestManager.OnServiceRequestsReady {
+        RequestManager.OnServiceRequestsReady, BredaMapInterface.OnCameraChangedListener {
     public GoogleMap mMap;
     private Location currentLocation;
     public LatLng currentLatLng;
@@ -70,7 +85,8 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
     private String servCodeQ;
     public float zoomLevel;
     private LocationRequest mLocationRequest;
-    WebView wbMap;
+    private WebView wbMap;
+    private ProgressBar progress;
 
 
     public void onCreate(Bundle savedInstaceState) {
@@ -95,6 +111,8 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
         View view = inflater.inflate(R.layout.tab1_fragment, container, false);
 
         wbMap = (WebView) view.findViewById(R.id.tab1fragment_wv_kaartBreda);
+        progress = (ProgressBar) view.findViewById(R.id.tab1fragment_pb_webviewProgressbar);
+
         setUpMap();
 
         return view;
@@ -146,12 +164,62 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
     // TODO: 8-8-2017 googlemap commented
     private void setUpMap() {
         //setup map settings
-
+        wbMap.setVerticalScrollBarEnabled(false);
+        wbMap.setHorizontalScrollBarEnabled(false);
+        wbMap.addJavascriptInterface(new BredaMapInterface(this), "Android");
         wbMap.getSettings().setJavaScriptEnabled(true);
         wbMap.getSettings().setAllowFileAccessFromFileURLs(true);
+        wbMap.getSettings().setAllowUniversalAccessFromFileURLs(true);
         wbMap.getSettings().setDomStorageEnabled(true);
+        wbMap.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
+        wbMap.getSettings().setAppCachePath(getActivity().getCacheDir().getAbsolutePath() );
+        wbMap.getSettings().setAllowFileAccess( true );
+        wbMap.getSettings().setAppCacheEnabled( true );
+        wbMap.getSettings().setCacheMode( WebSettings.LOAD_DEFAULT );
+        wbMap.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                super.onPageStarted(view, url, favicon);
+                wbMap.setVisibility(View.INVISIBLE);
+            }
 
-        wbMap.loadUrl("http://37.34.59.50/mapTest.html");
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                progress.setVisibility(View.GONE);
+                wbMap.setVisibility(View.VISIBLE);
+            }
+
+            public boolean onConsoleMessage(ConsoleMessage cm) {
+                Log.d("Console: ", cm.message() + " -- From line "
+                        + cm.lineNumber() + " of "
+                        + cm.sourceId() );
+                return true;
+            }
+        });
+
+        StringBuilder buf = new StringBuilder();
+        InputStream json= null;
+        try {
+            json = getActivity().getAssets().open("html/bredaKaart.html");
+
+            BufferedReader in= null;
+
+            in = new BufferedReader(new InputStreamReader(json, "UTF-8"));
+            String str;
+
+            while ((str=in.readLine()) != null) {
+                buf.append(str);
+            }
+            in.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+        wbMap.loadDataWithBaseURL("file:///android_asset/", buf.toString(), "text/html", "utf-8", null);
+
+//        wbMap.loadUrl("http://37.34.59.50/mapTest.html");
 
     }
 
@@ -200,13 +268,13 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
      * Shows default location on the map if location of user could not be found.
      */
     public void getDefaultLocation() {
-        // TODO: 8-8-2017 googlemap commented
-//        CameraUpdate center = CameraUpdateFactory.newLatLngZoom(new LatLng(DEFAULT_LAT, DEFAULT_LONG), 12.0f);
-
         // see what current location is
         Log.d("Tab1Fragment: ", "default location is choosen");
         // TODO: 8-8-2017 googlemap commented
-//        mMap.moveCamera(center);
+//        currentLatLng = new LatLng(DEFAULT_LAT, DEFAULT_LONG);
+
+        LatLng locationCoords = new LatLng(DEFAULT_LAT, DEFAULT_LONG);;
+        zoomToLocation(locationCoords);
     }
 
     /**
@@ -224,7 +292,11 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
                 // something went wrong. Try to get a location update.
                 LocationServices.FusedLocationApi.requestLocationUpdates(mApiClient, mLocationRequest, Tab1Fragment.this);
             } else { // location was successfully retrieved
+//                currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
                 Log.d("Tab1Fragment: ", location.toString());
+
+                LatLng locationCoords = new LatLng(location.getLatitude(), location.getLongitude());
+                zoomToLocation(locationCoords);
             }
         } else {
             // request the user for permission.
@@ -283,6 +355,9 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
         // after updated location is available, make sure that location services does not keep updating locations
         LocationServices.FusedLocationApi.removeLocationUpdates(mApiClient, this);
         Log.d("Tab1Fragment: ", "updated location: " + location.toString());
+        LatLng locationCoords = new LatLng(location.getLatitude(), location.getLongitude());
+
+        zoomToLocation(locationCoords);
     }
 
     @Override
@@ -319,9 +394,9 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
                                 .show();
                     } else { // user has not declined permission before
                         Log.i("onRequestPermResult", "Geen toestemming gekregen, eerste keer dat map geladen wordt default lat/long gepakt");
-                        if (currentLatLng == null) {
+//                        if (currentLatLng == null) {
                             getDefaultLocation();
-                        }
+//                        }
                     }
 
                 }
@@ -346,9 +421,9 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
                                 }
                             }).setIcon(android.R.drawable.ic_dialog_alert).show();
 
-                    if (currentLatLng == null){
+//                    if (currentLatLng == null){
                         getDefaultLocation();
-                    }
+//                    }
 
                 }
                 Log.i("onActivityResult", "Gps aanvraag afgewezen");
@@ -363,17 +438,21 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
         //get Current radius selected by user in MainActivity
         Log.i("Current radius: ", currentRadius);
 
-        LatLng center = mMap.getCameraPosition().target;
-        String camLat = Double.toString(center.latitude);
-        String camLng = Double.toString(center.longitude);
+        // TODO: 16-8-2017 commented because not using map yet
+//        LatLng center = mMap.getCameraPosition().target;
+//        String camLat = Double.toString(center.latitude);
+//        String camLng = Double.toString(center.longitude);
+//
+//        if (Double.compare(center.latitude, Constants.DEFAULT_LAT) != 0 ||
+//                Double.compare(center.longitude, Constants.DEFAULT_LONG) != 0) {
+//
+//            currentLatLng = new LatLng(center.latitude, center.longitude);
+//        }
 
-        if (Double.compare(center.latitude, Constants.DEFAULT_LAT) != 0 ||
-                Double.compare(center.longitude, Constants.DEFAULT_LONG) != 0) {
+        String camLat = Double.toString(currentLatLng.latitude);
+        String camLng = Double.toString(currentLatLng.longitude);
 
-            currentLatLng = new LatLng(center.latitude, center.longitude);
 
-            zoomLevel = mMap.getCameraPosition().zoom;
-        }
         Log.i("Camera positie: ", "is veranderd");
 
         // generate a timestamp of 2 weeks ago to get closed requests not more than 2 weeks old.
@@ -414,6 +493,7 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
         this.servCodeQ = servCodeQ;
         String currentLat;
         String currentLng;
+
         if (currentLatLng == null) {
             currentLat = Double.toString(Constants.DEFAULT_LAT);
             currentLng = Double.toString(Constants.DEFAULT_LONG);
@@ -422,6 +502,8 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
             currentLng = Double.toString(currentLatLng.longitude);
         }
         Log.i("servCodeq: ", "" + servCodeQ);
+        Log.i("Tab1Fragment: ", "currentlat: " + currentLat);
+        Log.i("Tab1Fragment: ", "currentlong: " + currentLng);
 
         // generate a timestamp of 2 weeks ago to get closed requests not more than 2 weeks old.
         String updateDatetime = TimeStampGenerator.genOlderTimestamp();
@@ -485,16 +567,97 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
         // ActivityMain will then pass the requests to Tab2Fragment
         sRequestCallback.onServiceRequestsReady(serviceRequests);
 
-        addServRequestsToMap(serviceRequests);
+        // make sure to remove all previously loaded service requests on the map
+        wbMap.loadUrl("javascript:Geomerk.Map.removeFeatures();");
+
+        if (!serviceRequests.isEmpty()) {
+            for (ServiceRequest sr : serviceRequests) {
+
+                String lat = String.valueOf(sr.getLat());
+                String lng = String.valueOf(sr.getLong());
+
+                Gson gson = new Gson();
+                String serviceRequestJson = gson.toJson(sr);
+
+                wbMap.loadUrl("javascript:Geomerk.Map.addPngLonLat(" + lng + ", " + lat + "," +
+                        " 0.5, 46, 'http://openlayers.org/en/v3.7.0/examples/data/icon.png'," +
+                        serviceRequestJson + ")");
+            }
+        }
+
+//        addServRequestsToMap(serviceRequests);
+    }
+
+    // TODO: 24-8-2017 add javadoc
+    public void testGettingServiceRequestsOnCameraChange(LatLng cameraCoordinates) {
+        //get Current radius selected by user in MainActivity
+        Log.i("Current radius: ", currentRadius);
+
+        // TODO: 16-8-2017 commented because not using map yet
+//        LatLng center = mMap.getCameraPosition().target;
+//        String camLat = Double.toString(center.latitude);
+//        String camLng = Double.toString(center.longitude);
+
+//        if (Double.compare(center.latitude, Constants.DEFAULT_LAT) != 0 ||
+//                Double.compare(center.longitude, Constants.DEFAULT_LONG) != 0) {
+//
+//            currentLatLng = new LatLng(center.latitude, center.longitude);
+//            
+//        }
+
+        currentLatLng = new LatLng(cameraCoordinates.latitude, cameraCoordinates.longitude);
+
+        String camLat = Double.toString(currentLatLng.latitude);
+        String camLng = Double.toString(currentLatLng.longitude);
+        
+        Log.i("Camera positie: ", "is veranderd");
+        Log.i("Tab1Fragment: ", "currentlat: " + camLat);
+        Log.i("Tab1Fragment: ", "currentlong: " + camLng);
+
+        // generate a timestamp of 2 weeks ago to get closed requests not more than 2 weeks old.
+        String updateDatetime = TimeStampGenerator.genOlderTimestamp();
+
+        // from here all the API requests will be handled
+        RequestManager reqManager = new RequestManager(getActivity());
+        // set callback for data passing
+        reqManager.setOnServiceReqReadyCallb(this);
+
+        Log.i("servCodeq: ", "" + servCodeQ);
+
+        if (servCodeQ != null && !servCodeQ.equals("")) {
+            // launch Retrofit callback and retrieve services asynchronously
+            reqManager.getServiceRequests(camLat, camLng, STATUS_OPEN, currentRadius, servCodeQ);
+            // also request closed service request with an earliest update_datetime included.
+            reqManager.getClosedServiceRequests(camLat, camLng, STATUS_OPEN, currentRadius, servCodeQ, updateDatetime);
+        } else {
+            // launch Retrofit callback and retrieve services asynchronously
+            reqManager.getServiceRequests(camLat, camLng, STATUS_OPEN, currentRadius);
+            // also request closed service request with an earliest update_datetime included.
+            reqManager.getClosedServiceRequests(camLat, camLng, STATUS_OPEN, currentRadius, updateDatetime);
+        }
+    }
+
+    // TODO: 24-8-2017 add javadoc
+    public void zoomToLocation(LatLng currentLatLng){
+        String lat = String.valueOf(currentLatLng.latitude);
+        String lng = String.valueOf(currentLatLng.longitude);
+
+        wbMap.loadUrl("javascript:Geomerk.Map.zoomToLonLat(" + lng + "," + lat + ",16)");
+    }
+
+    @Override
+    public void onListenToCameraChanged(LatLng cameraCoordinates) {
+        testGettingServiceRequestsOnCameraChange(cameraCoordinates);
     }
 
     /**
      * Listener that passes a list of requested service requests to the MainActivity, so
      *  the MainActivity can pass them to Tab2Fragment.
      */
-    public interface ServiceRequestsReadyListener {
+    interface ServiceRequestsReadyListener {
         void onServiceRequestsReady(ArrayList<ServiceRequest> srList);
     }
+
 }
 
 

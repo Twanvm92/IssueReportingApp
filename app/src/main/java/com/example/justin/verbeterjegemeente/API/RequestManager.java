@@ -240,27 +240,34 @@ public class RequestManager {
                             // if a response has been received create a list with Services with the responsebody
                             ArrayList<ServiceRequest> servReqList = response.body();
 
-//                            if (!servReqList.isEmpty()) {
-////                                for (ServiceRequest sr : servReqList) {
-////                                    sr.setUpdatedDatetime("2017-08-02T16:59:42Z");
-////                                }
-//
-//                                for (int i = 0; i < servReqList.size() - 1; i++) {
-//                                    servReqList.get(i).setUpdatedDatetime("2017-08-0" + (i + 5) + "T16:59:42Z");
+                            /*if (!servReqList.isEmpty()) {
+//                                for (ServiceRequest sr : servReqList) {
+//                                    sr.setUpdatedDatetime("2017-08-02T16:59:42Z");
 //                                }
-//
-//                            }
+
+                                for (int i = 0; i < servReqList.size() - 1; i++) {
+                                    servReqList.get(i).setUpdatedDatetime("2017-08-0" + (i + 5) + "T16:59:42Z");
+                                }
+
+                            }*/
+
 
                             servReqCallb.serviceRequestsReady(servReqList);
 
                         } else {
+                            // TODO: 23-8-2017 JSON code is commented
                         try { //something went wrong. Show the user what went wrong
-                            JSONObject jObjError = new JSONObject(response.errorBody().string());
+//                            JSONArray jObjErrorArray = new JSONArray(response.errorBody().string());
+//                            JSONObject jObjError = (JSONObject) jObjErrorArray.get(0);
+//
+//                            Toast.makeText(context, jObjError.getString("description"),
+//                                    Toast.LENGTH_SHORT).show();
 
-                            Toast.makeText(context, jObjError.getString(Constants.ERROR_MESSAGE),
-                                    Toast.LENGTH_SHORT).show();
-                            Log.i("Error message: ", jObjError.getString(Constants.ERROR_MESSAGE));
-                        } catch (IOException | JSONException e) {
+
+//                            Toast.makeText(context, jObjError.getString("description"),
+//                                    Toast.LENGTH_SHORT).show();
+                            Log.i("ServiceManager: ", response.errorBody().string());
+                        } catch (IOException /*| JSONException*/ e) {
                             e.printStackTrace();
                         }
                         }

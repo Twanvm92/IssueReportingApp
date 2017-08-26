@@ -150,16 +150,7 @@ public class DetailedMeldingActivity extends FragmentActivity {
         terugButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (origin != null) {
-                    if (origin.equals("FollowActivity")) {
-                        Intent in = new Intent(getApplicationContext(), FollowingActivity.class);
-                        startActivity(in);
-                    } else if (origin.equals("Tab2Fragment") || origin.equals("MeldingActivityDialog")) {
-                        onBackPressed();
-                    }
-                } else {
-                    onBackPressed();
-                }
+                finish();
             }
         });
 
@@ -339,14 +330,6 @@ public class DetailedMeldingActivity extends FragmentActivity {
 
     @Override
     public void onBackPressed() {
-        if (origin != null) {
-            if(origin.equals("FollowActivity")) {
-                Intent in = new Intent(getApplicationContext(), FollowingActivity.class);
-                startActivity(in);
-            }
-
-        } else {
-            super.onBackPressed();
-        }
+        finish();
     }
 }

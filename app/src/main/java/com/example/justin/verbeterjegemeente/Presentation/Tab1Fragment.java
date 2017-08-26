@@ -567,6 +567,9 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
         // ActivityMain will then pass the requests to Tab2Fragment
         sRequestCallback.onServiceRequestsReady(serviceRequests);
 
+        // make sure to remove all previously loaded service requests on the map
+        wbMap.loadUrl("javascript:Geomerk.Map.removeFeatures();");
+
         if (!serviceRequests.isEmpty()) {
             for (ServiceRequest sr : serviceRequests) {
 
@@ -644,7 +647,6 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
 
     @Override
     public void onListenToCameraChanged(LatLng cameraCoordinates) {
-        Toast.makeText(getContext(), "Camera position changed!", Toast.LENGTH_SHORT).show();
         testGettingServiceRequestsOnCameraChange(cameraCoordinates);
     }
 

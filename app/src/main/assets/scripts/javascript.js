@@ -91317,7 +91317,7 @@ var Geomerk = (function () {
         appIcon: 'assets/images/geomerk.ico',
         appImage: 'assets/images/geomerk.png',
         //urlApiBase: 'http://localhost:57586/',
-        urlApiBase: 'http://www.beeldbestekken.nl/GeomerkBeheerPrivateApi/',
+        urlApiBase: 'https://www.beeldbestekken.nl/GeomerkBeheerPrivateApi/',
         urlGeoserver: function () {
             return Geomerk.urlApiBase + 'GeoProxy/'; //Http or Https
         },
@@ -91529,7 +91529,9 @@ var Geomerk = (function (e) {
             var scale = resolution * mpu * 39.37 * dpi;
             return scale;
         },
-        drawGeo :function (type,callback) {
+
+        drawGeo: function (type, callback) {
+
             vDrawLocation = new ol.layer.Vector({
                 name: "v_drawLocation",
                 title: "draw location",
@@ -91674,9 +91676,9 @@ var Geomerk = (function (e) {
                     doubleClickZoom: false,
                     mouseWheelZoom: _mapParam.type == 'basic' ? false : true
                 }),
+                moveTolerance: 20,
                 layers: e.Map.addMapLayers(layerProperties),
                 loadTilesWhileAnimating: true,
-                moveTolerance: 20,
                 loadTilesWhileInteracting: true,
                 target: _mapParam.div,
                 view: new ol.View({
@@ -91885,35 +91887,67 @@ var Geomerk = (function (e) {
                         //    SLDLocation = "http://localhost/portalService" + "/" + window.sessionStorage.getItem('organization') + "/geomerk/GetSLD?filename=" + lsld.trim();
                         //}
                         var wmsSourceParams = {};
+
                         wmsSourceParams.LAYERS = l.main_layers;
+
                         wmsSourceParams.viewparams = l.main_layerparam;
+
                         if (SLDLocation !== null && SLDLocation.length > 0) {
                             wmsSourceParams.SLD = SLDLocation;
                         }
                         //apply cql filter
                         if (l.cqlfilter) wmsSourceParams.params.CQL_FILTER = l.cqlfilter;//_decryptCqlFilter(l.cqlfilter)
+                        var layer_sourcewms = null;
+                        if (wmsSourceParams.LAYERS.indexOf("bgt") == -1) {
+                            layer_sourcewms = new ol.source.TileWMS({
+                                url: l.main_url,
+                                params: wmsSourceParams,
+                                attributions: [new ol.Attribution({
+                                    html: l.layer_attributions
+                                })]
+                            });
+                            layer = new ol.layer.Tile({
+                                layerId: l.id,
+                                title: l.name,
+                                layergroup: l.layergroup,
+                                source: layer_sourcewms,
+                                zIndex: l.z_index,
+                                visible: l.visible_on_start,
+                                opacity: l.layer_opacity,
+                                minResolution: main_min_level,
+                                maxResolution: main_max_level,
+                                extent: layerextent,
+                                inToc: true//l.toc
+                            });
 
-                        var layer_sourcewms = new ol.source.TileWMS({
-                            url: l.main_url,
-                            params: wmsSourceParams,
-                            attributions: [new ol.Attribution({
-                                html: l.layer_attributions
-                            })]
-                        });
+                        } else
+                        {
+                            layer_sourcewms = new ol.source.ImageWMS({
+                                ratio: 1,
+                                url: l.main_url,
+                                params: wmsSourceParams,
+                                attributions: [new ol.Attribution({
+                                    html: l.layer_attributions
+                                })]
+                            });
 
-                        layer = new ol.layer.Tile({
-                            layerId: l.id,
-                            title: l.name,
-                            layergroup: l.layergroup,
-                            source: layer_sourcewms,
-                            zIndex: l.z_index,
-                            visible: l.visible_on_start,
-                            opacity: l.layer_opacity,
-                            minResolution: main_min_level,
-                            maxResolution: main_max_level,
-                            extent: layerextent,
-                            inToc: true//l.toc
-                        });
+                            layer = new ol.layer.Image({
+                                layerId: l.id,
+                                title: l.name,
+                                source: layer_sourcewms,
+                                zIndex: l.z_index,
+                                visible: l.visible_on_start,
+                                opacity: l.layer_opacity,
+                                minResolution: main_min_level,
+                                maxResolution: main_max_level,
+                                extent: layerextent,
+                                inToc: true
+                                })
+
+
+                        }
+
+
 
                         break;
 
@@ -92050,7 +92084,6 @@ var Geomerk = (function (e) {
             var feature = new ol.Feature({
                 geometry: new ol.geom.Point(coords)
             });
-
             feature.setProperties(object);
 
                 var iconStyle = new ol.style.Style({
@@ -92604,7 +92637,7 @@ var Geomerk = (function (e) {
     return e;
 })(Geomerk);
 
- //Deze token moet worden opgehaald met onze Api.
+//Deze token moet worden opgehaald met onze Api.
         var accessToken = "q6APA7725jJTnTHPjzUhZYSlEMVcVl2d3MZbRDrgLSkkfg9MmqtDBOURRaMWqwjccdxqaAwu4nbD__-GYB0pMF6S3RAz660MQJ4--yUlYBeK3evrcR2BelvJfPB_VMuWmqs9D-XedSH8DxzbybBKSGcRV6Nqg_pEVVZEU88jcJlKdo_fXRKNBdbgmesf1ytYB9BuCvBlnFTdHw5jLeT2_E2FqM8xQwqmzLcd1UrFFdCXoMn9C8zJRNAk7nJE-LQntyXKzX-9-REz29Ym2IakZf71-PzYC3up2r5cgDnv_2uEdOB-H9-jiZk6hxWIdZImbjwN9YLpHmKyyU_DNaNmO4aUUx8XB86s-PD_xs0up_MFrXnQeVTb-Rwb78G7sj9mDvIXufSueRoTBzhcwpfEn7wJY841lhEDVznXzB-8h1rF6L8ZZu0bgACtIUW33RwFu4JuPUWNRU3UyAGCrdqNlX-UOeRKNC4Ra70zd_mvP1ZtFN1rkDazxR6TOxOJiJFGe0eiDf6-3DKkERNBFigvcUr2BWw1J8v6YY1ISNiNVyZdT-Ftxvlz3KxifRQ81Cv-";
         localStorage.setItem('token', accessToken);
         var p = {

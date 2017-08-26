@@ -156,14 +156,12 @@
             android:text="Open/gesloten"
             android:textColor="@android:color/white"
             android:textSize="19sp"
-            app:layout_constraintLeft_toRightOf="@+id/activityDetailedMelding_tv_statusID"
-            android:layout_marginLeft="8dp"
-            app:layout_constraintTop_toTopOf="@+id/activityDetailedMelding_tv_statusID"
-            android:layout_marginTop="0dp"
-            app:layout_constraintBottom_toBottomOf="@+id/activityDetailedMelding_tv_statusID"
-            android:layout_marginBottom="0dp"
             android:layout_marginRight="8dp"
-            app:layout_constraintRight_toRightOf="parent" />
+            app:layout_constraintRight_toRightOf="parent"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/activityDetailedMelding_tv_statusID"
+            android:layout_marginLeft="8dp"
+            app:layout_constraintLeft_toLeftOf="parent" />
 
         <TextView
             android:id="@+id/activityDetailedMelding_tv_statusNotesID"
@@ -194,10 +192,11 @@
             android:textSize="19sp"
             android:layout_marginLeft="0dp"
             app:layout_constraintLeft_toLeftOf="@+id/activityDetailedMelding_tv_statusNotesID"
-            android:layout_marginTop="8dp"
-            app:layout_constraintTop_toBottomOf="@+id/activityDetailedMelding_tv_statusNotesID"
             android:layout_marginRight="8dp"
-            app:layout_constraintRight_toRightOf="parent" />
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/activityDetailedMelding_tv_statusNotesID" />
 
         <TextView
             android:id="@+id/activityDetailedMelding_tv_laatstUpdateID"
@@ -207,7 +206,7 @@
             android:textColor="@android:color/background_light"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:layout_marginLeft="0dp"
+            android:layout_marginLeft="8dp"
             app:layout_constraintLeft_toLeftOf="@+id/activityDetailedMelding_tv_status_DetailedNotesID"
             android:layout_marginTop="8dp"
             app:layout_constraintTop_toBottomOf="@+id/activityDetailedMelding_tv_status_DetailedNotesID" />
@@ -226,15 +225,10 @@
             android:text="12 minuten geleden"
             android:textColor="@android:color/white"
             android:textSize="19sp"
-            app:layout_constraintTop_toTopOf="@+id/activityDetailedMelding_tv_laatstUpdateID"
-            android:layout_marginTop="0dp"
-            app:layout_constraintLeft_toRightOf="@+id/activityDetailedMelding_tv_laatstUpdateID"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/activityDetailedMelding_tv_laatstUpdateID"
             android:layout_marginLeft="8dp"
-            android:layout_marginRight="8dp"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintBottom_toBottomOf="@+id/activityDetailedMelding_tv_laatstUpdateID"
-            android:layout_marginBottom="0dp" />
+            app:layout_constraintLeft_toLeftOf="parent" />
 
         <Button
             android:id="@+id/activityDetailedMelding_btn_terugBTN_ID"
@@ -330,11 +324,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/ic_file_upload_white_24dp"
-            app:layout_constraintLeft_toRightOf="@+id/activityDetailedMelding_tv_numberOfUpvotes"
             android:background="@null"
-            android:layout_marginLeft="16dp"
             android:layout_marginTop="8dp"
-            app:layout_constraintTop_toBottomOf="@+id/activityDetailedMelding_tv_laatsUpdate_detailedID" />
+            app:layout_constraintTop_toBottomOf="@+id/activityDetailedMelding_tv_laatsUpdate_detailedID"
+            android:layout_marginRight="8dp"
+            app:layout_constraintRight_toRightOf="parent" />
 
 
     </android.support.constraint.ConstraintLayout>

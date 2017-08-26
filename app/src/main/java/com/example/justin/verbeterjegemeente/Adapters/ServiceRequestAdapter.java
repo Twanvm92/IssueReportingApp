@@ -157,10 +157,10 @@ public class ServiceRequestAdapter extends ArrayAdapter<ServiceRequest> {
     /**
      * Add + 1 to the number of upvotes that are being shown on the UI.
      */
+    // TODO: 24-8-2017 updating upvote count still not working
     public void addUpvoteToTextview(TextView numbOfUpvoted) {
         String upvoteText = numbOfUpvoted.getText().toString();
         Integer updatedUpvoteNumb = Integer.parseInt(upvoteText) + 1;
         numbOfUpvoted.setText(String.valueOf(updatedUpvoteNumb));
-        notifyDataSetChanged();
     }
 }

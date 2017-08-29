@@ -106,23 +106,6 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         buildGoogleApiClient();
         createLocationRequest();
 
-//        FloatingActionButton saveButton = (FloatingActionButton) findViewById(R.id.activityMaps_fbtn_maps_Savebtn);
-//        saveButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Intent i = new Intent();
-//                if (marker != null) {
-//                    LatLng markerPosition = marker.getPosition();
-//                    i.putExtra("long", markerPosition.longitude); //post longitude
-//                    i.putExtra("lat", markerPosition.latitude); //post latitude
-//                    i.putExtra("zoom", mMap.getCameraPosition().zoom);
-//                }
-//
-//                setResult(RESULT_OK, i); //set result and return
-//                finish();
-//            }
-//        });
-
         FloatingActionButton gpsButton = (FloatingActionButton) findViewById(R.id.activityMain_Fbtn_gps);
         gpsButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -418,31 +401,6 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
 
         wbMap.loadUrl("javascript:Geomerk.Map.zoomToLonLat(" + lng + "," + lat + ",16)");
     }
-
-    /**
-     * Nadat de map geladen is kan door te drukken op de map een marker worden toegevoegd
-     *//*
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-        mMap.getUiSettings().setMapToolbarEnabled(false);
-
-
-        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-            @Override
-            public void onMapClick(LatLng latLng) {
-                //remove marker if exists
-
-                if (marker != null)
-                    marker.remove();
-                currentLatLng = latLng;
-                //make new marker
-                marker = mMap.addMarker(new MarkerOptions().position(currentLatLng).title("marker")
-                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-
-            }
-        });
-    }*/
 
     /**
      * Ervoor zorgen dat teruggaan door middel van back press de marker alsnog meegegeven wordt

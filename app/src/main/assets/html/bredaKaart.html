@@ -78,18 +78,34 @@
     </script>
     <!--Style om de size van de div te manupuleren-->
     <style>
-        .map {
-            height: 800px;
-            width: 100%;
+
+
+        html, body, .full {
+            height: 100%;
         }
+
+        .full {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .map {
+            flex-grow: 1;
+        }
+
     </style>
     <title>Geomerk Openmap</title>
 </head>
 <body onload="Geomerk.Map.initMap(p);">
-<form onsubmit="return false;" style="border-top: 1px solid #eee;border-bottom:1px solid #eee;background:#fafafa;margin:30px 0;padding:20px 10px;text-align:center">
-    <input id="places-search" autofocus type="text" name="q" placeholder="Zoek adres ..." style="width:100%;max-width:600px;outline:0">
-</form>
-<div id="testmap" class="map"></div>
+<div class="full">
+    <div class="form">
+        <form onsubmit="return false;" style="border-top: 1px solid #eee;border-bottom:1px solid #eee;background:#fafafa;margin:0;padding:20px 10px;text-align:center">
+            <input id="places-search" autofocus type="text" name="q" placeholder="Zoek adres ..." style="width:100%;max-width:600px;outline:0">
+        </form>
+    </div>
+    <div id="testmap" class="map"></div>
+</div>
+
 <div id="popup" class="ol-popup">
     <a href="#" id="popup-closer" class="ol-popup-closer"></a>
     <div id="popup-content">

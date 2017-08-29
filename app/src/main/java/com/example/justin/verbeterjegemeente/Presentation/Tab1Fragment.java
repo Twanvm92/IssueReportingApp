@@ -379,9 +379,9 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
                                         new DialogInterface.OnClickListener() {
                                             public void onClick(DialogInterface dialog, int id) {
                                                 // user decided not to give permission
-                                                if (currentLatLng == null) {
-                                                    getDefaultLocation(); // use default location instead of users' location
-                                                }
+//                                                if (currentLatLng == null) {
+////                                                    getDefaultLocation(); // use default location instead of users' location
+//                                                }
                                             }
                                         })
                                 .setNegativeButton(getResources().getText(R.string.eRetry), new DialogInterface.OnClickListener() {
@@ -394,9 +394,9 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
                                 .show();
                     } else { // user has not declined permission before
                         Log.i("onRequestPermResult", "Geen toestemming gekregen, eerste keer dat map geladen wordt default lat/long gepakt");
-//                        if (currentLatLng == null) {
-                            getDefaultLocation();
-//                        }
+////                        if (currentLatLng == null) {
+//                            getDefaultLocation();
+////                        }
                     }
 
                 }
@@ -422,7 +422,7 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
                             }).setIcon(android.R.drawable.ic_dialog_alert).show();
 
 //                    if (currentLatLng == null){
-                        getDefaultLocation();
+//                        getDefaultLocation();
 //                    }
 
                 }
@@ -584,8 +584,6 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
                         serviceRequestJson + ")");
             }
         }
-
-//        addServRequestsToMap(serviceRequests);
     }
 
     // TODO: 24-8-2017 add javadoc

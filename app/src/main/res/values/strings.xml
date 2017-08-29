@@ -92,5 +92,6 @@
     <string name="saved_upvote">savedUpvote</string>
     <string name="sharedPreference_upvote">upvotes</string>
     <string name="alreadyUpvoted">Je hebt deze melding al een keer geüpvotet!</string>
+    <string name="activityMapsDialog_tv_assureLocation">Wil je deze gekozen locatie gebruiken?</string>
 
 </resources>

@@ -1,6 +1,6 @@
 // OpenLayers. See https://openlayers.org/
 // License: https://raw.githubusercontent.com/openlayers/openlayers/master/LICENSE.md
-// Version: v4.0.1
+// Version: v4.3.1
 ;(function (root, factory) {
   if (typeof exports === "object") {
     module.exports = factory();
@@ -30,19 +30,19 @@ this.CLOSURE_NO_DEPS = true;
 /**
  * @fileoverview Bootstrap for the Google JS Library (Closure).
  *
- * In uncompiled mode base.js will write out Closure's deps file, unless the
- * global <code>CLOSURE_NO_DEPS</code> is set to true.  This allows projects to
- * include their own deps file(s) from different locations.
+ * In uncompiled mode base.js will attempt to load Closure's deps file, unless
+ * the global <code>CLOSURE_NO_DEPS</code> is set to true.  This allows projects
+ * to include their own deps file(s) from different locations.
  *
- * @author arv@google.com (Erik Arvidsson)
+ * Avoid including base.js more than once. This is strictly discouraged and not
+ * supported. goog.require(...) won't work properly in that case.
  *
  * @provideGoog
  */
 
 
 /**
- * @define {boolean} Overridden to true by the compiler when
- *     --process_closure_primitives is specified.
+ * @define {boolean} Overridden to true by the compiler.
  */
 var COMPILED = false;
 
@@ -105,8 +105,6 @@ goog.global.CLOSURE_DEFINES;
 
 /**
  * Returns true if the specified value is not undefined.
- * WARNING: Do not use this to test if an object has a property. Use the in
- * operator instead.
  *
  * @param {?} val Variable to test.
  * @return {boolean} Whether variable is defined.
@@ -115,6 +113,35 @@ goog.isDef = function(val) {
   // void 0 always evaluates to undefined and hence we do not need to depend on
   // the definition of the global variable named 'undefined'.
   return val !== void 0;
+};
+
+/**
+ * Returns true if the specified value is a string.
+ * @param {?} val Variable to test.
+ * @return {boolean} Whether variable is a string.
+ */
+goog.isString = function(val) {
+  return typeof val == 'string';
+};
+
+
+/**
+ * Returns true if the specified value is a boolean.
+ * @param {?} val Variable to test.
+ * @return {boolean} Whether variable is boolean.
+ */
+goog.isBoolean = function(val) {
+  return typeof val == 'boolean';
+};
+
+
+/**
+ * Returns true if the specified value is a number.
+ * @param {?} val Variable to test.
+ * @return {boolean} Whether variable is a number.
+ */
+goog.isNumber = function(val) {
+  return typeof val == 'number';
 };
 
 
@@ -126,7 +153,7 @@ goog.isDef = function(val) {
  * @param {string} name name of the object that this file defines.
  * @param {*=} opt_object the object to expose at the end of the path.
  * @param {Object=} opt_objectToExportTo The object to add the path to; default
- *     is |goog.global|.
+ *     is `goog.global`.
  * @private
  */
 goog.exportPath_ = function(name, opt_object, opt_objectToExportTo) {
@@ -140,17 +167,11 @@ goog.exportPath_ = function(name, opt_object, opt_objectToExportTo) {
     cur.execScript('var ' + parts[0]);
   }
 
-  // Certain browsers cannot parse code in the form for((a in b); c;);
-  // This pattern is produced by the JSCompiler when it collapses the
-  // statement above into the conditional loop below. To prevent this from
-  // happening, use a for-loop and reserve the init logic as below.
-
-  // Parentheses added to eliminate strict JS warning in Firefox.
   for (var part; parts.length && (part = parts.shift());) {
     if (!parts.length && goog.isDef(opt_object)) {
       // last part and we have an object; use it
       cur[part] = opt_object;
-    } else if (cur[part]) {
+    } else if (cur[part] && cur[part] !== Object.prototype[part]) {
       cur = cur[part];
     } else {
       cur = cur[part] = {};
@@ -173,11 +194,16 @@ goog.define = function(name, defaultValue) {
   var value = defaultValue;
   if (!COMPILED) {
     if (goog.global.CLOSURE_UNCOMPILED_DEFINES &&
+        // Anti DOM-clobbering runtime check (b/37736576).
+        /** @type {?} */ (goog.global.CLOSURE_UNCOMPILED_DEFINES).nodeType ===
+            undefined &&
         Object.prototype.hasOwnProperty.call(
             goog.global.CLOSURE_UNCOMPILED_DEFINES, name)) {
       value = goog.global.CLOSURE_UNCOMPILED_DEFINES[name];
     } else if (
         goog.global.CLOSURE_DEFINES &&
+        // Anti DOM-clobbering runtime check (b/37736576).
+        /** @type {?} */ (goog.global.CLOSURE_DEFINES).nodeType === undefined &&
         Object.prototype.hasOwnProperty.call(
             goog.global.CLOSURE_DEFINES, name)) {
       value = goog.global.CLOSURE_DEFINES[name];
@@ -189,11 +215,12 @@ goog.define = function(name, defaultValue) {
 
 /**
  * @define {boolean} DEBUG is provided as a convenience so that debugging code
- * that should not be included in a production js_binary can be easily stripped
- * by specifying --define goog.DEBUG=false to the JSCompiler. For example, most
- * toString() methods should be declared inside an "if (goog.DEBUG)" conditional
- * because they are generally used for debugging purposes and it is difficult
- * for the JSCompiler to statically determine whether they are used.
+ * that should not be included in a production. It can be easily stripped
+ * by specifying --define goog.DEBUG=false to the Closure Compiler aka
+ * JSCompiler. For example, most toString() methods should be declared inside an
+ * "if (goog.DEBUG)" conditional because they are generally used for debugging
+ * purposes and it is difficult for the JSCompiler to statically determine
+ * whether they are used.
  */
 goog.define('goog.DEBUG', true);
 
@@ -201,7 +228,7 @@ goog.define('goog.DEBUG', true);
 /**
  * @define {string} LOCALE defines the locale being used for compilation. It is
  * used to select locale specific data to be compiled in js binary. BUILD rule
- * can specify this value by "--define goog.LOCALE=<locale_name>" as JSCompiler
+ * can specify this value by "--define goog.LOCALE=<locale_name>" as a compiler
  * option.
  *
  * Take into account that the locale code format is important. You should use
@@ -215,7 +242,8 @@ goog.define('goog.DEBUG', true);
  * For language codes you should use values defined by ISO 693-1. See it here
  * http://www.w3.org/WAI/ER/IG/ert/iso639.htm. There is only one exception from
  * this rule: the Hebrew language. For legacy reasons the old code (iw) should
- * be used instead of the new code (he), see http://wiki/Main/IIISynonyms.
+ * be used instead of the new code (he).
+ *
  */
 goog.define('goog.LOCALE', 'en');  // default to en
 
@@ -229,7 +257,7 @@ goog.define('goog.LOCALE', 'en');  // default to en
  *
  * If your JavaScript can be loaded by a third party site and you are wary about
  * relying on non-standard implementations, specify
- * "--define goog.TRUSTED_SITE=false" to the JSCompiler.
+ * "--define goog.TRUSTED_SITE=false" to the compiler.
  */
 goog.define('goog.TRUSTED_SITE', true);
 
@@ -669,8 +697,7 @@ goog.logToConsole_ = function(msg) {
 /**
  * Implements a system for the dynamic resolution of dependencies that works in
  * parallel with the BUILD system. Note that all calls to goog.require will be
- * stripped by the JSCompiler when the --process_closure_primitives option is
- * used.
+ * stripped by the compiler.
  * @see goog.provide
  * @param {string} name Namespace to include (as was given in goog.provide()) in
  *     the form "goog.package.part".
@@ -678,7 +705,7 @@ goog.logToConsole_ = function(msg) {
  *     module otherwise null.
  */
 goog.require = function(name) {
-  // If the object already exists we do not need do do anything.
+  // If the object already exists we do not need to do anything.
   if (!COMPILED) {
     if (goog.ENABLE_DEBUG_LOADER && goog.IS_OLD_IE_) {
       goog.maybeProcessDeferredDep_(name);
@@ -720,7 +747,8 @@ goog.global.CLOSURE_BASE_PATH;
 
 
 /**
- * Whether to write out Closure's deps file. By default, the deps are written.
+ * Whether to attempt to load Closure's deps file. By default, when uncompiled,
+ * deps files will attempt to be loaded.
  * @type {boolean|undefined}
  */
 goog.global.CLOSURE_NO_DEPS;
@@ -752,9 +780,6 @@ goog.nullFunction = function() {};
  *
  * Now if a subclass of Foo fails to override bar(), an error will be thrown
  * when bar() is invoked.
- *
- * Note: This does not take the name of the function to override as an argument
- * because that would make it more difficult to obfuscate our JavaScript code.
  *
  * @type {!Function}
  * @throws {Error} when invoked to indicate the method should be overridden.
@@ -896,7 +921,9 @@ if (goog.DEPENDENCIES_ENABLED) {
    * @private
    */
   goog.findBasePath_ = function() {
-    if (goog.isDef(goog.global.CLOSURE_BASE_PATH)) {
+    if (goog.isDef(goog.global.CLOSURE_BASE_PATH) &&
+        // Anti DOM-clobbering runtime check (b/37736576).
+        goog.isString(goog.global.CLOSURE_BASE_PATH)) {
       goog.basePath = goog.global.CLOSURE_BASE_PATH;
       return;
     } else if (!goog.inHtmlDocument_()) {
@@ -904,7 +931,13 @@ if (goog.DEPENDENCIES_ENABLED) {
     }
     /** @type {Document} */
     var doc = goog.global.document;
-    var scripts = doc.getElementsByTagName('SCRIPT');
+    // If we have a currentScript available, use it exclusively.
+    var currentScript = doc.currentScript;
+    if (currentScript) {
+      var scripts = [currentScript];
+    } else {
+      var scripts = doc.getElementsByTagName('SCRIPT');
+    }
     // Search backwards since the current script is in almost all cases the one
     // that has base.js.
     for (var i = scripts.length - 1; i >= 0; --i) {
@@ -943,6 +976,17 @@ if (goog.DEPENDENCIES_ENABLED) {
    */
   goog.IS_OLD_IE_ =
       !!(!goog.global.atob && goog.global.document && goog.global.document.all);
+
+
+  /**
+   * Whether IE9 or earlier is waiting on a dependency.  This ensures that
+   * deferred modules that have no non-deferred dependencies actually get
+   * loaded, since if we defer them and then never pull in a non-deferred
+   * script, then `goog.loadQueuedModules_` will never be called.  Instead,
+   * if not waiting on anything we simply don't defer in the first place.
+   * @private {boolean}
+   */
+  goog.oldIeWaiting_ = false;
 
 
   /**
@@ -1029,6 +1073,7 @@ if (goog.DEPENDENCIES_ENABLED) {
         goog.maybeProcessDeferredPath_(path);
       }
     }
+    goog.oldIeWaiting_ = false;
   };
 
 
@@ -1211,6 +1256,7 @@ if (goog.DEPENDENCIES_ENABLED) {
             goog.writeScriptSrcNode_(src);
           }
         } else {
+          goog.oldIeWaiting_ = true;
           var state = ' onreadystatechange=\'goog.onScriptLoad_(this, ' +
               ++goog.lastNonModuleScriptIndex_ + ')\' ';
           doc.write(
@@ -1239,7 +1285,7 @@ if (goog.DEPENDENCIES_ENABLED) {
    * @private
    */
   goog.protectScriptTag_ = function(str) {
-    return str.replace(/<\/(SCRIPT)/ig, '\\x3c\\$1');
+    return str.replace(/<\/(SCRIPT)/ig, '\\x3c/$1');
   };
 
   /**
@@ -1273,7 +1319,7 @@ if (goog.DEPENDENCIES_ENABLED) {
 
   /**
    * A readystatechange handler for legacy IE
-   * @param {!HTMLScriptElement} script
+   * @param {?} script
    * @param {number} scriptIndex
    * @return {boolean}
    * @private
@@ -1398,6 +1444,48 @@ if (goog.DEPENDENCIES_ENABLED) {
 
 
 /**
+ * @package {?boolean}
+ * Visible for testing.
+ */
+goog.hasBadLetScoping = null;
+
+
+/**
+ * @return {boolean}
+ * @package Visible for testing.
+ */
+goog.useSafari10Workaround = function() {
+  if (goog.hasBadLetScoping == null) {
+    var hasBadLetScoping;
+    try {
+      hasBadLetScoping = !eval(
+          '"use strict";' +
+          'let x = 1; function f() { return typeof x; };' +
+          'f() == "number";');
+    } catch (e) {
+      // Assume that ES6 syntax isn't supported.
+      hasBadLetScoping = false;
+    }
+    goog.hasBadLetScoping = hasBadLetScoping;
+  }
+  return goog.hasBadLetScoping;
+};
+
+
+/**
+ * @param {string} moduleDef
+ * @return {string}
+ * @package Visible for testing.
+ */
+goog.workaroundSafari10EvalBug = function(moduleDef) {
+  return '(function(){' + moduleDef +
+      '\n' +  // Terminate any trailing single line comment.
+      ';' +   // Terminate any trailing expression.
+      '})();\n';
+};
+
+
+/**
  * @param {function(?):?|string} moduleDef The module definition.
  */
 goog.loadModule = function(moduleDef) {
@@ -1416,6 +1504,10 @@ goog.loadModule = function(moduleDef) {
     if (goog.isFunction(moduleDef)) {
       exports = moduleDef.call(undefined, {});
     } else if (goog.isString(moduleDef)) {
+      if (goog.useSafari10Workaround()) {
+        moduleDef = goog.workaroundSafari10EvalBug(moduleDef);
+      }
+
       exports = goog.loadModuleFromSource_.call(undefined, moduleDef);
     } else {
       throw Error('Invalid module definition');
@@ -1431,7 +1523,8 @@ goog.loadModule = function(moduleDef) {
     if (goog.moduleLoaderState_.declareLegacyNamespace) {
       goog.constructNamespace_(moduleName, exports);
     } else if (
-        goog.SEAL_MODULE_EXPORTS && Object.seal && goog.isObject(exports)) {
+        goog.SEAL_MODULE_EXPORTS && Object.seal && typeof exports == 'object' &&
+        exports != null) {
       Object.seal(exports);
     }
 
@@ -1443,21 +1536,16 @@ goog.loadModule = function(moduleDef) {
 
 
 /**
- * @private @const {function(string):?}
- *
- * The new type inference warns because this function has no formal
- * parameters, but its jsdoc says that it takes one argument.
- * (The argument is used via arguments[0], but NTI does not detect this.)
- * @suppress {newCheckTypes}
+ * @private @const
  */
-goog.loadModuleFromSource_ = function() {
+goog.loadModuleFromSource_ = /** @type {function(string):?} */ (function() {
   // NOTE: we avoid declaring parameters or local variables here to avoid
   // masking globals or leaking values into the module definition.
   'use strict';
   var exports = {};
   eval(arguments[0]);
   return exports;
-};
+});
 
 
 /**
@@ -1483,6 +1571,15 @@ goog.normalizePath_ = function(path) {
   }
   return components.join('/');
 };
+
+
+/**
+ * Provides a hook for loading a file when using Closure's goog.require() API
+ * with goog.modules.  In particular this hook is provided to support Node.js.
+ *
+ * @type {(function(string):string)|undefined}
+ */
+goog.global.CLOSURE_LOAD_FILE_SYNC;
 
 
 /**
@@ -1546,7 +1643,7 @@ goog.retrieveAndExec_ = function(src, isModule, needsTranspile) {
       scriptText += '\n//# sourceURL=' + src;
     }
     var isOldIE = goog.IS_OLD_IE_;
-    if (isOldIE) {
+    if (isOldIE && goog.oldIeWaiting_) {
       goog.dependencies_.deferred[originalPath] = scriptText;
       goog.queuedModules_.push(originalPath);
     } else {
@@ -1775,36 +1872,6 @@ goog.isDateLike = function(val) {
 
 
 /**
- * Returns true if the specified value is a string.
- * @param {?} val Variable to test.
- * @return {boolean} Whether variable is a string.
- */
-goog.isString = function(val) {
-  return typeof val == 'string';
-};
-
-
-/**
- * Returns true if the specified value is a boolean.
- * @param {?} val Variable to test.
- * @return {boolean} Whether variable is boolean.
- */
-goog.isBoolean = function(val) {
-  return typeof val == 'boolean';
-};
-
-
-/**
- * Returns true if the specified value is a number.
- * @param {?} val Variable to test.
- * @return {boolean} Whether variable is a number.
- */
-goog.isNumber = function(val) {
-  return typeof val == 'number';
-};
-
-
-/**
  * Returns true if the specified value is a function.
  * @param {?} val Variable to test.
  * @return {boolean} Whether variable is a function.
@@ -1877,7 +1944,7 @@ goog.removeUid = function(obj) {
   if (obj !== null && 'removeAttribute' in obj) {
     obj.removeAttribute(goog.UID_PROPERTY_);
   }
-  /** @preserveTry */
+
   try {
     delete obj[goog.UID_PROPERTY_];
   } catch (ex) {
@@ -1954,17 +2021,15 @@ goog.cloneObject = function(obj) {
 
 /**
  * A native implementation of goog.bind.
- * @param {Function} fn A function to partially apply.
- * @param {Object|undefined} selfObj Specifies the object which this should
- *     point to when the function is run.
+ * @param {?function(this:T, ...)} fn A function to partially apply.
+ * @param {T} selfObj Specifies the object which this should point to when the
+ *     function is run.
  * @param {...*} var_args Additional arguments that are partially applied to the
  *     function.
- * @return {!Function} A partially-applied form of the function bind() was
+ * @return {!Function} A partially-applied form of the function goog.bind() was
  *     invoked as a method of.
+ * @template T
  * @private
- * @suppress {deprecated} The compiler thinks that Function.prototype.bind is
- *     deprecated because some people have declared a pure-JS version.
- *     Only the pure-JS version is truly deprecated.
  */
 goog.bindNative_ = function(fn, selfObj, var_args) {
   return /** @type {!Function} */ (fn.call.apply(fn.bind, arguments));
@@ -1973,13 +2038,14 @@ goog.bindNative_ = function(fn, selfObj, var_args) {
 
 /**
  * A pure-JS implementation of goog.bind.
- * @param {Function} fn A function to partially apply.
- * @param {Object|undefined} selfObj Specifies the object which this should
- *     point to when the function is run.
+ * @param {?function(this:T, ...)} fn A function to partially apply.
+ * @param {T} selfObj Specifies the object which this should point to when the
+ *     function is run.
  * @param {...*} var_args Additional arguments that are partially applied to the
  *     function.
- * @return {!Function} A partially-applied form of the function bind() was
+ * @return {!Function} A partially-applied form of the function goog.bind() was
  *     invoked as a method of.
+ * @template T
  * @private
  */
 goog.bindJs_ = function(fn, selfObj, var_args) {
@@ -2179,6 +2245,17 @@ goog.cssNameMapping_;
 goog.cssNameMappingStyle_;
 
 
+
+/**
+ * A hook for modifying the default behavior goog.getCssName. The function
+ * if present, will recieve the standard output of the goog.getCssName as
+ * its input.
+ *
+ * @type {(function(string):string)|undefined}
+ */
+goog.global.CLOSURE_CSS_NAME_MAP_FN;
+
+
 /**
  * Handles strings that are intended to be used as CSS class names.
  *
@@ -2212,8 +2289,7 @@ goog.cssNameMappingStyle_;
  */
 goog.getCssName = function(className, opt_modifier) {
   // String() is used for compatibility with compiled soy where the passed
-  // className can be non-string objects like here
-  // http://google3/java/com/google/privacy/accountcentral/common/ui/client/cards/popupcard.soy?l=74&rcl=94079467
+  // className can be non-string objects.
   if (String(className).charAt(0) == '.') {
     throw new Error(
         'className passed in goog.getCssName must not start with ".".' +
@@ -2480,6 +2556,9 @@ goog.inherits = function(childCtor, parentCtor) {
  * @return {*} The return value of the superclass method.
  * @suppress {es5Strict} This method can not be used in strict mode, but
  *     all Closure Library consumers must depend on this file.
+ * @deprecated goog.base is not strict mode compatible.  Prefer the static
+ *     "base" method added to the constructor by goog.inherits
+ *     or ES6 classes and the "super" keyword.
  */
 goog.base = function(me, opt_methodName, var_args) {
   var caller = arguments.callee.caller;
@@ -2809,11 +2888,22 @@ goog.createRequiresTranspilation_ = function() {
     }
   }
 
+  var userAgent = goog.global.navigator && goog.global.navigator.userAgent ?
+      goog.global.navigator.userAgent :
+      '';
+
   // Identify ES3-only browsers by their incorrect treatment of commas.
   addNewerLanguageTranspilationCheck('es5', function() {
     return evalCheck('[1,].length==1');
   });
   addNewerLanguageTranspilationCheck('es6', function() {
+    // Edge has a non-deterministic (i.e., not reproducible) bug with ES6:
+    // https://github.com/Microsoft/ChakraCore/issues/1496.
+    var re = /Edge\/(\d+)(\.\d)*/i;
+    var edgeUserAgent = userAgent.match(re);
+    if (edgeUserAgent && Number(edgeUserAgent[1]) < 15) {
+      return false;
+    }
     // Test es6: [FF50 (?), Edge 14 (?), Chrome 50]
     //   (a) default params (specifically shadowing locals),
     //   (b) destructuring, (c) block-scoped functions,
@@ -3142,12 +3232,6 @@ ol.DEFAULT_WMS_VERSION = '1.3.0';
 
 
 /**
- * @define {number} Hysteresis pixels.
- */
-ol.DRAG_BOX_HYSTERESIS_PIXELS = 8;
-
-
-/**
  * @define {boolean} Enable the Canvas renderer.  Default is `true`. Setting
  *     this to false at compile time in advanced mode removes all code
  *     supporting the Canvas renderer from the build.
@@ -3362,11 +3446,12 @@ goog.require('ol');
  */
 ol.AssertionError = function(code) {
 
+  var path = ol.VERSION ? ol.VERSION.split('-')[0] : 'latest';
+
   /**
    * @type {string}
    */
-  this.message = 'Assertion failed. See ' +
-      (ol.VERSION ? 'https://openlayers.org/en/' + ol.VERSION.split('-')[0] : '') +
+  this.message = 'Assertion failed. See https://openlayers.org/en/' + path +
       '/doc/errors/#' + code + ' for details.';
 
   /**
@@ -4277,8 +4362,10 @@ ol.extent.forEachCorner = function(extent, callback, opt_this) {
 
 
 /**
+ * Get the size of an extent.
  * @param {ol.Extent} extent Extent.
  * @return {number} Area.
+ * @api
  */
 ol.extent.getArea = function(extent) {
   var area = 0;
@@ -4711,6 +4798,27 @@ ol.obj.isEmpty = function(object) {
   return !property;
 };
 
+goog.provide('ol.geom.GeometryType');
+
+
+/**
+ * The geometry type. One of `'Point'`, `'LineString'`, `'LinearRing'`,
+ * `'Polygon'`, `'MultiPoint'`, `'MultiLineString'`, `'MultiPolygon'`,
+ * `'GeometryCollection'`, `'Circle'`.
+ * @enum {string}
+ */
+ol.geom.GeometryType = {
+  POINT: 'Point',
+  LINE_STRING: 'LineString',
+  LINEAR_RING: 'LinearRing',
+  POLYGON: 'Polygon',
+  MULTI_POINT: 'MultiPoint',
+  MULTI_LINE_STRING: 'MultiLineString',
+  MULTI_POLYGON: 'MultiPolygon',
+  GEOMETRY_COLLECTION: 'GeometryCollection',
+  CIRCLE: 'Circle'
+};
+
 /**
  * @license
  * Latitude/longitude spherical geodesy formulae taken from
@@ -4721,6 +4829,7 @@ ol.obj.isEmpty = function(object) {
 goog.provide('ol.Sphere');
 
 goog.require('ol.math');
+goog.require('ol.geom.GeometryType');
 
 
 /**
@@ -4764,18 +4873,7 @@ ol.Sphere = function(radius) {
  * @api
  */
 ol.Sphere.prototype.geodesicArea = function(coordinates) {
-  var area = 0, len = coordinates.length;
-  var x1 = coordinates[len - 1][0];
-  var y1 = coordinates[len - 1][1];
-  for (var i = 0; i < len; i++) {
-    var x2 = coordinates[i][0], y2 = coordinates[i][1];
-    area += ol.math.toRadians(x2 - x1) *
-        (2 + Math.sin(ol.math.toRadians(y1)) +
-        Math.sin(ol.math.toRadians(y2)));
-    x1 = x2;
-    y1 = y2;
-  }
-  return area * this.radius * this.radius / 2.0;
+  return ol.Sphere.getArea_(coordinates, this.radius);
 };
 
 
@@ -4788,14 +4886,7 @@ ol.Sphere.prototype.geodesicArea = function(coordinates) {
  * @api
  */
 ol.Sphere.prototype.haversineDistance = function(c1, c2) {
-  var lat1 = ol.math.toRadians(c1[1]);
-  var lat2 = ol.math.toRadians(c2[1]);
-  var deltaLatBy2 = (lat2 - lat1) / 2;
-  var deltaLonBy2 = ol.math.toRadians(c2[0] - c1[0]) / 2;
-  var a = Math.sin(deltaLatBy2) * Math.sin(deltaLatBy2) +
-      Math.sin(deltaLonBy2) * Math.sin(deltaLonBy2) *
-      Math.cos(lat1) * Math.cos(lat2);
-  return 2 * this.radius * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return ol.Sphere.getDistance_(c1, c2, this.radius);
 };
 
 
@@ -4821,21 +4912,201 @@ ol.Sphere.prototype.offset = function(c1, distance, bearing) {
   return [ol.math.toDegrees(lon), ol.math.toDegrees(lat)];
 };
 
-goog.provide('ol.sphere.NORMAL');
 
-goog.require('ol.Sphere');
+/**
+ * The mean Earth radius (1/3 * (2a + b)) for the WGS84 ellipsoid.
+ * https://en.wikipedia.org/wiki/Earth_radius#Mean_radius
+ * @type {number}
+ */
+ol.Sphere.DEFAULT_RADIUS = 6371008.8;
 
 
 /**
- * The normal sphere.
- * @const
- * @type {ol.Sphere}
+ * Get the spherical length of a geometry.  This length is the sum of the
+ * great circle distances between coordinates.  For polygons, the length is
+ * the sum of all rings.  For points, the length is zero.  For multi-part
+ * geometries, the length is the sum of the length of each part.
+ * @param {ol.geom.Geometry} geometry A geometry.
+ * @param {olx.SphereMetricOptions=} opt_options Options for the length
+ *     calculation.  By default, geometries are assumed to be in 'EPSG:3857'.
+ *     You can change this by providing a `projection` option.
+ * @return {number} The spherical length (in meters).
  */
-ol.sphere.NORMAL = new ol.Sphere(6370997);
+ol.Sphere.getLength = function(geometry, opt_options) {
+  var options = opt_options || {};
+  var radius = options.radius || ol.Sphere.DEFAULT_RADIUS;
+  var projection = options.projection || 'EPSG:3857';
+  geometry = geometry.clone().transform(projection, 'EPSG:4326');
+  var type = geometry.getType();
+  var length = 0;
+  var coordinates, coords, i, ii, j, jj;
+  switch (type) {
+    case ol.geom.GeometryType.POINT:
+    case ol.geom.GeometryType.MULTI_POINT: {
+      break;
+    }
+    case ol.geom.GeometryType.LINE_STRING:
+    case ol.geom.GeometryType.LINEAR_RING: {
+      coordinates = /** @type {ol.geom.SimpleGeometry} */ (geometry).getCoordinates();
+      length = ol.Sphere.getLength_(coordinates, radius);
+      break;
+    }
+    case ol.geom.GeometryType.MULTI_LINE_STRING:
+    case ol.geom.GeometryType.POLYGON: {
+      coordinates = /** @type {ol.geom.SimpleGeometry} */ (geometry).getCoordinates();
+      for (i = 0, ii = coordinates.length; i < ii; ++i) {
+        length += ol.Sphere.getLength_(coordinates[i], radius);
+      }
+      break;
+    }
+    case ol.geom.GeometryType.MULTI_POLYGON: {
+      coordinates = /** @type {ol.geom.SimpleGeometry} */ (geometry).getCoordinates();
+      for (i = 0, ii = coordinates.length; i < ii; ++i) {
+        coords = coordinates[i];
+        for (j = 0, jj = coords.length; j < jj; ++j) {
+          length += ol.Sphere.getLength_(coords[j], radius);
+        }
+      }
+      break;
+    }
+    case ol.geom.GeometryType.GEOMETRY_COLLECTION: {
+      var geometries = /** @type {ol.geom.GeometryCollection} */ (geometry).getGeometries();
+      for (i = 0, ii = geometries.length; i < ii; ++i) {
+        length += ol.Sphere.getLength(geometries[i], opt_options);
+      }
+      break;
+    }
+    default: {
+      throw new Error('Unsupported geometry type: ' + type);
+    }
+  }
+  return length;
+};
+
+
+/**
+ * Get the cumulative great circle length of linestring coordinates (geographic).
+ * @param {Array} coordinates Linestring coordinates.
+ * @param {number} radius The sphere radius to use.
+ * @return {number} The length (in meters).
+ */
+ol.Sphere.getLength_ = function(coordinates, radius) {
+  var length = 0;
+  for (var i = 0, ii = coordinates.length; i < ii - 1; ++i) {
+    length += ol.Sphere.getDistance_(coordinates[i], coordinates[i + 1], radius);
+  }
+  return length;
+};
+
+
+/**
+ * Get the great circle distance between two geographic coordinates.
+ * @param {Array} c1 Starting coordinate.
+ * @param {Array} c2 Ending coordinate.
+ * @param {number} radius The sphere radius to use.
+ * @return {number} The great circle distance between the points (in meters).
+ */
+ol.Sphere.getDistance_ = function(c1, c2, radius) {
+  var lat1 = ol.math.toRadians(c1[1]);
+  var lat2 = ol.math.toRadians(c2[1]);
+  var deltaLatBy2 = (lat2 - lat1) / 2;
+  var deltaLonBy2 = ol.math.toRadians(c2[0] - c1[0]) / 2;
+  var a = Math.sin(deltaLatBy2) * Math.sin(deltaLatBy2) +
+      Math.sin(deltaLonBy2) * Math.sin(deltaLonBy2) *
+      Math.cos(lat1) * Math.cos(lat2);
+  return 2 * radius * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
+
+
+/**
+ * Get the spherical area of a geometry.  This is the area (in meters) assuming
+ * that polygon edges are segments of great circles on a sphere.
+ * @param {ol.geom.Geometry} geometry A geometry.
+ * @param {olx.SphereMetricOptions=} opt_options Options for the area
+ *     calculation.  By default, geometries are assumed to be in 'EPSG:3857'.
+ *     You can change this by providing a `projection` option.
+ * @return {number} The spherical area (in square meters).
+ */
+ol.Sphere.getArea = function(geometry, opt_options) {
+  var options = opt_options || {};
+  var radius = options.radius || ol.Sphere.DEFAULT_RADIUS;
+  var projection = options.projection || 'EPSG:3857';
+  geometry = geometry.clone().transform(projection, 'EPSG:4326');
+  var type = geometry.getType();
+  var area = 0;
+  var coordinates, coords, i, ii, j, jj;
+  switch (type) {
+    case ol.geom.GeometryType.POINT:
+    case ol.geom.GeometryType.MULTI_POINT:
+    case ol.geom.GeometryType.LINE_STRING:
+    case ol.geom.GeometryType.MULTI_LINE_STRING:
+    case ol.geom.GeometryType.LINEAR_RING: {
+      break;
+    }
+    case ol.geom.GeometryType.POLYGON: {
+      coordinates = /** @type {ol.geom.Polygon} */ (geometry).getCoordinates();
+      area = Math.abs(ol.Sphere.getArea_(coordinates[0], radius));
+      for (i = 1, ii = coordinates.length; i < ii; ++i) {
+        area -= Math.abs(ol.Sphere.getArea_(coordinates[i], radius));
+      }
+      break;
+    }
+    case ol.geom.GeometryType.MULTI_POLYGON: {
+      coordinates = /** @type {ol.geom.SimpleGeometry} */ (geometry).getCoordinates();
+      for (i = 0, ii = coordinates.length; i < ii; ++i) {
+        coords = coordinates[i];
+        area += Math.abs(ol.Sphere.getArea_(coords[0], radius));
+        for (j = 1, jj = coords.length; j < jj; ++j) {
+          area -= Math.abs(ol.Sphere.getArea_(coords[j], radius));
+        }
+      }
+      break;
+    }
+    case ol.geom.GeometryType.GEOMETRY_COLLECTION: {
+      var geometries = /** @type {ol.geom.GeometryCollection} */ (geometry).getGeometries();
+      for (i = 0, ii = geometries.length; i < ii; ++i) {
+        area += ol.Sphere.getArea(geometries[i], opt_options);
+      }
+      break;
+    }
+    default: {
+      throw new Error('Unsupported geometry type: ' + type);
+    }
+  }
+  return area;
+};
+
+
+/**
+ * Returns the spherical area for a list of coordinates.
+ *
+ * [Reference](https://trs-new.jpl.nasa.gov/handle/2014/40409)
+ * Robert. G. Chamberlain and William H. Duquette, "Some Algorithms for
+ * Polygons on a Sphere", JPL Publication 07-03, Jet Propulsion
+ * Laboratory, Pasadena, CA, June 2007
+ *
+ * @param {Array.<ol.Coordinate>} coordinates List of coordinates of a linear
+ * ring. If the ring is oriented clockwise, the area will be positive,
+ * otherwise it will be negative.
+ * @param {number} radius The sphere radius.
+ * @return {number} Area (in square meters).
+ */
+ol.Sphere.getArea_ = function(coordinates, radius) {
+  var area = 0, len = coordinates.length;
+  var x1 = coordinates[len - 1][0];
+  var y1 = coordinates[len - 1][1];
+  for (var i = 0; i < len; i++) {
+    var x2 = coordinates[i][0], y2 = coordinates[i][1];
+    area += ol.math.toRadians(x2 - x1) *
+        (2 + Math.sin(ol.math.toRadians(y1)) +
+        Math.sin(ol.math.toRadians(y2)));
+    x1 = x2;
+    y1 = y2;
+  }
+  return area * radius * radius / 2.0;
+};
 
 goog.provide('ol.proj.Units');
-
-goog.require('ol.sphere.NORMAL');
 
 
 /**
@@ -4860,8 +5131,9 @@ ol.proj.Units = {
  * @api
  */
 ol.proj.Units.METERS_PER_UNIT = {};
+// use the radius of the Normal sphere
 ol.proj.Units.METERS_PER_UNIT[ol.proj.Units.DEGREES] =
-    2 * Math.PI * ol.sphere.NORMAL.radius / 360;
+    2 * Math.PI * 6370997 / 360;
 ol.proj.Units.METERS_PER_UNIT[ol.proj.Units.FEET] = 0.3048;
 ol.proj.Units.METERS_PER_UNIT[ol.proj.Units.METERS] = 1;
 ol.proj.Units.METERS_PER_UNIT[ol.proj.Units.USFEET] = 1200 / 3937;
@@ -4871,14 +5143,14 @@ goog.provide('ol.proj.proj4');
 
 /**
  * @private
- * @type {proj4}
+ * @type {Proj4}
  */
 ol.proj.proj4.cache_ = null;
 
 
 /**
  * Store the proj4 function.
- * @param {proj4} proj4 The proj4 function.
+ * @param {Proj4} proj4 The proj4 function.
  */
 ol.proj.proj4.set = function(proj4) {
   ol.proj.proj4.cache_ = proj4;
@@ -4887,7 +5159,7 @@ ol.proj.proj4.set = function(proj4) {
 
 /**
  * Get proj4.
- * @return {proj4} The proj4 function set above or available globally.
+ * @return {Proj4} The proj4 function set above or available globally.
  */
 ol.proj.proj4.get = function() {
   return ol.proj.proj4.cache_ || window['proj4'];
@@ -4931,66 +5203,66 @@ goog.require('ol.proj.proj4');
  * @api
  */
 ol.proj.Projection = function(options) {
- /**
-  * @private
-  * @type {string}
-  */
+  /**
+   * @private
+   * @type {string}
+   */
   this.code_ = options.code;
 
- /**
-  * @private
-  * @type {ol.proj.Units}
-  */
+  /**
+   * @private
+   * @type {ol.proj.Units}
+   */
   this.units_ = /** @type {ol.proj.Units} */ (options.units);
 
- /**
-  * @private
-  * @type {ol.Extent}
-  */
+  /**
+   * @private
+   * @type {ol.Extent}
+   */
   this.extent_ = options.extent !== undefined ? options.extent : null;
 
- /**
-  * @private
-  * @type {ol.Extent}
-  */
+  /**
+   * @private
+   * @type {ol.Extent}
+   */
   this.worldExtent_ = options.worldExtent !== undefined ?
-     options.worldExtent : null;
+    options.worldExtent : null;
 
- /**
-  * @private
-  * @type {string}
-  */
+  /**
+   * @private
+   * @type {string}
+   */
   this.axisOrientation_ = options.axisOrientation !== undefined ?
-     options.axisOrientation : 'enu';
+    options.axisOrientation : 'enu';
 
- /**
-  * @private
-  * @type {boolean}
-  */
+  /**
+   * @private
+   * @type {boolean}
+   */
   this.global_ = options.global !== undefined ? options.global : false;
 
- /**
-  * @private
-  * @type {boolean}
-  */
+  /**
+   * @private
+   * @type {boolean}
+   */
   this.canWrapX_ = !!(this.global_ && this.extent_);
 
- /**
- * @private
- * @type {function(number, ol.Coordinate):number|undefined}
- */
+  /**
+   * @private
+   * @type {function(number, ol.Coordinate):number|undefined}
+   */
   this.getPointResolutionFunc_ = options.getPointResolution;
 
- /**
-  * @private
-  * @type {ol.tilegrid.TileGrid}
-  */
+  /**
+   * @private
+   * @type {ol.tilegrid.TileGrid}
+   */
   this.defaultTileGrid_ = null;
 
- /**
-  * @private
-  * @type {number|undefined}
-  */
+  /**
+   * @private
+   * @type {number|undefined}
+   */
   this.metersPerUnit_ = options.metersPerUnit;
 
   var code = options.code;
@@ -5149,7 +5421,8 @@ ol.proj.Projection.prototype.setWorldExtent = function(worldExtent) {
 
 
 /**
- * Set the getPointResolution function for this projection.
+ * Set the getPointResolution function (see {@link ol.proj#getPointResolution}
+ * for this projection.
  * @param {function(number, ol.Coordinate):number} func Function
  * @api
  */
@@ -5166,6 +5439,229 @@ ol.proj.Projection.prototype.setGetPointResolution = function(func) {
 ol.proj.Projection.prototype.getPointResolutionFunc = function() {
   return this.getPointResolutionFunc_;
 };
+
+goog.provide('ol.proj.EPSG3857');
+
+goog.require('ol');
+goog.require('ol.math');
+goog.require('ol.proj.Projection');
+goog.require('ol.proj.Units');
+
+
+/**
+ * @classdesc
+ * Projection object for web/spherical Mercator (EPSG:3857).
+ *
+ * @constructor
+ * @extends {ol.proj.Projection}
+ * @param {string} code Code.
+ * @private
+ */
+ol.proj.EPSG3857.Projection_ = function(code) {
+  ol.proj.Projection.call(this, {
+    code: code,
+    units: ol.proj.Units.METERS,
+    extent: ol.proj.EPSG3857.EXTENT,
+    global: true,
+    worldExtent: ol.proj.EPSG3857.WORLD_EXTENT,
+    getPointResolution: function(resolution, point) {
+      return resolution / ol.math.cosh(point[1] / ol.proj.EPSG3857.RADIUS);
+    }
+  });
+};
+ol.inherits(ol.proj.EPSG3857.Projection_, ol.proj.Projection);
+
+
+/**
+ * Radius of WGS84 sphere
+ *
+ * @const
+ * @type {number}
+ */
+ol.proj.EPSG3857.RADIUS = 6378137;
+
+
+/**
+ * @const
+ * @type {number}
+ */
+ol.proj.EPSG3857.HALF_SIZE = Math.PI * ol.proj.EPSG3857.RADIUS;
+
+
+/**
+ * @const
+ * @type {ol.Extent}
+ */
+ol.proj.EPSG3857.EXTENT = [
+  -ol.proj.EPSG3857.HALF_SIZE, -ol.proj.EPSG3857.HALF_SIZE,
+  ol.proj.EPSG3857.HALF_SIZE, ol.proj.EPSG3857.HALF_SIZE
+];
+
+
+/**
+ * @const
+ * @type {ol.Extent}
+ */
+ol.proj.EPSG3857.WORLD_EXTENT = [-180, -85, 180, 85];
+
+
+/**
+ * Projections equal to EPSG:3857.
+ *
+ * @const
+ * @type {Array.<ol.proj.Projection>}
+ */
+ol.proj.EPSG3857.PROJECTIONS = [
+  new ol.proj.EPSG3857.Projection_('EPSG:3857'),
+  new ol.proj.EPSG3857.Projection_('EPSG:102100'),
+  new ol.proj.EPSG3857.Projection_('EPSG:102113'),
+  new ol.proj.EPSG3857.Projection_('EPSG:900913'),
+  new ol.proj.EPSG3857.Projection_('urn:ogc:def:crs:EPSG:6.18:3:3857'),
+  new ol.proj.EPSG3857.Projection_('urn:ogc:def:crs:EPSG::3857'),
+  new ol.proj.EPSG3857.Projection_('http://www.opengis.net/gml/srs/epsg.xml#3857')
+];
+
+
+/**
+ * Transformation from EPSG:4326 to EPSG:3857.
+ *
+ * @param {Array.<number>} input Input array of coordinate values.
+ * @param {Array.<number>=} opt_output Output array of coordinate values.
+ * @param {number=} opt_dimension Dimension (default is `2`).
+ * @return {Array.<number>} Output array of coordinate values.
+ */
+ol.proj.EPSG3857.fromEPSG4326 = function(input, opt_output, opt_dimension) {
+  var length = input.length,
+      dimension = opt_dimension > 1 ? opt_dimension : 2,
+      output = opt_output;
+  if (output === undefined) {
+    if (dimension > 2) {
+      // preserve values beyond second dimension
+      output = input.slice();
+    } else {
+      output = new Array(length);
+    }
+  }
+  var halfSize = ol.proj.EPSG3857.HALF_SIZE;
+  for (var i = 0; i < length; i += dimension) {
+    output[i] = halfSize * input[i] / 180;
+    var y = ol.proj.EPSG3857.RADIUS *
+        Math.log(Math.tan(Math.PI * (input[i + 1] + 90) / 360));
+    if (y > halfSize) {
+      y = halfSize;
+    } else if (y < -halfSize) {
+      y = -halfSize;
+    }
+    output[i + 1] = y;
+  }
+  return output;
+};
+
+
+/**
+ * Transformation from EPSG:3857 to EPSG:4326.
+ *
+ * @param {Array.<number>} input Input array of coordinate values.
+ * @param {Array.<number>=} opt_output Output array of coordinate values.
+ * @param {number=} opt_dimension Dimension (default is `2`).
+ * @return {Array.<number>} Output array of coordinate values.
+ */
+ol.proj.EPSG3857.toEPSG4326 = function(input, opt_output, opt_dimension) {
+  var length = input.length,
+      dimension = opt_dimension > 1 ? opt_dimension : 2,
+      output = opt_output;
+  if (output === undefined) {
+    if (dimension > 2) {
+      // preserve values beyond second dimension
+      output = input.slice();
+    } else {
+      output = new Array(length);
+    }
+  }
+  for (var i = 0; i < length; i += dimension) {
+    output[i] = 180 * input[i] / ol.proj.EPSG3857.HALF_SIZE;
+    output[i + 1] = 360 * Math.atan(
+        Math.exp(input[i + 1] / ol.proj.EPSG3857.RADIUS)) / Math.PI - 90;
+  }
+  return output;
+};
+
+goog.provide('ol.proj.EPSG4326');
+
+goog.require('ol');
+goog.require('ol.proj.Projection');
+goog.require('ol.proj.Units');
+
+
+/**
+ * @classdesc
+ * Projection object for WGS84 geographic coordinates (EPSG:4326).
+ *
+ * Note that OpenLayers does not strictly comply with the EPSG definition.
+ * The EPSG registry defines 4326 as a CRS for Latitude,Longitude (y,x).
+ * OpenLayers treats EPSG:4326 as a pseudo-projection, with x,y coordinates.
+ *
+ * @constructor
+ * @extends {ol.proj.Projection}
+ * @param {string} code Code.
+ * @param {string=} opt_axisOrientation Axis orientation.
+ * @private
+ */
+ol.proj.EPSG4326.Projection_ = function(code, opt_axisOrientation) {
+  ol.proj.Projection.call(this, {
+    code: code,
+    units: ol.proj.Units.DEGREES,
+    extent: ol.proj.EPSG4326.EXTENT,
+    axisOrientation: opt_axisOrientation,
+    global: true,
+    metersPerUnit: ol.proj.EPSG4326.METERS_PER_UNIT,
+    worldExtent: ol.proj.EPSG4326.EXTENT
+  });
+};
+ol.inherits(ol.proj.EPSG4326.Projection_, ol.proj.Projection);
+
+
+/**
+ * Radius of WGS84 sphere
+ *
+ * @const
+ * @type {number}
+ */
+ol.proj.EPSG4326.RADIUS = 6378137;
+
+
+/**
+ * Extent of the EPSG:4326 projection which is the whole world.
+ *
+ * @const
+ * @type {ol.Extent}
+ */
+ol.proj.EPSG4326.EXTENT = [-180, -90, 180, 90];
+
+
+/**
+ * @const
+ * @type {number}
+ */
+ol.proj.EPSG4326.METERS_PER_UNIT = Math.PI * ol.proj.EPSG4326.RADIUS / 180;
+
+
+/**
+ * Projections equal to EPSG:4326.
+ *
+ * @const
+ * @type {Array.<ol.proj.Projection>}
+ */
+ol.proj.EPSG4326.PROJECTIONS = [
+  new ol.proj.EPSG4326.Projection_('CRS:84'),
+  new ol.proj.EPSG4326.Projection_('EPSG:4326', 'neu'),
+  new ol.proj.EPSG4326.Projection_('urn:ogc:def:crs:EPSG::4326', 'neu'),
+  new ol.proj.EPSG4326.Projection_('urn:ogc:def:crs:EPSG:6.6:4326', 'neu'),
+  new ol.proj.EPSG4326.Projection_('urn:ogc:def:crs:OGC:1.3:CRS84'),
+  new ol.proj.EPSG4326.Projection_('urn:ogc:def:crs:OGC:2:84'),
+  new ol.proj.EPSG4326.Projection_('http://www.opengis.net/gml/srs/epsg.xml#4326', 'neu'),
+  new ol.proj.EPSG4326.Projection_('urn:x-ogc:def:crs:EPSG:4326', 'neu')
+];
 
 goog.provide('ol.proj.projections');
 
@@ -5285,13 +5781,15 @@ ol.proj.transforms.get = function(sourceCode, destinationCode) {
 goog.provide('ol.proj');
 
 goog.require('ol');
+goog.require('ol.Sphere');
 goog.require('ol.extent');
+goog.require('ol.proj.EPSG3857');
+goog.require('ol.proj.EPSG4326');
 goog.require('ol.proj.Projection');
 goog.require('ol.proj.Units');
 goog.require('ol.proj.proj4');
 goog.require('ol.proj.projections');
 goog.require('ol.proj.transforms');
-goog.require('ol.sphere.NORMAL');
 
 
 /**
@@ -5301,6 +5799,14 @@ goog.require('ol.sphere.NORMAL');
  * @api
  */
 ol.proj.METERS_PER_UNIT = ol.proj.Units.METERS_PER_UNIT;
+
+
+/**
+ * A place to store the mean radius of the Earth.
+ * @private
+ * @type {ol.Sphere}
+ */
+ol.proj.SPHERE_ = new ol.Sphere(ol.Sphere.DEFAULT_RADIUS);
 
 
 if (ol.ENABLE_PROJ4JS) {
@@ -5313,7 +5819,7 @@ if (ol.ENABLE_PROJ4JS) {
    *     import proj4 from 'proj4';
    *     ol.proj.setProj4(proj4);
    *
-   * @param {proj4} proj4 Proj4.
+   * @param {Proj4} proj4 Proj4.
    * @api
    */
   ol.proj.setProj4 = function(proj4) {
@@ -5326,23 +5832,31 @@ if (ol.ENABLE_PROJ4JS) {
  * Get the resolution of the point in degrees or distance units.
  * For projections with degrees as the unit this will simply return the
  * provided resolution. For other projections the point resolution is
- * estimated by transforming the 'point' pixel to EPSG:4326,
+ * by default estimated by transforming the 'point' pixel to EPSG:4326,
  * measuring its width and height on the normal sphere,
  * and taking the average of the width and height.
- * @param {ol.proj.Projection} projection The projection.
+ * A custom function can be provided for a specific projection, either
+ * by setting the `getPointResolution` option in the
+ * {@link ol.proj.Projection} constructor or by using
+ * {@link ol.proj.Projection#setGetPointResolution} to change an existing
+ * projection object.
+ * @param {ol.ProjectionLike} projection The projection.
  * @param {number} resolution Nominal resolution in projection units.
  * @param {ol.Coordinate} point Point to find adjusted resolution at.
- * @return {number} Point resolution at point in projection units.
+ * @param {ol.proj.Units=} opt_units Units to get the point resolution in.
+ * Default is the projection's units.
+ * @return {number} Point resolution.
  * @api
  */
-ol.proj.getPointResolution = function(projection, resolution, point) {
+ol.proj.getPointResolution = function(projection, resolution, point, opt_units) {
+  projection = ol.proj.get(projection);
   var pointResolution;
   var getter = projection.getPointResolutionFunc();
   if (getter) {
     pointResolution = getter(resolution, point);
   } else {
     var units = projection.getUnits();
-    if (units == ol.proj.Units.DEGREES) {
+    if (units == ol.proj.Units.DEGREES && !opt_units || opt_units == ol.proj.Units.DEGREES) {
       pointResolution = resolution;
     } else {
       // Estimate point resolution by transforming the center pixel to EPSG:4326,
@@ -5356,12 +5870,14 @@ ol.proj.getPointResolution = function(projection, resolution, point) {
         point[0], point[1] + resolution / 2
       ];
       vertices = toEPSG4326(vertices, vertices, 2);
-      var width = ol.sphere.NORMAL.haversineDistance(
+      var width = ol.proj.SPHERE_.haversineDistance(
           vertices.slice(0, 2), vertices.slice(2, 4));
-      var height = ol.sphere.NORMAL.haversineDistance(
+      var height = ol.proj.SPHERE_.haversineDistance(
           vertices.slice(4, 6), vertices.slice(6, 8));
       pointResolution = (width + height) / 2;
-      var metersPerUnit = projection.getMetersPerUnit();
+      var metersPerUnit = opt_units ?
+        ol.proj.Units.METERS_PER_UNIT[opt_units] :
+        projection.getMetersPerUnit();
       if (metersPerUnit !== undefined) {
         pointResolution /= metersPerUnit;
       }
@@ -5430,10 +5946,7 @@ ol.proj.addProjection = function(projection) {
  * @param {Array.<ol.proj.Projection>} projections Projections.
  */
 ol.proj.addProjections = function(projections) {
-  var addedProjections = [];
-  projections.forEach(function(projection) {
-    addedProjections.push(ol.proj.addProjection(projection));
-  });
+  projections.forEach(ol.proj.addProjection);
 };
 
 
@@ -5500,27 +6013,27 @@ ol.proj.addCoordinateTransforms = function(source, destination, forward, inverse
  */
 ol.proj.createTransformFromCoordinateTransform = function(transform) {
   return (
-      /**
-       * @param {Array.<number>} input Input.
-       * @param {Array.<number>=} opt_output Output.
-       * @param {number=} opt_dimension Dimension.
-       * @return {Array.<number>} Output.
-       */
-      function(input, opt_output, opt_dimension) {
-        var length = input.length;
-        var dimension = opt_dimension !== undefined ? opt_dimension : 2;
-        var output = opt_output !== undefined ? opt_output : new Array(length);
-        var point, i, j;
-        for (i = 0; i < length; i += dimension) {
-          point = transform([input[i], input[i + 1]]);
-          output[i] = point[0];
-          output[i + 1] = point[1];
-          for (j = dimension - 1; j >= 2; --j) {
-            output[i + j] = input[i + j];
-          }
+    /**
+     * @param {Array.<number>} input Input.
+     * @param {Array.<number>=} opt_output Output.
+     * @param {number=} opt_dimension Dimension.
+     * @return {Array.<number>} Output.
+     */
+    function(input, opt_output, opt_dimension) {
+      var length = input.length;
+      var dimension = opt_dimension !== undefined ? opt_dimension : 2;
+      var output = opt_output !== undefined ? opt_output : new Array(length);
+      var point, i, j;
+      for (i = 0; i < length; i += dimension) {
+        point = transform([input[i], input[i + 1]]);
+        output[i] = point[0];
+        output[i + 1] = point[1];
+        for (j = dimension - 1; j >= 2; --j) {
+          output[i + j] = input[i + j];
         }
-        return output;
-      });
+      }
+      return output;
+    });
 };
 
 
@@ -5570,9 +6083,9 @@ ol.proj.get = function(projectionLike) {
   } else if (typeof projectionLike === 'string') {
     var code = projectionLike;
     projection = ol.proj.projections.get(code);
-    if (ol.ENABLE_PROJ4JS) {
+    if (ol.ENABLE_PROJ4JS && !projection) {
       var proj4js = ol.proj.proj4.get();
-      if (!projection && typeof proj4js == 'function' &&
+      if (typeof proj4js == 'function' &&
           proj4js.defs(code) !== undefined) {
         projection = new ol.proj.Projection({code: code});
         ol.proj.addProjection(projection);
@@ -5751,6 +6264,27 @@ ol.proj.transformWithProjections = function(point, sourceProjection, destination
       sourceProjection, destinationProjection);
   return transformFn(point);
 };
+
+/**
+ * Add transforms to and from EPSG:4326 and EPSG:3857.  This function is called
+ * by when this module is executed and should only need to be called again after
+ * `ol.proj.clearAllProjections()` is called (e.g. in tests).
+ */
+ol.proj.addCommon = function() {
+  // Add transformations that don't alter coordinates to convert within set of
+  // projections with equal meaning.
+  ol.proj.addEquivalentProjections(ol.proj.EPSG3857.PROJECTIONS);
+  ol.proj.addEquivalentProjections(ol.proj.EPSG4326.PROJECTIONS);
+  // Add transformations to convert EPSG:4326 like coordinates to EPSG:3857 like
+  // coordinates and back.
+  ol.proj.addEquivalentTransforms(
+      ol.proj.EPSG4326.PROJECTIONS,
+      ol.proj.EPSG3857.PROJECTIONS,
+      ol.proj.EPSG3857.fromEPSG4326,
+      ol.proj.EPSG3857.toEPSG4326);
+};
+
+ol.proj.addCommon();
 
 goog.provide('ol.tilecoord');
 
@@ -5935,8 +6469,8 @@ ol.tilegrid.TileGrid = function(options) {
    * @type {number|ol.Size}
    */
   this.tileSize_ = options.tileSize !== undefined ?
-      options.tileSize :
-      !this.tileSizes_ ? ol.DEFAULT_TILE_SIZE : null;
+    options.tileSize :
+    !this.tileSizes_ ? ol.DEFAULT_TILE_SIZE : null;
   ol.asserts.assert(
       (!this.tileSize_ && this.tileSizes_) ||
       (this.tileSize_ && !this.tileSizes_),
@@ -6386,7 +6920,7 @@ ol.tilegrid.wrapX = function(tileGrid, tileCoord, projection) {
  */
 ol.tilegrid.createForExtent = function(extent, opt_maxZoom, opt_tileSize, opt_corner) {
   var corner = opt_corner !== undefined ?
-      opt_corner : ol.extent.Corner.TOP_LEFT;
+    opt_corner : ol.extent.Corner.TOP_LEFT;
 
   var resolutions = ol.tilegrid.resolutionsFromExtent(
       extent, opt_maxZoom, opt_tileSize);
@@ -6403,13 +6937,13 @@ ol.tilegrid.createForExtent = function(extent, opt_maxZoom, opt_tileSize, opt_co
 /**
  * Creates a tile grid with a standard XYZ tiling scheme.
  * @param {olx.tilegrid.XYZOptions=} opt_options Tile grid options.
- * @return {ol.tilegrid.TileGrid} Tile grid instance.
+ * @return {!ol.tilegrid.TileGrid} Tile grid instance.
  * @api
  */
 ol.tilegrid.createXYZ = function(opt_options) {
   var options = /** @type {olx.tilegrid.TileGridOptions} */ ({});
   ol.obj.assign(options, opt_options !== undefined ?
-      opt_options : /** @type {olx.tilegrid.XYZOptions} */ ({}));
+    opt_options : /** @type {olx.tilegrid.XYZOptions} */ ({}));
   if (options.extent === undefined) {
     options.extent = ol.proj.get('EPSG:3857').getExtent();
   }
@@ -6432,13 +6966,13 @@ ol.tilegrid.createXYZ = function(opt_options) {
  */
 ol.tilegrid.resolutionsFromExtent = function(extent, opt_maxZoom, opt_tileSize) {
   var maxZoom = opt_maxZoom !== undefined ?
-      opt_maxZoom : ol.DEFAULT_MAX_ZOOM;
+    opt_maxZoom : ol.DEFAULT_MAX_ZOOM;
 
   var height = ol.extent.getHeight(extent);
   var width = ol.extent.getWidth(extent);
 
   var tileSize = ol.size.toSize(opt_tileSize !== undefined ?
-      opt_tileSize : ol.DEFAULT_TILE_SIZE);
+    opt_tileSize : ol.DEFAULT_TILE_SIZE);
   var maxResolution = Math.max(
       width / tileSize[0], height / tileSize[1]);
 
@@ -6455,7 +6989,8 @@ ol.tilegrid.resolutionsFromExtent = function(extent, opt_maxZoom, opt_tileSize) 
  * @param {ol.ProjectionLike} projection Projection.
  * @param {number=} opt_maxZoom Maximum zoom level (default is
  *     ol.DEFAULT_MAX_ZOOM).
- * @param {ol.Size=} opt_tileSize Tile size (default uses ol.DEFAULT_TILE_SIZE).
+ * @param {number|ol.Size=} opt_tileSize Tile size (default uses
+ *     ol.DEFAULT_TILE_SIZE).
  * @param {ol.extent.Corner=} opt_corner Extent corner (default is
  *     ol.extent.Corner.BOTTOM_LEFT).
  * @return {!ol.tilegrid.TileGrid} TileGrid instance.
@@ -6593,20 +7128,20 @@ goog.require('ol.math');
  */
 ol.CenterConstraint.createExtent = function(extent) {
   return (
-      /**
-       * @param {ol.Coordinate|undefined} center Center.
-       * @return {ol.Coordinate|undefined} Center.
-       */
-      function(center) {
-        if (center) {
-          return [
-            ol.math.clamp(center[0], extent[0], extent[2]),
-            ol.math.clamp(center[1], extent[1], extent[3])
-          ];
-        } else {
-          return undefined;
-        }
-      });
+    /**
+     * @param {ol.Coordinate|undefined} center Center.
+     * @return {ol.Coordinate|undefined} Center.
+     */
+    function(center) {
+      if (center) {
+        return [
+          ol.math.clamp(center[0], extent[0], extent[2]),
+          ol.math.clamp(center[1], extent[1], extent[3])
+        ];
+      } else {
+        return undefined;
+      }
+    });
 };
 
 
@@ -6975,15 +7510,15 @@ ol.events.Event = function(type) {
  */
 ol.events.Event.prototype.preventDefault =
 
-/**
- * Stop event propagation.
- * @function
- * @override
- * @api
- */
-ol.events.Event.prototype.stopPropagation = function() {
-  this.propagationStopped = true;
-};
+  /**
+   * Stop event propagation.
+   * @function
+   * @override
+   * @api
+   */
+  ol.events.Event.prototype.stopPropagation = function() {
+    this.propagationStopped = true;
+  };
 
 
 /**
@@ -7134,8 +7669,8 @@ ol.events.EventTarget.prototype.getListeners = function(type) {
  */
 ol.events.EventTarget.prototype.hasListener = function(opt_type) {
   return opt_type ?
-      opt_type in this.listeners_ :
-      Object.keys(this.listeners_).length > 0;
+    opt_type in this.listeners_ :
+    Object.keys(this.listeners_).length > 0;
 };
 
 
@@ -7188,7 +7723,7 @@ ol.events.EventType = {
   MOUSEOUT: 'mouseout',
   MOUSEUP: 'mouseup',
   MOUSEWHEEL: 'mousewheel',
-  MSPOINTERDOWN: 'mspointerdown',
+  MSPOINTERDOWN: 'MSPointerDown',
   RESIZE: 'resize',
   TOUCHSTART: 'touchstart',
   TOUCHMOVE: 'touchmove',
@@ -7442,8 +7977,8 @@ ol.Object.changeEventTypeCache_ = {};
  */
 ol.Object.getChangeEventType = function(key) {
   return ol.Object.changeEventTypeCache_.hasOwnProperty(key) ?
-      ol.Object.changeEventTypeCache_[key] :
-      (ol.Object.changeEventTypeCache_[key] = 'change:' + key);
+    ol.Object.changeEventTypeCache_[key] :
+    (ol.Object.changeEventTypeCache_[key] = 'change:' + key);
 };
 
 
@@ -7587,6 +8122,7 @@ ol.inherits(ol.Object.Event, ol.events.Event);
 goog.provide('ol.Collection');
 
 goog.require('ol');
+goog.require('ol.AssertionError');
 goog.require('ol.CollectionEventType');
 goog.require('ol.Object');
 goog.require('ol.events.Event');
@@ -7603,19 +8139,34 @@ goog.require('ol.events.Event');
  * @constructor
  * @extends {ol.Object}
  * @fires ol.Collection.Event
- * @param {!Array.<T>=} opt_array Array.
+ * @param {Array.<T>=} opt_array Array.
+ * @param {olx.CollectionOptions=} opt_options Collection options.
  * @template T
  * @api
  */
-ol.Collection = function(opt_array) {
+ol.Collection = function(opt_array, opt_options) {
 
   ol.Object.call(this);
+
+  var options = opt_options || {};
+
+  /**
+   * @private
+   * @type {boolean}
+   */
+  this.unique_ = !!options.unique;
 
   /**
    * @private
    * @type {!Array.<T>}
    */
   this.array_ = opt_array ? opt_array : [];
+
+  if (this.unique_) {
+    for (var i = 0, ii = this.array_.length; i < ii; ++i) {
+      this.assertUnique_(this.array_[i], i);
+    }
+  }
 
   this.updateLength_();
 
@@ -7660,7 +8211,11 @@ ol.Collection.prototype.extend = function(arr) {
  * @api
  */
 ol.Collection.prototype.forEach = function(f, opt_this) {
-  this.array_.forEach(f, opt_this);
+  var fn = (opt_this) ? f.bind(opt_this) : f;
+  var array = this.array_;
+  for (var i = 0, ii = array.length; i < ii; ++i) {
+    fn(array[i], i, array);
+  }
 };
 
 
@@ -7706,6 +8261,9 @@ ol.Collection.prototype.getLength = function() {
  * @api
  */
 ol.Collection.prototype.insertAt = function(index, elem) {
+  if (this.unique_) {
+    this.assertUnique_(elem);
+  }
   this.array_.splice(index, 0, elem);
   this.updateLength_();
   this.dispatchEvent(
@@ -7731,6 +8289,9 @@ ol.Collection.prototype.pop = function() {
  * @api
  */
 ol.Collection.prototype.push = function(elem) {
+  if (this.unique_) {
+    this.assertUnique_(elem);
+  }
   var n = this.getLength();
   this.insertAt(n, elem);
   return this.getLength();
@@ -7781,6 +8342,9 @@ ol.Collection.prototype.removeAt = function(index) {
 ol.Collection.prototype.setAt = function(index, elem) {
   var n = this.getLength();
   if (index < n) {
+    if (this.unique_) {
+      this.assertUnique_(elem, index);
+    }
     var prev = this.array_[index];
     this.array_[index] = elem;
     this.dispatchEvent(
@@ -7802,6 +8366,20 @@ ol.Collection.prototype.setAt = function(index, elem) {
  */
 ol.Collection.prototype.updateLength_ = function() {
   this.set(ol.Collection.Property_.LENGTH, this.array_.length);
+};
+
+
+/**
+ * @private
+ * @param {T} elem Element.
+ * @param {number=} opt_except Optional index to ignore.
+ */
+ol.Collection.prototype.assertUnique_ = function(elem, opt_except) {
+  for (var i = 0, ii = this.array_.length; i < ii; ++i) {
+    if (this.array_[i] === elem && i !== opt_except) {
+      throw new ol.AssertionError(58);
+    }
+  }
 };
 
 
@@ -7913,56 +8491,56 @@ ol.color.fromNamed = function(color) {
  * @return {ol.Color} Color.
  */
 ol.color.fromString = (
-    function() {
+  function() {
 
-      // We maintain a small cache of parsed strings.  To provide cheap LRU-like
-      // semantics, whenever the cache grows too large we simply delete an
-      // arbitrary 25% of the entries.
+    // We maintain a small cache of parsed strings.  To provide cheap LRU-like
+    // semantics, whenever the cache grows too large we simply delete an
+    // arbitrary 25% of the entries.
 
+    /**
+     * @const
+     * @type {number}
+     */
+    var MAX_CACHE_SIZE = 1024;
+
+    /**
+     * @type {Object.<string, ol.Color>}
+     */
+    var cache = {};
+
+    /**
+     * @type {number}
+     */
+    var cacheSize = 0;
+
+    return (
       /**
-       * @const
-       * @type {number}
+       * @param {string} s String.
+       * @return {ol.Color} Color.
        */
-      var MAX_CACHE_SIZE = 1024;
-
-      /**
-       * @type {Object.<string, ol.Color>}
-       */
-      var cache = {};
-
-      /**
-       * @type {number}
-       */
-      var cacheSize = 0;
-
-      return (
-          /**
-           * @param {string} s String.
-           * @return {ol.Color} Color.
-           */
-          function(s) {
-            var color;
-            if (cache.hasOwnProperty(s)) {
-              color = cache[s];
-            } else {
-              if (cacheSize >= MAX_CACHE_SIZE) {
-                var i = 0;
-                var key;
-                for (key in cache) {
-                  if ((i++ & 3) === 0) {
-                    delete cache[key];
-                    --cacheSize;
-                  }
-                }
+      function(s) {
+        var color;
+        if (cache.hasOwnProperty(s)) {
+          color = cache[s];
+        } else {
+          if (cacheSize >= MAX_CACHE_SIZE) {
+            var i = 0;
+            var key;
+            for (key in cache) {
+              if ((i++ & 3) === 0) {
+                delete cache[key];
+                --cacheSize;
               }
-              color = ol.color.fromStringInternal_(s);
-              cache[s] = color;
-              ++cacheSize;
             }
-            return color;
-          });
+          }
+          color = ol.color.fromStringInternal_(s);
+          cache[s] = color;
+          ++cacheSize;
+        }
+        return color;
+      });
 
-    })();
+  })();
 
 
 /**
@@ -8066,40 +8644,10 @@ ol.colorlike.asColorLike = function(color) {
  */
 ol.colorlike.isColorLike = function(color) {
   return (
-      typeof color === 'string' ||
-      color instanceof CanvasPattern ||
-      color instanceof CanvasGradient
+    typeof color === 'string' ||
+    color instanceof CanvasPattern ||
+    color instanceof CanvasGradient
   );
-};
-
-goog.provide('ol.Constraints');
-
-
-/**
- * @constructor
- * @param {ol.CenterConstraintType} centerConstraint Center constraint.
- * @param {ol.ResolutionConstraintType} resolutionConstraint
- *     Resolution constraint.
- * @param {ol.RotationConstraintType} rotationConstraint
- *     Rotation constraint.
- */
-ol.Constraints = function(centerConstraint, resolutionConstraint, rotationConstraint) {
-
-  /**
-   * @type {ol.CenterConstraintType}
-   */
-  this.center = centerConstraint;
-
-  /**
-   * @type {ol.ResolutionConstraintType}
-   */
-  this.resolution = resolutionConstraint;
-
-  /**
-   * @type {ol.RotationConstraintType}
-   */
-  this.rotation = rotationConstraint;
-
 };
 
 goog.provide('ol.dom');
@@ -8132,7 +8680,7 @@ ol.dom.createCanvasContext2D = function(opt_width, opt_height) {
  */
 ol.dom.outerWidth = function(element) {
   var width = element.offsetWidth;
-  var style = element.currentStyle || getComputedStyle(element);
+  var style = getComputedStyle(element);
   width += parseInt(style.marginLeft, 10) + parseInt(style.marginRight, 10);
 
   return width;
@@ -8148,7 +8696,7 @@ ol.dom.outerWidth = function(element) {
  */
 ol.dom.outerHeight = function(element) {
   var height = element.offsetHeight;
-  var style = element.currentStyle || getComputedStyle(element);
+  var style = getComputedStyle(element);
   height += parseInt(style.marginTop, 10) + parseInt(style.marginBottom, 10);
 
   return height;
@@ -8195,6 +8743,13 @@ ol.MapEventType = {
    * @api
    */
   POSTRENDER: 'postrender',
+
+  /**
+   * Triggered when the map starts moving.
+   * @event ol.MapEvent#movestart
+   * @api
+   */
+  MOVESTART: 'movestart',
 
   /**
    * Triggered after the map is moved.
@@ -8322,7 +8877,7 @@ ol.control.Control.prototype.setMap = function(map) {
   this.map_ = map;
   if (this.map_) {
     var target = this.target_ ?
-        this.target_ : map.getOverlayContainerStopEvent();
+      this.target_ : map.getOverlayContainerStopEvent();
     target.appendChild(this.element);
     if (this.render !== ol.nullFunction) {
       this.listenerKeys.push(ol.events.listen(map,
@@ -8359,6 +8914,14 @@ goog.provide('ol.css');
  */
 ol.css.CLASS_HIDDEN = 'ol-hidden';
 
+
+/**
+ * The CSS class that we'll give the DOM elements to have them selectable.
+ *
+ * @const
+ * @type {string}
+ */
+ol.css.CLASS_SELECTABLE = 'ol-selectable';
 
 /**
  * The CSS class that we'll give the DOM elements to have them unselectable.
@@ -8441,7 +9004,7 @@ ol.control.Attribution = function(opt_options) {
    * @type {boolean}
    */
   this.collapsible_ = options.collapsible !== undefined ?
-      options.collapsible : true;
+    options.collapsible : true;
 
   if (!this.collapsible_) {
     this.collapsed_ = false;
@@ -8479,7 +9042,7 @@ ol.control.Attribution = function(opt_options) {
 
 
   var activeLabel = (this.collapsible_ && !this.collapsed_) ?
-      this.collapseLabel_ : this.label_;
+    this.collapseLabel_ : this.label_;
   var button = document.createElement('button');
   button.setAttribute('type', 'button');
   button.title = tipLabel;
@@ -8981,16 +9544,8 @@ ol.control.Rotate.prototype.resetNorth_ = function() {
     // upon it
     return;
   }
-  var currentRotation = view.getRotation();
-  if (currentRotation !== undefined) {
+  if (view.getRotation() !== undefined) {
     if (this.duration_ > 0) {
-      currentRotation = currentRotation % (2 * Math.PI);
-      if (currentRotation < -Math.PI) {
-        currentRotation += 2 * Math.PI;
-      }
-      if (currentRotation > Math.PI) {
-        currentRotation -= 2 * Math.PI;
-      }
       view.animate({
         rotation: 0,
         duration: this.duration_,
@@ -9065,16 +9620,16 @@ ol.control.Zoom = function(opt_options) {
   var zoomOutLabel = options.zoomOutLabel !== undefined ? options.zoomOutLabel : '\u2212';
 
   var zoomInTipLabel = options.zoomInTipLabel !== undefined ?
-      options.zoomInTipLabel : 'Zoom in';
+    options.zoomInTipLabel : 'Zoom in';
   var zoomOutTipLabel = options.zoomOutTipLabel !== undefined ?
-      options.zoomOutTipLabel : 'Zoom out';
+    options.zoomOutTipLabel : 'Zoom out';
 
   var inElement = document.createElement('button');
   inElement.className = className + '-in';
   inElement.setAttribute('type', 'button');
   inElement.title = zoomInTipLabel;
   inElement.appendChild(
-    typeof zoomInLabel === 'string' ? document.createTextNode(zoomInLabel) : zoomInLabel
+      typeof zoomInLabel === 'string' ? document.createTextNode(zoomInLabel) : zoomInLabel
   );
 
   ol.events.listen(inElement, ol.events.EventType.CLICK,
@@ -9085,7 +9640,7 @@ ol.control.Zoom = function(opt_options) {
   outElement.setAttribute('type', 'button');
   outElement.title = zoomOutTipLabel;
   outElement.appendChild(
-    typeof zoomOutLabel === 'string' ? document.createTextNode(zoomOutLabel) : zoomOutLabel
+      typeof zoomOutLabel === 'string' ? document.createTextNode(zoomOutLabel) : zoomOutLabel
   );
 
   ol.events.listen(outElement, ol.events.EventType.CLICK,
@@ -9191,7 +9746,7 @@ ol.control.defaults = function(opt_options) {
   }
 
   var attributionControl = options.attribution !== undefined ?
-      options.attribution : true;
+    options.attribution : true;
   if (attributionControl) {
     controls.push(new ol.control.Attribution(options.attributionOptions));
   }
@@ -9214,7 +9769,7 @@ goog.require('ol.events.EventType');
  * @classdesc
  * Provides a button that when clicked fills up the full screen with the map.
  * The full screen source element is by default the element containing the map viewport unless
- * overriden by providing the `source` option. In which case, the dom
+ * overridden by providing the `source` option. In which case, the dom
  * element introduced using this parameter will be displayed in full screen.
  *
  * When in full screen mode, a close button is shown to exit full screen mode.
@@ -9236,7 +9791,7 @@ ol.control.FullScreen = function(opt_options) {
    * @type {string}
    */
   this.cssClassName_ = options.className !== undefined ? options.className :
-      'ol-full-screen';
+    'ol-full-screen';
 
   var label = options.label !== undefined ? options.label : '\u2922';
 
@@ -9245,7 +9800,7 @@ ol.control.FullScreen = function(opt_options) {
    * @type {Node}
    */
   this.labelNode_ = typeof label === 'string' ?
-      document.createTextNode(label) : label;
+    document.createTextNode(label) : label;
 
   var labelActive = options.labelActive !== undefined ? options.labelActive : '\u00d7';
 
@@ -9254,7 +9809,7 @@ ol.control.FullScreen = function(opt_options) {
    * @type {Node}
    */
   this.labelActiveNode_ = typeof labelActive === 'string' ?
-      document.createTextNode(labelActive) : labelActive;
+    document.createTextNode(labelActive) : labelActive;
 
   var tipLabel = options.tipLabel ? options.tipLabel : 'Toggle full-screen';
   var button = document.createElement('button');
@@ -9493,7 +10048,7 @@ ol.control.MousePosition = function(opt_options) {
   element.className = options.className !== undefined ? options.className : 'ol-mouse-position';
 
   var render = options.render ?
-      options.render : ol.control.MousePosition.render;
+    options.render : ol.control.MousePosition.render;
 
   ol.control.Control.call(this, {
     element: element,
@@ -9509,7 +10064,7 @@ ol.control.MousePosition = function(opt_options) {
     this.setCoordinateFormat(options.coordinateFormat);
   }
   if (options.projection) {
-    this.setProjection(ol.proj.get(options.projection));
+    this.setProjection(options.projection);
   }
 
   /**
@@ -9584,7 +10139,7 @@ ol.control.MousePosition.prototype.handleProjectionChanged_ = function() {
  */
 ol.control.MousePosition.prototype.getCoordinateFormat = function() {
   return /** @type {ol.CoordinateFormatType|undefined} */ (
-      this.get(ol.control.MousePosition.Property_.COORDINATE_FORMAT));
+    this.get(ol.control.MousePosition.Property_.COORDINATE_FORMAT));
 };
 
 
@@ -9597,7 +10152,7 @@ ol.control.MousePosition.prototype.getCoordinateFormat = function() {
  */
 ol.control.MousePosition.prototype.getProjection = function() {
   return /** @type {ol.proj.Projection|undefined} */ (
-      this.get(ol.control.MousePosition.Property_.PROJECTION));
+    this.get(ol.control.MousePosition.Property_.PROJECTION));
 };
 
 
@@ -9654,13 +10209,13 @@ ol.control.MousePosition.prototype.setCoordinateFormat = function(format) {
 
 /**
  * Set the projection that is used to report the mouse position.
- * @param {ol.proj.Projection} projection The projection to report mouse
+ * @param {ol.ProjectionLike} projection The projection to report mouse
  *     position in.
  * @observable
  * @api
  */
 ol.control.MousePosition.prototype.setProjection = function(projection) {
-  this.set(ol.control.MousePosition.Property_.PROJECTION, projection);
+  this.set(ol.control.MousePosition.Property_.PROJECTION, ol.proj.get(projection));
 };
 
 
@@ -9828,111 +10383,6 @@ ol.MapBrowserEvent.prototype.preventDefault = function() {
 ol.MapBrowserEvent.prototype.stopPropagation = function() {
   ol.MapEvent.prototype.stopPropagation.call(this);
   this.originalEvent.stopPropagation();
-};
-
-goog.provide('ol.MapBrowserEventType');
-
-goog.require('ol.events.EventType');
-
-
-/**
- * Constants for event names.
- * @enum {string}
- */
-ol.MapBrowserEventType = {
-
-  /**
-   * A true single click with no dragging and no double click. Note that this
-   * event is delayed by 250 ms to ensure that it is not a double click.
-   * @event ol.MapBrowserEvent#singleclick
-   * @api
-   */
-  SINGLECLICK: 'singleclick',
-
-  /**
-   * A click with no dragging. A double click will fire two of this.
-   * @event ol.MapBrowserEvent#click
-   * @api
-   */
-  CLICK: ol.events.EventType.CLICK,
-
-  /**
-   * A true double click, with no dragging.
-   * @event ol.MapBrowserEvent#dblclick
-   * @api
-   */
-  DBLCLICK: ol.events.EventType.DBLCLICK,
-
-  /**
-   * Triggered when a pointer is dragged.
-   * @event ol.MapBrowserEvent#pointerdrag
-   * @api
-   */
-  POINTERDRAG: 'pointerdrag',
-
-  /**
-   * Triggered when a pointer is moved. Note that on touch devices this is
-   * triggered when the map is panned, so is not the same as mousemove.
-   * @event ol.MapBrowserEvent#pointermove
-   * @api
-   */
-  POINTERMOVE: 'pointermove',
-
-  POINTERDOWN: 'pointerdown',
-  POINTERUP: 'pointerup',
-  POINTEROVER: 'pointerover',
-  POINTEROUT: 'pointerout',
-  POINTERENTER: 'pointerenter',
-  POINTERLEAVE: 'pointerleave',
-  POINTERCANCEL: 'pointercancel'
-};
-
-goog.provide('ol.MapBrowserPointerEvent');
-
-goog.require('ol');
-goog.require('ol.MapBrowserEvent');
-
-
-/**
- * @constructor
- * @extends {ol.MapBrowserEvent}
- * @param {string} type Event type.
- * @param {ol.Map} map Map.
- * @param {ol.pointer.PointerEvent} pointerEvent Pointer event.
- * @param {boolean=} opt_dragging Is the map currently being dragged?
- * @param {?olx.FrameState=} opt_frameState Frame state.
- */
-ol.MapBrowserPointerEvent = function(type, map, pointerEvent, opt_dragging,
-    opt_frameState) {
-
-  ol.MapBrowserEvent.call(this, type, map, pointerEvent.originalEvent, opt_dragging,
-      opt_frameState);
-
-  /**
-   * @const
-   * @type {ol.pointer.PointerEvent}
-   */
-  this.pointerEvent = pointerEvent;
-
-};
-ol.inherits(ol.MapBrowserPointerEvent, ol.MapBrowserEvent);
-
-goog.provide('ol.pointer.EventType');
-
-
-/**
- * Constants for event names.
- * @enum {string}
- */
-ol.pointer.EventType = {
-  POINTERMOVE: 'pointermove',
-  POINTERDOWN: 'pointerdown',
-  POINTERUP: 'pointerup',
-  POINTEROVER: 'pointerover',
-  POINTEROUT: 'pointerout',
-  POINTERENTER: 'pointerenter',
-  POINTERLEAVE: 'pointerleave',
-  POINTERCANCEL: 'pointercancel'
 };
 
 goog.provide('ol.webgl');
@@ -10236,7 +10686,7 @@ goog.require('ol');
 goog.require('ol.webgl');
 
 var ua = typeof navigator !== 'undefined' ?
-    navigator.userAgent.toLowerCase() : '';
+  navigator.userAgent.toLowerCase() : '';
 
 /**
  * User agent string says we are dealing with Firefox as browser.
@@ -10288,27 +10738,27 @@ ol.has.CANVAS_LINE_DASH = false;
  * @api
  */
 ol.has.CANVAS = ol.ENABLE_CANVAS && (
-    /**
-     * @return {boolean} Canvas supported.
-     */
-    function() {
-      if (!('HTMLCanvasElement' in window)) {
+  /**
+   * @return {boolean} Canvas supported.
+   */
+  function() {
+    if (!('HTMLCanvasElement' in window)) {
+      return false;
+    }
+    try {
+      var context = document.createElement('CANVAS').getContext('2d');
+      if (!context) {
         return false;
-      }
-      try {
-        var context = document.createElement('CANVAS').getContext('2d');
-        if (!context) {
-          return false;
-        } else {
-          if (context.setLineDash !== undefined) {
-            ol.has.CANVAS_LINE_DASH = true;
-          }
-          return true;
+      } else {
+        if (context.setLineDash !== undefined) {
+          ol.has.CANVAS_LINE_DASH = true;
         }
-      } catch (e) {
-        return false;
+        return true;
       }
-    })();
+    } catch (e) {
+      return false;
+    }
+  })();
 
 
 /**
@@ -10380,7 +10830,7 @@ ol.has.WEBGL;
         if (gl) {
           hasWebGL = true;
           textureSize = /** @type {number} */
-              (gl.getParameter(gl.MAX_TEXTURE_SIZE));
+            (gl.getParameter(gl.MAX_TEXTURE_SIZE));
           extensions = gl.getSupportedExtensions();
         }
       } catch (e) {
@@ -10392,6 +10842,111 @@ ol.has.WEBGL;
     ol.WEBGL_MAX_TEXTURE_SIZE = textureSize;
   }
 })();
+
+goog.provide('ol.MapBrowserEventType');
+
+goog.require('ol.events.EventType');
+
+
+/**
+ * Constants for event names.
+ * @enum {string}
+ */
+ol.MapBrowserEventType = {
+
+  /**
+   * A true single click with no dragging and no double click. Note that this
+   * event is delayed by 250 ms to ensure that it is not a double click.
+   * @event ol.MapBrowserEvent#singleclick
+   * @api
+   */
+  SINGLECLICK: 'singleclick',
+
+  /**
+   * A click with no dragging. A double click will fire two of this.
+   * @event ol.MapBrowserEvent#click
+   * @api
+   */
+  CLICK: ol.events.EventType.CLICK,
+
+  /**
+   * A true double click, with no dragging.
+   * @event ol.MapBrowserEvent#dblclick
+   * @api
+   */
+  DBLCLICK: ol.events.EventType.DBLCLICK,
+
+  /**
+   * Triggered when a pointer is dragged.
+   * @event ol.MapBrowserEvent#pointerdrag
+   * @api
+   */
+  POINTERDRAG: 'pointerdrag',
+
+  /**
+   * Triggered when a pointer is moved. Note that on touch devices this is
+   * triggered when the map is panned, so is not the same as mousemove.
+   * @event ol.MapBrowserEvent#pointermove
+   * @api
+   */
+  POINTERMOVE: 'pointermove',
+
+  POINTERDOWN: 'pointerdown',
+  POINTERUP: 'pointerup',
+  POINTEROVER: 'pointerover',
+  POINTEROUT: 'pointerout',
+  POINTERENTER: 'pointerenter',
+  POINTERLEAVE: 'pointerleave',
+  POINTERCANCEL: 'pointercancel'
+};
+
+goog.provide('ol.MapBrowserPointerEvent');
+
+goog.require('ol');
+goog.require('ol.MapBrowserEvent');
+
+
+/**
+ * @constructor
+ * @extends {ol.MapBrowserEvent}
+ * @param {string} type Event type.
+ * @param {ol.Map} map Map.
+ * @param {ol.pointer.PointerEvent} pointerEvent Pointer event.
+ * @param {boolean=} opt_dragging Is the map currently being dragged?
+ * @param {?olx.FrameState=} opt_frameState Frame state.
+ */
+ol.MapBrowserPointerEvent = function(type, map, pointerEvent, opt_dragging,
+    opt_frameState) {
+
+  ol.MapBrowserEvent.call(this, type, map, pointerEvent.originalEvent, opt_dragging,
+      opt_frameState);
+
+  /**
+   * @const
+   * @type {ol.pointer.PointerEvent}
+   */
+  this.pointerEvent = pointerEvent;
+
+};
+ol.inherits(ol.MapBrowserPointerEvent, ol.MapBrowserEvent);
+
+goog.provide('ol.pointer.EventType');
+
+
+/**
+ * Constants for event names.
+ * @enum {string}
+ */
+ol.pointer.EventType = {
+  POINTERMOVE: 'pointermove',
+  POINTERDOWN: 'pointerdown',
+  POINTERUP: 'pointerup',
+  POINTEROVER: 'pointerover',
+  POINTEROUT: 'pointerout',
+  POINTERENTER: 'pointerenter',
+  POINTERLEAVE: 'pointerleave',
+  POINTERCANCEL: 'pointercancel'
+};
 
 goog.provide('ol.pointer.EventSource');
 
@@ -10423,17 +10978,6 @@ ol.pointer.EventSource = function(dispatcher, mapping) {
  */
 ol.pointer.EventSource.prototype.getEvents = function() {
   return Object.keys(this.mapping_);
-};
-
-
-/**
- * Returns a mapping between the supported event types and
- * the handlers that should handle an event.
- * @return {Object.<string, function(Event)>}
- *         Event/Handler mapping
- */
-ol.pointer.EventSource.prototype.getMapping = function() {
-  return this.mapping_;
 };
 
 
@@ -11168,7 +11712,7 @@ ol.pointer.PointerEvent = function(type, originalEvent, opt_eventDict) {
    * @type {Node}
    */
   this.relatedTarget = 'relatedTarget' in eventDict ?
-      eventDict['relatedTarget'] : null;
+    eventDict['relatedTarget'] : null;
 
   // PointerEvent related properties
 
@@ -12199,6 +12743,7 @@ ol.pointer.PointerEventHandler.CLONE_PROPS = [
 goog.provide('ol.MapBrowserEventHandler');
 
 goog.require('ol');
+goog.require('ol.has');
 goog.require('ol.MapBrowserEventType');
 goog.require('ol.MapBrowserPointerEvent');
 goog.require('ol.events');
@@ -12209,10 +12754,11 @@ goog.require('ol.pointer.PointerEventHandler');
 
 /**
  * @param {ol.Map} map The map with the viewport to listen to events on.
+ * @param {number|undefined} moveTolerance The minimal distance the pointer must travel to trigger a move.
  * @constructor
  * @extends {ol.events.EventTarget}
  */
-ol.MapBrowserEventHandler = function(map) {
+ol.MapBrowserEventHandler = function(map, moveTolerance) {
 
   ol.events.EventTarget.call(this);
 
@@ -12240,6 +12786,13 @@ ol.MapBrowserEventHandler = function(map) {
    * @private
    */
   this.dragListenerKeys_ = [];
+
+  /**
+   * @type {number}
+   * @private
+   */
+  this.moveTolerance_ = moveTolerance ?
+    moveTolerance * ol.has.DEVICE_PIXEL_RATIO : ol.has.DEVICE_PIXEL_RATIO;
 
   /**
    * The most recent "down" type event (or null if none have occurred).
@@ -12354,13 +12907,13 @@ ol.MapBrowserEventHandler.prototype.updateActivePointers_ = function(pointerEven
 ol.MapBrowserEventHandler.prototype.handlePointerUp_ = function(pointerEvent) {
   this.updateActivePointers_(pointerEvent);
   var newEvent = new ol.MapBrowserPointerEvent(
-     ol.MapBrowserEventType.POINTERUP, this.map_, pointerEvent);
+      ol.MapBrowserEventType.POINTERUP, this.map_, pointerEvent);
   this.dispatchEvent(newEvent);
 
- // We emulate click events on left mouse button click, touch contact, and pen
- // contact. isMouseActionButton returns true in these cases (evt.button is set
- // to 0).
- // See http://www.w3.org/TR/pointerevents/#button-states
+  // We emulate click events on left mouse button click, touch contact, and pen
+  // contact. isMouseActionButton returns true in these cases (evt.button is set
+  // to 0).
+  // See http://www.w3.org/TR/pointerevents/#button-states
   if (!this.dragging_ && this.isMouseActionButton_(pointerEvent)) {
     this.emulateClick_(this.down_);
   }
@@ -12407,13 +12960,13 @@ ol.MapBrowserEventHandler.prototype.handlePointerDown_ = function(pointerEvent) 
         new ol.pointer.PointerEventHandler(document);
 
     this.dragListenerKeys_.push(
-      ol.events.listen(this.documentPointerEventHandler_,
-          ol.MapBrowserEventType.POINTERMOVE,
-          this.handlePointerMove_, this),
-      ol.events.listen(this.documentPointerEventHandler_,
-          ol.MapBrowserEventType.POINTERUP,
-          this.handlePointerUp_, this),
-      /* Note that the listener for `pointercancel is set up on
+        ol.events.listen(this.documentPointerEventHandler_,
+            ol.MapBrowserEventType.POINTERMOVE,
+            this.handlePointerMove_, this),
+        ol.events.listen(this.documentPointerEventHandler_,
+            ol.MapBrowserEventType.POINTERUP,
+            this.handlePointerUp_, this),
+        /* Note that the listener for `pointercancel is set up on
        * `pointerEventHandler_` and not `documentPointerEventHandler_` like
        * the `pointerup` and `pointermove` listeners.
        *
@@ -12426,9 +12979,9 @@ ol.MapBrowserEventHandler.prototype.handlePointerDown_ = function(pointerEvent) 
        * only receive a `touchcancel` from `pointerEventHandler_`, because it is
        * only registered there.
        */
-      ol.events.listen(this.pointerEventHandler_,
-          ol.MapBrowserEventType.POINTERCANCEL,
-          this.handlePointerUp_, this)
+        ol.events.listen(this.pointerEventHandler_,
+            ol.MapBrowserEventType.POINTERCANCEL,
+            this.handlePointerUp_, this)
     );
   }
 };
@@ -12439,11 +12992,9 @@ ol.MapBrowserEventHandler.prototype.handlePointerDown_ = function(pointerEvent) 
  * @private
  */
 ol.MapBrowserEventHandler.prototype.handlePointerMove_ = function(pointerEvent) {
-  // Fix IE10 on windows Surface : When you tap the tablet, it triggers
-  // multiple pointermove events between pointerdown and pointerup with
-  // the exact same coordinates of the pointerdown event. To avoid a
-  // 'false' touchmove event to be dispatched , we test if the pointer
-  // effectively moved.
+  // Between pointerdown and pointerup, pointermove events are triggered.
+  // To avoid a 'false' touchmove event to be dispatched, we test if the pointer
+  // moved a significant distance.
   if (this.isMoving_(pointerEvent)) {
     this.dragging_ = true;
     var newEvent = new ol.MapBrowserPointerEvent(
@@ -12479,8 +13030,8 @@ ol.MapBrowserEventHandler.prototype.relayEvent_ = function(pointerEvent) {
  * @private
  */
 ol.MapBrowserEventHandler.prototype.isMoving_ = function(pointerEvent) {
-  return pointerEvent.clientX != this.down_.clientX ||
-      pointerEvent.clientY != this.down_.clientY;
+  return Math.abs(pointerEvent.clientX - this.down_.clientX) > this.moveTolerance_ ||
+      Math.abs(pointerEvent.clientY - this.down_.clientY) > this.moveTolerance_;
 };
 
 
@@ -12749,7 +13300,7 @@ ol.structs.PriorityQueue.prototype.siftUp_ = function(index) {
 
     var smallerChildIndex = rIndex < count &&
         priorities[rIndex] < priorities[lIndex] ?
-        rIndex : lIndex;
+      rIndex : lIndex;
 
     elements[index] = elements[smallerChildIndex];
     priorities[index] = priorities[smallerChildIndex];
@@ -12921,17 +13472,26 @@ ol.TileQueue.prototype.handleTileChange = function(event) {
  */
 ol.TileQueue.prototype.loadMoreTiles = function(maxTotalLoading, maxNewLoads) {
   var newLoads = 0;
-  var tile, tileKey;
+  var abortedTiles = false;
+  var state, tile, tileKey;
   while (this.tilesLoading_ < maxTotalLoading && newLoads < maxNewLoads &&
          this.getCount() > 0) {
     tile = /** @type {ol.Tile} */ (this.dequeue()[0]);
     tileKey = tile.getKey();
-    if (tile.getState() === ol.TileState.IDLE && !(tileKey in this.tilesLoadingKeys_)) {
+    state = tile.getState();
+    if (state === ol.TileState.ABORT) {
+      abortedTiles = true;
+    } else if (state === ol.TileState.IDLE && !(tileKey in this.tilesLoadingKeys_)) {
       this.tilesLoadingKeys_[tileKey] = true;
       ++this.tilesLoading_;
       ++newLoads;
       tile.load();
     }
+  }
+  if (newLoads === 0 && abortedTiles) {
+    // Do not stop the render loop when all wanted tiles were aborted due to
+    // a small, saturated tile cache.
+    this.tileChangeCallback_();
   }
 };
 
@@ -12947,28 +13507,28 @@ goog.require('ol.math');
  */
 ol.ResolutionConstraint.createSnapToResolutions = function(resolutions) {
   return (
-      /**
-       * @param {number|undefined} resolution Resolution.
-       * @param {number} delta Delta.
-       * @param {number} direction Direction.
-       * @return {number|undefined} Resolution.
-       */
-      function(resolution, delta, direction) {
-        if (resolution !== undefined) {
-          var z =
+    /**
+     * @param {number|undefined} resolution Resolution.
+     * @param {number} delta Delta.
+     * @param {number} direction Direction.
+     * @return {number|undefined} Resolution.
+     */
+    function(resolution, delta, direction) {
+      if (resolution !== undefined) {
+        var z =
               ol.array.linearFindNearest(resolutions, resolution, direction);
-          z = ol.math.clamp(z + delta, 0, resolutions.length - 1);
-          var index = Math.floor(z);
-          if (z != index && index < resolutions.length - 1) {
-            var power = resolutions[index] / resolutions[index + 1];
-            return resolutions[index] / Math.pow(power, z - index);
-          } else {
-            return resolutions[index];
-          }
+        z = ol.math.clamp(z + delta, 0, resolutions.length - 1);
+        var index = Math.floor(z);
+        if (z != index && index < resolutions.length - 1) {
+          var power = resolutions[index] / resolutions[index + 1];
+          return resolutions[index] / Math.pow(power, z - index);
         } else {
-          return undefined;
+          return resolutions[index];
         }
-      });
+      } else {
+        return undefined;
+      }
+    });
 };
 
 
@@ -12980,26 +13540,26 @@ ol.ResolutionConstraint.createSnapToResolutions = function(resolutions) {
  */
 ol.ResolutionConstraint.createSnapToPower = function(power, maxResolution, opt_maxLevel) {
   return (
-      /**
-       * @param {number|undefined} resolution Resolution.
-       * @param {number} delta Delta.
-       * @param {number} direction Direction.
-       * @return {number|undefined} Resolution.
-       */
-      function(resolution, delta, direction) {
-        if (resolution !== undefined) {
-          var offset = -direction / 2 + 0.5;
-          var oldLevel = Math.floor(
-              Math.log(maxResolution / resolution) / Math.log(power) + offset);
-          var newLevel = Math.max(oldLevel + delta, 0);
-          if (opt_maxLevel !== undefined) {
-            newLevel = Math.min(newLevel, opt_maxLevel);
-          }
-          return maxResolution / Math.pow(power, newLevel);
-        } else {
-          return undefined;
+    /**
+     * @param {number|undefined} resolution Resolution.
+     * @param {number} delta Delta.
+     * @param {number} direction Direction.
+     * @return {number|undefined} Resolution.
+     */
+    function(resolution, delta, direction) {
+      if (resolution !== undefined) {
+        var offset = -direction / 2 + 0.5;
+        var oldLevel = Math.floor(
+            Math.log(maxResolution / resolution) / Math.log(power) + offset);
+        var newLevel = Math.max(oldLevel + delta, 0);
+        if (opt_maxLevel !== undefined) {
+          newLevel = Math.min(newLevel, opt_maxLevel);
         }
-      });
+        return maxResolution / Math.pow(power, newLevel);
+      } else {
+        return undefined;
+      }
+    });
 };
 
 goog.provide('ol.RotationConstraint');
@@ -13042,19 +13602,19 @@ ol.RotationConstraint.none = function(rotation, delta) {
 ol.RotationConstraint.createSnapToN = function(n) {
   var theta = 2 * Math.PI / n;
   return (
-      /**
-       * @param {number|undefined} rotation Rotation.
-       * @param {number} delta Delta.
-       * @return {number|undefined} Rotation.
-       */
-      function(rotation, delta) {
-        if (rotation !== undefined) {
-          rotation = Math.floor((rotation + delta) / theta + 0.5) * theta;
-          return rotation;
-        } else {
-          return undefined;
-        }
-      });
+    /**
+     * @param {number|undefined} rotation Rotation.
+     * @param {number} delta Delta.
+     * @return {number|undefined} Rotation.
+     */
+    function(rotation, delta) {
+      if (rotation !== undefined) {
+        rotation = Math.floor((rotation + delta) / theta + 0.5) * theta;
+        return rotation;
+      } else {
+        return undefined;
+      }
+    });
 };
 
 
@@ -13065,22 +13625,22 @@ ol.RotationConstraint.createSnapToN = function(n) {
 ol.RotationConstraint.createSnapToZero = function(opt_tolerance) {
   var tolerance = opt_tolerance || ol.math.toRadians(5);
   return (
-      /**
-       * @param {number|undefined} rotation Rotation.
-       * @param {number} delta Delta.
-       * @return {number|undefined} Rotation.
-       */
-      function(rotation, delta) {
-        if (rotation !== undefined) {
-          if (Math.abs(rotation + delta) <= tolerance) {
-            return 0;
-          } else {
-            return rotation + delta;
-          }
+    /**
+     * @param {number|undefined} rotation Rotation.
+     * @param {number} delta Delta.
+     * @return {number|undefined} Rotation.
+     */
+    function(rotation, delta) {
+      if (rotation !== undefined) {
+        if (Math.abs(rotation + delta) <= tolerance) {
+          return 0;
         } else {
-          return undefined;
+          return rotation + delta;
         }
-      });
+      } else {
+        return undefined;
+      }
+    });
 };
 
 goog.provide('ol.ViewHint');
@@ -13173,6 +13733,37 @@ ol.coordinate.add = function(coordinate, delta) {
 
 
 /**
+ * Calculates the point closest to the passed coordinate on the passed circle.
+ *
+ * @param {ol.Coordinate} coordinate The coordinate.
+ * @param {ol.geom.Circle} circle The circle.
+ * @return {ol.Coordinate} Closest point on the circumference
+ */
+ol.coordinate.closestOnCircle = function(coordinate, circle) {
+  var r = circle.getRadius();
+  var center = circle.getCenter();
+  var x0 = center[0];
+  var y0 = center[1];
+  var x1 = coordinate[0];
+  var y1 = coordinate[1];
+
+  var dx = x1 - x0;
+  var dy = y1 - y0;
+  if (dx === 0 && dy === 0) {
+    dx = 1;
+  }
+  var d = Math.sqrt(dx * dx + dy * dy);
+
+  var x, y;
+
+  x = x0 + r * dx / d;
+  y = y0 + r * dy / d;
+
+  return [x, y];
+};
+
+
+/**
  * Calculates the point closest to the passed coordinate on the passed segment.
  * This is the foot of the perpendicular of the coordinate to the segment when
  * the foot is on the segment, or the closest segment coordinate when the foot
@@ -13195,7 +13786,7 @@ ol.coordinate.closestOnSegment = function(coordinate, segment) {
   var dx = x2 - x1;
   var dy = y2 - y1;
   var along = (dx === 0 && dy === 0) ? 0 :
-      ((dx * (x0 - x1)) + (dy * (y0 - y1))) / ((dx * dx + dy * dy) || 0);
+    ((dx * (x0 - x1)) + (dy * (y0 - y1))) / ((dx * dx + dy * dy) || 0);
   var x, y;
   if (along <= 0) {
     x = x1;
@@ -13236,25 +13827,24 @@ ol.coordinate.closestOnSegment = function(coordinate, segment) {
  */
 ol.coordinate.createStringXY = function(opt_fractionDigits) {
   return (
-      /**
-       * @param {ol.Coordinate|undefined} coordinate Coordinate.
-       * @return {string} String XY.
-       */
-      function(coordinate) {
-        return ol.coordinate.toStringXY(coordinate, opt_fractionDigits);
-      });
+    /**
+     * @param {ol.Coordinate|undefined} coordinate Coordinate.
+     * @return {string} String XY.
+     */
+    function(coordinate) {
+      return ol.coordinate.toStringXY(coordinate, opt_fractionDigits);
+    });
 };
 
 
 /**
- * @private
- * @param {number} degrees Degrees.
  * @param {string} hemispheres Hemispheres.
+ * @param {number} degrees Degrees.
  * @param {number=} opt_fractionDigits The number of digits to include
  *    after the decimal point. Default is `0`.
  * @return {string} String.
  */
-ol.coordinate.degreesToStringHDMS_ = function(degrees, hemispheres, opt_fractionDigits) {
+ol.coordinate.degreesToStringHDMS = function(hemispheres, degrees, opt_fractionDigits) {
   var normalizedDegrees = ol.math.modulo(degrees + 180, 360) - 180;
   var x = Math.abs(3600 * normalizedDegrees);
   var dflPrecision = opt_fractionDigits || 0;
@@ -13276,8 +13866,8 @@ ol.coordinate.degreesToStringHDMS_ = function(degrees, hemispheres, opt_fraction
   }
 
   return deg + '\u00b0 ' + ol.string.padNumber(min, 2) + '\u2032 ' +
-    ol.string.padNumber(sec, 2, dflPrecision) + '\u2033 ' +
-    hemispheres.charAt(normalizedDegrees < 0 ? 1 : 0);
+    ol.string.padNumber(sec, 2, dflPrecision) + '\u2033' +
+    (normalizedDegrees == 0 ? '' : ' ' + hemispheres.charAt(normalizedDegrees < 0 ? 1 : 0));
 };
 
 
@@ -13311,8 +13901,8 @@ ol.coordinate.degreesToStringHDMS_ = function(degrees, hemispheres, opt_fraction
 ol.coordinate.format = function(coordinate, template, opt_fractionDigits) {
   if (coordinate) {
     return template
-      .replace('{x}', coordinate[0].toFixed(opt_fractionDigits))
-      .replace('{y}', coordinate[1].toFixed(opt_fractionDigits));
+        .replace('{x}', coordinate[0].toFixed(opt_fractionDigits))
+        .replace('{y}', coordinate[1].toFixed(opt_fractionDigits));
   } else {
     return '';
   }
@@ -13459,8 +14049,8 @@ ol.coordinate.squaredDistanceToSegment = function(coordinate, segment) {
  */
 ol.coordinate.toStringHDMS = function(coordinate, opt_fractionDigits) {
   if (coordinate) {
-    return ol.coordinate.degreesToStringHDMS_(coordinate[1], 'NS', opt_fractionDigits) + ' ' +
-        ol.coordinate.degreesToStringHDMS_(coordinate[0], 'EW', opt_fractionDigits);
+    return ol.coordinate.degreesToStringHDMS('NS', coordinate[1], opt_fractionDigits) + ' ' +
+        ol.coordinate.degreesToStringHDMS('EW', coordinate[0], opt_fractionDigits);
   } else {
     return '';
   }
@@ -13490,27 +14080,6 @@ ol.coordinate.toStringHDMS = function(coordinate, opt_fractionDigits) {
  */
 ol.coordinate.toStringXY = function(coordinate, opt_fractionDigits) {
   return ol.coordinate.format(coordinate, '{x}, {y}', opt_fractionDigits);
-};
-
-goog.provide('ol.geom.GeometryType');
-
-
-/**
- * The geometry type. One of `'Point'`, `'LineString'`, `'LinearRing'`,
- * `'Polygon'`, `'MultiPoint'`, `'MultiLineString'`, `'MultiPolygon'`,
- * `'GeometryCollection'`, `'Circle'`.
- * @enum {string}
- */
-ol.geom.GeometryType = {
-  POINT: 'Point',
-  LINE_STRING: 'LineString',
-  LINEAR_RING: 'LinearRing',
-  POLYGON: 'Polygon',
-  MULTI_POINT: 'MultiPoint',
-  MULTI_LINE_STRING: 'MultiLineString',
-  MULTI_POLYGON: 'MultiPolygon',
-  GEOMETRY_COLLECTION: 'GeometryCollection',
-  CIRCLE: 'Circle'
 };
 
 goog.provide('ol.geom.GeometryLayout');
@@ -14771,7 +15340,7 @@ goog.require('ol.math');
 ol.geom.flat.simplify.lineString = function(flatCoordinates, offset, end,
     stride, squaredTolerance, highQuality, opt_simplifiedFlatCoordinates) {
   var simplifiedFlatCoordinates = opt_simplifiedFlatCoordinates !== undefined ?
-      opt_simplifiedFlatCoordinates : [];
+    opt_simplifiedFlatCoordinates : [];
   if (!highQuality) {
     end = ol.geom.flat.simplify.radialDistance(flatCoordinates, offset, end,
         stride, squaredTolerance,
@@ -15940,8 +16509,8 @@ ol.geom.flat.orient.orientLinearRings = function(flatCoordinates, offset, ends, 
     var isClockwise = ol.geom.flat.orient.linearRingIsClockwise(
         flatCoordinates, offset, end, stride);
     var reverse = i === 0 ?
-        (right && isClockwise) || (!right && !isClockwise) :
-        (right && !isClockwise) || (!right && isClockwise);
+      (right && isClockwise) || (!right && !isClockwise) :
+      (right && !isClockwise) || (!right && isClockwise);
     if (reverse) {
       ol.geom.flat.reverse.coordinates(flatCoordinates, offset, end, stride);
     }
@@ -16445,7 +17014,6 @@ goog.provide('ol.View');
 
 goog.require('ol');
 goog.require('ol.CenterConstraint');
-goog.require('ol.Constraints');
 goog.require('ol.Object');
 goog.require('ol.ResolutionConstraint');
 goog.require('ol.RotationConstraint');
@@ -16459,6 +17027,8 @@ goog.require('ol.extent');
 goog.require('ol.geom.GeometryType');
 goog.require('ol.geom.Polygon');
 goog.require('ol.geom.SimpleGeometry');
+goog.require('ol.math');
+goog.require('ol.obj');
 goog.require('ol.proj');
 goog.require('ol.proj.Units');
 
@@ -16522,7 +17092,8 @@ goog.require('ol.proj.Units');
  */
 ol.View = function(opt_options) {
   ol.Object.call(this);
-  var options = opt_options || {};
+
+  var options = ol.obj.assign({}, opt_options);
 
   /**
    * @private
@@ -16545,18 +17116,29 @@ ol.View = function(opt_options) {
   this.updateAnimations_ = this.updateAnimations_.bind(this);
 
   /**
-   * @type {Object.<string, *>}
-   */
-  var properties = {};
-  properties[ol.ViewProperty.CENTER] = options.center !== undefined ?
-      options.center : null;
-
-  /**
    * @private
    * @const
    * @type {ol.proj.Projection}
    */
   this.projection_ = ol.proj.createProjection(options.projection, 'EPSG:3857');
+
+  this.applyOptions_(options);
+};
+ol.inherits(ol.View, ol.Object);
+
+
+/**
+ * Set up the view with the given options.
+ * @param {olx.ViewOptions} options View options.
+ */
+ol.View.prototype.applyOptions_ = function(options) {
+
+  /**
+   * @type {Object.<string, *>}
+   */
+  var properties = {};
+  properties[ol.ViewProperty.CENTER] = options.center !== undefined ?
+    options.center : null;
 
   var resolutionConstraintInfo = ol.View.createResolutionConstraint_(
       options);
@@ -16599,8 +17181,11 @@ ol.View = function(opt_options) {
    * @private
    * @type {ol.Constraints}
    */
-  this.constraints_ = new ol.Constraints(
-      centerConstraint, resolutionConstraint, rotationConstraint);
+  this.constraints_ = {
+    center: centerConstraint,
+    resolution: resolutionConstraint,
+    rotation: rotationConstraint
+  };
 
   if (options.resolution !== undefined) {
     properties[ol.ViewProperty.RESOLUTION] = options.resolution;
@@ -16611,8 +17196,41 @@ ol.View = function(opt_options) {
   properties[ol.ViewProperty.ROTATION] =
       options.rotation !== undefined ? options.rotation : 0;
   this.setProperties(properties);
+
+  /**
+   * @private
+   * @type {olx.ViewOptions}
+   */
+  this.options_ = options;
+
 };
-ol.inherits(ol.View, ol.Object);
+
+/**
+ * Get an updated version of the view options used to construct the view.  The
+ * current resolution (or zoom), center, and rotation are applied to any stored
+ * options.  The provided options can be uesd to apply new min/max zoom or
+ * resolution limits.
+ * @param {olx.ViewOptions} newOptions New options to be applied.
+ * @return {olx.ViewOptions} New options updated with the current view state.
+ */
+ol.View.prototype.getUpdatedOptions_ = function(newOptions) {
+  var options = ol.obj.assign({}, this.options_);
+
+  // preserve resolution (or zoom)
+  if (options.resolution !== undefined) {
+    options.resolution = this.getResolution();
+  } else {
+    options.zoom = this.getZoom();
+  }
+
+  // preserve center
+  options.center = this.getCenter();
+
+  // preserve rotation
+  options.rotation = this.getRotation();
+
+  return ol.obj.assign({}, options, newOptions);
+};
 
 
 /**
@@ -16680,7 +17298,7 @@ ol.View.prototype.animate = function(var_args) {
     if (options.zoom !== undefined) {
       animation.sourceResolution = resolution;
       animation.targetResolution = this.constrainResolution(
-            this.maxResolution_, options.zoom - this.minZoom_, 0);
+          this.maxResolution_, options.zoom - this.minZoom_, 0);
       resolution = animation.targetResolution;
     } else if (options.resolution) {
       animation.sourceResolution = resolution;
@@ -16690,12 +17308,20 @@ ol.View.prototype.animate = function(var_args) {
 
     if (options.rotation !== undefined) {
       animation.sourceRotation = rotation;
-      animation.targetRotation = options.rotation;
+      var delta = ol.math.modulo(options.rotation - rotation + Math.PI, 2 * Math.PI) - Math.PI;
+      animation.targetRotation = rotation + delta;
       rotation = animation.targetRotation;
     }
 
     animation.callback = callback;
-    start += animation.duration;
+
+    // check if animation is a no-op
+    if (ol.View.isNoopAnimation(animation)) {
+      animation.complete = true;
+      // we still push it onto the series for callback handling
+    } else {
+      start += animation.duration;
+    }
     series.push(animation);
   }
   this.animations_.push(series);
@@ -16707,6 +17333,7 @@ ol.View.prototype.animate = function(var_args) {
 /**
  * Determine if the view is being animated.
  * @return {boolean} The view is being animated.
+ * @api
  */
 ol.View.prototype.getAnimating = function() {
   return this.getHints()[ol.ViewHint.ANIMATING] > 0;
@@ -16714,7 +17341,18 @@ ol.View.prototype.getAnimating = function() {
 
 
 /**
+ * Determine if the user is interacting with the view, such as panning or zooming.
+ * @return {boolean} The view is being interacted with.
+ * @api
+ */
+ol.View.prototype.getInteracting = function() {
+  return this.getHints()[ol.ViewHint.INTERACTING] > 0;
+};
+
+
+/**
  * Cancel any ongoing animations.
+ * @api
  */
 ol.View.prototype.cancelAnimations = function() {
   this.setHint(ol.ViewHint.ANIMATING, -this.getHints()[ol.ViewHint.ANIMATING]);
@@ -16766,18 +17404,20 @@ ol.View.prototype.updateAnimations_ = function() {
         var y = y0 + progress * (y1 - y0);
         this.set(ol.ViewProperty.CENTER, [x, y]);
       }
-      if (animation.sourceResolution) {
-        var resolution = animation.sourceResolution +
-            progress * (animation.targetResolution - animation.sourceResolution);
+      if (animation.sourceResolution && animation.targetResolution) {
+        var resolution = progress === 1 ?
+          animation.targetResolution :
+          animation.sourceResolution + progress * (animation.targetResolution - animation.sourceResolution);
         if (animation.anchor) {
           this.set(ol.ViewProperty.CENTER,
               this.calculateCenterZoom(resolution, animation.anchor));
         }
         this.set(ol.ViewProperty.RESOLUTION, resolution);
       }
-      if (animation.sourceRotation !== undefined) {
-        var rotation = animation.sourceRotation +
-            progress * (animation.targetRotation - animation.sourceRotation);
+      if (animation.sourceRotation !== undefined && animation.targetRotation !== undefined) {
+        var rotation = progress === 1 ?
+          ol.math.modulo(animation.targetRotation + Math.PI, 2 * Math.PI) - Math.PI :
+          animation.sourceRotation + progress * (animation.targetRotation - animation.sourceRotation);
         if (animation.anchor) {
           this.set(ol.ViewProperty.CENTER,
               this.calculateCenterRotate(rotation, animation.anchor));
@@ -16907,7 +17547,15 @@ ol.View.prototype.constrainRotation = function(rotation, opt_delta) {
  */
 ol.View.prototype.getCenter = function() {
   return /** @type {ol.Coordinate|undefined} */ (
-      this.get(ol.ViewProperty.CENTER));
+    this.get(ol.ViewProperty.CENTER));
+};
+
+
+/**
+ * @return {ol.Constraints} Constraints.
+ */
+ol.View.prototype.getConstraints = function() {
+  return this.constraints_;
 };
 
 
@@ -16970,6 +17618,46 @@ ol.View.prototype.getMinResolution = function() {
 
 
 /**
+ * Get the maximum zoom level for the view.
+ * @return {number} The maximum zoom level.
+ * @api
+ */
+ol.View.prototype.getMaxZoom = function() {
+  return /** @type {number} */ (this.getZoomForResolution(this.minResolution_));
+};
+
+
+/**
+ * Set a new maximum zoom level for the view.
+ * @param {number} zoom The maximum zoom level.
+ * @api
+ */
+ol.View.prototype.setMaxZoom = function(zoom) {
+  this.applyOptions_(this.getUpdatedOptions_({maxZoom: zoom}));
+};
+
+
+/**
+ * Get the minimum zoom level for the view.
+ * @return {number} The minimum zoom level.
+ * @api
+ */
+ol.View.prototype.getMinZoom = function() {
+  return /** @type {number} */ (this.getZoomForResolution(this.maxResolution_));
+};
+
+
+/**
+ * Set a new minimum zoom level for the view.
+ * @param {number} zoom The minimum zoom level.
+ * @api
+ */
+ol.View.prototype.setMinZoom = function(zoom) {
+  this.applyOptions_(this.getUpdatedOptions_({minZoom: zoom}));
+};
+
+
+/**
  * Get the view projection.
  * @return {ol.proj.Projection} The projection of the view.
  * @api
@@ -16987,7 +17675,7 @@ ol.View.prototype.getProjection = function() {
  */
 ol.View.prototype.getResolution = function() {
   return /** @type {number|undefined} */ (
-      this.get(ol.ViewProperty.RESOLUTION));
+    this.get(ol.ViewProperty.RESOLUTION));
 };
 
 
@@ -17005,11 +17693,13 @@ ol.View.prototype.getResolutions = function() {
 /**
  * Get the resolution for a provided extent (in map units) and size (in pixels).
  * @param {ol.Extent} extent Extent.
- * @param {ol.Size} size Box pixel size.
+ * @param {ol.Size=} opt_size Box pixel size.
  * @return {number} The resolution at which the provided extent will render at
  *     the given size.
+ * @api
  */
-ol.View.prototype.getResolutionForExtent = function(extent, size) {
+ol.View.prototype.getResolutionForExtent = function(extent, opt_size) {
+  var size = opt_size || this.getSizeFromViewport_();
   var xResolution = ol.extent.getWidth(extent) / size[0];
   var yResolution = ol.extent.getHeight(extent) / size[1];
   return Math.max(xResolution, yResolution);
@@ -17028,14 +17718,14 @@ ol.View.prototype.getResolutionForValueFunction = function(opt_power) {
   var minResolution = this.minResolution_;
   var max = Math.log(maxResolution / minResolution) / Math.log(power);
   return (
-      /**
-       * @param {number} value Value.
-       * @return {number} Resolution.
-       */
-      function(value) {
-        var resolution = maxResolution / Math.pow(power, value * max);
-        return resolution;
-      });
+    /**
+     * @param {number} value Value.
+     * @return {number} Resolution.
+     */
+    function(value) {
+      var resolution = maxResolution / Math.pow(power, value * max);
+      return resolution;
+    });
 };
 
 
@@ -17062,15 +17752,15 @@ ol.View.prototype.getValueForResolutionFunction = function(opt_power) {
   var minResolution = this.minResolution_;
   var max = Math.log(maxResolution / minResolution) / Math.log(power);
   return (
-      /**
-       * @param {number} resolution Resolution.
-       * @return {number} Value.
-       */
-      function(resolution) {
-        var value =
+    /**
+     * @param {number} resolution Resolution.
+     * @return {number} Value.
+     */
+    function(resolution) {
+      var value =
             (Math.log(maxResolution / resolution) / Math.log(power)) / max;
-        return value;
-      });
+      return value;
+    });
 };
 
 
@@ -17100,8 +17790,22 @@ ol.View.prototype.getState = function() {
 ol.View.prototype.getZoom = function() {
   var zoom;
   var resolution = this.getResolution();
-  if (resolution !== undefined &&
-      resolution >= this.minResolution_ && resolution <= this.maxResolution_) {
+  if (resolution !== undefined) {
+    zoom = this.getZoomForResolution(resolution);
+  }
+  return zoom;
+};
+
+
+/**
+ * Get the zoom level for a resolution.
+ * @param {number} resolution The resolution.
+ * @return {number|undefined} The zoom level for the provided resolution.
+ * @api
+ */
+ol.View.prototype.getZoomForResolution = function(resolution) {
+  var zoom;
+  if (resolution >= this.minResolution_ && resolution <= this.maxResolution_) {
     var offset = this.minZoom_ || 0;
     var max, zoomFactor;
     if (this.resolutions_) {
@@ -17119,6 +17823,18 @@ ol.View.prototype.getZoom = function() {
     zoom = offset + Math.log(max / resolution) / Math.log(zoomFactor);
   }
   return zoom;
+};
+
+
+/**
+ * Get the resolution for a zoom level.
+ * @param {number} zoom Zoom level.
+ * @return {number} The view resolution for the provided zoom level.
+ * @api
+ */
+ol.View.prototype.getResolutionForZoom = function(zoom) {
+  return /** @type {number} */ (this.constrainResolution(
+      this.maxResolution_, zoom - this.minZoom_, 0));
 };
 
 
@@ -17156,7 +17872,7 @@ ol.View.prototype.fit = function(geometryOrExtent, opt_options) {
 
   var padding = options.padding !== undefined ? options.padding : [0, 0, 0, 0];
   var constrainResolution = options.constrainResolution !== undefined ?
-      options.constrainResolution : true;
+    options.constrainResolution : true;
   var nearest = options.nearest !== undefined ? options.nearest : false;
   var minResolution;
   if (options.minResolution !== undefined) {
@@ -17192,7 +17908,7 @@ ol.View.prototype.fit = function(geometryOrExtent, opt_options) {
       [minRotX, minRotY, maxRotX, maxRotY],
       [size[0] - padding[1] - padding[3], size[1] - padding[0] - padding[2]]);
   resolution = isNaN(resolution) ? minResolution :
-      Math.max(resolution, minResolution);
+    Math.max(resolution, minResolution);
   if (constrainResolution) {
     var constrainedResolution = this.constrainResolution(resolution, 0, 0);
     if (!nearest && constrainedResolution < resolution) {
@@ -17211,6 +17927,7 @@ ol.View.prototype.fit = function(geometryOrExtent, opt_options) {
   var centerX = centerRotX * cosAngle - centerRotY * sinAngle;
   var centerY = centerRotY * cosAngle + centerRotX * sinAngle;
   var center = [centerX, centerY];
+  var callback = options.callback ? options.callback : ol.nullFunction;
 
   if (options.duration !== undefined) {
     this.animate({
@@ -17218,10 +17935,11 @@ ol.View.prototype.fit = function(geometryOrExtent, opt_options) {
       center: center,
       duration: options.duration,
       easing: options.easing
-    });
+    }, callback);
   } else {
     this.setResolution(resolution);
     this.setCenter(center);
+    setTimeout(callback.bind(undefined, true), 0);
   }
 };
 
@@ -17336,9 +18054,7 @@ ol.View.prototype.setRotation = function(rotation) {
  * @api
  */
 ol.View.prototype.setZoom = function(zoom) {
-  var resolution = this.constrainResolution(
-      this.maxResolution_, zoom - this.minZoom_, 0);
-  this.setResolution(resolution);
+  this.setResolution(this.getResolutionForZoom(zoom));
 };
 
 
@@ -17373,13 +18089,13 @@ ol.View.createResolutionConstraint_ = function(options) {
   var defaultZoomFactor = 2;
 
   var minZoom = options.minZoom !== undefined ?
-      options.minZoom : ol.DEFAULT_MIN_ZOOM;
+    options.minZoom : ol.DEFAULT_MIN_ZOOM;
 
   var maxZoom = options.maxZoom !== undefined ?
-      options.maxZoom : defaultMaxZoom;
+    options.maxZoom : defaultMaxZoom;
 
   var zoomFactor = options.zoomFactor !== undefined ?
-      options.zoomFactor : defaultZoomFactor;
+    options.zoomFactor : defaultZoomFactor;
 
   if (options.resolutions !== undefined) {
     var resolutions = options.resolutions;
@@ -17392,10 +18108,10 @@ ol.View.createResolutionConstraint_ = function(options) {
     var projection = ol.proj.createProjection(options.projection, 'EPSG:3857');
     var extent = projection.getExtent();
     var size = !extent ?
-        // use an extent that can fit the whole world if need be
-        360 * ol.proj.METERS_PER_UNIT[ol.proj.Units.DEGREES] /
+      // use an extent that can fit the whole world if need be
+      360 * ol.proj.METERS_PER_UNIT[ol.proj.Units.DEGREES] /
             projection.getMetersPerUnit() :
-        Math.max(ol.extent.getWidth(extent), ol.extent.getHeight(extent));
+      Math.max(ol.extent.getWidth(extent), ol.extent.getHeight(extent));
 
     var defaultMaxResolution = size / ol.DEFAULT_TILE_SIZE / Math.pow(
         defaultZoomFactor, ol.DEFAULT_MIN_ZOOM);
@@ -17445,7 +18161,7 @@ ol.View.createResolutionConstraint_ = function(options) {
  */
 ol.View.createRotationConstraint_ = function(options) {
   var enableRotation = options.enableRotation !== undefined ?
-      options.enableRotation : true;
+    options.enableRotation : true;
   if (enableRotation) {
     var constrainRotation = options.constrainRotation;
     if (constrainRotation === undefined || constrainRotation === true) {
@@ -17460,6 +18176,27 @@ ol.View.createRotationConstraint_ = function(options) {
   } else {
     return ol.RotationConstraint.disable;
   }
+};
+
+
+/**
+ * Determine if an animation involves no view change.
+ * @param {ol.ViewAnimation} animation The animation.
+ * @return {boolean} The animation involves no view change.
+ */
+ol.View.isNoopAnimation = function(animation) {
+  if (animation.sourceCenter && animation.targetCenter) {
+    if (!ol.coordinate.equals(animation.sourceCenter, animation.targetCenter)) {
+      return false;
+    }
+  }
+  if (animation.sourceResolution !== animation.targetResolution) {
+    return false;
+  }
+  if (animation.sourceRotation !== animation.targetRotation) {
+    return false;
+  }
+  return true;
 };
 
 goog.provide('ol.Kinetic');
@@ -17558,7 +18295,15 @@ ol.Kinetic.prototype.end = function() {
   while (firstIndex > 0 && this.points_[firstIndex + 2] > delay) {
     firstIndex -= 3;
   }
+
   var duration = this.points_[lastIndex + 2] - this.points_[firstIndex + 2];
+  // we don't want a duration of 0 (divide by zero)
+  // we also make sure the user panned for a duration of at least one frame
+  // (1/60s) to compute sane displacement values
+  if (duration < 1000 / 60) {
+    return false;
+  }
+
   var dx = this.points_[lastIndex] - this.points_[firstIndex];
   var dy = this.points_[lastIndex + 1] - this.points_[firstIndex + 1];
   this.angle_ = Math.atan2(dy, dx);
@@ -17647,7 +18392,7 @@ ol.inherits(ol.interaction.Interaction, ol.Object);
  */
 ol.interaction.Interaction.prototype.getActive = function() {
   return /** @type {boolean} */ (
-      this.get(ol.interaction.Property.ACTIVE));
+    this.get(ol.interaction.Property.ACTIVE));
 };
 
 
@@ -17906,7 +18651,7 @@ goog.require('ol.has');
 ol.events.condition.altKeyOnly = function(mapBrowserEvent) {
   var originalEvent = mapBrowserEvent.originalEvent;
   return (
-      originalEvent.altKey &&
+    originalEvent.altKey &&
       !(originalEvent.metaKey || originalEvent.ctrlKey) &&
       !originalEvent.shiftKey);
 };
@@ -17923,7 +18668,7 @@ ol.events.condition.altKeyOnly = function(mapBrowserEvent) {
 ol.events.condition.altShiftKeysOnly = function(mapBrowserEvent) {
   var originalEvent = mapBrowserEvent.originalEvent;
   return (
-      originalEvent.altKey &&
+    originalEvent.altKey &&
       !(originalEvent.metaKey || originalEvent.ctrlKey) &&
       originalEvent.shiftKey);
 };
@@ -18027,7 +18772,7 @@ ol.events.condition.doubleClick = function(mapBrowserEvent) {
 ol.events.condition.noModifierKeys = function(mapBrowserEvent) {
   var originalEvent = mapBrowserEvent.originalEvent;
   return (
-      !originalEvent.altKey &&
+    !originalEvent.altKey &&
       !(originalEvent.metaKey || originalEvent.ctrlKey) &&
       !originalEvent.shiftKey);
 };
@@ -18045,7 +18790,7 @@ ol.events.condition.noModifierKeys = function(mapBrowserEvent) {
 ol.events.condition.platformModifierKeyOnly = function(mapBrowserEvent) {
   var originalEvent = mapBrowserEvent.originalEvent;
   return (
-      !originalEvent.altKey &&
+    !originalEvent.altKey &&
       (ol.has.MAC ? originalEvent.metaKey : originalEvent.ctrlKey) &&
       !originalEvent.shiftKey);
 };
@@ -18062,7 +18807,7 @@ ol.events.condition.platformModifierKeyOnly = function(mapBrowserEvent) {
 ol.events.condition.shiftKeyOnly = function(mapBrowserEvent) {
   var originalEvent = mapBrowserEvent.originalEvent;
   return (
-      !originalEvent.altKey &&
+    !originalEvent.altKey &&
       !(originalEvent.metaKey || originalEvent.ctrlKey) &&
       originalEvent.shiftKey);
 };
@@ -18080,7 +18825,7 @@ ol.events.condition.targetNotEditable = function(mapBrowserEvent) {
   var target = mapBrowserEvent.originalEvent.target;
   var tagName = target.tagName;
   return (
-      tagName !== 'INPUT' &&
+    tagName !== 'INPUT' &&
       tagName !== 'SELECT' &&
       tagName !== 'TEXTAREA');
 };
@@ -18144,7 +18889,7 @@ ol.interaction.Pointer = function(opt_options) {
   var options = opt_options ? opt_options : {};
 
   var handleEvent = options.handleEvent ?
-      options.handleEvent : ol.interaction.Pointer.handleEvent;
+    options.handleEvent : ol.interaction.Pointer.handleEvent;
 
   ol.interaction.Interaction.call(this, {
     handleEvent: handleEvent
@@ -18155,28 +18900,28 @@ ol.interaction.Pointer = function(opt_options) {
    * @private
    */
   this.handleDownEvent_ = options.handleDownEvent ?
-      options.handleDownEvent : ol.interaction.Pointer.handleDownEvent;
+    options.handleDownEvent : ol.interaction.Pointer.handleDownEvent;
 
   /**
    * @type {function(ol.MapBrowserPointerEvent)}
    * @private
    */
   this.handleDragEvent_ = options.handleDragEvent ?
-      options.handleDragEvent : ol.interaction.Pointer.handleDragEvent;
+    options.handleDragEvent : ol.interaction.Pointer.handleDragEvent;
 
   /**
    * @type {function(ol.MapBrowserPointerEvent)}
    * @private
    */
   this.handleMoveEvent_ = options.handleMoveEvent ?
-      options.handleMoveEvent : ol.interaction.Pointer.handleMoveEvent;
+    options.handleMoveEvent : ol.interaction.Pointer.handleMoveEvent;
 
   /**
    * @type {function(ol.MapBrowserPointerEvent):boolean}
    * @private
    */
   this.handleUpEvent_ = options.handleUpEvent ?
-      options.handleUpEvent : ol.interaction.Pointer.handleUpEvent;
+    options.handleUpEvent : ol.interaction.Pointer.handleUpEvent;
 
   /**
    * @type {boolean}
@@ -18225,7 +18970,7 @@ ol.interaction.Pointer.centroid = function(pointerEvents) {
 ol.interaction.Pointer.prototype.isPointerDraggingEvent_ = function(mapBrowserEvent) {
   var type = mapBrowserEvent.type;
   return (
-      type === ol.MapBrowserEventType.POINTERDOWN ||
+    type === ol.MapBrowserEventType.POINTERDOWN ||
       type === ol.MapBrowserEventType.POINTERDRAG ||
       type === ol.MapBrowserEventType.POINTERUP);
 };
@@ -18387,7 +19132,7 @@ ol.interaction.DragPan = function(opt_options) {
    * @type {ol.EventsConditionType}
    */
   this.condition_ = options.condition ?
-      options.condition : ol.events.condition.noModifierKeys;
+    options.condition : ol.events.condition.noModifierKeys;
 
   /**
    * @private
@@ -18513,6 +19258,7 @@ ol.interaction.DragPan.prototype.shouldStopEvent = ol.functions.FALSE;
 goog.provide('ol.interaction.DragRotate');
 
 goog.require('ol');
+goog.require('ol.RotationConstraint');
 goog.require('ol.ViewHint');
 goog.require('ol.events.condition');
 goog.require('ol.functions');
@@ -18548,7 +19294,7 @@ ol.interaction.DragRotate = function(opt_options) {
    * @type {ol.EventsConditionType}
    */
   this.condition_ = options.condition ?
-      options.condition : ol.events.condition.altShiftKeysOnly;
+    options.condition : ol.events.condition.altShiftKeysOnly;
 
   /**
    * @private
@@ -18576,13 +19322,16 @@ ol.interaction.DragRotate.handleDragEvent_ = function(mapBrowserEvent) {
   }
 
   var map = mapBrowserEvent.map;
+  var view = map.getView();
+  if (view.getConstraints().rotation === ol.RotationConstraint.disable) {
+    return;
+  }
   var size = map.getSize();
   var offset = mapBrowserEvent.pixel;
   var theta =
       Math.atan2(size[1] / 2 - offset[1], offset[0] - size[0] / 2);
   if (this.lastAngle_ !== undefined) {
     var delta = theta - this.lastAngle_;
-    var view = map.getView();
     var rotation = view.getRotation();
     ol.interaction.Interaction.rotateWithoutConstraints(
         view, rotation - delta);
@@ -18784,15 +19533,6 @@ goog.require('ol.render.Box');
 
 
 /**
- * @const
- * @type {number}
- */
-ol.DRAG_BOX_HYSTERESIS_PIXELS_SQUARED =
-    ol.DRAG_BOX_HYSTERESIS_PIXELS *
-    ol.DRAG_BOX_HYSTERESIS_PIXELS;
-
-
-/**
  * @classdesc
  * Allows the user to draw a vector box by clicking and dragging on the map,
  * normally combined with an {@link ol.events.condition} that limits
@@ -18826,6 +19566,12 @@ ol.interaction.DragBox = function(opt_options) {
   this.box_ = new ol.render.Box(options.className || 'ol-dragbox');
 
   /**
+   * @type {number}
+   * @private
+   */
+  this.minArea_ = options.minArea !== undefined ? options.minArea : 64;
+
+  /**
    * @type {ol.Pixel}
    * @private
    */
@@ -18836,14 +19582,14 @@ ol.interaction.DragBox = function(opt_options) {
    * @type {ol.EventsConditionType}
    */
   this.condition_ = options.condition ?
-      options.condition : ol.events.condition.always;
+    options.condition : ol.events.condition.always;
 
   /**
    * @private
    * @type {ol.DragBoxEndConditionType}
    */
   this.boxEndCondition_ = options.boxEndCondition ?
-      options.boxEndCondition : ol.interaction.DragBox.defaultBoxEndCondition;
+    options.boxEndCondition : ol.interaction.DragBox.defaultBoxEndCondition;
 };
 ol.inherits(ol.interaction.DragBox, ol.interaction.Pointer);
 
@@ -18851,18 +19597,17 @@ ol.inherits(ol.interaction.DragBox, ol.interaction.Pointer);
 /**
  * The default condition for determining whether the boxend event
  * should fire.
- * @param  {ol.MapBrowserEvent} mapBrowserEvent The originating MapBrowserEvent
- *  leading to the box end.
- * @param  {ol.Pixel} startPixel      The starting pixel of the box.
- * @param  {ol.Pixel} endPixel        The end pixel of the box.
+ * @param {ol.MapBrowserEvent} mapBrowserEvent The originating MapBrowserEvent
+ *     leading to the box end.
+ * @param {ol.Pixel} startPixel The starting pixel of the box.
+ * @param {ol.Pixel} endPixel The end pixel of the box.
  * @return {boolean} Whether or not the boxend condition should be fired.
+ * @this {ol.interaction.DragBox}
  */
-ol.interaction.DragBox.defaultBoxEndCondition = function(mapBrowserEvent,
-    startPixel, endPixel) {
+ol.interaction.DragBox.defaultBoxEndCondition = function(mapBrowserEvent, startPixel, endPixel) {
   var width = endPixel[0] - startPixel[0];
   var height = endPixel[1] - startPixel[1];
-  return width * width + height * height >=
-      ol.DRAG_BOX_HYSTERESIS_PIXELS_SQUARED;
+  return width * width + height * height >= this.minArea_;
 };
 
 
@@ -18879,7 +19624,7 @@ ol.interaction.DragBox.handleDragEvent_ = function(mapBrowserEvent) {
   this.box_.setPixels(this.startPixel_, mapBrowserEvent.pixel);
 
   this.dispatchEvent(new ol.interaction.DragBox.Event(ol.interaction.DragBox.EventType_.BOXDRAG,
-    mapBrowserEvent.coordinate, mapBrowserEvent));
+      mapBrowserEvent.coordinate, mapBrowserEvent));
 };
 
 
@@ -18894,8 +19639,8 @@ ol.interaction.DragBox.prototype.getGeometry = function() {
 
 
 /**
- * To be overriden by child classes.
- * FIXME: use constructor option instead of relying on overridding.
+ * To be overridden by child classes.
+ * FIXME: use constructor option instead of relying on overriding.
  * @param {ol.MapBrowserEvent} mapBrowserEvent Map browser event.
  * @protected
  */
@@ -19038,7 +19783,7 @@ ol.interaction.DragZoom = function(opt_options) {
   var options = opt_options ? opt_options : {};
 
   var condition = options.condition ?
-      options.condition : ol.events.condition.shiftKeyOnly;
+    options.condition : ol.events.condition.shiftKeyOnly;
 
   /**
    * @private
@@ -19162,7 +19907,7 @@ ol.interaction.KeyboardPan = function(opt_options) {
    * @type {ol.EventsConditionType}
    */
   this.condition_ = options.condition !== undefined ?
-      options.condition : this.defaultCondition_;
+    options.condition : this.defaultCondition_;
 
   /**
    * @private
@@ -19175,7 +19920,7 @@ ol.interaction.KeyboardPan = function(opt_options) {
    * @type {number}
    */
   this.pixelDelta_ = options.pixelDelta !== undefined ?
-      options.pixelDelta : 128;
+    options.pixelDelta : 128;
 
 };
 ol.inherits(ol.interaction.KeyboardPan, ol.interaction.Interaction);
@@ -19260,7 +20005,7 @@ ol.interaction.KeyboardZoom = function(opt_options) {
    * @type {ol.EventsConditionType}
    */
   this.condition_ = options.condition ? options.condition :
-          ol.events.condition.targetNotEditable;
+    ol.events.condition.targetNotEditable;
 
   /**
    * @private
@@ -19358,6 +20103,12 @@ ol.interaction.MouseWheelZoom = function(opt_options) {
    * @type {boolean}
    */
   this.useAnchor_ = options.useAnchor !== undefined ? options.useAnchor : true;
+
+  /**
+   * @private
+   * @type {boolean}
+   */
+  this.constrainResolution_ = options.constrainResolution || false;
 
   /**
    * @private
@@ -19467,8 +20218,8 @@ ol.interaction.MouseWheelZoom.handleEvent = function(mapBrowserEvent) {
 
   if (!this.mode_ || now - this.startTime_ > this.trackpadEventGap_) {
     this.mode_ = Math.abs(delta) < 4 ?
-        ol.interaction.MouseWheelZoom.Mode_.TRACKPAD :
-        ol.interaction.MouseWheelZoom.Mode_.WHEEL;
+      ol.interaction.MouseWheelZoom.Mode_.TRACKPAD :
+      ol.interaction.MouseWheelZoom.Mode_.WHEEL;
   }
 
   if (this.mode_ === ol.interaction.MouseWheelZoom.Mode_.TRACKPAD) {
@@ -19495,6 +20246,16 @@ ol.interaction.MouseWheelZoom.handleEvent = function(mapBrowserEvent) {
       view.setCenter(view.constrainCenter(center));
     }
     view.setResolution(resolution);
+
+    if (rebound === 0 && this.constrainResolution_) {
+      view.animate({
+        resolution: view.constrainResolution(resolution, delta > 0 ? -1 : 1),
+        easing: ol.easing.easeOut,
+        anchor: this.lastAnchor_,
+        duration: this.duration_
+      });
+    }
+
     if (rebound > 0) {
       view.animate({
         resolution: minResolution,
@@ -19586,6 +20347,7 @@ goog.require('ol.ViewHint');
 goog.require('ol.functions');
 goog.require('ol.interaction.Interaction');
 goog.require('ol.interaction.Pointer');
+goog.require('ol.RotationConstraint');
 
 
 /**
@@ -19676,6 +20438,10 @@ ol.interaction.PinchRotate.handleDragEvent_ = function(mapBrowserEvent) {
   this.lastAngle_ = angle;
 
   var map = mapBrowserEvent.map;
+  var view = map.getView();
+  if (view.getConstraints().rotation === ol.RotationConstraint.disable) {
+    return;
+  }
 
   // rotate anchor point.
   // FIXME: should be the intersection point between the lines:
@@ -19688,7 +20454,6 @@ ol.interaction.PinchRotate.handleDragEvent_ = function(mapBrowserEvent) {
 
   // rotate
   if (this.rotating_) {
-    var view = map.getView();
     var rotation = view.getRotation();
     map.render();
     ol.interaction.Interaction.rotateWithoutConstraints(view,
@@ -19967,13 +20732,13 @@ ol.interaction.defaults = function(opt_options) {
   var kinetic = new ol.Kinetic(-0.005, 0.05, 100);
 
   var altShiftDragRotate = options.altShiftDragRotate !== undefined ?
-      options.altShiftDragRotate : true;
+    options.altShiftDragRotate : true;
   if (altShiftDragRotate) {
     interactions.push(new ol.interaction.DragRotate());
   }
 
   var doubleClickZoom = options.doubleClickZoom !== undefined ?
-      options.doubleClickZoom : true;
+    options.doubleClickZoom : true;
   if (doubleClickZoom) {
     interactions.push(new ol.interaction.DoubleClickZoom({
       delta: options.zoomDelta,
@@ -19989,7 +20754,7 @@ ol.interaction.defaults = function(opt_options) {
   }
 
   var pinchRotate = options.pinchRotate !== undefined ? options.pinchRotate :
-      true;
+    true;
   if (pinchRotate) {
     interactions.push(new ol.interaction.PinchRotate());
   }
@@ -19997,6 +20762,7 @@ ol.interaction.defaults = function(opt_options) {
   var pinchZoom = options.pinchZoom !== undefined ? options.pinchZoom : true;
   if (pinchZoom) {
     interactions.push(new ol.interaction.PinchZoom({
+      constrainResolution: options.constrainResolution,
       duration: options.zoomDuration
     }));
   }
@@ -20011,15 +20777,16 @@ ol.interaction.defaults = function(opt_options) {
   }
 
   var mouseWheelZoom = options.mouseWheelZoom !== undefined ?
-      options.mouseWheelZoom : true;
+    options.mouseWheelZoom : true;
   if (mouseWheelZoom) {
     interactions.push(new ol.interaction.MouseWheelZoom({
+      constrainResolution: options.constrainResolution,
       duration: options.zoomDuration
     }));
   }
 
   var shiftDragZoom = options.shiftDragZoom !== undefined ?
-      options.shiftDragZoom : true;
+    options.shiftDragZoom : true;
   if (shiftDragZoom) {
     interactions.push(new ol.interaction.DragZoom({
       duration: options.zoomDuration
@@ -20154,7 +20921,7 @@ ol.layer.Base.prototype.getLayerStatesArray = function(opt_states) {};
  */
 ol.layer.Base.prototype.getExtent = function() {
   return /** @type {ol.Extent|undefined} */ (
-      this.get(ol.layer.Property.EXTENT));
+    this.get(ol.layer.Property.EXTENT));
 };
 
 
@@ -20166,7 +20933,7 @@ ol.layer.Base.prototype.getExtent = function() {
  */
 ol.layer.Base.prototype.getMaxResolution = function() {
   return /** @type {number} */ (
-      this.get(ol.layer.Property.MAX_RESOLUTION));
+    this.get(ol.layer.Property.MAX_RESOLUTION));
 };
 
 
@@ -20178,7 +20945,7 @@ ol.layer.Base.prototype.getMaxResolution = function() {
  */
 ol.layer.Base.prototype.getMinResolution = function() {
   return /** @type {number} */ (
-      this.get(ol.layer.Property.MIN_RESOLUTION));
+    this.get(ol.layer.Property.MIN_RESOLUTION));
 };
 
 
@@ -20361,14 +21128,14 @@ ol.layer.Group = function(opt_options) {
 
   if (layers) {
     if (Array.isArray(layers)) {
-      layers = new ol.Collection(layers.slice());
+      layers = new ol.Collection(layers.slice(), {unique: true});
     } else {
       ol.asserts.assert(layers instanceof ol.Collection,
           43); // Expected `layers` to be an array or an `ol.Collection`
       layers = layers;
     }
   } else {
-    layers = new ol.Collection();
+    layers = new ol.Collection(undefined, {unique: true});
   }
 
   this.setLayers(layers);
@@ -20387,9 +21154,7 @@ ol.layer.Group.prototype.createRenderer = function(mapRenderer) {};
  * @private
  */
 ol.layer.Group.prototype.handleLayerChange_ = function() {
-  if (this.getVisible()) {
-    this.changed();
-  }
+  this.changed();
 };
 
 
@@ -20547,268 +21312,6 @@ ol.layer.Group.prototype.getSourceState = function() {
  */
 ol.layer.Group.Property_ = {
   LAYERS: 'layers'
-};
-
-goog.provide('ol.proj.EPSG3857');
-
-goog.require('ol');
-goog.require('ol.math');
-goog.require('ol.proj');
-goog.require('ol.proj.Projection');
-goog.require('ol.proj.Units');
-
-
-/**
- * @classdesc
- * Projection object for web/spherical Mercator (EPSG:3857).
- *
- * @constructor
- * @extends {ol.proj.Projection}
- * @param {string} code Code.
- * @private
- */
-ol.proj.EPSG3857_ = function(code) {
-  ol.proj.Projection.call(this, {
-    code: code,
-    units: ol.proj.Units.METERS,
-    extent: ol.proj.EPSG3857.EXTENT,
-    global: true,
-    worldExtent: ol.proj.EPSG3857.WORLD_EXTENT,
-    getPointResolution: function(resolution, point) {
-      return resolution / ol.math.cosh(point[1] / ol.proj.EPSG3857.RADIUS);
-    }
-  });
-};
-ol.inherits(ol.proj.EPSG3857_, ol.proj.Projection);
-
-
-/**
- * @const
- * @type {number}
- */
-ol.proj.EPSG3857.RADIUS = 6378137;
-
-
-/**
- * @const
- * @type {number}
- */
-ol.proj.EPSG3857.HALF_SIZE = Math.PI * ol.proj.EPSG3857.RADIUS;
-
-
-/**
- * @const
- * @type {ol.Extent}
- */
-ol.proj.EPSG3857.EXTENT = [
-  -ol.proj.EPSG3857.HALF_SIZE, -ol.proj.EPSG3857.HALF_SIZE,
-  ol.proj.EPSG3857.HALF_SIZE, ol.proj.EPSG3857.HALF_SIZE
-];
-
-
-/**
- * @const
- * @type {ol.Extent}
- */
-ol.proj.EPSG3857.WORLD_EXTENT = [-180, -85, 180, 85];
-
-
-/**
- * Lists several projection codes with the same meaning as EPSG:3857.
- *
- * @type {Array.<string>}
- */
-ol.proj.EPSG3857.CODES = [
-  'EPSG:3857',
-  'EPSG:102100',
-  'EPSG:102113',
-  'EPSG:900913',
-  'urn:ogc:def:crs:EPSG:6.18:3:3857',
-  'urn:ogc:def:crs:EPSG::3857',
-  'http://www.opengis.net/gml/srs/epsg.xml#3857'
-];
-
-
-/**
- * Projections equal to EPSG:3857.
- *
- * @const
- * @type {Array.<ol.proj.Projection>}
- */
-ol.proj.EPSG3857.PROJECTIONS = ol.proj.EPSG3857.CODES.map(function(code) {
-  return new ol.proj.EPSG3857_(code);
-});
-
-
-/**
- * Transformation from EPSG:4326 to EPSG:3857.
- *
- * @param {Array.<number>} input Input array of coordinate values.
- * @param {Array.<number>=} opt_output Output array of coordinate values.
- * @param {number=} opt_dimension Dimension (default is `2`).
- * @return {Array.<number>} Output array of coordinate values.
- */
-ol.proj.EPSG3857.fromEPSG4326 = function(input, opt_output, opt_dimension) {
-  var length = input.length,
-      dimension = opt_dimension > 1 ? opt_dimension : 2,
-      output = opt_output;
-  if (output === undefined) {
-    if (dimension > 2) {
-      // preserve values beyond second dimension
-      output = input.slice();
-    } else {
-      output = new Array(length);
-    }
-  }
-  var halfSize = ol.proj.EPSG3857.HALF_SIZE;
-  for (var i = 0; i < length; i += dimension) {
-    output[i] = halfSize * input[i] / 180;
-    var y = ol.proj.EPSG3857.RADIUS *
-        Math.log(Math.tan(Math.PI * (input[i + 1] + 90) / 360));
-    if (y > halfSize) {
-      y = halfSize;
-    } else if (y < -halfSize) {
-      y = -halfSize;
-    }
-    output[i + 1] = y;
-  }
-  return output;
-};
-
-
-/**
- * Transformation from EPSG:3857 to EPSG:4326.
- *
- * @param {Array.<number>} input Input array of coordinate values.
- * @param {Array.<number>=} opt_output Output array of coordinate values.
- * @param {number=} opt_dimension Dimension (default is `2`).
- * @return {Array.<number>} Output array of coordinate values.
- */
-ol.proj.EPSG3857.toEPSG4326 = function(input, opt_output, opt_dimension) {
-  var length = input.length,
-      dimension = opt_dimension > 1 ? opt_dimension : 2,
-      output = opt_output;
-  if (output === undefined) {
-    if (dimension > 2) {
-      // preserve values beyond second dimension
-      output = input.slice();
-    } else {
-      output = new Array(length);
-    }
-  }
-  for (var i = 0; i < length; i += dimension) {
-    output[i] = 180 * input[i] / ol.proj.EPSG3857.HALF_SIZE;
-    output[i + 1] = 360 * Math.atan(
-        Math.exp(input[i + 1] / ol.proj.EPSG3857.RADIUS)) / Math.PI - 90;
-  }
-  return output;
-};
-
-goog.provide('ol.sphere.WGS84');
-
-goog.require('ol.Sphere');
-
-
-/**
- * A sphere with radius equal to the semi-major axis of the WGS84 ellipsoid.
- * @const
- * @type {ol.Sphere}
- */
-ol.sphere.WGS84 = new ol.Sphere(6378137);
-
-goog.provide('ol.proj.EPSG4326');
-
-goog.require('ol');
-goog.require('ol.proj');
-goog.require('ol.proj.Projection');
-goog.require('ol.proj.Units');
-goog.require('ol.sphere.WGS84');
-
-
-/**
- * @classdesc
- * Projection object for WGS84 geographic coordinates (EPSG:4326).
- *
- * Note that OpenLayers does not strictly comply with the EPSG definition.
- * The EPSG registry defines 4326 as a CRS for Latitude,Longitude (y,x).
- * OpenLayers treats EPSG:4326 as a pseudo-projection, with x,y coordinates.
- *
- * @constructor
- * @extends {ol.proj.Projection}
- * @param {string} code Code.
- * @param {string=} opt_axisOrientation Axis orientation.
- * @private
- */
-ol.proj.EPSG4326_ = function(code, opt_axisOrientation) {
-  ol.proj.Projection.call(this, {
-    code: code,
-    units: ol.proj.Units.DEGREES,
-    extent: ol.proj.EPSG4326.EXTENT,
-    axisOrientation: opt_axisOrientation,
-    global: true,
-    metersPerUnit: ol.proj.EPSG4326.METERS_PER_UNIT,
-    worldExtent: ol.proj.EPSG4326.EXTENT
-  });
-};
-ol.inherits(ol.proj.EPSG4326_, ol.proj.Projection);
-
-
-/**
- * Extent of the EPSG:4326 projection which is the whole world.
- *
- * @const
- * @type {ol.Extent}
- */
-ol.proj.EPSG4326.EXTENT = [-180, -90, 180, 90];
-
-
-/**
- * @const
- * @type {number}
- */
-ol.proj.EPSG4326.METERS_PER_UNIT = Math.PI * ol.sphere.WGS84.radius / 180;
-
-
-/**
- * Projections equal to EPSG:4326.
- *
- * @const
- * @type {Array.<ol.proj.Projection>}
- */
-ol.proj.EPSG4326.PROJECTIONS = [
-  new ol.proj.EPSG4326_('CRS:84'),
-  new ol.proj.EPSG4326_('EPSG:4326', 'neu'),
-  new ol.proj.EPSG4326_('urn:ogc:def:crs:EPSG::4326', 'neu'),
-  new ol.proj.EPSG4326_('urn:ogc:def:crs:EPSG:6.6:4326', 'neu'),
-  new ol.proj.EPSG4326_('urn:ogc:def:crs:OGC:1.3:CRS84'),
-  new ol.proj.EPSG4326_('urn:ogc:def:crs:OGC:2:84'),
-  new ol.proj.EPSG4326_('http://www.opengis.net/gml/srs/epsg.xml#4326', 'neu'),
-  new ol.proj.EPSG4326_('urn:x-ogc:def:crs:EPSG:4326', 'neu')
-];
-
-goog.provide('ol.proj.common');
-
-goog.require('ol.proj');
-goog.require('ol.proj.EPSG3857');
-goog.require('ol.proj.EPSG4326');
-
-
-/**
- * FIXME empty description for jsdoc
- * @api
- */
-ol.proj.common.add = function() {
-  // Add transformations that don't alter coordinates to convert within set of
-  // projections with equal meaning.
-  ol.proj.addEquivalentProjections(ol.proj.EPSG3857.PROJECTIONS);
-  ol.proj.addEquivalentProjections(ol.proj.EPSG4326.PROJECTIONS);
-  // Add transformations to convert EPSG:4326 like coordinates to EPSG:3857 like
-  // coordinates and back.
-  ol.proj.addEquivalentTransforms(
-      ol.proj.EPSG4326.PROJECTIONS,
-      ol.proj.EPSG3857.PROJECTIONS,
-      ol.proj.EPSG3857.fromEPSG4326,
-      ol.proj.EPSG3857.toEPSG4326);
 };
 
 goog.provide('ol.render.EventType');
@@ -21476,7 +21979,7 @@ ol.renderer.Map.expireIconCache_ = function(map, frameState) {
  * @template S,T,U
  */
 ol.renderer.Map.prototype.forEachFeatureAtCoordinate = function(coordinate, frameState, hitTolerance, callback, thisArg,
-        layerFilter, thisArg2) {
+    layerFilter, thisArg2) {
   var result;
   var viewState = frameState.viewState;
   var viewResolution = viewState.resolution;
@@ -21546,7 +22049,7 @@ ol.renderer.Map.prototype.forEachFeatureAtCoordinate = function(coordinate, fram
  * @template S,T,U
  */
 ol.renderer.Map.prototype.forEachLayerAtPixel = function(pixel, frameState, callback, thisArg,
-        layerFilter, thisArg2) {};
+    layerFilter, thisArg2) {};
 
 
 /**
@@ -21676,7 +22179,7 @@ ol.renderer.Map.prototype.removeUnusedLayerRenderers_ = function(map, frameState
  */
 ol.renderer.Map.prototype.scheduleExpireIconCache = function(frameState) {
   frameState.postRenderFunctions.push(
-    /** @type {ol.PostRenderFunction} */ (ol.renderer.Map.expireIconCache_)
+      /** @type {ol.PostRenderFunction} */ (ol.renderer.Map.expireIconCache_)
   );
 };
 
@@ -21690,7 +22193,7 @@ ol.renderer.Map.prototype.scheduleRemoveUnusedLayerRenderers = function(frameSta
   for (layerKey in this.layerRenderers_) {
     if (!(layerKey in frameState.layerStates)) {
       frameState.postRenderFunctions.push(
-        /** @type {ol.PostRenderFunction} */ (this.removeUnusedLayerRenderers_.bind(this))
+          /** @type {ol.PostRenderFunction} */ (this.removeUnusedLayerRenderers_.bind(this))
       );
       return;
     }
@@ -21881,6 +22384,16 @@ goog.provide('ol.render.VectorContext');
  */
 ol.render.VectorContext = function() {
 };
+
+
+/**
+ * Render a geometry with a custom renderer.
+ *
+ * @param {ol.geom.SimpleGeometry} geometry Geometry.
+ * @param {ol.Feature|ol.render.Feature} feature Feature.
+ * @param {Function} renderer Renderer.
+ */
+ol.render.VectorContext.prototype.drawCustom = function(geometry, feature, renderer) {};
 
 
 /**
@@ -22733,6 +23246,7 @@ ol.render.canvas.Immediate.prototype.setContextStrokeState_ = function(strokeSta
     context.lineCap = strokeState.lineCap;
     if (ol.has.CANVAS_LINE_DASH) {
       context.setLineDash(strokeState.lineDash);
+      context.lineDashOffset = strokeState.lineDashOffset;
     }
     context.lineJoin = strokeState.lineJoin;
     context.lineWidth = strokeState.lineWidth;
@@ -22741,6 +23255,7 @@ ol.render.canvas.Immediate.prototype.setContextStrokeState_ = function(strokeSta
     this.contextStrokeState_ = {
       lineCap: strokeState.lineCap,
       lineDash: strokeState.lineDash,
+      lineDashOffset: strokeState.lineDashOffset,
       lineJoin: strokeState.lineJoin,
       lineWidth: strokeState.lineWidth,
       miterLimit: strokeState.miterLimit,
@@ -22754,6 +23269,10 @@ ol.render.canvas.Immediate.prototype.setContextStrokeState_ = function(strokeSta
       if (!ol.array.equals(
           contextStrokeState.lineDash, strokeState.lineDash)) {
         context.setLineDash(contextStrokeState.lineDash = strokeState.lineDash);
+      }
+      if (contextStrokeState.lineDashOffset != strokeState.lineDashOffset) {
+        contextStrokeState.lineDashOffset = context.lineDashOffset =
+            strokeState.lineDashOffset;
       }
     }
     if (contextStrokeState.lineJoin != strokeState.lineJoin) {
@@ -22820,7 +23339,7 @@ ol.render.canvas.Immediate.prototype.setFillStrokeStyle = function(fillStyle, st
     var fillStyleColor = fillStyle.getColor();
     this.fillState_ = {
       fillStyle: ol.colorlike.asColorLike(fillStyleColor ?
-          fillStyleColor : ol.render.canvas.defaultFillStyle)
+        fillStyleColor : ol.render.canvas.defaultFillStyle)
     };
   }
   if (!strokeStyle) {
@@ -22835,19 +23354,19 @@ ol.render.canvas.Immediate.prototype.setFillStrokeStyle = function(fillStyle, st
     var strokeStyleMiterLimit = strokeStyle.getMiterLimit();
     this.strokeState_ = {
       lineCap: strokeStyleLineCap !== undefined ?
-          strokeStyleLineCap : ol.render.canvas.defaultLineCap,
+        strokeStyleLineCap : ol.render.canvas.defaultLineCap,
       lineDash: strokeStyleLineDash ?
-          strokeStyleLineDash : ol.render.canvas.defaultLineDash,
+        strokeStyleLineDash : ol.render.canvas.defaultLineDash,
       lineDashOffset: strokeStyleLineDashOffset ?
-          strokeStyleLineDashOffset : ol.render.canvas.defaultLineDashOffset,
+        strokeStyleLineDashOffset : ol.render.canvas.defaultLineDashOffset,
       lineJoin: strokeStyleLineJoin !== undefined ?
-          strokeStyleLineJoin : ol.render.canvas.defaultLineJoin,
+        strokeStyleLineJoin : ol.render.canvas.defaultLineJoin,
       lineWidth: this.pixelRatio_ * (strokeStyleWidth !== undefined ?
-          strokeStyleWidth : ol.render.canvas.defaultLineWidth),
+        strokeStyleWidth : ol.render.canvas.defaultLineWidth),
       miterLimit: strokeStyleMiterLimit !== undefined ?
-          strokeStyleMiterLimit : ol.render.canvas.defaultMiterLimit,
+        strokeStyleMiterLimit : ol.render.canvas.defaultMiterLimit,
       strokeStyle: ol.colorlike.asColorLike(strokeStyleColor ?
-          strokeStyleColor : ol.render.canvas.defaultStrokeStyle)
+        strokeStyleColor : ol.render.canvas.defaultStrokeStyle)
     };
   }
 };
@@ -22878,7 +23397,7 @@ ol.render.canvas.Immediate.prototype.setImageStyle = function(imageStyle) {
     this.imageOriginY_ = imageOrigin[1];
     this.imageRotateWithView_ = imageStyle.getRotateWithView();
     this.imageRotation_ = imageStyle.getRotation();
-    this.imageScale_ = imageStyle.getScale();
+    this.imageScale_ = imageStyle.getScale() * this.pixelRatio_;
     this.imageSnapToPixel_ = imageStyle.getSnapToPixel();
     this.imageWidth_ = imageSize[0];
   }
@@ -22903,7 +23422,7 @@ ol.render.canvas.Immediate.prototype.setTextStyle = function(textStyle) {
       var textFillStyleColor = textFillStyle.getColor();
       this.textFillState_ = {
         fillStyle: ol.colorlike.asColorLike(textFillStyleColor ?
-            textFillStyleColor : ol.render.canvas.defaultFillStyle)
+          textFillStyleColor : ol.render.canvas.defaultFillStyle)
       };
     }
     var textStrokeStyle = textStyle.getStroke();
@@ -22919,19 +23438,19 @@ ol.render.canvas.Immediate.prototype.setTextStyle = function(textStyle) {
       var textStrokeStyleMiterLimit = textStrokeStyle.getMiterLimit();
       this.textStrokeState_ = {
         lineCap: textStrokeStyleLineCap !== undefined ?
-            textStrokeStyleLineCap : ol.render.canvas.defaultLineCap,
+          textStrokeStyleLineCap : ol.render.canvas.defaultLineCap,
         lineDash: textStrokeStyleLineDash ?
-            textStrokeStyleLineDash : ol.render.canvas.defaultLineDash,
+          textStrokeStyleLineDash : ol.render.canvas.defaultLineDash,
         lineDashOffset: textStrokeStyleLineDashOffset ?
-            textStrokeStyleLineDashOffset : ol.render.canvas.defaultLineDashOffset,
+          textStrokeStyleLineDashOffset : ol.render.canvas.defaultLineDashOffset,
         lineJoin: textStrokeStyleLineJoin !== undefined ?
-            textStrokeStyleLineJoin : ol.render.canvas.defaultLineJoin,
+          textStrokeStyleLineJoin : ol.render.canvas.defaultLineJoin,
         lineWidth: textStrokeStyleWidth !== undefined ?
-            textStrokeStyleWidth : ol.render.canvas.defaultLineWidth,
+          textStrokeStyleWidth : ol.render.canvas.defaultLineWidth,
         miterLimit: textStrokeStyleMiterLimit !== undefined ?
-            textStrokeStyleMiterLimit : ol.render.canvas.defaultMiterLimit,
+          textStrokeStyleMiterLimit : ol.render.canvas.defaultMiterLimit,
         strokeStyle: ol.colorlike.asColorLike(textStrokeStyleColor ?
-            textStrokeStyleColor : ol.render.canvas.defaultStrokeStyle)
+          textStrokeStyleColor : ol.render.canvas.defaultStrokeStyle)
       };
     }
     var textFont = textStyle.getFont();
@@ -22945,11 +23464,11 @@ ol.render.canvas.Immediate.prototype.setTextStyle = function(textStyle) {
     var textTextBaseline = textStyle.getTextBaseline();
     this.textState_ = {
       font: textFont !== undefined ?
-          textFont : ol.render.canvas.defaultFont,
+        textFont : ol.render.canvas.defaultFont,
       textAlign: textTextAlign !== undefined ?
-          textTextAlign : ol.render.canvas.defaultTextAlign,
+        textTextAlign : ol.render.canvas.defaultTextAlign,
       textBaseline: textTextBaseline !== undefined ?
-          textTextBaseline : ol.render.canvas.defaultTextBaseline
+        textTextBaseline : ol.render.canvas.defaultTextBaseline
     };
     this.text_ = textText !== undefined ? textText : '';
     this.textOffsetX_ =
@@ -22959,7 +23478,7 @@ ol.render.canvas.Immediate.prototype.setTextStyle = function(textStyle) {
     this.textRotateWithView_ = textRotateWithView !== undefined ? textRotateWithView : false;
     this.textRotation_ = textRotation !== undefined ? textRotation : 0;
     this.textScale_ = this.pixelRatio_ * (textScale !== undefined ?
-        textScale : 1);
+      textScale : 1);
   }
 };
 
@@ -23151,7 +23670,7 @@ ol.renderer.canvas.Map.prototype.renderFrame = function(frameState) {
  * @inheritDoc
  */
 ol.renderer.canvas.Map.prototype.forEachLayerAtPixel = function(pixel, frameState, callback, thisArg,
-        layerFilter, thisArg2) {
+    layerFilter, thisArg2) {
   var result;
   var viewState = frameState.viewState;
   var viewResolution = viewState.resolution;
@@ -23187,6 +23706,7 @@ goog.provide('ol.render.ReplayType');
  */
 ol.render.ReplayType = {
   CIRCLE: 'Circle',
+  DEFAULT: 'Default',
   IMAGE: 'Image',
   LINE_STRING: 'LineString',
   POLYGON: 'Polygon',
@@ -23207,7 +23727,8 @@ ol.render.replay.ORDER = [
   ol.render.ReplayType.CIRCLE,
   ol.render.ReplayType.LINE_STRING,
   ol.render.ReplayType.IMAGE,
-  ol.render.ReplayType.TEXT
+  ol.render.ReplayType.TEXT,
+  ol.render.ReplayType.DEFAULT
 ];
 
 goog.provide('ol.render.ReplayGroup');
@@ -23344,6 +23865,7 @@ if (ol.ENABLE_WEBGL) {
 }
 
 // This file is automatically generated, do not edit
+/* eslint openlayers-internal/no-missing-requires: 0 */
 goog.provide('ol.render.webgl.circlereplay.defaultshader');
 
 goog.require('ol');
@@ -23382,8 +23904,8 @@ if (ol.ENABLE_WEBGL) {
    * @type {string}
    */
   ol.render.webgl.circlereplay.defaultshader.Fragment.SOURCE = ol.DEBUG_WEBGL ?
-      ol.render.webgl.circlereplay.defaultshader.Fragment.DEBUG_SOURCE :
-      ol.render.webgl.circlereplay.defaultshader.Fragment.OPTIMIZED_SOURCE;
+    ol.render.webgl.circlereplay.defaultshader.Fragment.DEBUG_SOURCE :
+    ol.render.webgl.circlereplay.defaultshader.Fragment.OPTIMIZED_SOURCE;
 
 
   ol.render.webgl.circlereplay.defaultshader.fragment = new ol.render.webgl.circlereplay.defaultshader.Fragment();
@@ -23419,8 +23941,8 @@ if (ol.ENABLE_WEBGL) {
    * @type {string}
    */
   ol.render.webgl.circlereplay.defaultshader.Vertex.SOURCE = ol.DEBUG_WEBGL ?
-      ol.render.webgl.circlereplay.defaultshader.Vertex.DEBUG_SOURCE :
-      ol.render.webgl.circlereplay.defaultshader.Vertex.OPTIMIZED_SOURCE;
+    ol.render.webgl.circlereplay.defaultshader.Vertex.DEBUG_SOURCE :
+    ol.render.webgl.circlereplay.defaultshader.Vertex.OPTIMIZED_SOURCE;
 
 
   ol.render.webgl.circlereplay.defaultshader.vertex = new ol.render.webgl.circlereplay.defaultshader.Vertex();
@@ -23677,9 +24199,9 @@ if (ol.ENABLE_WEBGL) {
    * @param {ol.Size} size Size.
    * @param {number} pixelRatio Pixel ratio.
    * @return {ol.render.webgl.circlereplay.defaultshader.Locations|
-              ol.render.webgl.imagereplay.defaultshader.Locations|
               ol.render.webgl.linestringreplay.defaultshader.Locations|
-              ol.render.webgl.polygonreplay.defaultshader.Locations} Locations.
+              ol.render.webgl.polygonreplay.defaultshader.Locations|
+              ol.render.webgl.texturereplay.defaultshader.Locations} Locations.
    */
   ol.render.webgl.Replay.prototype.setUpProgram = function(gl, context, size, pixelRatio) {};
 
@@ -23689,9 +24211,9 @@ if (ol.ENABLE_WEBGL) {
    * @protected
    * @param {WebGLRenderingContext} gl gl.
    * @param {ol.render.webgl.circlereplay.defaultshader.Locations|
-             ol.render.webgl.imagereplay.defaultshader.Locations|
              ol.render.webgl.linestringreplay.defaultshader.Locations|
-             ol.render.webgl.polygonreplay.defaultshader.Locations} locations Locations.
+             ol.render.webgl.polygonreplay.defaultshader.Locations|
+             ol.render.webgl.texturereplay.defaultshader.Locations} locations Locations.
    */
   ol.render.webgl.Replay.prototype.shutDownProgram = function(gl, locations) {};
 
@@ -23846,11 +24368,11 @@ if (ol.ENABLE_WEBGL) {
     }
 
     gl.uniformMatrix4fv(locations.u_projectionMatrix, false,
-       ol.vec.Mat4.fromTransform(this.tmpMat4_, projectionMatrix));
+        ol.vec.Mat4.fromTransform(this.tmpMat4_, projectionMatrix));
     gl.uniformMatrix4fv(locations.u_offsetScaleMatrix, false,
-       ol.vec.Mat4.fromTransform(this.tmpMat4_, offsetScaleMatrix));
+        ol.vec.Mat4.fromTransform(this.tmpMat4_, offsetScaleMatrix));
     gl.uniformMatrix4fv(locations.u_offsetRotateMatrix, false,
-       ol.vec.Mat4.fromTransform(this.tmpMat4_, offsetRotateMatrix));
+        ol.vec.Mat4.fromTransform(this.tmpMat4_, offsetRotateMatrix));
     gl.uniform1f(locations.u_opacity, opacity);
 
     // draw!
@@ -23872,10 +24394,10 @@ if (ol.ENABLE_WEBGL) {
       }
       gl.clear(gl.STENCIL_BUFFER_BIT);
       gl.stencilFunc(/** @type {number} */ (tmpStencilFunc),
-         /** @type {number} */ (tmpStencilRef), /** @type {number} */ (tmpStencilMaskVal));
+          /** @type {number} */ (tmpStencilRef), /** @type {number} */ (tmpStencilMaskVal));
       gl.stencilMask(/** @type {number} */ (tmpStencilMask));
       gl.stencilOp(/** @type {number} */ (tmpStencilOpFail),
-         /** @type {number} */ (tmpStencilOpZFail), /** @type {number} */ (tmpStencilOpPass));
+          /** @type {number} */ (tmpStencilOpZFail), /** @type {number} */ (tmpStencilOpPass));
     }
 
     return result;
@@ -23891,7 +24413,7 @@ if (ol.ENABLE_WEBGL) {
   ol.render.webgl.Replay.prototype.drawElements = function(
       gl, context, start, end) {
     var elementType = context.hasOESElementIndexUint ?
-        ol.webgl.UNSIGNED_INT : ol.webgl.UNSIGNED_SHORT;
+      ol.webgl.UNSIGNED_INT : ol.webgl.UNSIGNED_SHORT;
     var elementSize = context.hasOESElementIndexUint ? 4 : 2;
 
     var numItems = end - start;
@@ -23910,9 +24432,17 @@ if (ol.ENABLE_WEBGL) {
 
   /**
    * @const
+   * @type {string}
+   */
+  ol.render.webgl.defaultFont = '10px sans-serif';
+
+
+  /**
+   * @const
    * @type {ol.Color}
    */
   ol.render.webgl.defaultFillStyle = [0.0, 0.0, 0.0, 1.0];
+
 
   /**
    * @const
@@ -23954,6 +24484,21 @@ if (ol.ENABLE_WEBGL) {
    */
   ol.render.webgl.defaultStrokeStyle = [0.0, 0.0, 0.0, 1.0];
 
+
+  /**
+   * @const
+   * @type {number}
+   */
+  ol.render.webgl.defaultTextAlign = 0.5;
+
+
+  /**
+   * @const
+   * @type {number}
+   */
+  ol.render.webgl.defaultTextBaseline = 0.5;
+
+
   /**
    * @const
    * @type {number}
@@ -23973,7 +24518,7 @@ if (ol.ENABLE_WEBGL) {
   ol.render.webgl.triangleIsCounterClockwise = function(x1, y1, x2, y2, x3, y3) {
     var area = (x2 - x1) * (y3 - y1) - (x3 - x1) * (y2 - y1);
     return (area <= ol.render.webgl.EPSILON && area >= -ol.render.webgl.EPSILON) ?
-        undefined : area > 0;
+      undefined : area > 0;
   };
 
   /**
@@ -24011,7 +24556,7 @@ if (ol.ENABLE_WEBGL) {
      * @type {number}
      */
     this.usage_ = opt_usage !== undefined ?
-        opt_usage : ol.webgl.Buffer.Usage_.STATIC_DRAW;
+      opt_usage : ol.webgl.Buffer.Usage_.STATIC_DRAW;
 
   };
 
@@ -24250,8 +24795,8 @@ if (ol.ENABLE_WEBGL) {
     // get the locations
     var locations;
     if (!this.defaultLocations_) {
-      locations =
-          new ol.render.webgl.circlereplay.defaultshader.Locations(gl, program);
+      // eslint-disable-next-line openlayers-internal/no-missing-requires
+      locations = new ol.render.webgl.circlereplay.defaultshader.Locations(gl, program);
       this.defaultLocations_ = locations;
     } else {
       locations = this.defaultLocations_;
@@ -24427,10 +24972,10 @@ if (ol.ENABLE_WEBGL) {
     if (strokeStyle) {
       var strokeStyleLineDash = strokeStyle.getLineDash();
       this.state_.lineDash = strokeStyleLineDash ?
-          strokeStyleLineDash : ol.render.webgl.defaultLineDash;
+        strokeStyleLineDash : ol.render.webgl.defaultLineDash;
       var strokeStyleLineDashOffset = strokeStyle.getLineDashOffset();
       this.state_.lineDashOffset = strokeStyleLineDashOffset ?
-          strokeStyleLineDashOffset : ol.render.webgl.defaultLineDashOffset;
+        strokeStyleLineDashOffset : ol.render.webgl.defaultLineDashOffset;
       strokeStyleColor = strokeStyle.getColor();
       if (!(strokeStyleColor instanceof CanvasGradient) &&
           !(strokeStyleColor instanceof CanvasPattern)) {
@@ -24442,7 +24987,7 @@ if (ol.ENABLE_WEBGL) {
       }
       strokeStyleWidth = strokeStyle.getWidth();
       strokeStyleWidth = strokeStyleWidth !== undefined ?
-          strokeStyleWidth : ol.render.webgl.defaultLineWidth;
+        strokeStyleWidth : ol.render.webgl.defaultLineWidth;
     } else {
       strokeStyleColor = [0, 0, 0, 0];
       strokeStyleWidth = 0;
@@ -24470,7 +25015,8 @@ if (ol.ENABLE_WEBGL) {
 }
 
 // This file is automatically generated, do not edit
-goog.provide('ol.render.webgl.imagereplay.defaultshader');
+/* eslint openlayers-internal/no-missing-requires: 0 */
+goog.provide('ol.render.webgl.texturereplay.defaultshader');
 
 goog.require('ol');
 goog.require('ol.webgl.Fragment');
@@ -24483,36 +25029,36 @@ if (ol.ENABLE_WEBGL) {
    * @extends {ol.webgl.Fragment}
    * @struct
    */
-  ol.render.webgl.imagereplay.defaultshader.Fragment = function() {
-    ol.webgl.Fragment.call(this, ol.render.webgl.imagereplay.defaultshader.Fragment.SOURCE);
+  ol.render.webgl.texturereplay.defaultshader.Fragment = function() {
+    ol.webgl.Fragment.call(this, ol.render.webgl.texturereplay.defaultshader.Fragment.SOURCE);
   };
-  ol.inherits(ol.render.webgl.imagereplay.defaultshader.Fragment, ol.webgl.Fragment);
+  ol.inherits(ol.render.webgl.texturereplay.defaultshader.Fragment, ol.webgl.Fragment);
 
 
   /**
    * @const
    * @type {string}
    */
-  ol.render.webgl.imagereplay.defaultshader.Fragment.DEBUG_SOURCE = 'precision mediump float;\nvarying vec2 v_texCoord;\nvarying float v_opacity;\n\nuniform float u_opacity;\nuniform sampler2D u_image;\n\nvoid main(void) {\n  vec4 texColor = texture2D(u_image, v_texCoord);\n  gl_FragColor.rgb = texColor.rgb;\n  float alpha = texColor.a * v_opacity * u_opacity;\n  if (alpha == 0.0) {\n    discard;\n  }\n  gl_FragColor.a = alpha;\n}\n';
+  ol.render.webgl.texturereplay.defaultshader.Fragment.DEBUG_SOURCE = 'precision mediump float;\nvarying vec2 v_texCoord;\nvarying float v_opacity;\n\nuniform float u_opacity;\nuniform sampler2D u_image;\n\nvoid main(void) {\n  vec4 texColor = texture2D(u_image, v_texCoord);\n  gl_FragColor.rgb = texColor.rgb;\n  float alpha = texColor.a * v_opacity * u_opacity;\n  if (alpha == 0.0) {\n    discard;\n  }\n  gl_FragColor.a = alpha;\n}\n';
 
 
   /**
    * @const
    * @type {string}
    */
-  ol.render.webgl.imagereplay.defaultshader.Fragment.OPTIMIZED_SOURCE = 'precision mediump float;varying vec2 a;varying float b;uniform float k;uniform sampler2D l;void main(void){vec4 texColor=texture2D(l,a);gl_FragColor.rgb=texColor.rgb;float alpha=texColor.a*b*k;if(alpha==0.0){discard;}gl_FragColor.a=alpha;}';
+  ol.render.webgl.texturereplay.defaultshader.Fragment.OPTIMIZED_SOURCE = 'precision mediump float;varying vec2 a;varying float b;uniform float k;uniform sampler2D l;void main(void){vec4 texColor=texture2D(l,a);gl_FragColor.rgb=texColor.rgb;float alpha=texColor.a*b*k;if(alpha==0.0){discard;}gl_FragColor.a=alpha;}';
 
 
   /**
    * @const
    * @type {string}
    */
-  ol.render.webgl.imagereplay.defaultshader.Fragment.SOURCE = ol.DEBUG_WEBGL ?
-      ol.render.webgl.imagereplay.defaultshader.Fragment.DEBUG_SOURCE :
-      ol.render.webgl.imagereplay.defaultshader.Fragment.OPTIMIZED_SOURCE;
+  ol.render.webgl.texturereplay.defaultshader.Fragment.SOURCE = ol.DEBUG_WEBGL ?
+    ol.render.webgl.texturereplay.defaultshader.Fragment.DEBUG_SOURCE :
+    ol.render.webgl.texturereplay.defaultshader.Fragment.OPTIMIZED_SOURCE;
 
 
-  ol.render.webgl.imagereplay.defaultshader.fragment = new ol.render.webgl.imagereplay.defaultshader.Fragment();
+  ol.render.webgl.texturereplay.defaultshader.fragment = new ol.render.webgl.texturereplay.defaultshader.Fragment();
 
 
   /**
@@ -24520,36 +25066,36 @@ if (ol.ENABLE_WEBGL) {
    * @extends {ol.webgl.Vertex}
    * @struct
    */
-  ol.render.webgl.imagereplay.defaultshader.Vertex = function() {
-    ol.webgl.Vertex.call(this, ol.render.webgl.imagereplay.defaultshader.Vertex.SOURCE);
+  ol.render.webgl.texturereplay.defaultshader.Vertex = function() {
+    ol.webgl.Vertex.call(this, ol.render.webgl.texturereplay.defaultshader.Vertex.SOURCE);
   };
-  ol.inherits(ol.render.webgl.imagereplay.defaultshader.Vertex, ol.webgl.Vertex);
+  ol.inherits(ol.render.webgl.texturereplay.defaultshader.Vertex, ol.webgl.Vertex);
 
 
   /**
    * @const
    * @type {string}
    */
-  ol.render.webgl.imagereplay.defaultshader.Vertex.DEBUG_SOURCE = 'varying vec2 v_texCoord;\nvarying float v_opacity;\n\nattribute vec2 a_position;\nattribute vec2 a_texCoord;\nattribute vec2 a_offsets;\nattribute float a_opacity;\nattribute float a_rotateWithView;\n\nuniform mat4 u_projectionMatrix;\nuniform mat4 u_offsetScaleMatrix;\nuniform mat4 u_offsetRotateMatrix;\n\nvoid main(void) {\n  mat4 offsetMatrix = u_offsetScaleMatrix;\n  if (a_rotateWithView == 1.0) {\n    offsetMatrix = u_offsetScaleMatrix * u_offsetRotateMatrix;\n  }\n  vec4 offsets = offsetMatrix * vec4(a_offsets, 0.0, 0.0);\n  gl_Position = u_projectionMatrix * vec4(a_position, 0.0, 1.0) + offsets;\n  v_texCoord = a_texCoord;\n  v_opacity = a_opacity;\n}\n\n\n';
+  ol.render.webgl.texturereplay.defaultshader.Vertex.DEBUG_SOURCE = 'varying vec2 v_texCoord;\nvarying float v_opacity;\n\nattribute vec2 a_position;\nattribute vec2 a_texCoord;\nattribute vec2 a_offsets;\nattribute float a_opacity;\nattribute float a_rotateWithView;\n\nuniform mat4 u_projectionMatrix;\nuniform mat4 u_offsetScaleMatrix;\nuniform mat4 u_offsetRotateMatrix;\n\nvoid main(void) {\n  mat4 offsetMatrix = u_offsetScaleMatrix;\n  if (a_rotateWithView == 1.0) {\n    offsetMatrix = u_offsetScaleMatrix * u_offsetRotateMatrix;\n  }\n  vec4 offsets = offsetMatrix * vec4(a_offsets, 0.0, 0.0);\n  gl_Position = u_projectionMatrix * vec4(a_position, 0.0, 1.0) + offsets;\n  v_texCoord = a_texCoord;\n  v_opacity = a_opacity;\n}\n\n\n';
 
 
   /**
    * @const
    * @type {string}
    */
-  ol.render.webgl.imagereplay.defaultshader.Vertex.OPTIMIZED_SOURCE = 'varying vec2 a;varying float b;attribute vec2 c;attribute vec2 d;attribute vec2 e;attribute float f;attribute float g;uniform mat4 h;uniform mat4 i;uniform mat4 j;void main(void){mat4 offsetMatrix=i;if(g==1.0){offsetMatrix=i*j;}vec4 offsets=offsetMatrix*vec4(e,0.0,0.0);gl_Position=h*vec4(c,0.0,1.0)+offsets;a=d;b=f;}';
+  ol.render.webgl.texturereplay.defaultshader.Vertex.OPTIMIZED_SOURCE = 'varying vec2 a;varying float b;attribute vec2 c;attribute vec2 d;attribute vec2 e;attribute float f;attribute float g;uniform mat4 h;uniform mat4 i;uniform mat4 j;void main(void){mat4 offsetMatrix=i;if(g==1.0){offsetMatrix=i*j;}vec4 offsets=offsetMatrix*vec4(e,0.0,0.0);gl_Position=h*vec4(c,0.0,1.0)+offsets;a=d;b=f;}';
 
 
   /**
    * @const
    * @type {string}
    */
-  ol.render.webgl.imagereplay.defaultshader.Vertex.SOURCE = ol.DEBUG_WEBGL ?
-      ol.render.webgl.imagereplay.defaultshader.Vertex.DEBUG_SOURCE :
-      ol.render.webgl.imagereplay.defaultshader.Vertex.OPTIMIZED_SOURCE;
+  ol.render.webgl.texturereplay.defaultshader.Vertex.SOURCE = ol.DEBUG_WEBGL ?
+    ol.render.webgl.texturereplay.defaultshader.Vertex.DEBUG_SOURCE :
+    ol.render.webgl.texturereplay.defaultshader.Vertex.OPTIMIZED_SOURCE;
 
 
-  ol.render.webgl.imagereplay.defaultshader.vertex = new ol.render.webgl.imagereplay.defaultshader.Vertex();
+  ol.render.webgl.texturereplay.defaultshader.vertex = new ol.render.webgl.texturereplay.defaultshader.Vertex();
 
 
   /**
@@ -24558,7 +25104,7 @@ if (ol.ENABLE_WEBGL) {
    * @param {WebGLProgram} program Program.
    * @struct
    */
-  ol.render.webgl.imagereplay.defaultshader.Locations = function(gl, program) {
+  ol.render.webgl.texturereplay.defaultshader.Locations = function(gl, program) {
 
     /**
      * @type {WebGLUniformLocation}
@@ -24754,7 +25300,7 @@ if (ol.ENABLE_WEBGL) {
         arrayBuffer = new Float32Array(arr);
       } else if (target == ol.webgl.ELEMENT_ARRAY_BUFFER) {
         arrayBuffer = this.hasOESElementIndexUint ?
-            new Uint32Array(arr) : new Uint16Array(arr);
+          new Uint32Array(arr) : new Uint16Array(arr);
       }
       gl.bufferData(target, arrayBuffer, buf.getUsage());
       this.bufferCache_[bufferKey] = {
@@ -25010,164 +25556,135 @@ if (ol.ENABLE_WEBGL) {
 
 }
 
-goog.provide('ol.render.webgl.ImageReplay');
+goog.provide('ol.render.webgl.TextureReplay');
 
 goog.require('ol');
 goog.require('ol.extent');
 goog.require('ol.obj');
-goog.require('ol.render.webgl.imagereplay.defaultshader');
+goog.require('ol.render.webgl.texturereplay.defaultshader');
 goog.require('ol.render.webgl.Replay');
 goog.require('ol.webgl');
-goog.require('ol.webgl.Buffer');
 goog.require('ol.webgl.Context');
-
 
 if (ol.ENABLE_WEBGL) {
 
   /**
    * @constructor
+   * @abstract
    * @extends {ol.render.webgl.Replay}
    * @param {number} tolerance Tolerance.
    * @param {ol.Extent} maxExtent Max extent.
    * @struct
    */
-  ol.render.webgl.ImageReplay = function(tolerance, maxExtent) {
+  ol.render.webgl.TextureReplay = function(tolerance, maxExtent) {
     ol.render.webgl.Replay.call(this, tolerance, maxExtent);
 
     /**
      * @type {number|undefined}
-     * @private
+     * @protected
      */
-    this.anchorX_ = undefined;
+    this.anchorX = undefined;
 
     /**
      * @type {number|undefined}
-     * @private
+     * @protected
      */
-    this.anchorY_ = undefined;
+    this.anchorY = undefined;
 
     /**
      * @type {Array.<number>}
-     * @private
+     * @protected
      */
-    this.groupIndices_ = [];
+    this.groupIndices = [];
 
     /**
      * @type {Array.<number>}
-     * @private
+     * @protected
      */
-    this.hitDetectionGroupIndices_ = [];
+    this.hitDetectionGroupIndices = [];
 
     /**
      * @type {number|undefined}
-     * @private
+     * @protected
      */
-    this.height_ = undefined;
-
-    /**
-     * @type {Array.<HTMLCanvasElement|HTMLImageElement|HTMLVideoElement>}
-     * @private
-     */
-    this.images_ = [];
-
-    /**
-     * @type {Array.<HTMLCanvasElement|HTMLImageElement|HTMLVideoElement>}
-     * @private
-     */
-    this.hitDetectionImages_ = [];
+    this.height = undefined;
 
     /**
      * @type {number|undefined}
-     * @private
+     * @protected
      */
-    this.imageHeight_ = undefined;
+    this.imageHeight = undefined;
 
     /**
      * @type {number|undefined}
-     * @private
+     * @protected
      */
-    this.imageWidth_ = undefined;
+    this.imageWidth = undefined;
 
     /**
-     * @private
-     * @type {ol.render.webgl.imagereplay.defaultshader.Locations}
+     * @protected
+     * @type {ol.render.webgl.texturereplay.defaultshader.Locations}
      */
-    this.defaultLocations_ = null;
+    this.defaultLocations = null;
 
     /**
-     * @private
+     * @protected
      * @type {number|undefined}
      */
-    this.opacity_ = undefined;
-
-    /**
-     * @type {number|undefined}
-     * @private
-     */
-    this.originX_ = undefined;
+    this.opacity = undefined;
 
     /**
      * @type {number|undefined}
-     * @private
+     * @protected
      */
-    this.originY_ = undefined;
+    this.originX = undefined;
 
     /**
-     * @private
+     * @type {number|undefined}
+     * @protected
+     */
+    this.originY = undefined;
+
+    /**
+     * @protected
      * @type {boolean|undefined}
      */
-    this.rotateWithView_ = undefined;
+    this.rotateWithView = undefined;
 
     /**
-     * @private
+     * @protected
      * @type {number|undefined}
      */
-    this.rotation_ = undefined;
+    this.rotation = undefined;
 
     /**
-     * @private
+     * @protected
      * @type {number|undefined}
      */
-    this.scale_ = undefined;
-
-    /**
-     * @type {Array.<WebGLTexture>}
-     * @private
-     */
-    this.textures_ = [];
-
-    /**
-     * @type {Array.<WebGLTexture>}
-     * @private
-     */
-    this.hitDetectionTextures_ = [];
+    this.scale = undefined;
 
     /**
      * @type {number|undefined}
-     * @private
+     * @protected
      */
-    this.width_ = undefined;
+    this.width = undefined;
   };
-  ol.inherits(ol.render.webgl.ImageReplay, ol.render.webgl.Replay);
+  ol.inherits(ol.render.webgl.TextureReplay, ol.render.webgl.Replay);
 
 
   /**
    * @inheritDoc
    */
-  ol.render.webgl.ImageReplay.prototype.getDeleteResourcesFunction = function(context) {
+  ol.render.webgl.TextureReplay.prototype.getDeleteResourcesFunction = function(context) {
     var verticesBuffer = this.verticesBuffer;
     var indicesBuffer = this.indicesBuffer;
-    var textures = this.textures_;
-    var hitDetectionTextures = this.hitDetectionTextures_;
+    var textures = this.getTextures(true);
     var gl = context.getGL();
     return function() {
       if (!gl.isContextLost()) {
         var i, ii;
         for (i = 0, ii = textures.length; i < ii; ++i) {
           gl.deleteTexture(textures[i]);
-        }
-        for (i = 0, ii = hitDetectionTextures.length; i < ii; ++i) {
-          gl.deleteTexture(hitDetectionTextures[i]);
         }
       }
       context.deleteBuffer(verticesBuffer);
@@ -25182,22 +25699,22 @@ if (ol.ENABLE_WEBGL) {
    * @param {number} end End.
    * @param {number} stride Stride.
    * @return {number} My end.
-   * @private
+   * @protected
    */
-  ol.render.webgl.ImageReplay.prototype.drawCoordinates_ = function(flatCoordinates, offset, end, stride) {
-    var anchorX = /** @type {number} */ (this.anchorX_);
-    var anchorY = /** @type {number} */ (this.anchorY_);
-    var height = /** @type {number} */ (this.height_);
-    var imageHeight = /** @type {number} */ (this.imageHeight_);
-    var imageWidth = /** @type {number} */ (this.imageWidth_);
-    var opacity = /** @type {number} */ (this.opacity_);
-    var originX = /** @type {number} */ (this.originX_);
-    var originY = /** @type {number} */ (this.originY_);
-    var rotateWithView = this.rotateWithView_ ? 1.0 : 0.0;
+  ol.render.webgl.TextureReplay.prototype.drawCoordinates = function(flatCoordinates, offset, end, stride) {
+    var anchorX = /** @type {number} */ (this.anchorX);
+    var anchorY = /** @type {number} */ (this.anchorY);
+    var height = /** @type {number} */ (this.height);
+    var imageHeight = /** @type {number} */ (this.imageHeight);
+    var imageWidth = /** @type {number} */ (this.imageWidth);
+    var opacity = /** @type {number} */ (this.opacity);
+    var originX = /** @type {number} */ (this.originX);
+    var originY = /** @type {number} */ (this.originY);
+    var rotateWithView = this.rotateWithView ? 1.0 : 0.0;
     // this.rotation_ is anti-clockwise, but rotation is clockwise
-    var rotation = /** @type {number} */ (-this.rotation_);
-    var scale = /** @type {number} */ (this.scale_);
-    var width = /** @type {number} */ (this.width_);
+    var rotation = /** @type {number} */ (-this.rotation);
+    var scale = /** @type {number} */ (this.scale);
+    var width = /** @type {number} */ (this.width);
     var cos = Math.cos(rotation);
     var sin = Math.sin(rotation);
     var numIndices = this.indices.length;
@@ -25280,85 +25797,14 @@ if (ol.ENABLE_WEBGL) {
 
 
   /**
-   * @inheritDoc
-   */
-  ol.render.webgl.ImageReplay.prototype.drawMultiPoint = function(multiPointGeometry, feature) {
-    this.startIndices.push(this.indices.length);
-    this.startIndicesFeature.push(feature);
-    var flatCoordinates = multiPointGeometry.getFlatCoordinates();
-    var stride = multiPointGeometry.getStride();
-    this.drawCoordinates_(
-        flatCoordinates, 0, flatCoordinates.length, stride);
-  };
-
-
-  /**
-   * @inheritDoc
-   */
-  ol.render.webgl.ImageReplay.prototype.drawPoint = function(pointGeometry, feature) {
-    this.startIndices.push(this.indices.length);
-    this.startIndicesFeature.push(feature);
-    var flatCoordinates = pointGeometry.getFlatCoordinates();
-    var stride = pointGeometry.getStride();
-    this.drawCoordinates_(
-        flatCoordinates, 0, flatCoordinates.length, stride);
-  };
-
-
-  /**
-   * @inheritDoc
-   */
-  ol.render.webgl.ImageReplay.prototype.finish = function(context) {
-    var gl = context.getGL();
-
-    this.groupIndices_.push(this.indices.length);
-    this.hitDetectionGroupIndices_.push(this.indices.length);
-
-    // create, bind, and populate the vertices buffer
-    this.verticesBuffer = new ol.webgl.Buffer(this.vertices);
-
-    var indices = this.indices;
-
-    // create, bind, and populate the indices buffer
-    this.indicesBuffer = new ol.webgl.Buffer(indices);
-
-    // create textures
-    /** @type {Object.<string, WebGLTexture>} */
-    var texturePerImage = {};
-
-    this.createTextures_(this.textures_, this.images_, texturePerImage, gl);
-
-    this.createTextures_(this.hitDetectionTextures_, this.hitDetectionImages_,
-        texturePerImage, gl);
-
-    this.anchorX_ = undefined;
-    this.anchorY_ = undefined;
-    this.height_ = undefined;
-    this.images_ = null;
-    this.hitDetectionImages_ = null;
-    this.imageHeight_ = undefined;
-    this.imageWidth_ = undefined;
-    this.indices = null;
-    this.opacity_ = undefined;
-    this.originX_ = undefined;
-    this.originY_ = undefined;
-    this.rotateWithView_ = undefined;
-    this.rotation_ = undefined;
-    this.scale_ = undefined;
-    this.vertices = null;
-    this.width_ = undefined;
-  };
-
-
-  /**
-   * @private
+   * @protected
    * @param {Array.<WebGLTexture>} textures Textures.
    * @param {Array.<HTMLCanvasElement|HTMLImageElement|HTMLVideoElement>} images
    *    Images.
    * @param {Object.<string, WebGLTexture>} texturePerImage Texture cache.
    * @param {WebGLRenderingContext} gl Gl.
    */
-  ol.render.webgl.ImageReplay.prototype.createTextures_ = function(textures, images, texturePerImage, gl) {
+  ol.render.webgl.TextureReplay.prototype.createTextures = function(textures, images, texturePerImage, gl) {
     var texture, image, uid, i;
     var ii = images.length;
     for (i = 0; i < ii; ++i) {
@@ -25380,20 +25826,20 @@ if (ol.ENABLE_WEBGL) {
   /**
    * @inheritDoc
    */
-  ol.render.webgl.ImageReplay.prototype.setUpProgram = function(gl, context, size, pixelRatio) {
+  ol.render.webgl.TextureReplay.prototype.setUpProgram = function(gl, context, size, pixelRatio) {
     // get the program
-    var fragmentShader = ol.render.webgl.imagereplay.defaultshader.fragment;
-    var vertexShader = ol.render.webgl.imagereplay.defaultshader.vertex;
+    var fragmentShader = ol.render.webgl.texturereplay.defaultshader.fragment;
+    var vertexShader = ol.render.webgl.texturereplay.defaultshader.vertex;
     var program = context.getProgram(fragmentShader, vertexShader);
 
     // get the locations
     var locations;
-    if (!this.defaultLocations_) {
-      locations =
-          new ol.render.webgl.imagereplay.defaultshader.Locations(gl, program);
-      this.defaultLocations_ = locations;
+    if (!this.defaultLocations) {
+      // eslint-disable-next-line openlayers-internal/no-missing-requires
+      locations = new ol.render.webgl.texturereplay.defaultshader.Locations(gl, program);
+      this.defaultLocations = locations;
     } else {
-      locations = this.defaultLocations_;
+      locations = this.defaultLocations;
     }
 
     // use the program (FIXME: use the return value)
@@ -25427,7 +25873,7 @@ if (ol.ENABLE_WEBGL) {
   /**
    * @inheritDoc
    */
-  ol.render.webgl.ImageReplay.prototype.shutDownProgram = function(gl, locations) {
+  ol.render.webgl.TextureReplay.prototype.shutDownProgram = function(gl, locations) {
     gl.disableVertexAttribArray(locations.a_position);
     gl.disableVertexAttribArray(locations.a_offsets);
     gl.disableVertexAttribArray(locations.a_texCoord);
@@ -25439,12 +25885,12 @@ if (ol.ENABLE_WEBGL) {
   /**
    * @inheritDoc
    */
-  ol.render.webgl.ImageReplay.prototype.drawReplay = function(gl, context, skippedFeaturesHash, hitDetection) {
-    var textures = hitDetection ? this.hitDetectionTextures_ : this.textures_;
-    var groupIndices = hitDetection ? this.hitDetectionGroupIndices_ : this.groupIndices_;
+  ol.render.webgl.TextureReplay.prototype.drawReplay = function(gl, context, skippedFeaturesHash, hitDetection) {
+    var textures = hitDetection ? this.getHitDetectionTextures() : this.getTextures();
+    var groupIndices = hitDetection ? this.hitDetectionGroupIndices : this.groupIndices;
 
     if (!ol.obj.isEmpty(skippedFeaturesHash)) {
-      this.drawReplaySkipping_(
+      this.drawReplaySkipping(
           gl, context, skippedFeaturesHash, textures, groupIndices);
     } else {
       var i, ii, start;
@@ -25476,7 +25922,7 @@ if (ol.ENABLE_WEBGL) {
    *    drawElements with feature D
    *    drawElements with feature F and G
    *
-   * @private
+   * @protected
    * @param {WebGLRenderingContext} gl gl.
    * @param {ol.webgl.Context} context Context.
    * @param {Object.<string, boolean>} skippedFeaturesHash Ids of features
@@ -25484,7 +25930,7 @@ if (ol.ENABLE_WEBGL) {
    * @param {Array.<WebGLTexture>} textures Textures.
    * @param {Array.<number>} groupIndices Texture group indices.
    */
-  ol.render.webgl.ImageReplay.prototype.drawReplaySkipping_ = function(gl, context, skippedFeaturesHash, textures,
+  ol.render.webgl.TextureReplay.prototype.drawReplaySkipping = function(gl, context, skippedFeaturesHash, textures,
       groupIndices) {
     var featureIndex = 0;
 
@@ -25509,12 +25955,12 @@ if (ol.ENABLE_WEBGL) {
           }
           // continue with the next feature
           start = (featureIndex === this.startIndices.length - 1) ?
-              groupEnd : this.startIndices[featureIndex + 1];
+            groupEnd : this.startIndices[featureIndex + 1];
           end = start;
         } else {
           // the feature is not skipped, augment the end index
           end = (featureIndex === this.startIndices.length - 1) ?
-              groupEnd : this.startIndices[featureIndex + 1];
+            groupEnd : this.startIndices[featureIndex + 1];
         }
         featureIndex++;
       }
@@ -25531,14 +25977,15 @@ if (ol.ENABLE_WEBGL) {
   /**
    * @inheritDoc
    */
-  ol.render.webgl.ImageReplay.prototype.drawHitDetectionReplayOneByOne = function(gl, context, skippedFeaturesHash,
+  ol.render.webgl.TextureReplay.prototype.drawHitDetectionReplayOneByOne = function(gl, context, skippedFeaturesHash,
       featureCallback, opt_hitExtent) {
     var i, groupStart, start, end, feature, featureUid;
     var featureIndex = this.startIndices.length - 1;
-    for (i = this.hitDetectionTextures_.length - 1; i >= 0; --i) {
-      gl.bindTexture(ol.webgl.TEXTURE_2D, this.hitDetectionTextures_[i]);
-      groupStart = (i > 0) ? this.hitDetectionGroupIndices_[i - 1] : 0;
-      end = this.hitDetectionGroupIndices_[i];
+    var hitDetectionTextures = this.getHitDetectionTextures();
+    for (i = hitDetectionTextures.length - 1; i >= 0; --i) {
+      gl.bindTexture(ol.webgl.TEXTURE_2D, hitDetectionTextures[i]);
+      groupStart = (i > 0) ? this.hitDetectionGroupIndices[i - 1] : 0;
+      end = this.hitDetectionGroupIndices[i];
 
       // draw all features for this texture group
       while (featureIndex >= 0 &&
@@ -25572,6 +26019,149 @@ if (ol.ENABLE_WEBGL) {
   /**
    * @inheritDoc
    */
+  ol.render.webgl.TextureReplay.prototype.finish = function(context) {
+    this.anchorX = undefined;
+    this.anchorY = undefined;
+    this.height = undefined;
+    this.imageHeight = undefined;
+    this.imageWidth = undefined;
+    this.indices = null;
+    this.opacity = undefined;
+    this.originX = undefined;
+    this.originY = undefined;
+    this.rotateWithView = undefined;
+    this.rotation = undefined;
+    this.scale = undefined;
+    this.vertices = null;
+    this.width = undefined;
+  };
+
+
+  /**
+   * @abstract
+   * @protected
+   * @param {boolean=} opt_all Return hit detection textures with regular ones.
+   * @returns {Array.<WebGLTexture>} Textures.
+   */
+  ol.render.webgl.TextureReplay.prototype.getTextures = function(opt_all) {};
+
+
+  /**
+   * @abstract
+   * @protected
+   * @returns {Array.<WebGLTexture>} Textures.
+   */
+  ol.render.webgl.TextureReplay.prototype.getHitDetectionTextures = function() {};
+}
+
+goog.provide('ol.render.webgl.ImageReplay');
+
+goog.require('ol');
+goog.require('ol.render.webgl.TextureReplay');
+goog.require('ol.webgl.Buffer');
+
+
+if (ol.ENABLE_WEBGL) {
+
+  /**
+   * @constructor
+   * @extends {ol.render.webgl.TextureReplay}
+   * @param {number} tolerance Tolerance.
+   * @param {ol.Extent} maxExtent Max extent.
+   * @struct
+   */
+  ol.render.webgl.ImageReplay = function(tolerance, maxExtent) {
+    ol.render.webgl.TextureReplay.call(this, tolerance, maxExtent);
+
+    /**
+     * @type {Array.<HTMLCanvasElement|HTMLImageElement|HTMLVideoElement>}
+     * @protected
+     */
+    this.images_ = [];
+
+    /**
+     * @type {Array.<HTMLCanvasElement|HTMLImageElement|HTMLVideoElement>}
+     * @protected
+     */
+    this.hitDetectionImages_ = [];
+
+    /**
+     * @type {Array.<WebGLTexture>}
+     * @private
+     */
+    this.textures_ = [];
+
+    /**
+     * @type {Array.<WebGLTexture>}
+     * @private
+     */
+    this.hitDetectionTextures_ = [];
+
+  };
+  ol.inherits(ol.render.webgl.ImageReplay, ol.render.webgl.TextureReplay);
+
+
+  /**
+   * @inheritDoc
+   */
+  ol.render.webgl.ImageReplay.prototype.drawMultiPoint = function(multiPointGeometry, feature) {
+    this.startIndices.push(this.indices.length);
+    this.startIndicesFeature.push(feature);
+    var flatCoordinates = multiPointGeometry.getFlatCoordinates();
+    var stride = multiPointGeometry.getStride();
+    this.drawCoordinates(
+        flatCoordinates, 0, flatCoordinates.length, stride);
+  };
+
+
+  /**
+   * @inheritDoc
+   */
+  ol.render.webgl.ImageReplay.prototype.drawPoint = function(pointGeometry, feature) {
+    this.startIndices.push(this.indices.length);
+    this.startIndicesFeature.push(feature);
+    var flatCoordinates = pointGeometry.getFlatCoordinates();
+    var stride = pointGeometry.getStride();
+    this.drawCoordinates(
+        flatCoordinates, 0, flatCoordinates.length, stride);
+  };
+
+
+  /**
+   * @inheritDoc
+   */
+  ol.render.webgl.ImageReplay.prototype.finish = function(context) {
+    var gl = context.getGL();
+
+    this.groupIndices.push(this.indices.length);
+    this.hitDetectionGroupIndices.push(this.indices.length);
+
+    // create, bind, and populate the vertices buffer
+    this.verticesBuffer = new ol.webgl.Buffer(this.vertices);
+
+    var indices = this.indices;
+
+    // create, bind, and populate the indices buffer
+    this.indicesBuffer = new ol.webgl.Buffer(indices);
+
+    // create textures
+    /** @type {Object.<string, WebGLTexture>} */
+    var texturePerImage = {};
+
+    this.createTextures(this.textures_, this.images_, texturePerImage, gl);
+
+    this.createTextures(this.hitDetectionTextures_, this.hitDetectionImages_,
+        texturePerImage, gl);
+
+    this.images_ = null;
+    this.hitDetectionImages_ = null;
+    ol.render.webgl.TextureReplay.prototype.finish.call(this, context);
+  };
+
+
+  /**
+   * @inheritDoc
+   */
   ol.render.webgl.ImageReplay.prototype.setImageStyle = function(imageStyle) {
     var anchor = imageStyle.getAnchor();
     var image = imageStyle.getImage(1);
@@ -25590,7 +26180,7 @@ if (ol.ENABLE_WEBGL) {
     } else {
       currentImage = this.images_[this.images_.length - 1];
       if (ol.getUid(currentImage) != ol.getUid(image)) {
-        this.groupIndices_.push(this.indices.length);
+        this.groupIndices.push(this.indices.length);
         this.images_.push(image);
       }
     }
@@ -25601,23 +26191,39 @@ if (ol.ENABLE_WEBGL) {
       currentImage =
           this.hitDetectionImages_[this.hitDetectionImages_.length - 1];
       if (ol.getUid(currentImage) != ol.getUid(hitDetectionImage)) {
-        this.hitDetectionGroupIndices_.push(this.indices.length);
+        this.hitDetectionGroupIndices.push(this.indices.length);
         this.hitDetectionImages_.push(hitDetectionImage);
       }
     }
 
-    this.anchorX_ = anchor[0];
-    this.anchorY_ = anchor[1];
-    this.height_ = size[1];
-    this.imageHeight_ = imageSize[1];
-    this.imageWidth_ = imageSize[0];
-    this.opacity_ = opacity;
-    this.originX_ = origin[0];
-    this.originY_ = origin[1];
-    this.rotation_ = rotation;
-    this.rotateWithView_ = rotateWithView;
-    this.scale_ = scale;
-    this.width_ = size[0];
+    this.anchorX = anchor[0];
+    this.anchorY = anchor[1];
+    this.height = size[1];
+    this.imageHeight = imageSize[1];
+    this.imageWidth = imageSize[0];
+    this.opacity = opacity;
+    this.originX = origin[0];
+    this.originY = origin[1];
+    this.rotation = rotation;
+    this.rotateWithView = rotateWithView;
+    this.scale = scale;
+    this.width = size[0];
+  };
+
+
+  /**
+   * @inheritDoc
+   */
+  ol.render.webgl.ImageReplay.prototype.getTextures = function(opt_all) {
+    return opt_all ? this.textures_.concat(this.hitDetectionTextures_) : this.textures_;
+  };
+
+
+  /**
+   * @inheritDoc
+   */
+  ol.render.webgl.ImageReplay.prototype.getHitDetectionTextures = function() {
+    return this.hitDetectionTextures_;
   };
 
 }
@@ -25644,6 +26250,7 @@ ol.geom.flat.topology.lineStringIsClosed = function(flatCoordinates, offset, end
 };
 
 // This file is automatically generated, do not edit
+/* eslint openlayers-internal/no-missing-requires: 0 */
 goog.provide('ol.render.webgl.linestringreplay.defaultshader');
 
 goog.require('ol');
@@ -25682,8 +26289,8 @@ if (ol.ENABLE_WEBGL) {
    * @type {string}
    */
   ol.render.webgl.linestringreplay.defaultshader.Fragment.SOURCE = ol.DEBUG_WEBGL ?
-      ol.render.webgl.linestringreplay.defaultshader.Fragment.DEBUG_SOURCE :
-      ol.render.webgl.linestringreplay.defaultshader.Fragment.OPTIMIZED_SOURCE;
+    ol.render.webgl.linestringreplay.defaultshader.Fragment.DEBUG_SOURCE :
+    ol.render.webgl.linestringreplay.defaultshader.Fragment.OPTIMIZED_SOURCE;
 
 
   ol.render.webgl.linestringreplay.defaultshader.fragment = new ol.render.webgl.linestringreplay.defaultshader.Fragment();
@@ -25719,8 +26326,8 @@ if (ol.ENABLE_WEBGL) {
    * @type {string}
    */
   ol.render.webgl.linestringreplay.defaultshader.Vertex.SOURCE = ol.DEBUG_WEBGL ?
-      ol.render.webgl.linestringreplay.defaultshader.Vertex.DEBUG_SOURCE :
-      ol.render.webgl.linestringreplay.defaultshader.Vertex.OPTIMIZED_SOURCE;
+    ol.render.webgl.linestringreplay.defaultshader.Vertex.DEBUG_SOURCE :
+    ol.render.webgl.linestringreplay.defaultshader.Vertex.OPTIMIZED_SOURCE;
 
 
   ol.render.webgl.linestringreplay.defaultshader.vertex = new ol.render.webgl.linestringreplay.defaultshader.Vertex();
@@ -25905,9 +26512,9 @@ if (ol.ENABLE_WEBGL) {
     //ol.render.webgl.LineStringReplay.Instruction_, and a rounding factor (1 or 2). If the product is even,
     //we round it. If it is odd, we don't.
     var lineJoin = this.state_.lineJoin === 'bevel' ? 0 :
-        this.state_.lineJoin === 'miter' ? 1 : 2;
+      this.state_.lineJoin === 'miter' ? 1 : 2;
     var lineCap = this.state_.lineCap === 'butt' ? 0 :
-        this.state_.lineCap === 'square' ? 1 : 2;
+      this.state_.lineCap === 'square' ? 1 : 2;
     var closed = ol.geom.flat.topology.lineStringIsClosed(flatCoordinates, offset, end, stride);
     var startCoords, sign, n;
     var lastIndex = numIndices;
@@ -26011,7 +26618,7 @@ if (ol.ENABLE_WEBGL) {
 
       // We group CW and straight lines, thus the not so inituitive CCW checking function.
       sign = ol.render.webgl.triangleIsCounterClockwise(p0[0], p0[1], p1[0], p1[1], p2[0], p2[1])
-          ? -1 : 1;
+        ? -1 : 1;
 
       numVertices = this.addVertices_(p0, p1, p2,
           sign * ol.render.webgl.LineStringReplay.Instruction_.BEVEL_FIRST * (lineJoin || 1), numVertices);
@@ -26053,7 +26660,7 @@ if (ol.ENABLE_WEBGL) {
     if (closed) {
       n = n || numVertices / 7;
       sign = ol.geom.flat.orient.linearRingIsClockwise([p0[0], p0[1], p1[0], p1[1], p2[0], p2[1]], 0, 6, 2)
-          ? 1 : -1;
+        ? 1 : -1;
 
       numVertices = this.addVertices_(p0, p1, p2,
           sign * ol.render.webgl.LineStringReplay.Instruction_.BEVEL_FIRST * (lineJoin || 1), numVertices);
@@ -26141,16 +26748,19 @@ if (ol.ENABLE_WEBGL) {
    */
   ol.render.webgl.LineStringReplay.prototype.drawMultiLineString = function(multiLineStringGeometry, feature) {
     var indexCount = this.indices.length;
-    var lineStringGeometries = multiLineStringGeometry.getLineStrings();
+    var ends = multiLineStringGeometry.getEnds();
+    ends.unshift(0);
+    var flatCoordinates = multiLineStringGeometry.getFlatCoordinates();
+    var stride = multiLineStringGeometry.getStride();
     var i, ii;
-    for (i = 0, ii = lineStringGeometries.length; i < ii; ++i) {
-      var flatCoordinates = lineStringGeometries[i].getFlatCoordinates();
-      var stride = lineStringGeometries[i].getStride();
-      if (this.isValid_(flatCoordinates, 0, flatCoordinates.length, stride)) {
-        flatCoordinates = ol.geom.flat.transform.translate(flatCoordinates, 0, flatCoordinates.length,
-            stride, -this.origin[0], -this.origin[1]);
-        this.drawCoordinates_(
-            flatCoordinates, 0, flatCoordinates.length, stride);
+    if (ends.length > 1) {
+      for (i = 1, ii = ends.length; i < ii; ++i) {
+        if (this.isValid_(flatCoordinates, ends[i - 1], ends[i], stride)) {
+          var lineString = ol.geom.flat.transform.translate(flatCoordinates, ends[i - 1], ends[i],
+              stride, -this.origin[0], -this.origin[1]);
+          this.drawCoordinates_(
+              lineString, 0, lineString.length, stride);
+        }
       }
     }
     if (this.indices.length > indexCount) {
@@ -26263,8 +26873,8 @@ if (ol.ENABLE_WEBGL) {
     // get the locations
     var locations;
     if (!this.defaultLocations_) {
-      locations =
-          new ol.render.webgl.linestringreplay.defaultshader.Locations(gl, program);
+      // eslint-disable-next-line openlayers-internal/no-missing-requires
+      locations = new ol.render.webgl.linestringreplay.defaultshader.Locations(gl, program);
       this.defaultLocations_ = locations;
     } else {
       locations = this.defaultLocations_;
@@ -26449,16 +27059,16 @@ if (ol.ENABLE_WEBGL) {
   ol.render.webgl.LineStringReplay.prototype.setFillStrokeStyle = function(fillStyle, strokeStyle) {
     var strokeStyleLineCap = strokeStyle.getLineCap();
     this.state_.lineCap = strokeStyleLineCap !== undefined ?
-        strokeStyleLineCap : ol.render.webgl.defaultLineCap;
+      strokeStyleLineCap : ol.render.webgl.defaultLineCap;
     var strokeStyleLineDash = strokeStyle.getLineDash();
     this.state_.lineDash = strokeStyleLineDash ?
-        strokeStyleLineDash : ol.render.webgl.defaultLineDash;
+      strokeStyleLineDash : ol.render.webgl.defaultLineDash;
     var strokeStyleLineDashOffset = strokeStyle.getLineDashOffset();
     this.state_.lineDashOffset = strokeStyleLineDashOffset ?
-        strokeStyleLineDashOffset : ol.render.webgl.defaultLineDashOffset;
+      strokeStyleLineDashOffset : ol.render.webgl.defaultLineDashOffset;
     var strokeStyleLineJoin = strokeStyle.getLineJoin();
     this.state_.lineJoin = strokeStyleLineJoin !== undefined ?
-        strokeStyleLineJoin : ol.render.webgl.defaultLineJoin;
+      strokeStyleLineJoin : ol.render.webgl.defaultLineJoin;
     var strokeStyleColor = strokeStyle.getColor();
     if (!(strokeStyleColor instanceof CanvasGradient) &&
         !(strokeStyleColor instanceof CanvasPattern)) {
@@ -26470,10 +27080,10 @@ if (ol.ENABLE_WEBGL) {
     }
     var strokeStyleWidth = strokeStyle.getWidth();
     strokeStyleWidth = strokeStyleWidth !== undefined ?
-        strokeStyleWidth : ol.render.webgl.defaultLineWidth;
+      strokeStyleWidth : ol.render.webgl.defaultLineWidth;
     var strokeStyleMiterLimit = strokeStyle.getMiterLimit();
     strokeStyleMiterLimit = strokeStyleMiterLimit !== undefined ?
-        strokeStyleMiterLimit : ol.render.webgl.defaultMiterLimit;
+      strokeStyleMiterLimit : ol.render.webgl.defaultMiterLimit;
     if (!this.state_.strokeColor || !ol.array.equals(this.state_.strokeColor, strokeStyleColor) ||
         this.state_.lineWidth !== strokeStyleWidth || this.state_.miterLimit !== strokeStyleMiterLimit) {
       this.state_.changed = true;
@@ -26503,6 +27113,7 @@ if (ol.ENABLE_WEBGL) {
 }
 
 // This file is automatically generated, do not edit
+/* eslint openlayers-internal/no-missing-requires: 0 */
 goog.provide('ol.render.webgl.polygonreplay.defaultshader');
 
 goog.require('ol');
@@ -26541,8 +27152,8 @@ if (ol.ENABLE_WEBGL) {
    * @type {string}
    */
   ol.render.webgl.polygonreplay.defaultshader.Fragment.SOURCE = ol.DEBUG_WEBGL ?
-      ol.render.webgl.polygonreplay.defaultshader.Fragment.DEBUG_SOURCE :
-      ol.render.webgl.polygonreplay.defaultshader.Fragment.OPTIMIZED_SOURCE;
+    ol.render.webgl.polygonreplay.defaultshader.Fragment.DEBUG_SOURCE :
+    ol.render.webgl.polygonreplay.defaultshader.Fragment.OPTIMIZED_SOURCE;
 
 
   ol.render.webgl.polygonreplay.defaultshader.fragment = new ol.render.webgl.polygonreplay.defaultshader.Fragment();
@@ -26578,8 +27189,8 @@ if (ol.ENABLE_WEBGL) {
    * @type {string}
    */
   ol.render.webgl.polygonreplay.defaultshader.Vertex.SOURCE = ol.DEBUG_WEBGL ?
-      ol.render.webgl.polygonreplay.defaultshader.Vertex.DEBUG_SOURCE :
-      ol.render.webgl.polygonreplay.defaultshader.Vertex.OPTIMIZED_SOURCE;
+    ol.render.webgl.polygonreplay.defaultshader.Vertex.DEBUG_SOURCE :
+    ol.render.webgl.polygonreplay.defaultshader.Vertex.OPTIMIZED_SOURCE;
 
 
   ol.render.webgl.polygonreplay.defaultshader.vertex = new ol.render.webgl.polygonreplay.defaultshader.Vertex();
@@ -26898,17 +27509,17 @@ ol.style.Stroke.prototype.getChecksum = function() {
     }
     this.checksum_ += ',' +
         (this.lineCap_ !== undefined ?
-            this.lineCap_.toString() : '-') + ',' +
+          this.lineCap_.toString() : '-') + ',' +
         (this.lineDash_ ?
-            this.lineDash_.toString() : '-') + ',' +
+          this.lineDash_.toString() : '-') + ',' +
         (this.lineDashOffset_ !== undefined ?
-            this.lineDashOffset_ : '-') + ',' +
+          this.lineDashOffset_ : '-') + ',' +
         (this.lineJoin_ !== undefined ?
-            this.lineJoin_ : '-') + ',' +
+          this.lineJoin_ : '-') + ',' +
         (this.miterLimit_ !== undefined ?
-            this.miterLimit_.toString() : '-') + ',' +
+          this.miterLimit_.toString() : '-') + ',' +
         (this.width_ !== undefined ?
-            this.width_.toString() : '-');
+          this.width_.toString() : '-');
   }
 
   return this.checksum_;
@@ -27163,31 +27774,24 @@ ol.structs.LinkedList.prototype.getLength = function() {
   return this.length_;
 };
 
-goog.provide('ol.ext.rbush');
-/** @typedef {function(*)} */
-ol.ext.rbush;
-(function() {
-var exports = {};
-var module = {exports: exports};
-var define;
+
 /**
  * @fileoverview
  * @suppress {accessControls, ambiguousFunctionDecl, checkDebuggerStatement, checkRegExp, checkTypes, checkVars, const, constantProperty, deprecated, duplicate, es5Strict, fileoverviewTags, missingProperties, nonStandardJsDocs, strictModuleDepCheck, suspiciousCode, undefinedNames, undefinedVars, unknownDefines, unusedLocalVariables, uselessCode, visibility}
  */
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.rbush = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+goog.provide('ol.ext.rbush');
+
+/** @typedef {function(*)} */
+ol.ext.rbush = function() {};
+
+(function() {(function (exports) {
 'use strict';
 
-module.exports = partialSort;
-
-// Floyd-Rivest selection algorithm:
-// Rearrange items so that all items in the [left, k] range are smaller than all items in (k, right];
-// The k-th element will have the (k - left + 1)th smallest value in [left, right]
-
+var index$2 = partialSort;
 function partialSort(arr, k, left, right, compare) {
     left = left || 0;
     right = right || (arr.length - 1);
     compare = compare || defaultCompare;
-
     while (right > left) {
         if (right - left > 600) {
             var n = right - left + 1;
@@ -27199,14 +27803,11 @@ function partialSort(arr, k, left, right, compare) {
             var newRight = Math.min(right, Math.floor(k + (n - m) * s / n + sd));
             partialSort(arr, k, newLeft, newRight, compare);
         }
-
         var t = arr[k];
         var i = left;
         var j = right;
-
         swap(arr, left, k);
         if (compare(arr[right], t) > 0) swap(arr, left, right);
-
         while (i < j) {
             swap(arr, i, j);
             i++;
@@ -27214,72 +27815,49 @@ function partialSort(arr, k, left, right, compare) {
             while (compare(arr[i], t) < 0) i++;
             while (compare(arr[j], t) > 0) j--;
         }
-
         if (compare(arr[left], t) === 0) swap(arr, left, j);
         else {
             j++;
             swap(arr, j, right);
         }
-
         if (j <= k) left = j + 1;
         if (k <= j) right = j - 1;
     }
 }
-
 function swap(arr, i, j) {
     var tmp = arr[i];
     arr[i] = arr[j];
     arr[j] = tmp;
 }
-
 function defaultCompare(a, b) {
     return a < b ? -1 : a > b ? 1 : 0;
 }
 
-},{}],2:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = rbush;
-
-var quickselect = _dereq_('quickselect');
-
+var index = rbush;
 function rbush(maxEntries, format) {
     if (!(this instanceof rbush)) return new rbush(maxEntries, format);
-
-    // max entries in a node is 9 by default; min node fill is 40% for best performance
     this._maxEntries = Math.max(4, maxEntries || 9);
     this._minEntries = Math.max(2, Math.ceil(this._maxEntries * 0.4));
-
     if (format) {
         this._initFormat(format);
     }
-
     this.clear();
 }
-
 rbush.prototype = {
-
     all: function () {
         return this._all(this.data, []);
     },
-
     search: function (bbox) {
-
         var node = this.data,
             result = [],
             toBBox = this.toBBox;
-
         if (!intersects(bbox, node)) return result;
-
         var nodesToSearch = [],
             i, len, child, childBBox;
-
         while (node) {
             for (i = 0, len = node.children.length; i < len; i++) {
-
                 child = node.children[i];
                 childBBox = node.leaf ? toBBox(child) : child;
-
                 if (intersects(bbox, childBBox)) {
                     if (node.leaf) result.push(child);
                     else if (contains(bbox, childBBox)) this._all(child, result);
@@ -27288,26 +27866,18 @@ rbush.prototype = {
             }
             node = nodesToSearch.pop();
         }
-
         return result;
     },
-
     collides: function (bbox) {
-
         var node = this.data,
             toBBox = this.toBBox;
-
         if (!intersects(bbox, node)) return false;
-
         var nodesToSearch = [],
             i, len, child, childBBox;
-
         while (node) {
             for (i = 0, len = node.children.length; i < len; i++) {
-
                 child = node.children[i];
                 childBBox = node.leaf ? toBBox(child) : child;
-
                 if (intersects(bbox, childBBox)) {
                     if (node.leaf || contains(bbox, childBBox)) return true;
                     nodesToSearch.push(child);
@@ -27315,377 +27885,250 @@ rbush.prototype = {
             }
             node = nodesToSearch.pop();
         }
-
         return false;
     },
-
     load: function (data) {
         if (!(data && data.length)) return this;
-
         if (data.length < this._minEntries) {
             for (var i = 0, len = data.length; i < len; i++) {
                 this.insert(data[i]);
             }
             return this;
         }
-
-        // recursively build the tree with the given data from stratch using OMT algorithm
         var node = this._build(data.slice(), 0, data.length - 1, 0);
-
         if (!this.data.children.length) {
-            // save as is if tree is empty
             this.data = node;
-
         } else if (this.data.height === node.height) {
-            // split root if trees have the same height
             this._splitRoot(this.data, node);
-
         } else {
             if (this.data.height < node.height) {
-                // swap trees if inserted one is bigger
                 var tmpNode = this.data;
                 this.data = node;
                 node = tmpNode;
             }
-
-            // insert the small tree into the large tree at appropriate level
             this._insert(node, this.data.height - node.height - 1, true);
         }
-
         return this;
     },
-
     insert: function (item) {
         if (item) this._insert(item, this.data.height - 1);
         return this;
     },
-
     clear: function () {
         this.data = createNode([]);
         return this;
     },
-
     remove: function (item, equalsFn) {
         if (!item) return this;
-
         var node = this.data,
             bbox = this.toBBox(item),
             path = [],
             indexes = [],
             i, parent, index, goingUp;
-
-        // depth-first iterative tree traversal
         while (node || path.length) {
-
-            if (!node) { // go up
+            if (!node) {
                 node = path.pop();
                 parent = path[path.length - 1];
                 i = indexes.pop();
                 goingUp = true;
             }
-
-            if (node.leaf) { // check current node
+            if (node.leaf) {
                 index = findItem(item, node.children, equalsFn);
-
                 if (index !== -1) {
-                    // item found, remove the item and condense tree upwards
                     node.children.splice(index, 1);
                     path.push(node);
                     this._condense(path);
                     return this;
                 }
             }
-
-            if (!goingUp && !node.leaf && contains(node, bbox)) { // go down
+            if (!goingUp && !node.leaf && contains(node, bbox)) {
                 path.push(node);
                 indexes.push(i);
                 i = 0;
                 parent = node;
                 node = node.children[0];
-
-            } else if (parent) { // go right
+            } else if (parent) {
                 i++;
                 node = parent.children[i];
                 goingUp = false;
-
-            } else node = null; // nothing found
+            } else node = null;
         }
-
         return this;
     },
-
     toBBox: function (item) { return item; },
-
     compareMinX: compareNodeMinX,
     compareMinY: compareNodeMinY,
-
     toJSON: function () { return this.data; },
-
     fromJSON: function (data) {
         this.data = data;
         return this;
     },
-
     _all: function (node, result) {
         var nodesToSearch = [];
         while (node) {
             if (node.leaf) result.push.apply(result, node.children);
             else nodesToSearch.push.apply(nodesToSearch, node.children);
-
             node = nodesToSearch.pop();
         }
         return result;
     },
-
     _build: function (items, left, right, height) {
-
         var N = right - left + 1,
             M = this._maxEntries,
             node;
-
         if (N <= M) {
-            // reached leaf level; return leaf
             node = createNode(items.slice(left, right + 1));
             calcBBox(node, this.toBBox);
             return node;
         }
-
         if (!height) {
-            // target height of the bulk-loaded tree
             height = Math.ceil(Math.log(N) / Math.log(M));
-
-            // target number of root entries to maximize storage utilization
             M = Math.ceil(N / Math.pow(M, height - 1));
         }
-
         node = createNode([]);
         node.leaf = false;
         node.height = height;
-
-        // split the items into M mostly square tiles
-
         var N2 = Math.ceil(N / M),
             N1 = N2 * Math.ceil(Math.sqrt(M)),
             i, j, right2, right3;
-
         multiSelect(items, left, right, N1, this.compareMinX);
-
         for (i = left; i <= right; i += N1) {
-
             right2 = Math.min(i + N1 - 1, right);
-
             multiSelect(items, i, right2, N2, this.compareMinY);
-
             for (j = i; j <= right2; j += N2) {
-
                 right3 = Math.min(j + N2 - 1, right2);
-
-                // pack each entry recursively
                 node.children.push(this._build(items, j, right3, height - 1));
             }
         }
-
         calcBBox(node, this.toBBox);
-
         return node;
     },
-
     _chooseSubtree: function (bbox, node, level, path) {
-
         var i, len, child, targetNode, area, enlargement, minArea, minEnlargement;
-
         while (true) {
             path.push(node);
-
             if (node.leaf || path.length - 1 === level) break;
-
             minArea = minEnlargement = Infinity;
-
             for (i = 0, len = node.children.length; i < len; i++) {
                 child = node.children[i];
                 area = bboxArea(child);
                 enlargement = enlargedArea(bbox, child) - area;
-
-                // choose entry with the least area enlargement
                 if (enlargement < minEnlargement) {
                     minEnlargement = enlargement;
                     minArea = area < minArea ? area : minArea;
                     targetNode = child;
-
                 } else if (enlargement === minEnlargement) {
-                    // otherwise choose one with the smallest area
                     if (area < minArea) {
                         minArea = area;
                         targetNode = child;
                     }
                 }
             }
-
             node = targetNode || node.children[0];
         }
-
         return node;
     },
-
     _insert: function (item, level, isNode) {
-
         var toBBox = this.toBBox,
             bbox = isNode ? item : toBBox(item),
             insertPath = [];
-
-        // find the best node for accommodating the item, saving all nodes along the path too
         var node = this._chooseSubtree(bbox, this.data, level, insertPath);
-
-        // put the item into the node
         node.children.push(item);
         extend(node, bbox);
-
-        // split on node overflow; propagate upwards if necessary
         while (level >= 0) {
             if (insertPath[level].children.length > this._maxEntries) {
                 this._split(insertPath, level);
                 level--;
             } else break;
         }
-
-        // adjust bboxes along the insertion path
         this._adjustParentBBoxes(bbox, insertPath, level);
     },
-
-    // split overflowed node into two
     _split: function (insertPath, level) {
-
         var node = insertPath[level],
             M = node.children.length,
             m = this._minEntries;
-
         this._chooseSplitAxis(node, m, M);
-
         var splitIndex = this._chooseSplitIndex(node, m, M);
-
         var newNode = createNode(node.children.splice(splitIndex, node.children.length - splitIndex));
         newNode.height = node.height;
         newNode.leaf = node.leaf;
-
         calcBBox(node, this.toBBox);
         calcBBox(newNode, this.toBBox);
-
         if (level) insertPath[level - 1].children.push(newNode);
         else this._splitRoot(node, newNode);
     },
-
     _splitRoot: function (node, newNode) {
-        // split root node
         this.data = createNode([node, newNode]);
         this.data.height = node.height + 1;
         this.data.leaf = false;
         calcBBox(this.data, this.toBBox);
     },
-
     _chooseSplitIndex: function (node, m, M) {
-
         var i, bbox1, bbox2, overlap, area, minOverlap, minArea, index;
-
         minOverlap = minArea = Infinity;
-
         for (i = m; i <= M - m; i++) {
             bbox1 = distBBox(node, 0, i, this.toBBox);
             bbox2 = distBBox(node, i, M, this.toBBox);
-
             overlap = intersectionArea(bbox1, bbox2);
             area = bboxArea(bbox1) + bboxArea(bbox2);
-
-            // choose distribution with minimum overlap
             if (overlap < minOverlap) {
                 minOverlap = overlap;
                 index = i;
-
                 minArea = area < minArea ? area : minArea;
-
             } else if (overlap === minOverlap) {
-                // otherwise choose distribution with minimum area
                 if (area < minArea) {
                     minArea = area;
                     index = i;
                 }
             }
         }
-
         return index;
     },
-
-    // sorts node children by the best axis for split
     _chooseSplitAxis: function (node, m, M) {
-
         var compareMinX = node.leaf ? this.compareMinX : compareNodeMinX,
             compareMinY = node.leaf ? this.compareMinY : compareNodeMinY,
             xMargin = this._allDistMargin(node, m, M, compareMinX),
             yMargin = this._allDistMargin(node, m, M, compareMinY);
-
-        // if total distributions margin value is minimal for x, sort by minX,
-        // otherwise it's already sorted by minY
         if (xMargin < yMargin) node.children.sort(compareMinX);
     },
-
-    // total margin of all possible split distributions where each node is at least m full
     _allDistMargin: function (node, m, M, compare) {
-
         node.children.sort(compare);
-
         var toBBox = this.toBBox,
             leftBBox = distBBox(node, 0, m, toBBox),
             rightBBox = distBBox(node, M - m, M, toBBox),
             margin = bboxMargin(leftBBox) + bboxMargin(rightBBox),
             i, child;
-
         for (i = m; i < M - m; i++) {
             child = node.children[i];
             extend(leftBBox, node.leaf ? toBBox(child) : child);
             margin += bboxMargin(leftBBox);
         }
-
         for (i = M - m - 1; i >= m; i--) {
             child = node.children[i];
             extend(rightBBox, node.leaf ? toBBox(child) : child);
             margin += bboxMargin(rightBBox);
         }
-
         return margin;
     },
-
     _adjustParentBBoxes: function (bbox, path, level) {
-        // adjust bboxes along the given tree path
         for (var i = level; i >= 0; i--) {
             extend(path[i], bbox);
         }
     },
-
     _condense: function (path) {
-        // go through the path, removing empty nodes and updating bboxes
         for (var i = path.length - 1, siblings; i >= 0; i--) {
             if (path[i].children.length === 0) {
                 if (i > 0) {
                     siblings = path[i - 1].children;
                     siblings.splice(siblings.indexOf(path[i]), 1);
-
                 } else this.clear();
-
             } else calcBBox(path[i], this.toBBox);
         }
     },
-
     _initFormat: function (format) {
-        // data format (minX, minY, maxX, maxY accessors)
-
-        // uses eval-type function compilation instead of just accepting a toBBox function
-        // because the algorithms are very sensitive to sorting functions performance,
-        // so they should be dead simple and without inner calls
-
         var compareArr = ['return a', ' - b', ';'];
-
         this.compareMinX = new Function('a', 'b', compareArr.join(format[0]));
         this.compareMinY = new Function('a', 'b', compareArr.join(format[1]));
-
         this.toBBox = new Function('a',
             'return {minX: a' + format[0] +
             ', minY: a' + format[1] +
@@ -27693,37 +28136,28 @@ rbush.prototype = {
             ', maxY: a' + format[3] + '};');
     }
 };
-
 function findItem(item, items, equalsFn) {
     if (!equalsFn) return items.indexOf(item);
-
     for (var i = 0; i < items.length; i++) {
         if (equalsFn(item, items[i])) return i;
     }
     return -1;
 }
-
-// calculate node's bbox from bboxes of its children
 function calcBBox(node, toBBox) {
     distBBox(node, 0, node.children.length, toBBox, node);
 }
-
-// min bounding rectangle of node children from k to p-1
 function distBBox(node, k, p, toBBox, destNode) {
     if (!destNode) destNode = createNode(null);
     destNode.minX = Infinity;
     destNode.minY = Infinity;
     destNode.maxX = -Infinity;
     destNode.maxY = -Infinity;
-
     for (var i = k, child; i < p; i++) {
         child = node.children[i];
         extend(destNode, node.leaf ? toBBox(child) : child);
     }
-
     return destNode;
 }
-
 function extend(a, b) {
     a.minX = Math.min(a.minX, b.minX);
     a.minY = Math.min(a.minY, b.minY);
@@ -27731,42 +28165,34 @@ function extend(a, b) {
     a.maxY = Math.max(a.maxY, b.maxY);
     return a;
 }
-
 function compareNodeMinX(a, b) { return a.minX - b.minX; }
 function compareNodeMinY(a, b) { return a.minY - b.minY; }
-
 function bboxArea(a)   { return (a.maxX - a.minX) * (a.maxY - a.minY); }
 function bboxMargin(a) { return (a.maxX - a.minX) + (a.maxY - a.minY); }
-
 function enlargedArea(a, b) {
     return (Math.max(b.maxX, a.maxX) - Math.min(b.minX, a.minX)) *
            (Math.max(b.maxY, a.maxY) - Math.min(b.minY, a.minY));
 }
-
 function intersectionArea(a, b) {
     var minX = Math.max(a.minX, b.minX),
         minY = Math.max(a.minY, b.minY),
         maxX = Math.min(a.maxX, b.maxX),
         maxY = Math.min(a.maxY, b.maxY);
-
     return Math.max(0, maxX - minX) *
            Math.max(0, maxY - minY);
 }
-
 function contains(a, b) {
     return a.minX <= b.minX &&
            a.minY <= b.minY &&
            b.maxX <= a.maxX &&
            b.maxY <= a.maxY;
 }
-
 function intersects(a, b) {
     return b.minX <= a.maxX &&
            b.minY <= a.maxY &&
            b.maxX >= a.minX &&
            b.maxY >= a.minY;
 }
-
 function createNode(children) {
     return {
         children: children,
@@ -27778,31 +28204,23 @@ function createNode(children) {
         maxY: -Infinity
     };
 }
-
-// sort an array so that items come in groups of n unsorted items, with groups sorted between each other;
-// combines selection algorithm with binary divide & conquer approach
-
 function multiSelect(arr, left, right, n, compare) {
     var stack = [left, right],
         mid;
-
     while (stack.length) {
         right = stack.pop();
         left = stack.pop();
-
         if (right - left <= n) continue;
-
         mid = left + Math.ceil((right - left) / n / 2) * n;
-        quickselect(arr, mid, left, right, compare);
-
+        index$2(arr, mid, left, right, compare);
         stack.push(left, mid, mid, right);
     }
 }
 
-},{"quickselect":1}]},{},[2])(2)
-});
-ol.ext.rbush = module.exports;
-})();
+exports['default'] = index;
+
+}((this.rbush = this.rbush || {})));}).call(ol.ext);
+ol.ext.rbush = ol.ext.rbush.default;
 
 goog.provide('ol.structs.RBush');
 
@@ -28014,12 +28432,23 @@ ol.structs.RBush.prototype.clear = function() {
 
 /**
  * @param {ol.Extent=} opt_extent Extent.
- * @return {!ol.Extent} Extent.
+ * @return {ol.Extent} Extent.
  */
 ol.structs.RBush.prototype.getExtent = function(opt_extent) {
   // FIXME add getExtent() to rbush
   var data = this.rbush_.data;
-  return [data.minX, data.minY, data.maxX, data.maxY];
+  return ol.extent.createOrUpdate(data.minX, data.minY, data.maxX, data.maxY, opt_extent);
+};
+
+
+/**
+ * @param {ol.structs.RBush} rbush R-Tree.
+ */
+ol.structs.RBush.prototype.concat = function(rbush) {
+  this.rbush_.load(rbush.rbush_.all());
+  for (var i in rbush.items_) {
+    this.items_[i | 0] = rbush.items_[i | 0];
+  }
 };
 
 goog.provide('ol.render.webgl.PolygonReplay');
@@ -28103,7 +28532,8 @@ if (ol.ENABLE_WEBGL) {
     var outerRing = new ol.structs.LinkedList();
     var rtree = new ol.structs.RBush();
     // Initialize the outer ring
-    var maxX = this.processFlatCoordinates_(flatCoordinates, stride, outerRing, rtree, true);
+    this.processFlatCoordinates_(flatCoordinates, stride, outerRing, rtree, true);
+    var maxCoords = this.getMaxCoords_(outerRing);
 
     // Eliminate holes, if there are any
     if (holeFlatCoordinates.length) {
@@ -28112,20 +28542,42 @@ if (ol.ENABLE_WEBGL) {
       for (i = 0, ii = holeFlatCoordinates.length; i < ii; ++i) {
         var holeList = {
           list: new ol.structs.LinkedList(),
-          maxX: undefined
+          maxCoords: undefined,
+          rtree: new ol.structs.RBush()
         };
         holeLists.push(holeList);
-        holeList.maxX = this.processFlatCoordinates_(holeFlatCoordinates[i],
-            stride, holeList.list, rtree, false);
+        this.processFlatCoordinates_(holeFlatCoordinates[i],
+            stride, holeList.list, holeList.rtree, false);
+        this.classifyPoints_(holeList.list, holeList.rtree, true);
+        holeList.maxCoords = this.getMaxCoords_(holeList.list);
       }
       holeLists.sort(function(a, b) {
-        return b.maxX - a.maxX;
+        return b.maxCoords[0] === a.maxCoords[0] ?
+          a.maxCoords[1] - b.maxCoords[1] : b.maxCoords[0] - a.maxCoords[0];
       });
       for (i = 0; i < holeLists.length; ++i) {
-        this.bridgeHole_(holeLists[i].list, holeLists[i].maxX, outerRing, maxX, rtree);
+        var currList = holeLists[i].list;
+        var start = currList.firstItem();
+        var currItem = start;
+        var intersection;
+        do {
+          //TODO: Triangulate holes when they intersect the outer ring.
+          if (this.getIntersections_(currItem, rtree).length) {
+            intersection = true;
+            break;
+          }
+          currItem = currList.nextItem();
+        } while (start !== currItem);
+        if (!intersection) {
+          if (this.bridgeHole_(currList, holeLists[i].maxCoords[0], outerRing, maxCoords[0], rtree)) {
+            rtree.concat(holeLists[i].rtree);
+            this.classifyPoints_(outerRing, rtree, false);
+          }
+        }
       }
+    } else {
+      this.classifyPoints_(outerRing, rtree, false);
     }
-    this.classifyPoints_(outerRing, rtree, false);
     this.triangulate_(outerRing, rtree);
   };
 
@@ -28138,13 +28590,12 @@ if (ol.ENABLE_WEBGL) {
    * @param {ol.structs.LinkedList} list Linked list.
    * @param {ol.structs.RBush} rtree R-Tree of the polygon.
    * @param {boolean} clockwise Coordinate order should be clockwise.
-   * @return {number} Maximum X value.
    */
   ol.render.webgl.PolygonReplay.prototype.processFlatCoordinates_ = function(
       flatCoordinates, stride, list, rtree, clockwise) {
     var isClockwise = ol.geom.flat.orient.linearRingIsClockwise(flatCoordinates,
         0, flatCoordinates.length, stride);
-    var i, ii, maxX;
+    var i, ii;
     var n = this.vertices.length / 2;
     /** @type {ol.WebglPolygonVertex} */
     var start;
@@ -28157,13 +28608,11 @@ if (ol.ENABLE_WEBGL) {
     if (clockwise === isClockwise) {
       start = this.createPoint_(flatCoordinates[0], flatCoordinates[1], n++);
       p0 = start;
-      maxX = flatCoordinates[0];
       for (i = stride, ii = flatCoordinates.length; i < ii; i += stride) {
         p1 = this.createPoint_(flatCoordinates[i], flatCoordinates[i + 1], n++);
         segments.push(this.insertItem_(p0, p1, list));
         extents.push([Math.min(p0.x, p1.x), Math.min(p0.y, p1.y), Math.max(p0.x, p1.x),
           Math.max(p0.y, p1.y)]);
-        maxX = flatCoordinates[i] > maxX ? flatCoordinates[i] : maxX;
         p0 = p1;
       }
       segments.push(this.insertItem_(p1, start, list));
@@ -28173,13 +28622,11 @@ if (ol.ENABLE_WEBGL) {
       var end = flatCoordinates.length - stride;
       start = this.createPoint_(flatCoordinates[end], flatCoordinates[end + 1], n++);
       p0 = start;
-      maxX = flatCoordinates[end];
       for (i = end - stride, ii = 0; i >= ii; i -= stride) {
         p1 = this.createPoint_(flatCoordinates[i], flatCoordinates[i + 1], n++);
         segments.push(this.insertItem_(p0, p1, list));
         extents.push([Math.min(p0.x, p1.x), Math.min(p0.y, p1.y), Math.max(p0.x, p1.x),
           Math.max(p0.y, p1.y)]);
-        maxX = flatCoordinates[i] > maxX ? flatCoordinates[i] : maxX;
         p0 = p1;
       }
       segments.push(this.insertItem_(p1, start, list));
@@ -28187,8 +28634,28 @@ if (ol.ENABLE_WEBGL) {
         Math.max(p0.y, p1.y)]);
     }
     rtree.load(extents, segments);
+  };
 
-    return maxX;
+
+  /**
+   * Returns the rightmost coordinates of a polygon on the X axis.
+   * @private
+   * @param {ol.structs.LinkedList} list Polygons ring.
+   * @return {Array.<number>} Max X coordinates.
+   */
+  ol.render.webgl.PolygonReplay.prototype.getMaxCoords_ = function(list) {
+    var start = list.firstItem();
+    var seg = start;
+    var maxCoords = [seg.p0.x, seg.p0.y];
+
+    do {
+      seg = list.nextItem();
+      if (seg.p0.x > maxCoords[0]) {
+        maxCoords = [seg.p0.x, seg.p0.y];
+      }
+    } while (seg !== start);
+
+    return maxCoords;
   };
 
 
@@ -28208,8 +28675,8 @@ if (ol.ENABLE_WEBGL) {
     do {
       var reflex = ccw ? ol.render.webgl.triangleIsCounterClockwise(s1.p1.x,
           s1.p1.y, s0.p1.x, s0.p1.y, s0.p0.x, s0.p0.y) :
-          ol.render.webgl.triangleIsCounterClockwise(s0.p0.x, s0.p0.y, s0.p1.x,
-          s0.p1.y, s1.p1.x, s1.p1.y);
+        ol.render.webgl.triangleIsCounterClockwise(s0.p0.x, s0.p0.y, s0.p1.x,
+            s0.p1.y, s1.p1.x, s1.p1.y);
       if (reflex === undefined) {
         this.removeItem_(s0, s1, list, rtree);
         pointsReclassified = true;
@@ -28236,10 +28703,10 @@ if (ol.ENABLE_WEBGL) {
    * @param {ol.structs.LinkedList} list Linked list of the polygon.
    * @param {number} listMaxX Maximum X value of the polygon.
    * @param {ol.structs.RBush} rtree R-Tree of the polygon.
+   * @return {boolean} Bridging was successful.
    */
   ol.render.webgl.PolygonReplay.prototype.bridgeHole_ = function(hole, holeMaxX,
       list, listMaxX, rtree) {
-    this.classifyPoints_(hole, rtree, true);
     var seg = hole.firstItem();
     while (seg.p1.x !== holeMaxX) {
       seg = hole.nextItem();
@@ -28256,19 +28723,18 @@ if (ol.ENABLE_WEBGL) {
     var intersectingSegments = this.getIntersections_({p0: p1, p1: p2}, rtree, true);
     for (i = 0, ii = intersectingSegments.length; i < ii; ++i) {
       var currSeg = intersectingSegments[i];
-      if (currSeg.p0.reflex === undefined) {
-        var intersection = this.calculateIntersection_(p1, p2, currSeg.p0,
-            currSeg.p1, true);
-        var dist = Math.abs(p1.x - intersection[0]);
-        if (dist < minDist) {
-          minDist = dist;
-          p5 = {x: intersection[0], y: intersection[1], i: -1};
-          seg = currSeg;
-        }
+      var intersection = this.calculateIntersection_(p1, p2, currSeg.p0,
+          currSeg.p1, true);
+      var dist = Math.abs(p1.x - intersection[0]);
+      if (dist < minDist && ol.render.webgl.triangleIsCounterClockwise(p1.x, p1.y,
+          currSeg.p0.x, currSeg.p0.y, currSeg.p1.x, currSeg.p1.y) !== undefined) {
+        minDist = dist;
+        p5 = {x: intersection[0], y: intersection[1], i: -1};
+        seg = currSeg;
       }
     }
     if (minDist === Infinity) {
-      return;
+      return false;
     }
     bestPoint = seg.p1;
 
@@ -28288,7 +28754,7 @@ if (ol.ENABLE_WEBGL) {
     }
 
     seg = list.firstItem();
-    while (seg.p1 !== bestPoint) {
+    while (seg.p1.x !== bestPoint.x || seg.p1.y !== bestPoint.y) {
       seg = list.nextItem();
     }
 
@@ -28302,6 +28768,8 @@ if (ol.ENABLE_WEBGL) {
     seg.p1 = p1Bridge;
     hole.setFirstItem();
     list.concat(hole);
+
+    return true;
   };
 
 
@@ -28321,7 +28789,7 @@ if (ol.ENABLE_WEBGL) {
           if (!this.classifyPoints_(list, rtree, ccw)) {
             // Due to the behavior of OL's PIP algorithm, the ear clipping cannot
             // introduce touching segments. However, the original data may have some.
-            if (!this.resolveLocalSelfIntersections_(list, rtree, true)) {
+            if (!this.resolveSelfIntersections_(list, rtree, true)) {
               break;
             }
           }
@@ -28331,7 +28799,7 @@ if (ol.ENABLE_WEBGL) {
           // We ran out of ears, try to reclassify.
           if (!this.classifyPoints_(list, rtree, ccw)) {
             // We have a bad polygon, try to resolve local self-intersections.
-            if (!this.resolveLocalSelfIntersections_(list, rtree)) {
+            if (!this.resolveSelfIntersections_(list, rtree)) {
               simple = this.isSimple_(list, rtree);
               if (!simple) {
                 // We have a really bad polygon, try more time consuming methods.
@@ -28378,10 +28846,15 @@ if (ol.ENABLE_WEBGL) {
       p2 = s2.p1;
       if (p1.reflex === false) {
         // We might have a valid ear
-        var diagonalIsInside = ccw ? this.diagonalIsInside_(s3.p1, p2, p1, p0,
-            s0.p0) : this.diagonalIsInside_(s0.p0, p0, p1, p2, s3.p1);
+        var variableCriterion;
+        if (simple) {
+          variableCriterion = this.getPointsInTriangle_(p0, p1, p2, rtree, true).length === 0;
+        } else {
+          variableCriterion = ccw ? this.diagonalIsInside_(s3.p1, p2, p1, p0,
+              s0.p0) : this.diagonalIsInside_(s0.p0, p0, p1, p2, s3.p1);
+        }
         if ((simple || this.getIntersections_({p0: p0, p1: p2}, rtree).length === 0) &&
-            diagonalIsInside && this.getPointsInTriangle_(p0, p1, p2, rtree, true).length === 0) {
+            variableCriterion) {
           //The diagonal is completely inside the polygon
           if (simple || p0.reflex === false || p2.reflex === false ||
               ol.geom.flat.orient.linearRingIsClockwise([s0.p0.x, s0.p0.y, p0.x,
@@ -28416,7 +28889,7 @@ if (ol.ENABLE_WEBGL) {
    * @param {boolean=} opt_touch Resolve touching segments.
    * @return {boolean} There were resolved intersections.
   */
-  ol.render.webgl.PolygonReplay.prototype.resolveLocalSelfIntersections_ = function(
+  ol.render.webgl.PolygonReplay.prototype.resolveSelfIntersections_ = function(
       list, rtree, opt_touch) {
     var start = list.firstItem();
     list.nextItem();
@@ -28605,7 +29078,7 @@ if (ol.ENABLE_WEBGL) {
   };
 
 
-   /**
+  /**
     * @private
     * @param {ol.WebglPolygonSegment} s0 Segment before the remove candidate.
     * @param {ol.WebglPolygonSegment} s1 Remove candidate segment.
@@ -28638,7 +29111,7 @@ if (ol.ENABLE_WEBGL) {
     var result = [];
     var segmentsInExtent = rtree.getInExtent([Math.min(p0.x, p1.x, p2.x),
       Math.min(p0.y, p1.y, p2.y), Math.max(p0.x, p1.x, p2.x), Math.max(p0.y,
-        p1.y, p2.y)]);
+          p1.y, p2.y)]);
     for (i = 0, ii = segmentsInExtent.length; i < ii; ++i) {
       for (j in segmentsInExtent[i]) {
         p = segmentsInExtent[i][j];
@@ -28736,28 +29209,33 @@ if (ol.ENABLE_WEBGL) {
    * @inheritDoc
    */
   ol.render.webgl.PolygonReplay.prototype.drawMultiPolygon = function(multiPolygonGeometry, feature) {
-    var polygons = multiPolygonGeometry.getPolygons();
+    var endss = multiPolygonGeometry.getEndss();
     var stride = multiPolygonGeometry.getStride();
     var currIndex = this.indices.length;
     var currLineIndex = this.lineStringReplay.getCurrentIndex();
+    var flatCoordinates = multiPolygonGeometry.getFlatCoordinates();
     var i, ii, j, jj;
-    for (i = 0, ii = polygons.length; i < ii; ++i) {
-      var linearRings = polygons[i].getLinearRings();
-      if (linearRings.length > 0) {
-        var flatCoordinates = linearRings[0].getFlatCoordinates();
-        flatCoordinates = ol.geom.flat.transform.translate(flatCoordinates, 0, flatCoordinates.length,
+    var start = 0;
+    for (i = 0, ii = endss.length; i < ii; ++i) {
+      var ends = endss[i];
+      if (ends.length > 0) {
+        var outerRing = ol.geom.flat.transform.translate(flatCoordinates, start, ends[0],
             stride, -this.origin[0], -this.origin[1]);
-        var holes = [];
-        var holeFlatCoords;
-        for (j = 1, jj = linearRings.length; j < jj; ++j) {
-          holeFlatCoords = linearRings[j].getFlatCoordinates();
-          holeFlatCoords = ol.geom.flat.transform.translate(holeFlatCoords, 0, holeFlatCoords.length,
-              stride, -this.origin[0], -this.origin[1]);
-          holes.push(holeFlatCoords);
+        if (outerRing.length) {
+          var holes = [];
+          var holeFlatCoords;
+          for (j = 1, jj = ends.length; j < jj; ++j) {
+            if (ends[j] !== ends[j - 1]) {
+              holeFlatCoords = ol.geom.flat.transform.translate(flatCoordinates, ends[j - 1],
+                  ends[j], stride, -this.origin[0], -this.origin[1]);
+              holes.push(holeFlatCoords);
+            }
+          }
+          this.lineStringReplay.drawPolygonCoordinates(outerRing, holes, stride);
+          this.drawCoordinates_(outerRing, holes, stride);
         }
-        this.lineStringReplay.drawPolygonCoordinates(flatCoordinates, holes, stride);
-        this.drawCoordinates_(flatCoordinates, holes, stride);
       }
+      start = ends[ends.length - 1];
     }
     if (this.indices.length > currIndex) {
       this.startIndices.push(currIndex);
@@ -28777,30 +29255,34 @@ if (ol.ENABLE_WEBGL) {
    * @inheritDoc
    */
   ol.render.webgl.PolygonReplay.prototype.drawPolygon = function(polygonGeometry, feature) {
-    var linearRings = polygonGeometry.getLinearRings();
+    var ends = polygonGeometry.getEnds();
     var stride = polygonGeometry.getStride();
-    if (linearRings.length > 0) {
-      this.startIndices.push(this.indices.length);
-      this.startIndicesFeature.push(feature);
-      if (this.state_.changed) {
-        this.styleIndices_.push(this.indices.length);
-        this.state_.changed = false;
-      }
-      this.lineStringReplay.setPolygonStyle(feature);
-
-      var flatCoordinates = linearRings[0].getFlatCoordinates();
-      flatCoordinates = ol.geom.flat.transform.translate(flatCoordinates, 0, flatCoordinates.length,
+    if (ends.length > 0) {
+      var flatCoordinates = polygonGeometry.getFlatCoordinates().map(Number);
+      var outerRing = ol.geom.flat.transform.translate(flatCoordinates, 0, ends[0],
           stride, -this.origin[0], -this.origin[1]);
-      var holes = [];
-      var i, ii, holeFlatCoords;
-      for (i = 1, ii = linearRings.length; i < ii; ++i) {
-        holeFlatCoords = linearRings[i].getFlatCoordinates();
-        holeFlatCoords = ol.geom.flat.transform.translate(holeFlatCoords, 0, holeFlatCoords.length,
-            stride, -this.origin[0], -this.origin[1]);
-        holes.push(holeFlatCoords);
+      if (outerRing.length) {
+        var holes = [];
+        var i, ii, holeFlatCoords;
+        for (i = 1, ii = ends.length; i < ii; ++i) {
+          if (ends[i] !== ends[i - 1]) {
+            holeFlatCoords = ol.geom.flat.transform.translate(flatCoordinates, ends[i - 1],
+                ends[i], stride, -this.origin[0], -this.origin[1]);
+            holes.push(holeFlatCoords);
+          }
+        }
+
+        this.startIndices.push(this.indices.length);
+        this.startIndicesFeature.push(feature);
+        if (this.state_.changed) {
+          this.styleIndices_.push(this.indices.length);
+          this.state_.changed = false;
+        }
+        this.lineStringReplay.setPolygonStyle(feature);
+
+        this.lineStringReplay.drawPolygonCoordinates(outerRing, holes, stride);
+        this.drawCoordinates_(outerRing, holes, stride);
       }
-      this.lineStringReplay.drawPolygonCoordinates(flatCoordinates, holes, stride);
-      this.drawCoordinates_(flatCoordinates, holes, stride);
     }
   };
 
@@ -28857,8 +29339,8 @@ if (ol.ENABLE_WEBGL) {
     // get the locations
     var locations;
     if (!this.defaultLocations_) {
-      locations =
-          new ol.render.webgl.polygonreplay.defaultshader.Locations(gl, program);
+      // eslint-disable-next-line openlayers-internal/no-missing-requires
+      locations = new ol.render.webgl.polygonreplay.defaultshader.Locations(gl, program);
       this.defaultLocations_ = locations;
     } else {
       locations = this.defaultLocations_;
@@ -29045,74 +29527,859 @@ if (ol.ENABLE_WEBGL) {
 
 }
 
+goog.provide('ol.style.Atlas');
+
+goog.require('ol.dom');
+
+
+/**
+ * This class facilitates the creation of image atlases.
+ *
+ * Images added to an atlas will be rendered onto a single
+ * atlas canvas. The distribution of images on the canvas is
+ * managed with the bin packing algorithm described in:
+ * http://www.blackpawn.com/texts/lightmaps/
+ *
+ * @constructor
+ * @struct
+ * @param {number} size The size in pixels of the sprite image.
+ * @param {number} space The space in pixels between images.
+ *    Because texture coordinates are float values, the edges of
+ *    images might not be completely correct (in a way that the
+ *    edges overlap when being rendered). To avoid this we add a
+ *    padding around each image.
+ */
+ol.style.Atlas = function(size, space) {
+
+  /**
+   * @private
+   * @type {number}
+   */
+  this.space_ = space;
+
+  /**
+   * @private
+   * @type {Array.<ol.AtlasBlock>}
+   */
+  this.emptyBlocks_ = [{x: 0, y: 0, width: size, height: size}];
+
+  /**
+   * @private
+   * @type {Object.<string, ol.AtlasInfo>}
+   */
+  this.entries_ = {};
+
+  /**
+   * @private
+   * @type {CanvasRenderingContext2D}
+   */
+  this.context_ = ol.dom.createCanvasContext2D(size, size);
+
+  /**
+   * @private
+   * @type {HTMLCanvasElement}
+   */
+  this.canvas_ = this.context_.canvas;
+};
+
+
+/**
+ * @param {string} id The identifier of the entry to check.
+ * @return {?ol.AtlasInfo} The atlas info.
+ */
+ol.style.Atlas.prototype.get = function(id) {
+  return this.entries_[id] || null;
+};
+
+
+/**
+ * @param {string} id The identifier of the entry to add.
+ * @param {number} width The width.
+ * @param {number} height The height.
+ * @param {function(CanvasRenderingContext2D, number, number)} renderCallback
+ *    Called to render the new image onto an atlas image.
+ * @param {Object=} opt_this Value to use as `this` when executing
+ *    `renderCallback`.
+ * @return {?ol.AtlasInfo} The position and atlas image for the entry.
+ */
+ol.style.Atlas.prototype.add = function(id, width, height, renderCallback, opt_this) {
+  var block, i, ii;
+  for (i = 0, ii = this.emptyBlocks_.length; i < ii; ++i) {
+    block = this.emptyBlocks_[i];
+    if (block.width >= width + this.space_ &&
+        block.height >= height + this.space_) {
+      // we found a block that is big enough for our entry
+      var entry = {
+        offsetX: block.x + this.space_,
+        offsetY: block.y + this.space_,
+        image: this.canvas_
+      };
+      this.entries_[id] = entry;
+
+      // render the image on the atlas image
+      renderCallback.call(opt_this, this.context_,
+          block.x + this.space_, block.y + this.space_);
+
+      // split the block after the insertion, either horizontally or vertically
+      this.split_(i, block, width + this.space_, height + this.space_);
+
+      return entry;
+    }
+  }
+
+  // there is no space for the new entry in this atlas
+  return null;
+};
+
+
+/**
+ * @private
+ * @param {number} index The index of the block.
+ * @param {ol.AtlasBlock} block The block to split.
+ * @param {number} width The width of the entry to insert.
+ * @param {number} height The height of the entry to insert.
+ */
+ol.style.Atlas.prototype.split_ = function(index, block, width, height) {
+  var deltaWidth = block.width - width;
+  var deltaHeight = block.height - height;
+
+  /** @type {ol.AtlasBlock} */
+  var newBlock1;
+  /** @type {ol.AtlasBlock} */
+  var newBlock2;
+
+  if (deltaWidth > deltaHeight) {
+    // split vertically
+    // block right of the inserted entry
+    newBlock1 = {
+      x: block.x + width,
+      y: block.y,
+      width: block.width - width,
+      height: block.height
+    };
+
+    // block below the inserted entry
+    newBlock2 = {
+      x: block.x,
+      y: block.y + height,
+      width: width,
+      height: block.height - height
+    };
+    this.updateBlocks_(index, newBlock1, newBlock2);
+  } else {
+    // split horizontally
+    // block right of the inserted entry
+    newBlock1 = {
+      x: block.x + width,
+      y: block.y,
+      width: block.width - width,
+      height: height
+    };
+
+    // block below the inserted entry
+    newBlock2 = {
+      x: block.x,
+      y: block.y + height,
+      width: block.width,
+      height: block.height - height
+    };
+    this.updateBlocks_(index, newBlock1, newBlock2);
+  }
+};
+
+
+/**
+ * Remove the old block and insert new blocks at the same array position.
+ * The new blocks are inserted at the same position, so that splitted
+ * blocks (that are potentially smaller) are filled first.
+ * @private
+ * @param {number} index The index of the block to remove.
+ * @param {ol.AtlasBlock} newBlock1 The 1st block to add.
+ * @param {ol.AtlasBlock} newBlock2 The 2nd block to add.
+ */
+ol.style.Atlas.prototype.updateBlocks_ = function(index, newBlock1, newBlock2) {
+  var args = [index, 1];
+  if (newBlock1.width > 0 && newBlock1.height > 0) {
+    args.push(newBlock1);
+  }
+  if (newBlock2.width > 0 && newBlock2.height > 0) {
+    args.push(newBlock2);
+  }
+  this.emptyBlocks_.splice.apply(this.emptyBlocks_, args);
+};
+
+goog.provide('ol.style.AtlasManager');
+
+goog.require('ol');
+goog.require('ol.style.Atlas');
+
+
+/**
+ * Manages the creation of image atlases.
+ *
+ * Images added to this manager will be inserted into an atlas, which
+ * will be used for rendering.
+ * The `size` given in the constructor is the size for the first
+ * atlas. After that, when new atlases are created, they will have
+ * twice the size as the latest atlas (until `maxSize` is reached).
+ *
+ * If an application uses many images or very large images, it is recommended
+ * to set a higher `size` value to avoid the creation of too many atlases.
+ *
+ * @constructor
+ * @struct
+ * @api
+ * @param {olx.style.AtlasManagerOptions=} opt_options Options.
+ */
+ol.style.AtlasManager = function(opt_options) {
+
+  var options = opt_options || {};
+
+  /**
+   * The size in pixels of the latest atlas image.
+   * @private
+   * @type {number}
+   */
+  this.currentSize_ = options.initialSize !== undefined ?
+    options.initialSize : ol.INITIAL_ATLAS_SIZE;
+
+  /**
+   * The maximum size in pixels of atlas images.
+   * @private
+   * @type {number}
+   */
+  this.maxSize_ = options.maxSize !== undefined ?
+    options.maxSize : ol.MAX_ATLAS_SIZE != -1 ?
+      ol.MAX_ATLAS_SIZE : ol.WEBGL_MAX_TEXTURE_SIZE !== undefined ?
+        ol.WEBGL_MAX_TEXTURE_SIZE : 2048;
+
+  /**
+   * The size in pixels between images.
+   * @private
+   * @type {number}
+   */
+  this.space_ = options.space !== undefined ? options.space : 1;
+
+  /**
+   * @private
+   * @type {Array.<ol.style.Atlas>}
+   */
+  this.atlases_ = [new ol.style.Atlas(this.currentSize_, this.space_)];
+
+  /**
+   * The size in pixels of the latest atlas image for hit-detection images.
+   * @private
+   * @type {number}
+   */
+  this.currentHitSize_ = this.currentSize_;
+
+  /**
+   * @private
+   * @type {Array.<ol.style.Atlas>}
+   */
+  this.hitAtlases_ = [new ol.style.Atlas(this.currentHitSize_, this.space_)];
+};
+
+
+/**
+ * @param {string} id The identifier of the entry to check.
+ * @return {?ol.AtlasManagerInfo} The position and atlas image for the
+ *    entry, or `null` if the entry is not part of the atlas manager.
+ */
+ol.style.AtlasManager.prototype.getInfo = function(id) {
+  /** @type {?ol.AtlasInfo} */
+  var info = this.getInfo_(this.atlases_, id);
+
+  if (!info) {
+    return null;
+  }
+  var hitInfo = /** @type {ol.AtlasInfo} */ (this.getInfo_(this.hitAtlases_, id));
+
+  return this.mergeInfos_(info, hitInfo);
+};
+
+
+/**
+ * @private
+ * @param {Array.<ol.style.Atlas>} atlases The atlases to search.
+ * @param {string} id The identifier of the entry to check.
+ * @return {?ol.AtlasInfo} The position and atlas image for the entry,
+ *    or `null` if the entry is not part of the atlases.
+ */
+ol.style.AtlasManager.prototype.getInfo_ = function(atlases, id) {
+  var atlas, info, i, ii;
+  for (i = 0, ii = atlases.length; i < ii; ++i) {
+    atlas = atlases[i];
+    info = atlas.get(id);
+    if (info) {
+      return info;
+    }
+  }
+  return null;
+};
+
+
+/**
+ * @private
+ * @param {ol.AtlasInfo} info The info for the real image.
+ * @param {ol.AtlasInfo} hitInfo The info for the hit-detection
+ *    image.
+ * @return {?ol.AtlasManagerInfo} The position and atlas image for the
+ *    entry, or `null` if the entry is not part of the atlases.
+ */
+ol.style.AtlasManager.prototype.mergeInfos_ = function(info, hitInfo) {
+  return /** @type {ol.AtlasManagerInfo} */ ({
+    offsetX: info.offsetX,
+    offsetY: info.offsetY,
+    image: info.image,
+    hitImage: hitInfo.image
+  });
+};
+
+
+/**
+ * Add an image to the atlas manager.
+ *
+ * If an entry for the given id already exists, the entry will
+ * be overridden (but the space on the atlas graphic will not be freed).
+ *
+ * If `renderHitCallback` is provided, the image (or the hit-detection version
+ * of the image) will be rendered into a separate hit-detection atlas image.
+ *
+ * @param {string} id The identifier of the entry to add.
+ * @param {number} width The width.
+ * @param {number} height The height.
+ * @param {function(CanvasRenderingContext2D, number, number)} renderCallback
+ *    Called to render the new image onto an atlas image.
+ * @param {function(CanvasRenderingContext2D, number, number)=}
+ *    opt_renderHitCallback Called to render a hit-detection image onto a hit
+ *    detection atlas image.
+ * @param {Object=} opt_this Value to use as `this` when executing
+ *    `renderCallback` and `renderHitCallback`.
+ * @return {?ol.AtlasManagerInfo}  The position and atlas image for the
+ *    entry, or `null` if the image is too big.
+ */
+ol.style.AtlasManager.prototype.add = function(id, width, height,
+    renderCallback, opt_renderHitCallback, opt_this) {
+  if (width + this.space_ > this.maxSize_ ||
+      height + this.space_ > this.maxSize_) {
+    return null;
+  }
+
+  /** @type {?ol.AtlasInfo} */
+  var info = this.add_(false,
+      id, width, height, renderCallback, opt_this);
+  if (!info) {
+    return null;
+  }
+
+  // even if no hit-detection entry is requested, we insert a fake entry into
+  // the hit-detection atlas, to make sure that the offset is the same for
+  // the original image and the hit-detection image.
+  var renderHitCallback = opt_renderHitCallback !== undefined ?
+    opt_renderHitCallback : ol.nullFunction;
+
+  var hitInfo = /** @type {ol.AtlasInfo} */ (this.add_(true,
+      id, width, height, renderHitCallback, opt_this));
+
+  return this.mergeInfos_(info, hitInfo);
+};
+
+
+/**
+ * @private
+ * @param {boolean} isHitAtlas If the hit-detection atlases are used.
+ * @param {string} id The identifier of the entry to add.
+ * @param {number} width The width.
+ * @param {number} height The height.
+ * @param {function(CanvasRenderingContext2D, number, number)} renderCallback
+ *    Called to render the new image onto an atlas image.
+ * @param {Object=} opt_this Value to use as `this` when executing
+ *    `renderCallback` and `renderHitCallback`.
+ * @return {?ol.AtlasInfo}  The position and atlas image for the entry,
+ *    or `null` if the image is too big.
+ */
+ol.style.AtlasManager.prototype.add_ = function(isHitAtlas, id, width, height,
+    renderCallback, opt_this) {
+  var atlases = (isHitAtlas) ? this.hitAtlases_ : this.atlases_;
+  var atlas, info, i, ii;
+  for (i = 0, ii = atlases.length; i < ii; ++i) {
+    atlas = atlases[i];
+    info = atlas.add(id, width, height, renderCallback, opt_this);
+    if (info) {
+      return info;
+    } else if (!info && i === ii - 1) {
+      // the entry could not be added to one of the existing atlases,
+      // create a new atlas that is twice as big and try to add to this one.
+      var size;
+      if (isHitAtlas) {
+        size = Math.min(this.currentHitSize_ * 2, this.maxSize_);
+        this.currentHitSize_ = size;
+      } else {
+        size = Math.min(this.currentSize_ * 2, this.maxSize_);
+        this.currentSize_ = size;
+      }
+      atlas = new ol.style.Atlas(size, this.space_);
+      atlases.push(atlas);
+      // run the loop another time
+      ++ii;
+    }
+  }
+  return null;
+};
+
 goog.provide('ol.render.webgl.TextReplay');
 
 goog.require('ol');
+goog.require('ol.colorlike');
+goog.require('ol.dom');
+goog.require('ol.has');
+goog.require('ol.render.webgl');
+goog.require('ol.render.webgl.TextureReplay');
+goog.require('ol.style.AtlasManager');
+goog.require('ol.webgl.Buffer');
 
 
 if (ol.ENABLE_WEBGL) {
 
   /**
    * @constructor
-   * @abstract
+   * @extends {ol.render.webgl.TextureReplay}
    * @param {number} tolerance Tolerance.
    * @param {ol.Extent} maxExtent Max extent.
    * @struct
    */
-  ol.render.webgl.TextReplay = function(tolerance, maxExtent) {};
+  ol.render.webgl.TextReplay = function(tolerance, maxExtent) {
+    ol.render.webgl.TextureReplay.call(this, tolerance, maxExtent);
+
+    /**
+     * @private
+     * @type {Array.<HTMLCanvasElement>}
+     */
+    this.images_ = [];
+
+    /**
+     * @private
+     * @type {Array.<WebGLTexture>}
+     */
+    this.textures_ = [];
+
+    /**
+     * @private
+     * @type {HTMLCanvasElement}
+     */
+    this.measureCanvas_ = ol.dom.createCanvasContext2D(0, 0).canvas;
+
+    /**
+     * @private
+     * @type {{strokeColor: (ol.ColorLike|null),
+     *         lineCap: (string|undefined),
+     *         lineDash: Array.<number>,
+     *         lineDashOffset: (number|undefined),
+     *         lineJoin: (string|undefined),
+     *         lineWidth: number,
+     *         miterLimit: (number|undefined),
+     *         fillColor: (ol.ColorLike|null),
+     *         font: (string|undefined),
+     *         scale: (number|undefined)}}
+     */
+    this.state_ = {
+      strokeColor: null,
+      lineCap: undefined,
+      lineDash: null,
+      lineDashOffset: undefined,
+      lineJoin: undefined,
+      lineWidth: 0,
+      miterLimit: undefined,
+      fillColor: null,
+      font: undefined,
+      scale: undefined
+    };
+
+    /**
+     * @private
+     * @type {string}
+     */
+    this.text_ = '';
+
+    /**
+     * @private
+     * @type {number|undefined}
+     */
+    this.textAlign_ = undefined;
+
+    /**
+     * @private
+     * @type {number|undefined}
+     */
+    this.textBaseline_ = undefined;
+
+    /**
+     * @private
+     * @type {number|undefined}
+     */
+    this.offsetX_ = undefined;
+
+    /**
+     * @private
+     * @type {number|undefined}
+     */
+    this.offsetY_ = undefined;
+
+    /**
+     * @private
+     * @type {Object.<string, ol.WebglGlyphAtlas>}
+     */
+    this.atlases_ = {};
+
+    /**
+     * @private
+     * @type {ol.WebglGlyphAtlas|undefined}
+     */
+    this.currAtlas_ = undefined;
+
+    this.scale = 1;
+
+    this.opacity = 1;
+
+  };
+  ol.inherits(ol.render.webgl.TextReplay, ol.render.webgl.TextureReplay);
+
 
   /**
-   * @param {ol.style.Text} textStyle Text style.
+   * @inheritDoc
    */
-  ol.render.webgl.TextReplay.prototype.setTextStyle = function(textStyle) {};
+  ol.render.webgl.TextReplay.prototype.drawText = function(flatCoordinates, offset,
+      end, stride, geometry, feature) {
+    if (this.text_) {
+      this.startIndices.push(this.indices.length);
+      this.startIndicesFeature.push(feature);
 
-  /**
-   * @param {ol.webgl.Context} context Context.
-   * @param {ol.Coordinate} center Center.
-   * @param {number} resolution Resolution.
-   * @param {number} rotation Rotation.
-   * @param {ol.Size} size Size.
-   * @param {number} pixelRatio Pixel ratio.
-   * @param {number} opacity Global opacity.
-   * @param {Object.<string, boolean>} skippedFeaturesHash Ids of features
-   *  to skip.
-   * @param {function((ol.Feature|ol.render.Feature)): T|undefined} featureCallback Feature callback.
-   * @param {boolean} oneByOne Draw features one-by-one for the hit-detecion.
-   * @param {ol.Extent=} opt_hitExtent Hit extent: Only features intersecting
-   *  this extent are checked.
-   * @return {T|undefined} Callback result.
-   * @template T
-   */
-  ol.render.webgl.TextReplay.prototype.replay = function(context,
-      center, resolution, rotation, size, pixelRatio,
-      opacity, skippedFeaturesHash,
-      featureCallback, oneByOne, opt_hitExtent) {
-    return undefined;
+      var glyphAtlas = this.currAtlas_;
+      var lines = this.text_.split('\n');
+      var textSize = this.getTextSize_(lines);
+      var i, ii, j, jj, currX, currY, charArr, charInfo;
+      var anchorX = Math.round(textSize[0] * this.textAlign_ - this.offsetX_);
+      var anchorY = Math.round(textSize[1] * this.textBaseline_ - this.offsetY_);
+      var lineWidth = (this.state_.lineWidth / 2) * this.state_.scale;
+
+      for (i = 0, ii = lines.length; i < ii; ++i) {
+        currX = 0;
+        currY = glyphAtlas.height * i;
+        charArr = lines[i].split('');
+
+        for (j = 0, jj = charArr.length; j < jj; ++j) {
+          charInfo = glyphAtlas.atlas.getInfo(charArr[j]);
+
+          if (charInfo) {
+            var image = charInfo.image;
+
+            this.anchorX = anchorX - currX;
+            this.anchorY = anchorY - currY;
+            this.originX = j === 0 ? charInfo.offsetX - lineWidth : charInfo.offsetX;
+            this.originY = charInfo.offsetY;
+            this.height = glyphAtlas.height;
+            this.width = j === 0 || j === charArr.length - 1 ?
+              glyphAtlas.width[charArr[j]] + lineWidth : glyphAtlas.width[charArr[j]];
+            this.imageHeight = image.height;
+            this.imageWidth = image.width;
+
+            var currentImage;
+            if (this.images_.length === 0) {
+              this.images_.push(image);
+            } else {
+              currentImage = this.images_[this.images_.length - 1];
+              if (ol.getUid(currentImage) != ol.getUid(image)) {
+                this.groupIndices.push(this.indices.length);
+                this.images_.push(image);
+              }
+            }
+
+            this.drawText_(flatCoordinates, offset, end, stride);
+          }
+          currX += this.width;
+        }
+      }
+    }
   };
 
+
   /**
+   * @private
+   * @param {Array.<string>} lines Label to draw split to lines.
+   * @return {Array.<number>} Size of the label in pixels.
+   */
+  ol.render.webgl.TextReplay.prototype.getTextSize_ = function(lines) {
+    var self = this;
+    var glyphAtlas = this.currAtlas_;
+    var textHeight = lines.length * glyphAtlas.height;
+    //Split every line to an array of chars, sum up their width, and select the longest.
+    var textWidth = lines.map(function(str) {
+      var sum = 0;
+      var i, ii;
+      for (i = 0, ii = str.length; i < ii; ++i) {
+        var curr = str[i];
+        if (!glyphAtlas.width[curr]) {
+          self.addCharToAtlas_(curr);
+        }
+        sum += glyphAtlas.width[curr] ? glyphAtlas.width[curr] : 0;
+      }
+      return sum;
+    }).reduce(function(max, curr) {
+      return Math.max(max, curr);
+    });
+
+    return [textWidth, textHeight];
+  };
+
+
+  /**
+   * @private
    * @param {Array.<number>} flatCoordinates Flat coordinates.
    * @param {number} offset Offset.
    * @param {number} end End.
    * @param {number} stride Stride.
-   * @param {ol.geom.Geometry|ol.render.Feature} geometry Geometry.
-   * @param {ol.Feature|ol.render.Feature} feature Feature.
    */
-  ol.render.webgl.TextReplay.prototype.drawText = function(flatCoordinates, offset,
-      end, stride, geometry, feature) {};
+  ol.render.webgl.TextReplay.prototype.drawText_ = function(flatCoordinates, offset,
+      end, stride) {
+    var i, ii;
+    for (i = offset, ii = end; i < ii; i += stride) {
+      this.drawCoordinates(flatCoordinates, offset, end, stride);
+    }
+  };
+
 
   /**
-   * @abstract
-   * @param {ol.webgl.Context} context Context.
+   * @private
+   * @param {string} char Character.
    */
-  ol.render.webgl.TextReplay.prototype.finish = function(context) {};
+  ol.render.webgl.TextReplay.prototype.addCharToAtlas_ = function(char) {
+    if (char.length === 1) {
+      var glyphAtlas = this.currAtlas_;
+      var state = this.state_;
+      var mCtx = this.measureCanvas_.getContext('2d');
+      mCtx.font = state.font;
+      var width = Math.ceil(mCtx.measureText(char).width * state.scale);
+
+      var info = glyphAtlas.atlas.add(char, width, glyphAtlas.height,
+          function(ctx, x, y) {
+            //Parameterize the canvas
+            ctx.font = /** @type {string} */ (state.font);
+            ctx.fillStyle = state.fillColor;
+            ctx.strokeStyle = state.strokeColor;
+            ctx.lineWidth = state.lineWidth;
+            ctx.lineCap = /*** @type {string} */ (state.lineCap);
+            ctx.lineJoin = /** @type {string} */ (state.lineJoin);
+            ctx.miterLimit = /** @type {number} */ (state.miterLimit);
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            if (ol.has.CANVAS_LINE_DASH && state.lineDash) {
+              //FIXME: use pixelRatio
+              ctx.setLineDash(state.lineDash);
+              ctx.lineDashOffset = /** @type {number} */ (state.lineDashOffset);
+            }
+            if (state.scale !== 1) {
+              //FIXME: use pixelRatio
+              ctx.setTransform(/** @type {number} */ (state.scale), 0, 0,
+                  /** @type {number} */ (state.scale), 0, 0);
+            }
+
+            //Draw the character on the canvas
+            if (state.strokeColor) {
+              ctx.strokeText(char, x, y);
+            }
+            if (state.fillColor) {
+              ctx.fillText(char, x, y);
+            }
+          });
+
+      if (info) {
+        glyphAtlas.width[char] = width;
+      }
+    }
+  };
+
 
   /**
-   * @param {ol.webgl.Context} context WebGL context.
-   * @return {function()} Delete resources function.
+   * @inheritDoc
    */
-  ol.render.webgl.TextReplay.prototype.getDeleteResourcesFunction = function(context) {
-    return ol.nullFunction;
+  ol.render.webgl.TextReplay.prototype.finish = function(context) {
+    var gl = context.getGL();
+
+    this.groupIndices.push(this.indices.length);
+    this.hitDetectionGroupIndices = this.groupIndices;
+
+    // create, bind, and populate the vertices buffer
+    this.verticesBuffer = new ol.webgl.Buffer(this.vertices);
+
+    // create, bind, and populate the indices buffer
+    this.indicesBuffer = new ol.webgl.Buffer(this.indices);
+
+    // create textures
+    /** @type {Object.<string, WebGLTexture>} */
+    var texturePerImage = {};
+
+    this.createTextures(this.textures_, this.images_, texturePerImage, gl);
+
+    this.state_ = {
+      strokeColor: null,
+      lineCap: undefined,
+      lineDash: null,
+      lineDashOffset: undefined,
+      lineJoin: undefined,
+      lineWidth: 0,
+      miterLimit: undefined,
+      fillColor: null,
+      font: undefined,
+      scale: undefined
+    };
+    this.text_ = '';
+    this.textAlign_ = undefined;
+    this.textBaseline_ = undefined;
+    this.offsetX_ = undefined;
+    this.offsetY_ = undefined;
+    this.images_ = null;
+    this.atlases_ = {};
+    this.currAtlas_ = undefined;
+    ol.render.webgl.TextureReplay.prototype.finish.call(this, context);
+  };
+
+
+  /**
+   * @inheritDoc
+   */
+  ol.render.webgl.TextReplay.prototype.setTextStyle = function(textStyle) {
+    var state = this.state_;
+    var textFillStyle = textStyle.getFill();
+    var textStrokeStyle = textStyle.getStroke();
+    if (!textStyle || !textStyle.getText() || (!textFillStyle && !textStrokeStyle)) {
+      this.text_ = '';
+    } else {
+      if (!textFillStyle) {
+        state.fillColor = null;
+      } else {
+        var textFillStyleColor = textFillStyle.getColor();
+        state.fillColor = ol.colorlike.asColorLike(textFillStyleColor ?
+          textFillStyleColor : ol.render.webgl.defaultFillStyle);
+      }
+      if (!textStrokeStyle) {
+        state.strokeColor = null;
+        state.lineWidth = 0;
+      } else {
+        var textStrokeStyleColor = textStrokeStyle.getColor();
+        state.strokeColor = ol.colorlike.asColorLike(textStrokeStyleColor ?
+          textStrokeStyleColor : ol.render.webgl.defaultStrokeStyle);
+        state.lineWidth = textStrokeStyle.getWidth() || ol.render.webgl.defaultLineWidth;
+        state.lineCap = textStrokeStyle.getLineCap() || ol.render.webgl.defaultLineCap;
+        state.lineDashOffset = textStrokeStyle.getLineDashOffset() || ol.render.webgl.defaultLineDashOffset;
+        state.lineJoin = textStrokeStyle.getLineJoin() || ol.render.webgl.defaultLineJoin;
+        state.miterLimit = textStrokeStyle.getMiterLimit() || ol.render.webgl.defaultMiterLimit;
+        var lineDash = textStrokeStyle.getLineDash();
+        state.lineDash = lineDash ? lineDash.slice() : ol.render.webgl.defaultLineDash;
+      }
+      state.font = textStyle.getFont() || ol.render.webgl.defaultFont;
+      state.scale = textStyle.getScale() || 1;
+      this.text_ = /** @type {string} */ (textStyle.getText());
+      var textAlign = ol.render.webgl.TextReplay.Align_[textStyle.getTextAlign()];
+      var textBaseline = ol.render.webgl.TextReplay.Align_[textStyle.getTextBaseline()];
+      this.textAlign_ = textAlign === undefined ?
+        ol.render.webgl.defaultTextAlign : textAlign;
+      this.textBaseline_ = textBaseline === undefined ?
+        ol.render.webgl.defaultTextBaseline : textBaseline;
+      this.offsetX_ = textStyle.getOffsetX() || 0;
+      this.offsetY_ = textStyle.getOffsetY() || 0;
+      this.rotateWithView = !!textStyle.getRotateWithView();
+      this.rotation = textStyle.getRotation() || 0;
+
+      this.currAtlas_ = this.getAtlas_(state);
+    }
+  };
+
+
+  /**
+   * @private
+   * @param {Object} state Font attributes.
+   * @return {ol.WebglGlyphAtlas} Glyph atlas.
+   */
+  ol.render.webgl.TextReplay.prototype.getAtlas_ = function(state) {
+    var params = [];
+    var i;
+    for (i in state) {
+      if (state[i] || state[i] === 0) {
+        if (Array.isArray(state[i])) {
+          params = params.concat(state[i]);
+        } else {
+          params.push(state[i]);
+        }
+      }
+    }
+    var hash = this.calculateHash_(params);
+    if (!this.atlases_[hash]) {
+      var mCtx = this.measureCanvas_.getContext('2d');
+      mCtx.font = state.font;
+      var height = Math.ceil((mCtx.measureText('M').width * 1.5 +
+          state.lineWidth / 2) * state.scale);
+
+      this.atlases_[hash] = {
+        atlas: new ol.style.AtlasManager({
+          space: state.lineWidth + 1
+        }),
+        width: {},
+        height: height
+      };
+    }
+    return this.atlases_[hash];
+  };
+
+
+  /**
+   * @private
+   * @param {Array.<string|number>} params Array of parameters.
+   * @return {string} Hash string.
+   */
+  ol.render.webgl.TextReplay.prototype.calculateHash_ = function(params) {
+    //TODO: Create a more performant, reliable, general hash function.
+    var i, ii;
+    var hash = '';
+    for (i = 0, ii = params.length; i < ii; ++i) {
+      hash += params[i];
+    }
+    return hash;
+  };
+
+
+  /**
+   * @inheritDoc
+   */
+  ol.render.webgl.TextReplay.prototype.getTextures = function(opt_all) {
+    return this.textures_;
+  };
+
+
+  /**
+   * @inheritDoc
+   */
+  ol.render.webgl.TextReplay.prototype.getHitDetectionTextures = function() {
+    return this.textures_;
+  };
+
+
+  /**
+   * @enum {number}
+   * @private
+   */
+  ol.render.webgl.TextReplay.Align_ = {
+    left: 0,
+    end: 0,
+    center: 0.5,
+    right: 1,
+    start: 1,
+    top: 0,
+    middle: 0.5,
+    hanging: 0.2,
+    alphabetic: 0.8,
+    ideographic: 0.8,
+    bottom: 1
   };
 
 }
@@ -29523,8 +30790,42 @@ if (ol.ENABLE_WEBGL) {
      */
     this.strokeStyle_ = null;
 
+    /**
+     * @private
+     * @type {ol.style.Text}
+     */
+    this.textStyle_ = null;
+
   };
   ol.inherits(ol.render.webgl.Immediate, ol.render.VectorContext);
+
+
+  /**
+   * @param {ol.render.webgl.ReplayGroup} replayGroup Replay group.
+   * @param {Array.<number>} flatCoordinates Flat coordinates.
+   * @param {number} offset Offset.
+   * @param {number} end End.
+   * @param {number} stride Stride.
+   * @private
+   */
+  ol.render.webgl.Immediate.prototype.drawText_ = function(replayGroup,
+      flatCoordinates, offset, end, stride) {
+    var context = this.context_;
+    var replay = /** @type {ol.render.webgl.TextReplay} */ (
+      replayGroup.getReplay(0, ol.render.ReplayType.TEXT));
+    replay.setTextStyle(this.textStyle_);
+    replay.drawText(flatCoordinates, offset, end, stride, null, null);
+    replay.finish(context);
+    // default colors
+    var opacity = 1;
+    var skippedFeatures = {};
+    var featureCallback;
+    var oneByOne = false;
+    replay.replay(this.context_, this.center_, this.resolution_, this.rotation_,
+        this.size_, this.pixelRatio_, opacity, skippedFeatures, featureCallback,
+        oneByOne);
+    replay.getDeleteResourcesFunction(context)();
+  };
 
 
   /**
@@ -29538,6 +30839,7 @@ if (ol.ENABLE_WEBGL) {
   ol.render.webgl.Immediate.prototype.setStyle = function(style) {
     this.setFillStrokeStyle(style.getFill(), style.getStroke());
     this.setImageStyle(style.getImage());
+    this.setTextStyle(style.getText());
   };
 
 
@@ -29616,7 +30918,7 @@ if (ol.ENABLE_WEBGL) {
     var context = this.context_;
     var replayGroup = new ol.render.webgl.ReplayGroup(1, this.extent_);
     var replay = /** @type {ol.render.webgl.ImageReplay} */ (
-        replayGroup.getReplay(0, ol.render.ReplayType.IMAGE));
+      replayGroup.getReplay(0, ol.render.ReplayType.IMAGE));
     replay.setImageStyle(this.imageStyle_);
     replay.drawPoint(geometry, data);
     replay.finish(context);
@@ -29629,6 +30931,12 @@ if (ol.ENABLE_WEBGL) {
         this.size_, this.pixelRatio_, opacity, skippedFeatures, featureCallback,
         oneByOne);
     replay.getDeleteResourcesFunction(context)();
+
+    if (this.textStyle_) {
+      var flatCoordinates = geometry.getFlatCoordinates();
+      var stride = geometry.getStride();
+      this.drawText_(replayGroup, flatCoordinates, 0, flatCoordinates.length, stride);
+    }
   };
 
 
@@ -29639,7 +30947,7 @@ if (ol.ENABLE_WEBGL) {
     var context = this.context_;
     var replayGroup = new ol.render.webgl.ReplayGroup(1, this.extent_);
     var replay = /** @type {ol.render.webgl.ImageReplay} */ (
-        replayGroup.getReplay(0, ol.render.ReplayType.IMAGE));
+      replayGroup.getReplay(0, ol.render.ReplayType.IMAGE));
     replay.setImageStyle(this.imageStyle_);
     replay.drawMultiPoint(geometry, data);
     replay.finish(context);
@@ -29651,6 +30959,12 @@ if (ol.ENABLE_WEBGL) {
         this.size_, this.pixelRatio_, opacity, skippedFeatures, featureCallback,
         oneByOne);
     replay.getDeleteResourcesFunction(context)();
+
+    if (this.textStyle_) {
+      var flatCoordinates = geometry.getFlatCoordinates();
+      var stride = geometry.getStride();
+      this.drawText_(replayGroup, flatCoordinates, 0, flatCoordinates.length, stride);
+    }
   };
 
 
@@ -29661,7 +30975,7 @@ if (ol.ENABLE_WEBGL) {
     var context = this.context_;
     var replayGroup = new ol.render.webgl.ReplayGroup(1, this.extent_);
     var replay = /** @type {ol.render.webgl.LineStringReplay} */ (
-        replayGroup.getReplay(0, ol.render.ReplayType.LINE_STRING));
+      replayGroup.getReplay(0, ol.render.ReplayType.LINE_STRING));
     replay.setFillStrokeStyle(null, this.strokeStyle_);
     replay.drawLineString(geometry, data);
     replay.finish(context);
@@ -29673,6 +30987,11 @@ if (ol.ENABLE_WEBGL) {
         this.size_, this.pixelRatio_, opacity, skippedFeatures, featureCallback,
         oneByOne);
     replay.getDeleteResourcesFunction(context)();
+
+    if (this.textStyle_) {
+      var flatMidpoint = geometry.getFlatMidpoint();
+      this.drawText_(replayGroup, flatMidpoint, 0, 2, 2);
+    }
   };
 
 
@@ -29683,7 +31002,7 @@ if (ol.ENABLE_WEBGL) {
     var context = this.context_;
     var replayGroup = new ol.render.webgl.ReplayGroup(1, this.extent_);
     var replay = /** @type {ol.render.webgl.LineStringReplay} */ (
-        replayGroup.getReplay(0, ol.render.ReplayType.LINE_STRING));
+      replayGroup.getReplay(0, ol.render.ReplayType.LINE_STRING));
     replay.setFillStrokeStyle(null, this.strokeStyle_);
     replay.drawMultiLineString(geometry, data);
     replay.finish(context);
@@ -29695,6 +31014,11 @@ if (ol.ENABLE_WEBGL) {
         this.size_, this.pixelRatio_, opacity, skippedFeatures, featureCallback,
         oneByOne);
     replay.getDeleteResourcesFunction(context)();
+
+    if (this.textStyle_) {
+      var flatMidpoints = geometry.getFlatMidpoints();
+      this.drawText_(replayGroup, flatMidpoints, 0, flatMidpoints.length, 2);
+    }
   };
 
 
@@ -29705,7 +31029,7 @@ if (ol.ENABLE_WEBGL) {
     var context = this.context_;
     var replayGroup = new ol.render.webgl.ReplayGroup(1, this.extent_);
     var replay = /** @type {ol.render.webgl.PolygonReplay} */ (
-        replayGroup.getReplay(0, ol.render.ReplayType.POLYGON));
+      replayGroup.getReplay(0, ol.render.ReplayType.POLYGON));
     replay.setFillStrokeStyle(this.fillStyle_, this.strokeStyle_);
     replay.drawPolygon(geometry, data);
     replay.finish(context);
@@ -29717,6 +31041,11 @@ if (ol.ENABLE_WEBGL) {
         this.size_, this.pixelRatio_, opacity, skippedFeatures, featureCallback,
         oneByOne);
     replay.getDeleteResourcesFunction(context)();
+
+    if (this.textStyle_) {
+      var flatInteriorPoint = geometry.getFlatInteriorPoint();
+      this.drawText_(replayGroup, flatInteriorPoint, 0, 2, 2);
+    }
   };
 
 
@@ -29727,7 +31056,7 @@ if (ol.ENABLE_WEBGL) {
     var context = this.context_;
     var replayGroup = new ol.render.webgl.ReplayGroup(1, this.extent_);
     var replay = /** @type {ol.render.webgl.PolygonReplay} */ (
-        replayGroup.getReplay(0, ol.render.ReplayType.POLYGON));
+      replayGroup.getReplay(0, ol.render.ReplayType.POLYGON));
     replay.setFillStrokeStyle(this.fillStyle_, this.strokeStyle_);
     replay.drawMultiPolygon(geometry, data);
     replay.finish(context);
@@ -29739,6 +31068,11 @@ if (ol.ENABLE_WEBGL) {
         this.size_, this.pixelRatio_, opacity, skippedFeatures, featureCallback,
         oneByOne);
     replay.getDeleteResourcesFunction(context)();
+
+    if (this.textStyle_) {
+      var flatInteriorPoints = geometry.getFlatInteriorPoints();
+      this.drawText_(replayGroup, flatInteriorPoints, 0, flatInteriorPoints.length, 2);
+    }
   };
 
 
@@ -29749,7 +31083,7 @@ if (ol.ENABLE_WEBGL) {
     var context = this.context_;
     var replayGroup = new ol.render.webgl.ReplayGroup(1, this.extent_);
     var replay = /** @type {ol.render.webgl.CircleReplay} */ (
-        replayGroup.getReplay(0, ol.render.ReplayType.CIRCLE));
+      replayGroup.getReplay(0, ol.render.ReplayType.CIRCLE));
     replay.setFillStrokeStyle(this.fillStyle_, this.strokeStyle_);
     replay.drawCircle(geometry, data);
     replay.finish(context);
@@ -29761,6 +31095,10 @@ if (ol.ENABLE_WEBGL) {
         this.size_, this.pixelRatio_, opacity, skippedFeatures, featureCallback,
         oneByOne);
     replay.getDeleteResourcesFunction(context)();
+
+    if (this.textStyle_) {
+      this.drawText_(replayGroup, geometry.getCenter(), 0, 2, 2);
+    }
   };
 
 
@@ -29778,6 +31116,14 @@ if (ol.ENABLE_WEBGL) {
   ol.render.webgl.Immediate.prototype.setFillStrokeStyle = function(fillStyle, strokeStyle) {
     this.fillStyle_ = fillStyle;
     this.strokeStyle_ = strokeStyle;
+  };
+
+
+  /**
+   * @inheritDoc
+   */
+  ol.render.webgl.Immediate.prototype.setTextStyle = function(textStyle) {
+    this.textStyle_ = textStyle;
   };
 
 }
@@ -30028,7 +31374,7 @@ if (ol.ENABLE_WEBGL) {
      * @type {HTMLCanvasElement}
      */
     this.canvas_ = /** @type {HTMLCanvasElement} */
-        (document.createElement('CANVAS'));
+      (document.createElement('CANVAS'));
     this.canvas_.style.width = '100%';
     this.canvas_.style.height = '100%';
     this.canvas_.style.display = 'block';
@@ -30451,7 +31797,7 @@ if (ol.ENABLE_WEBGL) {
     if (this.textureCache_.getCount() - this.textureCacheFrameMarkerCount_ >
         ol.WEBGL_TEXTURE_CACHE_HIGH_WATER_MARK) {
       frameState.postRenderFunctions.push(
-        /** @type {ol.PostRenderFunction} */ (this.expireCache_.bind(this))
+          /** @type {ol.PostRenderFunction} */ (this.expireCache_.bind(this))
       );
     }
 
@@ -30472,7 +31818,7 @@ if (ol.ENABLE_WEBGL) {
    * @inheritDoc
    */
   ol.renderer.webgl.Map.prototype.forEachFeatureAtCoordinate = function(coordinate, frameState, hitTolerance, callback, thisArg,
-          layerFilter, thisArg2) {
+      layerFilter, thisArg2) {
     var result;
 
     if (this.getGL().isContextLost()) {
@@ -30537,7 +31883,7 @@ if (ol.ENABLE_WEBGL) {
    * @inheritDoc
    */
   ol.renderer.webgl.Map.prototype.forEachLayerAtPixel = function(pixel, frameState, callback, thisArg,
-          layerFilter, thisArg2) {
+      layerFilter, thisArg2) {
     if (this.getGL().isContextLost()) {
       return false;
     }
@@ -30598,7 +31944,6 @@ goog.require('ol.has');
 goog.require('ol.interaction');
 goog.require('ol.layer.Group');
 goog.require('ol.obj');
-goog.require('ol.proj.common');
 goog.require('ol.renderer.Map');
 goog.require('ol.renderer.Type');
 goog.require('ol.renderer.canvas.Map');
@@ -30713,7 +32058,7 @@ ol.Map = function(options) {
    */
   this.loadTilesWhileAnimating_ =
       options.loadTilesWhileAnimating !== undefined ?
-          options.loadTilesWhileAnimating : false;
+        options.loadTilesWhileAnimating : false;
 
   /**
    * @type {boolean}
@@ -30721,14 +32066,14 @@ ol.Map = function(options) {
    */
   this.loadTilesWhileInteracting_ =
       options.loadTilesWhileInteracting !== undefined ?
-          options.loadTilesWhileInteracting : false;
+        options.loadTilesWhileInteracting : false;
 
   /**
    * @private
    * @type {number}
    */
   this.pixelRatio_ = options.pixelRatio !== undefined ?
-      options.pixelRatio : ol.has.DEVICE_PIXEL_RATIO;
+    options.pixelRatio : ol.has.DEVICE_PIXEL_RATIO;
 
   /**
    * @private
@@ -30779,7 +32124,7 @@ ol.Map = function(options) {
    * @private
    * @type {ol.Extent}
    */
-  this.previousExtent_ = ol.extent.createEmpty();
+  this.previousExtent_ = null;
 
   /**
    * @private
@@ -30847,7 +32192,7 @@ ol.Map = function(options) {
    * @private
    * @type {ol.MapBrowserEventHandler}
    */
-  this.mapBrowserEventHandler_ = new ol.MapBrowserEventHandler(this);
+  this.mapBrowserEventHandler_ = new ol.MapBrowserEventHandler(this, options.moveTolerance);
   for (var key in ol.MapBrowserEventType) {
     ol.events.listen(this.mapBrowserEventHandler_, ol.MapBrowserEventType[key],
         this.handleMapBrowserEvent, this);
@@ -31110,7 +32455,7 @@ ol.Map.prototype.disposeInternal = function() {
 /**
  * Detect features that intersect a pixel on the viewport, and execute a
  * callback with each intersecting feature. Layers included in the detection can
- * be configured through `opt_layerFilter`.
+ * be configured through the `layerFilter` option in `opt_options`.
  * @param {ol.Pixel} pixel Pixel.
  * @param {function(this: S, (ol.Feature|ol.render.Feature),
  *     ol.layer.Layer): T} callback Feature callback. The callback will be
@@ -31143,12 +32488,31 @@ ol.Map.prototype.forEachFeatureAtPixel = function(pixel, callback, opt_options) 
 
 
 /**
+ * Get all features that intersect a pixel on the viewport.
+ * @param {ol.Pixel} pixel Pixel.
+ * @param {olx.AtPixelOptions=} opt_options Optional options.
+ * @return {Array.<ol.Feature|ol.render.Feature>} The detected features or
+ * `null` if none were found.
+ * @api
+ */
+ol.Map.prototype.getFeaturesAtPixel = function(pixel, opt_options) {
+  var features = null;
+  this.forEachFeatureAtPixel(pixel, function(feature) {
+    if (!features) {
+      features = [];
+    }
+    features.push(feature);
+  }, opt_options);
+  return features;
+};
+
+/**
  * Detect layers that have a color value at a pixel on the viewport, and
  * execute a callback with each matching layer. Layers included in the
  * detection can be configured through `opt_layerFilter`.
  * @param {ol.Pixel} pixel Pixel.
  * @param {function(this: S, ol.layer.Layer, (Uint8ClampedArray|Uint8Array)): T} callback
- *     Layer callback. This callback will recieve two arguments: first is the
+ *     Layer callback. This callback will receive two arguments: first is the
  *     {@link ol.layer.Layer layer}, second argument is an array representing
  *     [R, G, B, A] pixel values (0 - 255) and will be `null` for layer types
  *     that do not currently support this argument. To stop detection, callback
@@ -31172,7 +32536,7 @@ ol.Map.prototype.forEachLayerAtPixel = function(pixel, callback, opt_this, opt_l
   }
   var thisArg = opt_this !== undefined ? opt_this : null;
   var layerFilter = opt_layerFilter !== undefined ?
-      opt_layerFilter : ol.functions.TRUE;
+    opt_layerFilter : ol.functions.TRUE;
   var thisArg2 = opt_this2 !== undefined ? opt_this2 : null;
   return this.renderer_.forEachLayerAtPixel(
       pixel, this.frameState_, callback, thisArg,
@@ -31196,7 +32560,7 @@ ol.Map.prototype.hasFeatureAtPixel = function(pixel, opt_options) {
   var coordinate = this.getCoordinateFromPixel(pixel);
   opt_options = opt_options !== undefined ? opt_options : {};
   var layerFilter = opt_options.layerFilter !== undefined ?
-      opt_options.layerFilter : ol.functions.TRUE;
+    opt_options.layerFilter : ol.functions.TRUE;
   var hitTolerance = opt_options.hitTolerance !== undefined ?
     opt_options.hitTolerance * this.frameState_.pixelRatio : 0;
   return this.renderer_.hasFeatureAtCoordinate(
@@ -31242,7 +32606,7 @@ ol.Map.prototype.getEventPixel = function(event) {
  */
 ol.Map.prototype.getTarget = function() {
   return /** @type {Element|string|undefined} */ (
-      this.get(ol.MapProperty.TARGET));
+    this.get(ol.MapProperty.TARGET));
 };
 
 
@@ -31592,7 +32956,7 @@ ol.Map.prototype.handleTargetChanged_ = function() {
     targetElement.appendChild(this.viewport_);
 
     var keyboardEventTarget = !this.keyboardEventTarget_ ?
-        targetElement : this.keyboardEventTarget_;
+      targetElement : this.keyboardEventTarget_;
     this.keyHandlerKeys_ = [
       ol.events.listen(keyboardEventTarget, ol.events.EventType.KEYDOWN,
           this.handleBrowserEvent, this),
@@ -31769,6 +33133,7 @@ ol.Map.prototype.renderFrame_ = function(time) {
   var size = this.getSize();
   var view = this.getView();
   var extent = ol.extent.createEmpty();
+  var previousFrameState = this.frameState_;
   /** @type {?olx.FrameState} */
   var frameState = null;
   if (size !== undefined && ol.size.hasArea(size) && view && view.isDef()) {
@@ -31818,7 +33183,19 @@ ol.Map.prototype.renderFrame_ = function(time) {
     Array.prototype.push.apply(
         this.postRenderFunctions_, frameState.postRenderFunctions);
 
-    var idle = !frameState.viewHints[ol.ViewHint.ANIMATING] &&
+    if (previousFrameState) {
+      var moveStart = !this.previousExtent_ ||
+          (!ol.extent.isEmpty(this.previousExtent_) &&
+          !ol.extent.equals(frameState.extent, this.previousExtent_));
+      if (moveStart) {
+        this.dispatchEvent(
+            new ol.MapEvent(ol.MapEventType.MOVESTART, this, previousFrameState));
+        this.previousExtent_ = ol.extent.createOrUpdateEmpty(this.previousExtent_);
+      }
+    }
+
+    var idle = this.previousExtent_ &&
+        !frameState.viewHints[ol.ViewHint.ANIMATING] &&
         !frameState.viewHints[ol.ViewHint.INTERACTING] &&
         !ol.extent.equals(frameState.extent, this.previousExtent_);
 
@@ -31943,8 +33320,8 @@ ol.Map.createOptionsInternal = function(options) {
   var keyboardEventTarget = null;
   if (options.keyboardEventTarget !== undefined) {
     keyboardEventTarget = typeof options.keyboardEventTarget === 'string' ?
-        document.getElementById(options.keyboardEventTarget) :
-        options.keyboardEventTarget;
+      document.getElementById(options.keyboardEventTarget) :
+      options.keyboardEventTarget;
   }
 
   /**
@@ -31970,13 +33347,13 @@ ol.Map.createOptionsInternal = function(options) {
   }
 
   var layerGroup = (options.layers instanceof ol.layer.Group) ?
-      options.layers : new ol.layer.Group({layers: options.layers});
+    options.layers : new ol.layer.Group({layers: options.layers});
   values[ol.MapProperty.LAYERGROUP] = layerGroup;
 
   values[ol.MapProperty.TARGET] = options.target;
 
   values[ol.MapProperty.VIEW] = options.view !== undefined ?
-      options.view : new ol.View();
+    options.view : new ol.View();
 
   /**
    * @type {function(new: ol.renderer.Map, Element, ol.Map)}
@@ -32070,8 +33447,6 @@ ol.Map.createOptionsInternal = function(options) {
 
 };
 
-ol.proj.common.add();
-
 goog.provide('ol.OverlayPositioning');
 
 /**
@@ -32098,6 +33473,7 @@ goog.require('ol');
 goog.require('ol.MapEventType');
 goog.require('ol.Object');
 goog.require('ol.OverlayPositioning');
+goog.require('ol.css');
 goog.require('ol.dom');
 goog.require('ol.events');
 goog.require('ol.extent');
@@ -32139,7 +33515,7 @@ ol.Overlay = function(options) {
    * @type {boolean}
    */
   this.insertFirst_ = options.insertFirst !== undefined ?
-      options.insertFirst : true;
+    options.insertFirst : true;
 
   /**
    * @private
@@ -32152,7 +33528,7 @@ ol.Overlay = function(options) {
    * @type {Element}
    */
   this.element_ = document.createElement('DIV');
-  this.element_.className = 'ol-overlay-container';
+  this.element_.className = 'ol-overlay-container ' + ol.css.CLASS_SELECTABLE;
   this.element_.style.position = 'absolute';
 
   /**
@@ -32166,14 +33542,14 @@ ol.Overlay = function(options) {
    * @type {olx.OverlayPanOptions}
    */
   this.autoPanAnimation_ = options.autoPanAnimation ||
-      /** @type {olx.OverlayPanOptions} */ ({});
+    /** @type {olx.OverlayPanOptions} */ ({});
 
   /**
    * @private
    * @type {number}
    */
   this.autoPanMargin_ = options.autoPanMargin !== undefined ?
-      options.autoPanMargin : 20;
+    options.autoPanMargin : 20;
 
   /**
    * @private
@@ -32224,8 +33600,8 @@ ol.Overlay = function(options) {
   this.setOffset(options.offset !== undefined ? options.offset : [0, 0]);
 
   this.setPositioning(options.positioning !== undefined ?
-      /** @type {ol.OverlayPositioning} */ (options.positioning) :
-      ol.OverlayPositioning.TOP_LEFT);
+    /** @type {ol.OverlayPositioning} */ (options.positioning) :
+    ol.OverlayPositioning.TOP_LEFT);
 
   if (options.position !== undefined) {
     this.setPosition(options.position);
@@ -32243,7 +33619,7 @@ ol.inherits(ol.Overlay, ol.Object);
  */
 ol.Overlay.prototype.getElement = function() {
   return /** @type {Element|undefined} */ (
-      this.get(ol.Overlay.Property_.ELEMENT));
+    this.get(ol.Overlay.Property_.ELEMENT));
 };
 
 
@@ -32265,7 +33641,7 @@ ol.Overlay.prototype.getId = function() {
  */
 ol.Overlay.prototype.getMap = function() {
   return /** @type {ol.Map|undefined} */ (
-      this.get(ol.Overlay.Property_.MAP));
+    this.get(ol.Overlay.Property_.MAP));
 };
 
 
@@ -32277,7 +33653,7 @@ ol.Overlay.prototype.getMap = function() {
  */
 ol.Overlay.prototype.getOffset = function() {
   return /** @type {Array.<number>} */ (
-      this.get(ol.Overlay.Property_.OFFSET));
+    this.get(ol.Overlay.Property_.OFFSET));
 };
 
 
@@ -32290,7 +33666,7 @@ ol.Overlay.prototype.getOffset = function() {
  */
 ol.Overlay.prototype.getPosition = function() {
   return /** @type {ol.Coordinate|undefined} */ (
-      this.get(ol.Overlay.Property_.POSITION));
+    this.get(ol.Overlay.Property_.POSITION));
 };
 
 
@@ -32303,7 +33679,7 @@ ol.Overlay.prototype.getPosition = function() {
  */
 ol.Overlay.prototype.getPositioning = function() {
   return /** @type {ol.OverlayPositioning} */ (
-      this.get(ol.Overlay.Property_.POSITIONING));
+    this.get(ol.Overlay.Property_.POSITIONING));
 };
 
 
@@ -32334,7 +33710,7 @@ ol.Overlay.prototype.handleMapChanged = function() {
         ol.MapEventType.POSTRENDER, this.render, this);
     this.updatePixelPosition();
     var container = this.stopEvent_ ?
-        map.getOverlayContainerStopEvent() : map.getOverlayContainer();
+      map.getOverlayContainerStopEvent() : map.getOverlayContainer();
     if (this.insertFirst_) {
       container.insertBefore(this.element_, container.childNodes[0] || null);
     } else {
@@ -32558,6 +33934,8 @@ ol.Overlay.prototype.updateRenderedPosition = function(pixel, mapSize) {
 
   var positioning = this.getPositioning();
 
+  this.setVisible(true);
+
   var offsetX = offset[0];
   var offsetY = offset[1];
   if (positioning == ol.OverlayPositioning.BOTTOM_RIGHT ||
@@ -32566,7 +33944,7 @@ ol.Overlay.prototype.updateRenderedPosition = function(pixel, mapSize) {
     if (this.rendered_.left_ !== '') {
       this.rendered_.left_ = style.left = '';
     }
-    var right = Math.round(mapSize[0] - pixel[0] - offsetX) + 'px';
+    var right = (mapSize[0] - pixel[0] - offsetX) + 'px';
     if (this.rendered_.right_ != right) {
       this.rendered_.right_ = style.right = right;
     }
@@ -32579,7 +33957,7 @@ ol.Overlay.prototype.updateRenderedPosition = function(pixel, mapSize) {
         positioning == ol.OverlayPositioning.TOP_CENTER) {
       offsetX -= this.element_.offsetWidth / 2;
     }
-    var left = Math.round(pixel[0] + offsetX) + 'px';
+    var left = (pixel[0] + offsetX) + 'px';
     if (this.rendered_.left_ != left) {
       this.rendered_.left_ = style.left = left;
     }
@@ -32590,7 +33968,7 @@ ol.Overlay.prototype.updateRenderedPosition = function(pixel, mapSize) {
     if (this.rendered_.top_ !== '') {
       this.rendered_.top_ = style.top = '';
     }
-    var bottom = Math.round(mapSize[1] - pixel[1] - offsetY) + 'px';
+    var bottom = (mapSize[1] - pixel[1] - offsetY) + 'px';
     if (this.rendered_.bottom_ != bottom) {
       this.rendered_.bottom_ = style.bottom = bottom;
     }
@@ -32603,13 +33981,11 @@ ol.Overlay.prototype.updateRenderedPosition = function(pixel, mapSize) {
         positioning == ol.OverlayPositioning.CENTER_RIGHT) {
       offsetY -= this.element_.offsetHeight / 2;
     }
-    var top = Math.round(pixel[1] + offsetY) + 'px';
+    var top = (pixel[1] + offsetY) + 'px';
     if (this.rendered_.top_ != top) {
       this.rendered_.top_ = style.top = top;
     }
   }
-
-  this.setVisible(true);
 };
 
 
@@ -32669,7 +34045,7 @@ ol.control.OverviewMap = function(opt_options) {
    * @type {boolean}
    */
   this.collapsible_ = options.collapsible !== undefined ?
-      options.collapsible : true;
+    options.collapsible : true;
 
   if (!this.collapsible_) {
     this.collapsed_ = false;
@@ -32707,7 +34083,7 @@ ol.control.OverviewMap = function(opt_options) {
   }
 
   var activeLabel = (this.collapsible_ && !this.collapsed_) ?
-      this.collapseLabel_ : this.label_;
+    this.collapseLabel_ : this.label_;
   var button = document.createElement('button');
   button.setAttribute('type', 'button');
   button.title = tipLabel;
@@ -32774,6 +34150,44 @@ ol.control.OverviewMap = function(opt_options) {
     element: element,
     render: render,
     target: options.target
+  });
+
+  /* Interactive map */
+
+  var scope = this;
+
+  var overlay = this.boxOverlay_;
+  var overlayBox = this.boxOverlay_.getElement();
+
+  /* Functions definition */
+
+  var computeDesiredMousePosition = function(mousePosition) {
+    return {
+      clientX: mousePosition.clientX - (overlayBox.offsetWidth / 2),
+      clientY: mousePosition.clientY + (overlayBox.offsetHeight / 2)
+    };
+  };
+
+  var move = function(event) {
+    var coordinates = ovmap.getEventCoordinate(computeDesiredMousePosition(event));
+
+    overlay.setPosition(coordinates);
+  };
+
+  var endMoving = function(event) {
+    var coordinates = ovmap.getEventCoordinate(event);
+
+    scope.getMap().getView().setCenter(coordinates);
+
+    window.removeEventListener('mousemove', move);
+    window.removeEventListener('mouseup', endMoving);
+  };
+
+  /* Binding */
+
+  overlayBox.addEventListener('mousedown', function() {
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', endMoving);
   });
 };
 ol.inherits(ol.control.OverviewMap, ol.control.Control);
@@ -33276,7 +34690,7 @@ ol.control.ScaleLine.LEADING_DIGITS = [1, 2, 5];
  */
 ol.control.ScaleLine.prototype.getUnits = function() {
   return /** @type {ol.control.ScaleLineUnits|undefined} */ (
-      this.get(ol.control.ScaleLine.Property_.UNITS));
+    this.get(ol.control.ScaleLine.Property_.UNITS));
 };
 
 
@@ -33332,17 +34746,22 @@ ol.control.ScaleLine.prototype.updateElement_ = function() {
 
   var center = viewState.center;
   var projection = viewState.projection;
-  var metersPerUnit = projection.getMetersPerUnit();
+  var units = this.getUnits();
+  var pointResolutionUnits = units == ol.control.ScaleLineUnits.DEGREES ?
+    ol.proj.Units.DEGREES :
+    ol.proj.Units.METERS;
   var pointResolution =
-      ol.proj.getPointResolution(projection, viewState.resolution, center) *
-      metersPerUnit;
+      ol.proj.getPointResolution(projection, viewState.resolution, center, pointResolutionUnits);
 
   var nominalCount = this.minWidth_ * pointResolution;
   var suffix = '';
-  var units = this.getUnits();
   if (units == ol.control.ScaleLineUnits.DEGREES) {
     var metersPerDegree = ol.proj.METERS_PER_UNIT[ol.proj.Units.DEGREES];
-    pointResolution /= metersPerDegree;
+    if (projection.getUnits() == ol.proj.Units.DEGREES) {
+      nominalCount *= metersPerDegree;
+    } else {
+      pointResolution /= metersPerDegree;
+    }
     if (nominalCount < metersPerDegree / 60) {
       suffix = '\u2033'; // seconds
       pointResolution *= 3600;
@@ -33367,7 +34786,10 @@ ol.control.ScaleLine.prototype.updateElement_ = function() {
     pointResolution /= 1852;
     suffix = 'nm';
   } else if (units == ol.control.ScaleLineUnits.METRIC) {
-    if (nominalCount < 1) {
+    if (nominalCount < 0.001) {
+      suffix = 'Î¼m';
+      pointResolution *= 1000000;
+    } else if (nominalCount < 1) {
       suffix = 'mm';
       pointResolution *= 1000;
     } else if (nominalCount < 1000) {
@@ -33835,16 +35257,16 @@ ol.control.ZoomToExtent = function(opt_options) {
   this.extent_ = options.extent ? options.extent : null;
 
   var className = options.className !== undefined ? options.className :
-      'ol-zoom-extent';
+    'ol-zoom-extent';
 
   var label = options.label !== undefined ? options.label : 'E';
   var tipLabel = options.tipLabel !== undefined ?
-      options.tipLabel : 'Fit to extent';
+    options.tipLabel : 'Fit to extent';
   var button = document.createElement('button');
   button.setAttribute('type', 'button');
   button.title = tipLabel;
   button.appendChild(
-    typeof label === 'string' ? document.createTextNode(label) : label
+      typeof label === 'string' ? document.createTextNode(label) : label
   );
 
   ol.events.listen(button, ol.events.EventType.CLICK,
@@ -34018,7 +35440,7 @@ ol.DeviceOrientation.prototype.orientationChange_ = function(originalEvent) {
  */
 ol.DeviceOrientation.prototype.getAlpha = function() {
   return /** @type {number|undefined} */ (
-      this.get(ol.DeviceOrientation.Property_.ALPHA));
+    this.get(ol.DeviceOrientation.Property_.ALPHA));
 };
 
 
@@ -34031,7 +35453,7 @@ ol.DeviceOrientation.prototype.getAlpha = function() {
  */
 ol.DeviceOrientation.prototype.getBeta = function() {
   return /** @type {number|undefined} */ (
-      this.get(ol.DeviceOrientation.Property_.BETA));
+    this.get(ol.DeviceOrientation.Property_.BETA));
 };
 
 
@@ -34044,7 +35466,7 @@ ol.DeviceOrientation.prototype.getBeta = function() {
  */
 ol.DeviceOrientation.prototype.getGamma = function() {
   return /** @type {number|undefined} */ (
-      this.get(ol.DeviceOrientation.Property_.GAMMA));
+    this.get(ol.DeviceOrientation.Property_.GAMMA));
 };
 
 
@@ -34057,7 +35479,7 @@ ol.DeviceOrientation.prototype.getGamma = function() {
  */
 ol.DeviceOrientation.prototype.getHeading = function() {
   return /** @type {number|undefined} */ (
-      this.get(ol.DeviceOrientation.Property_.HEADING));
+    this.get(ol.DeviceOrientation.Property_.HEADING));
 };
 
 
@@ -34069,7 +35491,7 @@ ol.DeviceOrientation.prototype.getHeading = function() {
  */
 ol.DeviceOrientation.prototype.getTracking = function() {
   return /** @type {boolean} */ (
-      this.get(ol.DeviceOrientation.Property_.TRACKING));
+    this.get(ol.DeviceOrientation.Property_.TRACKING));
 };
 
 
@@ -34430,14 +35852,13 @@ ol.style.RegularShape = function(options) {
    * @type {number}
    */
   this.radius_ = /** @type {number} */ (options.radius !== undefined ?
-      options.radius : options.radius1);
+    options.radius : options.radius1);
 
   /**
    * @private
-   * @type {number}
+   * @type {number|undefined}
    */
-  this.radius2_ =
-      options.radius2 !== undefined ? options.radius2 : this.radius_;
+  this.radius2_ = options.radius2;
 
   /**
    * @private
@@ -34487,13 +35908,13 @@ ol.style.RegularShape = function(options) {
    * @type {boolean}
    */
   var snapToPixel = options.snapToPixel !== undefined ?
-      options.snapToPixel : true;
+    options.snapToPixel : true;
 
   /**
    * @type {boolean}
    */
   var rotateWithView = options.rotateWithView !== undefined ?
-      options.rotateWithView : false;
+    options.rotateWithView : false;
 
   ol.style.Image.call(this, {
     opacity: 1,
@@ -34514,7 +35935,7 @@ ol.inherits(ol.style.RegularShape, ol.style.Image);
 ol.style.RegularShape.prototype.clone = function() {
   var style = new ol.style.RegularShape({
     fill: this.getFill() ? this.getFill().clone() : undefined,
-    points: this.getRadius2() !== this.getRadius() ? this.getPoints() / 2 : this.getPoints(),
+    points: this.getPoints(),
     radius: this.getRadius(),
     radius2: this.getRadius2(),
     angle: this.getAngle(),
@@ -34631,7 +36052,7 @@ ol.style.RegularShape.prototype.getRadius = function() {
 
 /**
  * Get the secondary radius for the shape.
- * @return {number} Radius2.
+ * @return {number|undefined} Radius2.
  * @api
  */
 ol.style.RegularShape.prototype.getRadius2 = function() {
@@ -34686,18 +36107,25 @@ ol.style.RegularShape.prototype.render_ = function(atlasManager) {
   var lineJoin = '';
   var miterLimit = 0;
   var lineDash = null;
+  var lineDashOffset = 0;
   var strokeStyle;
   var strokeWidth = 0;
 
   if (this.stroke_) {
-    strokeStyle = ol.colorlike.asColorLike(this.stroke_.getColor());
+    strokeStyle = this.stroke_.getColor();
+    if (strokeStyle === null) {
+      strokeStyle = ol.render.canvas.defaultStrokeStyle;
+    }
+    strokeStyle = ol.colorlike.asColorLike(strokeStyle);
     strokeWidth = this.stroke_.getWidth();
     if (strokeWidth === undefined) {
       strokeWidth = ol.render.canvas.defaultLineWidth;
     }
     lineDash = this.stroke_.getLineDash();
+    lineDashOffset = this.stroke_.getLineDashOffset();
     if (!ol.has.CANVAS_LINE_DASH) {
       lineDash = null;
+      lineDashOffset = 0;
     }
     lineJoin = this.stroke_.getLineJoin();
     if (lineJoin === undefined) {
@@ -34722,6 +36150,7 @@ ol.style.RegularShape.prototype.render_ = function(atlasManager) {
     size: size,
     lineCap: lineCap,
     lineDash: lineDash,
+    lineDashOffset: lineDashOffset,
     lineJoin: lineJoin,
     miterLimit: miterLimit
   };
@@ -34792,25 +36221,32 @@ ol.style.RegularShape.prototype.draw_ = function(renderOptions, context, x, y) {
 
   context.beginPath();
 
-  if (this.points_ === Infinity) {
+  var points = this.points_;
+  if (points === Infinity) {
     context.arc(
         renderOptions.size / 2, renderOptions.size / 2,
         this.radius_, 0, 2 * Math.PI, true);
   } else {
-    if (this.radius2_ !== this.radius_) {
-      this.points_ = 2 * this.points_;
+    var radius2 = (this.radius2_ !== undefined) ? this.radius2_
+      : this.radius_;
+    if (radius2 !== this.radius_) {
+      points = 2 * points;
     }
-    for (i = 0; i <= this.points_; i++) {
-      angle0 = i * 2 * Math.PI / this.points_ - Math.PI / 2 + this.angle_;
-      radiusC = i % 2 === 0 ? this.radius_ : this.radius2_;
+    for (i = 0; i <= points; i++) {
+      angle0 = i * 2 * Math.PI / points - Math.PI / 2 + this.angle_;
+      radiusC = i % 2 === 0 ? this.radius_ : radius2;
       context.lineTo(renderOptions.size / 2 + radiusC * Math.cos(angle0),
-                     renderOptions.size / 2 + radiusC * Math.sin(angle0));
+          renderOptions.size / 2 + radiusC * Math.sin(angle0));
     }
   }
 
 
   if (this.fill_) {
-    context.fillStyle = ol.colorlike.asColorLike(this.fill_.getColor());
+    var color = this.fill_.getColor();
+    if (color === null) {
+      color = ol.render.canvas.defaultFillStyle;
+    }
+    context.fillStyle = ol.colorlike.asColorLike(color);
     context.fill();
   }
   if (this.stroke_) {
@@ -34818,6 +36254,7 @@ ol.style.RegularShape.prototype.draw_ = function(renderOptions, context, x, y) {
     context.lineWidth = renderOptions.strokeWidth;
     if (renderOptions.lineDash) {
       context.setLineDash(renderOptions.lineDash);
+      context.lineDashOffset = renderOptions.lineDashOffset;
     }
     context.lineCap = renderOptions.lineCap;
     context.lineJoin = renderOptions.lineJoin;
@@ -34864,20 +36301,23 @@ ol.style.RegularShape.prototype.drawHitDetectionCanvas_ = function(renderOptions
 
   context.beginPath();
 
-  if (this.points_ === Infinity) {
+  var points = this.points_;
+  if (points === Infinity) {
     context.arc(
         renderOptions.size / 2, renderOptions.size / 2,
         this.radius_, 0, 2 * Math.PI, true);
   } else {
-    if (this.radius2_ !== this.radius_) {
-      this.points_ = 2 * this.points_;
+    var radius2 = (this.radius2_ !== undefined) ? this.radius2_
+      : this.radius_;
+    if (radius2 !== this.radius_) {
+      points = 2 * points;
     }
     var i, radiusC, angle0;
-    for (i = 0; i <= this.points_; i++) {
-      angle0 = i * 2 * Math.PI / this.points_ - Math.PI / 2 + this.angle_;
-      radiusC = i % 2 === 0 ? this.radius_ : this.radius2_;
+    for (i = 0; i <= points; i++) {
+      angle0 = i * 2 * Math.PI / points - Math.PI / 2 + this.angle_;
+      radiusC = i % 2 === 0 ? this.radius_ : radius2;
       context.lineTo(renderOptions.size / 2 + radiusC * Math.cos(angle0),
-                     renderOptions.size / 2 + radiusC * Math.sin(angle0));
+          renderOptions.size / 2 + radiusC * Math.sin(angle0));
     }
   }
 
@@ -34888,6 +36328,7 @@ ol.style.RegularShape.prototype.drawHitDetectionCanvas_ = function(renderOptions
     context.lineWidth = renderOptions.strokeWidth;
     if (renderOptions.lineDash) {
       context.setLineDash(renderOptions.lineDash);
+      context.lineDashOffset = renderOptions.lineDashOffset;
     }
     context.stroke();
   }
@@ -34900,9 +36341,9 @@ ol.style.RegularShape.prototype.drawHitDetectionCanvas_ = function(renderOptions
  */
 ol.style.RegularShape.prototype.getChecksum = function() {
   var strokeChecksum = this.stroke_ ?
-      this.stroke_.getChecksum() : '-';
+    this.stroke_.getChecksum() : '-';
   var fillChecksum = this.fill_ ?
-      this.fill_.getChecksum() : '-';
+    this.fill_.getChecksum() : '-';
 
   var recalculate = !this.checksums_ ||
       (strokeChecksum != this.checksums_[1] ||
@@ -35061,13 +36502,13 @@ ol.style.Fill.prototype.setColor = function(color) {
 ol.style.Fill.prototype.getChecksum = function() {
   if (this.checksum_ === undefined) {
     if (
-        this.color_ instanceof CanvasPattern ||
+      this.color_ instanceof CanvasPattern ||
         this.color_ instanceof CanvasGradient
     ) {
       this.checksum_ = ol.getUid(this.color_).toString();
     } else {
       this.checksum_ = 'f' + (this.color_ ?
-          ol.color.asString(this.color_) : '-');
+        ol.color.asString(this.color_) : '-');
     }
   }
 
@@ -35128,6 +36569,12 @@ ol.style.Style = function(opt_options) {
 
   /**
    * @private
+   * @type {ol.StyleRenderFunction|null}
+   */
+  this.renderer_ = options.renderer !== undefined ? options.renderer : null;
+
+  /**
+   * @private
    * @type {ol.style.Stroke}
    */
   this.stroke_ = options.stroke !== undefined ? options.stroke : null;
@@ -35165,6 +36612,28 @@ ol.style.Style.prototype.clone = function() {
     text: this.getText() ? this.getText().clone() : undefined,
     zIndex: this.getZIndex()
   });
+};
+
+
+/**
+ * Get the custom renderer function that was configured with
+ * {@link #setRenderer} or the `renderer` constructor option.
+ * @return {ol.StyleRenderFunction|null} Custom renderer function.
+ * @api
+ */
+ol.style.Style.prototype.getRenderer = function() {
+  return this.renderer_;
+};
+
+
+/**
+ * Sets a custom renderer function for this style. When set, `fill`, `stroke`
+ * and `image` options of the style will be ignored.
+ * @param {ol.StyleRenderFunction|null} renderer Custom renderer function.
+ * @api
+ */
+ol.style.Style.prototype.setRenderer = function(renderer) {
+  this.renderer_ = renderer;
 };
 
 
@@ -35616,7 +37085,7 @@ ol.Feature.prototype.clone = function() {
  */
 ol.Feature.prototype.getGeometry = function() {
   return /** @type {ol.geom.Geometry|undefined} */ (
-      this.get(this.geometryName_));
+    this.get(this.geometryName_));
 };
 
 
@@ -35716,7 +37185,7 @@ ol.Feature.prototype.setGeometry = function(geometry) {
 ol.Feature.prototype.setStyle = function(style) {
   this.style_ = style;
   this.styleFunction_ = !style ?
-      undefined : ol.Feature.createStyleFunction(style);
+    undefined : ol.Feature.createStyleFunction(style);
   this.changed();
 };
 
@@ -35933,18 +37402,18 @@ ol.xml.parse = function(xml) {
  */
 ol.xml.makeArrayExtender = function(valueReader, opt_this) {
   return (
-      /**
-       * @param {Node} node Node.
-       * @param {Array.<*>} objectStack Object stack.
-       */
-      function(node, objectStack) {
-        var value = valueReader.call(opt_this, node, objectStack);
-        if (value !== undefined) {
-          var array = /** @type {Array.<*>} */
+    /**
+     * @param {Node} node Node.
+     * @param {Array.<*>} objectStack Object stack.
+     */
+    function(node, objectStack) {
+      var value = valueReader.call(opt_this, node, objectStack);
+      if (value !== undefined) {
+        var array = /** @type {Array.<*>} */
               (objectStack[objectStack.length - 1]);
-          ol.array.extend(array, value);
-        }
-      });
+        ol.array.extend(array, value);
+      }
+    });
 };
 
 
@@ -35958,18 +37427,18 @@ ol.xml.makeArrayExtender = function(valueReader, opt_this) {
  */
 ol.xml.makeArrayPusher = function(valueReader, opt_this) {
   return (
-      /**
-       * @param {Node} node Node.
-       * @param {Array.<*>} objectStack Object stack.
-       */
-      function(node, objectStack) {
-        var value = valueReader.call(opt_this !== undefined ? opt_this : this,
-            node, objectStack);
-        if (value !== undefined) {
-          var array = objectStack[objectStack.length - 1];
-          array.push(value);
-        }
-      });
+    /**
+     * @param {Node} node Node.
+     * @param {Array.<*>} objectStack Object stack.
+     */
+    function(node, objectStack) {
+      var value = valueReader.call(opt_this !== undefined ? opt_this : this,
+          node, objectStack);
+      if (value !== undefined) {
+        var array = objectStack[objectStack.length - 1];
+        array.push(value);
+      }
+    });
 };
 
 
@@ -35983,17 +37452,17 @@ ol.xml.makeArrayPusher = function(valueReader, opt_this) {
  */
 ol.xml.makeReplacer = function(valueReader, opt_this) {
   return (
-      /**
-       * @param {Node} node Node.
-       * @param {Array.<*>} objectStack Object stack.
-       */
-      function(node, objectStack) {
-        var value = valueReader.call(opt_this !== undefined ? opt_this : this,
-            node, objectStack);
-        if (value !== undefined) {
-          objectStack[objectStack.length - 1] = value;
-        }
-      });
+    /**
+     * @param {Node} node Node.
+     * @param {Array.<*>} objectStack Object stack.
+     */
+    function(node, objectStack) {
+      var value = valueReader.call(opt_this !== undefined ? opt_this : this,
+          node, objectStack);
+      if (value !== undefined) {
+        objectStack[objectStack.length - 1] = value;
+      }
+    });
 };
 
 
@@ -36008,27 +37477,27 @@ ol.xml.makeReplacer = function(valueReader, opt_this) {
  */
 ol.xml.makeObjectPropertyPusher = function(valueReader, opt_property, opt_this) {
   return (
-      /**
-       * @param {Node} node Node.
-       * @param {Array.<*>} objectStack Object stack.
-       */
-      function(node, objectStack) {
-        var value = valueReader.call(opt_this !== undefined ? opt_this : this,
-            node, objectStack);
-        if (value !== undefined) {
-          var object = /** @type {Object} */
+    /**
+     * @param {Node} node Node.
+     * @param {Array.<*>} objectStack Object stack.
+     */
+    function(node, objectStack) {
+      var value = valueReader.call(opt_this !== undefined ? opt_this : this,
+          node, objectStack);
+      if (value !== undefined) {
+        var object = /** @type {Object} */
               (objectStack[objectStack.length - 1]);
-          var property = opt_property !== undefined ?
-              opt_property : node.localName;
-          var array;
-          if (property in object) {
-            array = object[property];
-          } else {
-            array = object[property] = [];
-          }
-          array.push(value);
+        var property = opt_property !== undefined ?
+          opt_property : node.localName;
+        var array;
+        if (property in object) {
+          array = object[property];
+        } else {
+          array = object[property] = [];
         }
-      });
+        array.push(value);
+      }
+    });
 };
 
 
@@ -36042,21 +37511,21 @@ ol.xml.makeObjectPropertyPusher = function(valueReader, opt_property, opt_this) 
  */
 ol.xml.makeObjectPropertySetter = function(valueReader, opt_property, opt_this) {
   return (
-      /**
-       * @param {Node} node Node.
-       * @param {Array.<*>} objectStack Object stack.
-       */
-      function(node, objectStack) {
-        var value = valueReader.call(opt_this !== undefined ? opt_this : this,
-            node, objectStack);
-        if (value !== undefined) {
-          var object = /** @type {Object} */
+    /**
+     * @param {Node} node Node.
+     * @param {Array.<*>} objectStack Object stack.
+     */
+    function(node, objectStack) {
+      var value = valueReader.call(opt_this !== undefined ? opt_this : this,
+          node, objectStack);
+      if (value !== undefined) {
+        var object = /** @type {Object} */
               (objectStack[objectStack.length - 1]);
-          var property = opt_property !== undefined ?
-              opt_property : node.localName;
-          object[property] = value;
-        }
-      });
+        var property = opt_property !== undefined ?
+          opt_property : node.localName;
+        object[property] = value;
+      }
+    });
 };
 
 
@@ -36125,25 +37594,25 @@ ol.xml.makeArraySerializer = function(nodeWriter, opt_this) {
 ol.xml.makeSimpleNodeFactory = function(opt_nodeName, opt_namespaceURI) {
   var fixedNodeName = opt_nodeName;
   return (
-      /**
-       * @param {*} value Value.
-       * @param {Array.<*>} objectStack Object stack.
-       * @param {string=} opt_nodeName Node name.
-       * @return {Node} Node.
-       */
-      function(value, objectStack, opt_nodeName) {
-        var context = objectStack[objectStack.length - 1];
-        var node = context.node;
-        var nodeName = fixedNodeName;
-        if (nodeName === undefined) {
-          nodeName = opt_nodeName;
-        }
-        var namespaceURI = opt_namespaceURI;
-        if (opt_namespaceURI === undefined) {
-          namespaceURI = node.namespaceURI;
-        }
-        return ol.xml.createElementNS(namespaceURI, /** @type {string} */ (nodeName));
+    /**
+     * @param {*} value Value.
+     * @param {Array.<*>} objectStack Object stack.
+     * @param {string=} opt_nodeName Node name.
+     * @return {Node} Node.
+     */
+    function(value, objectStack, opt_nodeName) {
+      var context = objectStack[objectStack.length - 1];
+      var node = context.node;
+      var nodeName = fixedNodeName;
+      if (nodeName === undefined) {
+        nodeName = opt_nodeName;
       }
+      var namespaceURI = opt_namespaceURI;
+      if (opt_namespaceURI === undefined) {
+        namespaceURI = node.namespaceURI;
+      }
+      return ol.xml.createElementNS(namespaceURI, /** @type {string} */ (nodeName));
+    }
   );
 };
 
@@ -36325,7 +37794,7 @@ goog.require('ol.xml');
 /**
  * @param {string|ol.FeatureUrlFunction} url Feature URL service.
  * @param {ol.format.Feature} format Feature format.
- * @param {function(this:ol.VectorTile, Array.<ol.Feature>, ol.proj.Projection)|function(this:ol.source.Vector, Array.<ol.Feature>)} success
+ * @param {function(this:ol.VectorTile, Array.<ol.Feature>, ol.proj.Projection, ol.Extent)|function(this:ol.source.Vector, Array.<ol.Feature>)} success
  *     Function called with the loaded features and optionally with the data
  *     projection. Called with the vector tile or source as `this`.
  * @param {function(this:ol.VectorTile)|function(this:ol.source.Vector)} failure
@@ -36335,54 +37804,60 @@ goog.require('ol.xml');
  */
 ol.featureloader.loadFeaturesXhr = function(url, format, success, failure) {
   return (
+    /**
+     * @param {ol.Extent} extent Extent.
+     * @param {number} resolution Resolution.
+     * @param {ol.proj.Projection} projection Projection.
+     * @this {ol.source.Vector|ol.VectorTile}
+     */
+    function(extent, resolution, projection) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET',
+          typeof url === 'function' ? url(extent, resolution, projection) : url,
+          true);
+      if (format.getType() == ol.format.FormatType.ARRAY_BUFFER) {
+        xhr.responseType = 'arraybuffer';
+      }
       /**
-       * @param {ol.Extent} extent Extent.
-       * @param {number} resolution Resolution.
-       * @param {ol.proj.Projection} projection Projection.
-       * @this {ol.source.Vector|ol.VectorTile}
+       * @param {Event} event Event.
+       * @private
        */
-      function(extent, resolution, projection) {
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET',
-            typeof url === 'function' ? url(extent, resolution, projection) : url,
-            true);
-        if (format.getType() == ol.format.FormatType.ARRAY_BUFFER) {
-          xhr.responseType = 'arraybuffer';
-        }
-        /**
-         * @param {Event} event Event.
-         * @private
-         */
-        xhr.onload = function(event) {
-          // status will be 0 for file:// urls
-          if (!xhr.status || xhr.status >= 200 && xhr.status < 300) {
-            var type = format.getType();
-            /** @type {Document|Node|Object|string|undefined} */
-            var source;
-            if (type == ol.format.FormatType.JSON ||
+      xhr.onload = function(event) {
+        // status will be 0 for file:// urls
+        if (!xhr.status || xhr.status >= 200 && xhr.status < 300) {
+          var type = format.getType();
+          /** @type {Document|Node|Object|string|undefined} */
+          var source;
+          if (type == ol.format.FormatType.JSON ||
                 type == ol.format.FormatType.TEXT) {
-              source = xhr.responseText;
-            } else if (type == ol.format.FormatType.XML) {
-              source = xhr.responseXML;
-              if (!source) {
-                source = ol.xml.parse(xhr.responseText);
-              }
-            } else if (type == ol.format.FormatType.ARRAY_BUFFER) {
-              source = /** @type {ArrayBuffer} */ (xhr.response);
+            source = xhr.responseText;
+          } else if (type == ol.format.FormatType.XML) {
+            source = xhr.responseXML;
+            if (!source) {
+              source = ol.xml.parse(xhr.responseText);
             }
-            if (source) {
-              success.call(this, format.readFeatures(source,
-                  {featureProjection: projection}),
-                  format.readProjection(source));
-            } else {
-              failure.call(this);
-            }
+          } else if (type == ol.format.FormatType.ARRAY_BUFFER) {
+            source = /** @type {ArrayBuffer} */ (xhr.response);
+          }
+          if (source) {
+            success.call(this, format.readFeatures(source,
+                {featureProjection: projection}),
+            format.readProjection(source), format.getLastExtent());
           } else {
             failure.call(this);
           }
-        }.bind(this);
-        xhr.send();
-      });
+        } else {
+          failure.call(this);
+        }
+      }.bind(this);
+      /**
+       * @private
+       */
+      xhr.onerror = function() {
+        failure.call(this);
+      }.bind(this);
+      xhr.send();
+    });
 };
 
 
@@ -36456,7 +37931,7 @@ ol.format.Feature.prototype.getReadOptions = function(source, opt_options) {
   if (opt_options) {
     options = {
       dataProjection: opt_options.dataProjection ?
-          opt_options.dataProjection : this.readProjection(source),
+        opt_options.dataProjection : this.readProjection(source),
       featureProjection: opt_options.featureProjection
     };
   }
@@ -36478,6 +37953,15 @@ ol.format.Feature.prototype.adaptOptions = function(options) {
     dataProjection: this.defaultDataProjection,
     featureProjection: this.defaultFeatureProjection
   }, options);
+};
+
+
+/**
+ * Get the extent from the source of the last {@link readFeatures} call.
+ * @return {ol.Extent} Tile extent.
+ */
+ol.format.Feature.prototype.getLastExtent = function() {
+  return null;
 };
 
 
@@ -36575,9 +38059,9 @@ ol.format.Feature.prototype.writeGeometry = function(geometry, opt_options) {};
 ol.format.Feature.transformWithOptions = function(
     geometry, write, opt_options) {
   var featureProjection = opt_options ?
-      ol.proj.get(opt_options.featureProjection) : null;
+    ol.proj.get(opt_options.featureProjection) : null;
   var dataProjection = opt_options ?
-      ol.proj.get(opt_options.dataProjection) : null;
+    ol.proj.get(opt_options.dataProjection) : null;
   /**
    * @type {ol.geom.Geometry|ol.Extent}
    */
@@ -36592,14 +38076,14 @@ ol.format.Feature.transformWithOptions = function(
       // FIXME this is necessary because ol.format.GML treats extents
       // as geometries
       transformed = ol.proj.transformExtent(
-          write ? geometry.slice() : geometry,
-          write ? featureProjection : dataProjection,
-          write ? dataProjection : featureProjection);
+          geometry,
+          dataProjection,
+          featureProjection);
     }
   } else {
     transformed = geometry;
   }
-  if (write && opt_options && opt_options.decimals) {
+  if (write && opt_options && opt_options.decimals !== undefined) {
     var power = Math.pow(10, opt_options.decimals);
     // if decimals option on write, round each coordinate appropriately
     /**
@@ -36612,11 +38096,10 @@ ol.format.Feature.transformWithOptions = function(
       }
       return coordinates;
     };
-    if (Array.isArray(transformed)) {
-      transform(transformed);
-    } else {
-      transformed.applyTransform(transform);
+    if (transformed === geometry) {
+      transformed = transformed.clone();
     }
+    transformed.applyTransform(transform);
   }
   return transformed;
 };
@@ -37702,7 +39185,7 @@ ol.geom.MultiPoint.prototype.getCoordinates = function() {
  */
 ol.geom.MultiPoint.prototype.getPoint = function(index) {
   var n = !this.flatCoordinates ?
-      0 : this.flatCoordinates.length / this.stride;
+    0 : this.flatCoordinates.length / this.stride;
   if (index < 0 || n <= index) {
     return null;
   }
@@ -38196,7 +39679,7 @@ ol.geom.MultiPolygon.prototype.setCoordinates = function(coordinates, opt_layout
     } else {
       var lastEnds = endss[endss.length - 1];
       this.flatCoordinates.length = lastEnds.length === 0 ?
-          0 : lastEnds[lastEnds.length - 1];
+        0 : lastEnds[lastEnds.length - 1];
     }
     this.changed();
   }
@@ -38325,8 +39808,8 @@ ol.format.EsriJSON.readGeometry_ = function(object, opt_options) {
   }
   var geometryReader = ol.format.EsriJSON.GEOMETRY_READERS_[type];
   return /** @type {ol.geom.Geometry} */ (
-      ol.format.Feature.transformWithOptions(
-          geometryReader(object), false, opt_options));
+    ol.format.Feature.transformWithOptions(
+        geometryReader(object), false, opt_options));
 };
 
 
@@ -38363,9 +39846,11 @@ ol.format.EsriJSON.convertRings_ = function(rings, layout) {
     // loop over all outer rings and see if they contain our hole.
     for (i = outerRings.length - 1; i >= 0; i--) {
       var outerRing = outerRings[i][0];
-      if (ol.extent.containsExtent(new ol.geom.LinearRing(
-          outerRing).getExtent(),
-          new ol.geom.LinearRing(hole).getExtent())) {
+      var containsHole = ol.extent.containsExtent(
+          new ol.geom.LinearRing(outerRing).getExtent(),
+          new ol.geom.LinearRing(hole).getExtent()
+      );
+      if (containsHole) {
         // the hole is contained push it into our polygon
         outerRings[i].push(hole);
         matched = true;
@@ -38530,9 +40015,9 @@ ol.format.EsriJSON.getHasZM_ = function(geometry) {
   var layout = geometry.getLayout();
   return {
     hasZ: (layout === ol.geom.GeometryLayout.XYZ ||
-        layout === ol.geom.GeometryLayout.XYZM),
+      layout === ol.geom.GeometryLayout.XYZM),
     hasM: (layout === ol.geom.GeometryLayout.XYM ||
-        layout === ol.geom.GeometryLayout.XYZM)
+      layout === ol.geom.GeometryLayout.XYZM)
   };
 };
 
@@ -38544,7 +40029,7 @@ ol.format.EsriJSON.getHasZM_ = function(geometry) {
  * @return {EsriJSONPolyline} EsriJSON geometry.
  */
 ol.format.EsriJSON.writeLineStringGeometry_ = function(geometry, opt_options) {
-  var hasZM = ol.format.EsriJSON.getHasZM_(/** @type {ol.geom.LineString} */ (geometry));
+  var hasZM = ol.format.EsriJSON.getHasZM_(/** @type {ol.geom.LineString} */(geometry));
   return /** @type {EsriJSONPolyline} */ ({
     hasZ: hasZM.hasZ,
     hasM: hasZM.hasM,
@@ -38563,7 +40048,7 @@ ol.format.EsriJSON.writeLineStringGeometry_ = function(geometry, opt_options) {
  */
 ol.format.EsriJSON.writePolygonGeometry_ = function(geometry, opt_options) {
   // Esri geometries use the left-hand rule
-  var hasZM = ol.format.EsriJSON.getHasZM_(/** @type {ol.geom.Polygon} */ (geometry));
+  var hasZM = ol.format.EsriJSON.getHasZM_(/** @type {ol.geom.Polygon} */(geometry));
   return /** @type {EsriJSONPolygon} */ ({
     hasZ: hasZM.hasZ,
     hasM: hasZM.hasM,
@@ -38579,7 +40064,7 @@ ol.format.EsriJSON.writePolygonGeometry_ = function(geometry, opt_options) {
  * @return {EsriJSONPolyline} EsriJSON geometry.
  */
 ol.format.EsriJSON.writeMultiLineStringGeometry_ = function(geometry, opt_options) {
-  var hasZM = ol.format.EsriJSON.getHasZM_(/** @type {ol.geom.MultiLineString} */ (geometry));
+  var hasZM = ol.format.EsriJSON.getHasZM_(/** @type {ol.geom.MultiLineString} */(geometry));
   return /** @type {EsriJSONPolyline} */ ({
     hasZ: hasZM.hasZ,
     hasM: hasZM.hasM,
@@ -38595,7 +40080,7 @@ ol.format.EsriJSON.writeMultiLineStringGeometry_ = function(geometry, opt_option
  * @return {EsriJSONMultipoint} EsriJSON geometry.
  */
 ol.format.EsriJSON.writeMultiPointGeometry_ = function(geometry, opt_options) {
-  var hasZM = ol.format.EsriJSON.getHasZM_(/** @type {ol.geom.MultiPoint} */ (geometry));
+  var hasZM = ol.format.EsriJSON.getHasZM_(/** @type {ol.geom.MultiPoint} */(geometry));
   return /** @type {EsriJSONMultipoint} */ ({
     hasZ: hasZM.hasZ,
     hasM: hasZM.hasM,
@@ -38612,7 +40097,7 @@ ol.format.EsriJSON.writeMultiPointGeometry_ = function(geometry, opt_options) {
  */
 ol.format.EsriJSON.writeMultiPolygonGeometry_ = function(geometry,
     opt_options) {
-  var hasZM = ol.format.EsriJSON.getHasZM_(/** @type {ol.geom.MultiPolygon} */ (geometry));
+  var hasZM = ol.format.EsriJSON.getHasZM_(/** @type {ol.geom.MultiPolygon} */(geometry));
   var coordinates = /** @type {ol.geom.MultiPolygon} */ (geometry).getCoordinates(false);
   var output = [];
   for (var i = 0; i < coordinates.length; i++) {
@@ -38635,17 +40120,17 @@ ol.format.EsriJSON.writeMultiPolygonGeometry_ = function(geometry,
  */
 ol.format.EsriJSON.GEOMETRY_READERS_ = {};
 ol.format.EsriJSON.GEOMETRY_READERS_[ol.geom.GeometryType.POINT] =
-    ol.format.EsriJSON.readPointGeometry_;
+  ol.format.EsriJSON.readPointGeometry_;
 ol.format.EsriJSON.GEOMETRY_READERS_[ol.geom.GeometryType.LINE_STRING] =
-    ol.format.EsriJSON.readLineStringGeometry_;
+  ol.format.EsriJSON.readLineStringGeometry_;
 ol.format.EsriJSON.GEOMETRY_READERS_[ol.geom.GeometryType.POLYGON] =
-    ol.format.EsriJSON.readPolygonGeometry_;
+  ol.format.EsriJSON.readPolygonGeometry_;
 ol.format.EsriJSON.GEOMETRY_READERS_[ol.geom.GeometryType.MULTI_POINT] =
-    ol.format.EsriJSON.readMultiPointGeometry_;
+  ol.format.EsriJSON.readMultiPointGeometry_;
 ol.format.EsriJSON.GEOMETRY_READERS_[ol.geom.GeometryType.MULTI_LINE_STRING] =
-    ol.format.EsriJSON.readMultiLineStringGeometry_;
+  ol.format.EsriJSON.readMultiLineStringGeometry_;
 ol.format.EsriJSON.GEOMETRY_READERS_[ol.geom.GeometryType.MULTI_POLYGON] =
-    ol.format.EsriJSON.readMultiPolygonGeometry_;
+  ol.format.EsriJSON.readMultiPolygonGeometry_;
 
 
 /**
@@ -38655,17 +40140,17 @@ ol.format.EsriJSON.GEOMETRY_READERS_[ol.geom.GeometryType.MULTI_POLYGON] =
  */
 ol.format.EsriJSON.GEOMETRY_WRITERS_ = {};
 ol.format.EsriJSON.GEOMETRY_WRITERS_[ol.geom.GeometryType.POINT] =
-    ol.format.EsriJSON.writePointGeometry_;
+  ol.format.EsriJSON.writePointGeometry_;
 ol.format.EsriJSON.GEOMETRY_WRITERS_[ol.geom.GeometryType.LINE_STRING] =
-    ol.format.EsriJSON.writeLineStringGeometry_;
+  ol.format.EsriJSON.writeLineStringGeometry_;
 ol.format.EsriJSON.GEOMETRY_WRITERS_[ol.geom.GeometryType.POLYGON] =
-    ol.format.EsriJSON.writePolygonGeometry_;
+  ol.format.EsriJSON.writePolygonGeometry_;
 ol.format.EsriJSON.GEOMETRY_WRITERS_[ol.geom.GeometryType.MULTI_POINT] =
-    ol.format.EsriJSON.writeMultiPointGeometry_;
+  ol.format.EsriJSON.writeMultiPointGeometry_;
 ol.format.EsriJSON.GEOMETRY_WRITERS_[ol.geom.GeometryType.MULTI_LINE_STRING] =
-    ol.format.EsriJSON.writeMultiLineStringGeometry_;
+  ol.format.EsriJSON.writeMultiLineStringGeometry_;
 ol.format.EsriJSON.GEOMETRY_WRITERS_[ol.geom.GeometryType.MULTI_POLYGON] =
-    ol.format.EsriJSON.writeMultiPolygonGeometry_;
+  ol.format.EsriJSON.writeMultiPolygonGeometry_;
 
 
 /**
@@ -38708,9 +40193,9 @@ ol.format.EsriJSON.prototype.readFeatureFromObject = function(
   }
   feature.setGeometry(geometry);
   if (opt_options && opt_options.idField &&
-      esriJSONFeature.attributes[opt_options.idField]) {
+    esriJSONFeature.attributes[opt_options.idField]) {
     feature.setId(/** @type {number} */(
-        esriJSONFeature.attributes[opt_options.idField]));
+      esriJSONFeature.attributes[opt_options.idField]));
   }
   if (esriJSONFeature.attributes) {
     feature.setProperties(esriJSONFeature.attributes);
@@ -38728,7 +40213,7 @@ ol.format.EsriJSON.prototype.readFeaturesFromObject = function(
   var options = opt_options ? opt_options : {};
   if (esriJSONObject.features) {
     var esriJSONFeatureCollection = /** @type {EsriJSONFeatureCollection} */
-        (object);
+      (object);
     /** @type {Array.<ol.Feature>} */
     var features = [];
     var esriJSONFeatures = esriJSONFeatureCollection.features;
@@ -38763,7 +40248,7 @@ ol.format.EsriJSON.prototype.readGeometry;
 ol.format.EsriJSON.prototype.readGeometryFromObject = function(
     object, opt_options) {
   return ol.format.EsriJSON.readGeometry_(
-      /** @type {EsriJSONGeometry} */ (object), opt_options);
+      /** @type {EsriJSONGeometry} */(object), opt_options);
 };
 
 
@@ -38800,9 +40285,9 @@ ol.format.EsriJSON.prototype.readProjectionFromObject = function(object) {
  */
 ol.format.EsriJSON.writeGeometry_ = function(geometry, opt_options) {
   var geometryWriter = ol.format.EsriJSON.GEOMETRY_WRITERS_[geometry.getType()];
-  return geometryWriter(/** @type {ol.geom.Geometry} */ (
-      ol.format.Feature.transformWithOptions(geometry, true, opt_options)),
-      opt_options);
+  return geometryWriter(/** @type {ol.geom.Geometry} */(
+    ol.format.Feature.transformWithOptions(geometry, true, opt_options)),
+  opt_options);
 };
 
 
@@ -38862,7 +40347,13 @@ ol.format.EsriJSON.prototype.writeFeatureObject = function(
   var geometry = feature.getGeometry();
   if (geometry) {
     object['geometry'] =
-        ol.format.EsriJSON.writeGeometry_(geometry, opt_options);
+      ol.format.EsriJSON.writeGeometry_(geometry, opt_options);
+    if (opt_options && opt_options.featureProjection) {
+      object['geometry']['spatialReference'] = /** @type {EsriJSONCRS} */({
+        wkid: ol.proj.get(
+            opt_options.featureProjection).getCode().split(':').pop()
+      });
+    }
   }
   var properties = feature.getProperties();
   delete properties[feature.getGeometryName()];
@@ -38870,12 +40361,6 @@ ol.format.EsriJSON.prototype.writeFeatureObject = function(
     object['attributes'] = properties;
   } else {
     object['attributes'] = {};
-  }
-  if (opt_options && opt_options.featureProjection) {
-    object['spatialReference'] = /** @type {EsriJSONCRS} */({
-      wkid: ol.proj.get(
-          opt_options.featureProjection).getCode().split(':').pop()
-    });
   }
   return object;
 };
@@ -39065,6 +40550,40 @@ ol.format.filter.Comparison = function(tagName, propertyName) {
   this.propertyName = propertyName;
 };
 ol.inherits(ol.format.filter.Comparison, ol.format.filter.Filter);
+
+goog.provide('ol.format.filter.During');
+
+goog.require('ol');
+goog.require('ol.format.filter.Comparison');
+
+
+/**
+ * @classdesc
+ * Represents a `<During>` comparison operator.
+ *
+ * @constructor
+ * @param {!string} propertyName Name of the context property to compare.
+ * @param {!string} begin The begin date in ISO-8601 format.
+ * @param {!string} end The end date in ISO-8601 format.
+ * @extends {ol.format.filter.Comparison}
+ * @api
+ */
+ol.format.filter.During = function(propertyName, begin, end) {
+  ol.format.filter.Comparison.call(this, 'During', propertyName);
+
+  /**
+   * @public
+   * @type {!string}
+   */
+  this.begin = begin;
+
+  /**
+   * @public
+   * @type {!string}
+   */
+  this.end = end;
+};
+ol.inherits(ol.format.filter.During, ol.format.filter.Comparison);
 
 goog.provide('ol.format.filter.ComparisonBinary');
 
@@ -39493,6 +41012,7 @@ goog.provide('ol.format.filter');
 
 goog.require('ol.format.filter.And');
 goog.require('ol.format.filter.Bbox');
+goog.require('ol.format.filter.During');
 goog.require('ol.format.filter.EqualTo');
 goog.require('ol.format.filter.GreaterThan');
 goog.require('ol.format.filter.GreaterThanOrEqualTo');
@@ -39719,7 +41239,21 @@ ol.format.filter.between = function(propertyName, lowerBoundary, upperBoundary) 
 ol.format.filter.like = function(propertyName, pattern,
     opt_wildCard, opt_singleChar, opt_escapeChar, opt_matchCase) {
   return new ol.format.filter.IsLike(propertyName, pattern,
-    opt_wildCard, opt_singleChar, opt_escapeChar, opt_matchCase);
+      opt_wildCard, opt_singleChar, opt_escapeChar, opt_matchCase);
+};
+
+
+/**
+ * Create a `<During>` temporal operator.
+ *
+ * @param {!string} propertyName Name of the context property to compare.
+ * @param {!string} begin The begin date in ISO-8601 format.
+ * @param {!string} end The end date in ISO-8601 format.
+ * @returns {!ol.format.filter.During} `<During>` operator.
+ * @api
+ */
+ol.format.filter.during = function(propertyName, begin, end) {
+  return new ol.format.filter.During(propertyName, begin, end);
 };
 
 goog.provide('ol.geom.GeometryCollection');
@@ -40089,7 +41623,7 @@ ol.format.GeoJSON = function(opt_options) {
    */
   this.defaultDataProjection = ol.proj.get(
       options.defaultDataProjection ?
-          options.defaultDataProjection : 'EPSG:4326');
+        options.defaultDataProjection : 'EPSG:4326');
 
 
   if (options.featureProjection) {
@@ -40119,8 +41653,8 @@ ol.format.GeoJSON.readGeometry_ = function(object, opt_options) {
   }
   var geometryReader = ol.format.GeoJSON.GEOMETRY_READERS_[object.type];
   return /** @type {ol.geom.Geometry} */ (
-      ol.format.Feature.transformWithOptions(
-          geometryReader(object), false, opt_options));
+    ol.format.Feature.transformWithOptions(
+        geometryReader(object), false, opt_options));
 };
 
 
@@ -40213,8 +41747,8 @@ ol.format.GeoJSON.readPolygonGeometry_ = function(object) {
 ol.format.GeoJSON.writeGeometry_ = function(geometry, opt_options) {
   var geometryWriter = ol.format.GeoJSON.GEOMETRY_WRITERS_[geometry.getType()];
   return geometryWriter(/** @type {ol.geom.Geometry} */ (
-      ol.format.Feature.transformWithOptions(geometry, true, opt_options)),
-      opt_options);
+    ol.format.Feature.transformWithOptions(geometry, true, opt_options)),
+  opt_options);
 };
 
 
@@ -40379,7 +41913,8 @@ ol.format.GeoJSON.GEOMETRY_WRITERS_ = {
 /**
  * Read a feature from a GeoJSON Feature source.  Only works for Feature or
  * geometry types.  Use {@link ol.format.GeoJSON#readFeatures} to read
- * FeatureCollection source.
+ * FeatureCollection source. If feature at source has an id, it will be used
+ * as Feature id by calling {@link ol.Feature#setId} internally.
  *
  * @function
  * @param {Document|Node|Object|string} source Source.
@@ -41069,12 +42604,12 @@ ol.format.GMLBase.prototype.readFeaturesInternal = function(node, objectStack) {
       var parsers = {};
       for (i = 0, ii = featureTypes.length; i < ii; ++i) {
         var featurePrefix = featureTypes[i].indexOf(':') === -1 ?
-            defaultPrefix : featureTypes[i].split(':')[0];
+          defaultPrefix : featureTypes[i].split(':')[0];
         if (featurePrefix === p) {
           parsers[featureTypes[i].split(':').pop()] =
               (localName == 'featureMembers') ?
-              ol.xml.makeArrayPusher(this.readFeatureElement, this) :
-              ol.xml.makeReplacer(this.readFeatureElement, this);
+                ol.xml.makeArrayPusher(this.readFeatureElement, this) :
+                ol.xml.makeReplacer(this.readFeatureElement, this);
         }
       }
       parsersNS[featureNS[p]] = parsers;
@@ -41105,7 +42640,7 @@ ol.format.GMLBase.prototype.readGeometryElement = function(node, objectStack) {
       this.GEOMETRY_PARSERS_, node, objectStack, this);
   if (geometry) {
     return /** @type {ol.geom.Geometry} */ (
-        ol.format.Feature.transformWithOptions(geometry, false, context));
+      ol.format.Feature.transformWithOptions(geometry, false, context));
   } else {
     return undefined;
   }
@@ -41492,7 +43027,7 @@ ol.format.GMLBase.prototype.readFeaturesFromNode = function(node, opt_options) {
  */
 ol.format.GMLBase.prototype.readProjectionFromNode = function(node) {
   return ol.proj.get(this.srsName ? this.srsName :
-      node.firstElementChild.getAttribute('srsName'));
+    node.firstElementChild.getAttribute('srsName'));
 };
 
 goog.provide('ol.format.XSD');
@@ -41717,20 +43252,27 @@ ol.format.GML3 = function(opt_options) {
    * @type {boolean}
    */
   this.multiCurve_ = options.multiCurve !== undefined ?
-      options.multiCurve : true;
+    options.multiCurve : true;
 
   /**
    * @private
    * @type {boolean}
    */
   this.multiSurface_ = options.multiSurface !== undefined ?
-      options.multiSurface : true;
+    options.multiSurface : true;
 
   /**
    * @inheritDoc
    */
   this.schemaLocation = options.schemaLocation ?
-      options.schemaLocation : ol.format.GML3.schemaLocation_;
+    options.schemaLocation : ol.format.GML3.schemaLocation_;
+
+  /**
+   * @private
+   * @type {boolean}
+   */
+  this.hasZ = options.hasZ !== undefined ?
+    options.hasZ : false;
 
 };
 ol.inherits(ol.format.GML3, ol.format.GMLBase);
@@ -42230,6 +43772,7 @@ ol.format.GML3.prototype.SEGMENTS_PARSERS_ = {
  */
 ol.format.GML3.prototype.writePos_ = function(node, value, objectStack) {
   var context = objectStack[objectStack.length - 1];
+  var hasZ = context['hasZ'];
   var srsName = context['srsName'];
   var axisOrientation = 'enu';
   if (srsName) {
@@ -42243,6 +43786,11 @@ ol.format.GML3.prototype.writePos_ = function(node, value, objectStack) {
   } else {
     coords = (point[1] + ' ' + point[0]);
   }
+  if (hasZ) {
+    // For newly created points, Z can be undefined.
+    var z = point[2] || 0;
+    coords += ' ' + z;
+  }
   ol.format.XSD.writeStringTextNode(node, coords);
 };
 
@@ -42250,17 +43798,25 @@ ol.format.GML3.prototype.writePos_ = function(node, value, objectStack) {
 /**
  * @param {Array.<number>} point Point geometry.
  * @param {string=} opt_srsName Optional srsName
+ * @param {boolean=} opt_hasZ whether the geometry has a Z coordinate (is 3D) or not.
  * @return {string} The coords string.
  * @private
  */
-ol.format.GML3.prototype.getCoords_ = function(point, opt_srsName) {
+ol.format.GML3.prototype.getCoords_ = function(point, opt_srsName, opt_hasZ) {
   var axisOrientation = 'enu';
   if (opt_srsName) {
     axisOrientation = ol.proj.get(opt_srsName).getAxisOrientation();
   }
-  return ((axisOrientation.substr(0, 2) === 'en') ?
-      point[0] + ' ' + point[1] :
-      point[1] + ' ' + point[0]);
+  var coords = ((axisOrientation.substr(0, 2) === 'en') ?
+    point[0] + ' ' + point[1] :
+    point[1] + ' ' + point[0]);
+  if (opt_hasZ) {
+    // For newly created points, Z can be undefined.
+    var z = point[2] || 0;
+    coords += ' ' + z;
+  }
+
+  return coords;
 };
 
 
@@ -42272,6 +43828,7 @@ ol.format.GML3.prototype.getCoords_ = function(point, opt_srsName) {
  */
 ol.format.GML3.prototype.writePosList_ = function(node, value, objectStack) {
   var context = objectStack[objectStack.length - 1];
+  var hasZ = context['hasZ'];
   var srsName = context['srsName'];
   // only 2d for simple features profile
   var points = value.getCoordinates();
@@ -42280,7 +43837,7 @@ ol.format.GML3.prototype.writePosList_ = function(node, value, objectStack) {
   var point;
   for (var i = 0; i < len; ++i) {
     point = points[i];
-    parts[i] = this.getCoords_(point, srsName);
+    parts[i] = this.getCoords_(point, srsName, hasZ);
   }
   ol.format.XSD.writeStringTextNode(node, parts.join(' '));
 };
@@ -42382,6 +43939,7 @@ ol.format.GML3.prototype.RING_NODE_FACTORY_ = function(value, objectStack, opt_n
  */
 ol.format.GML3.prototype.writeSurfaceOrPolygon_ = function(node, geometry, objectStack) {
   var context = objectStack[objectStack.length - 1];
+  var hasZ = context['hasZ'];
   var srsName = context['srsName'];
   if (node.nodeName !== 'PolygonPatch' && srsName) {
     node.setAttribute('srsName', srsName);
@@ -42389,7 +43947,7 @@ ol.format.GML3.prototype.writeSurfaceOrPolygon_ = function(node, geometry, objec
   if (node.nodeName === 'Polygon' || node.nodeName === 'PolygonPatch') {
     var rings = geometry.getLinearRings();
     ol.xml.pushSerializeAndPop(
-        {node: node, srsName: srsName},
+        {node: node, hasZ: hasZ, srsName: srsName},
         ol.format.GML3.RING_SERIALIZERS_,
         this.RING_NODE_FACTORY_,
         rings, objectStack, undefined, this);
@@ -42436,13 +43994,14 @@ ol.format.GML3.prototype.writeCurveOrLineString_ = function(node, geometry, obje
  */
 ol.format.GML3.prototype.writeMultiSurfaceOrPolygon_ = function(node, geometry, objectStack) {
   var context = objectStack[objectStack.length - 1];
+  var hasZ = context['hasZ'];
   var srsName = context['srsName'];
   var surface = context['surface'];
   if (srsName) {
     node.setAttribute('srsName', srsName);
   }
   var polygons = geometry.getPolygons();
-  ol.xml.pushSerializeAndPop({node: node, srsName: srsName, surface: surface},
+  ol.xml.pushSerializeAndPop({node: node, hasZ: hasZ, srsName: srsName, surface: surface},
       ol.format.GML3.SURFACEORPOLYGONMEMBER_SERIALIZERS_,
       this.MULTIGEOMETRY_MEMBER_NODE_FACTORY_, polygons,
       objectStack, undefined, this);
@@ -42459,11 +44018,12 @@ ol.format.GML3.prototype.writeMultiPoint_ = function(node, geometry,
     objectStack) {
   var context = objectStack[objectStack.length - 1];
   var srsName = context['srsName'];
+  var hasZ = context['hasZ'];
   if (srsName) {
     node.setAttribute('srsName', srsName);
   }
   var points = geometry.getPoints();
-  ol.xml.pushSerializeAndPop({node: node, srsName: srsName},
+  ol.xml.pushSerializeAndPop({node: node, hasZ: hasZ, srsName: srsName},
       ol.format.GML3.POINTMEMBER_SERIALIZERS_,
       ol.xml.makeSimpleNodeFactory('pointMember'), points,
       objectStack, undefined, this);
@@ -42478,13 +44038,14 @@ ol.format.GML3.prototype.writeMultiPoint_ = function(node, geometry,
  */
 ol.format.GML3.prototype.writeMultiCurveOrLineString_ = function(node, geometry, objectStack) {
   var context = objectStack[objectStack.length - 1];
+  var hasZ = context['hasZ'];
   var srsName = context['srsName'];
   var curve = context['curve'];
   if (srsName) {
     node.setAttribute('srsName', srsName);
   }
   var lines = geometry.getLineStrings();
-  ol.xml.pushSerializeAndPop({node: node, srsName: srsName, curve: curve},
+  ol.xml.pushSerializeAndPop({node: node, hasZ: hasZ, srsName: srsName, curve: curve},
       ol.format.GML3.LINESTRINGORCURVEMEMBER_SERIALIZERS_,
       this.MULTIGEOMETRY_MEMBER_NODE_FACTORY_, lines,
       objectStack, undefined, this);
@@ -42833,7 +44394,7 @@ ol.format.GML3.prototype.GEOMETRY_NODE_FACTORY_ = function(value, objectStack, o
 ol.format.GML3.prototype.writeGeometryNode = function(geometry, opt_options) {
   opt_options = this.adaptOptions(opt_options);
   var geom = ol.xml.createElementNS('http://www.opengis.net/gml', 'geom');
-  var context = {node: geom, srsName: this.srsName,
+  var context = {node: geom, hasZ: this.hasZ, srsName: this.srsName,
     curve: this.curve_, surface: this.surface_,
     multiSurface: this.multiSurface_, multiCurve: this.multiCurve_};
   if (opt_options) {
@@ -42873,6 +44434,7 @@ ol.format.GML3.prototype.writeFeaturesNode = function(features, opt_options) {
       'xsi:schemaLocation', this.schemaLocation);
   var context = {
     srsName: this.srsName,
+    hasZ: this.hasZ,
     curve: this.curve_,
     surface: this.surface_,
     multiSurface: this.multiSurface_,
@@ -42934,8 +44496,11 @@ goog.provide('ol.format.GML2');
 
 goog.require('ol');
 goog.require('ol.extent');
+goog.require('ol.format.Feature');
 goog.require('ol.format.GMLBase');
 goog.require('ol.format.XSD');
+goog.require('ol.geom.Geometry');
+goog.require('ol.obj');
 goog.require('ol.proj');
 goog.require('ol.xml');
 
@@ -42964,7 +44529,7 @@ ol.format.GML2 = function(opt_options) {
    * @inheritDoc
    */
   this.schemaLocation = options.schemaLocation ?
-      options.schemaLocation : ol.format.GML2.schemaLocation_;
+    options.schemaLocation : ol.format.GML2.schemaLocation_;
 
 };
 ol.inherits(ol.format.GML2, ol.format.GMLBase);
@@ -42989,7 +44554,6 @@ ol.format.GML2.prototype.readFlatCoordinates_ = function(node, objectStack) {
   var s = ol.xml.getAllTextContent(node, false).replace(/^\s*|\s*$/g, '');
   var context = /** @type {ol.XmlNodeStackItem} */ (objectStack[0]);
   var containerSrs = context['srsName'];
-  var containerDimension = node.parentNode.getAttribute('srsDimension');
   var axisOrientation = 'enu';
   if (containerSrs) {
     var proj = ol.proj.get(containerSrs);
@@ -42997,24 +44561,14 @@ ol.format.GML2.prototype.readFlatCoordinates_ = function(node, objectStack) {
       axisOrientation = proj.getAxisOrientation();
     }
   }
-  var coords = s.split(/[\s,]+/);
-  // The "dimension" attribute is from the GML 3.0.1 spec.
-  var dim = 2;
-  if (node.getAttribute('srsDimension')) {
-    dim = ol.format.XSD.readNonNegativeIntegerString(
-        node.getAttribute('srsDimension'));
-  } else if (node.getAttribute('dimension')) {
-    dim = ol.format.XSD.readNonNegativeIntegerString(
-        node.getAttribute('dimension'));
-  } else if (containerDimension) {
-    dim = ol.format.XSD.readNonNegativeIntegerString(containerDimension);
-  }
+  var coordsGroups = s.trim().split(/\s+/);
   var x, y, z;
   var flatCoordinates = [];
-  for (var i = 0, ii = coords.length; i < ii; i += dim) {
-    x = parseFloat(coords[i]);
-    y = parseFloat(coords[i + 1]);
-    z = (dim === 3) ? parseFloat(coords[i + 2]) : 0;
+  for (var i = 0, ii = coordsGroups.length; i < ii; i++) {
+    var coords = coordsGroups[i].split(/,+/);
+    x = parseFloat(coords[0]);
+    y = parseFloat(coords[1]);
+    z = (coords.length === 3) ? parseFloat(coords[2]) : 0;
     if (axisOrientation.substr(0, 2) === 'en') {
       flatCoordinates.push(x, y, z);
     } else {
@@ -43134,6 +44688,586 @@ ol.format.GML2.prototype.GEOMETRY_PARSERS_ = {
     'MultiPolygon': ol.xml.makeReplacer(
         ol.format.GMLBase.prototype.readMultiPolygon),
     'Box': ol.xml.makeReplacer(ol.format.GML2.prototype.readBox_)
+  }
+};
+
+
+/**
+ * @const
+ * @param {*} value Value.
+ * @param {Array.<*>} objectStack Object stack.
+ * @param {string=} opt_nodeName Node name.
+ * @return {Node|undefined} Node.
+ * @private
+ */
+ol.format.GML2.prototype.GEOMETRY_NODE_FACTORY_ = function(value, objectStack, opt_nodeName) {
+  var context = objectStack[objectStack.length - 1];
+  var multiSurface = context['multiSurface'];
+  var surface = context['surface'];
+  var multiCurve = context['multiCurve'];
+  var nodeName;
+  if (!Array.isArray(value)) {
+    nodeName = /** @type {ol.geom.Geometry} */ (value).getType();
+    if (nodeName === 'MultiPolygon' && multiSurface === true) {
+      nodeName = 'MultiSurface';
+    } else if (nodeName === 'Polygon' && surface === true) {
+      nodeName = 'Surface';
+    } else if (nodeName === 'MultiLineString' && multiCurve === true) {
+      nodeName = 'MultiCurve';
+    }
+  } else {
+    nodeName = 'Envelope';
+  }
+  return ol.xml.createElementNS('http://www.opengis.net/gml',
+      nodeName);
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {ol.Feature} feature Feature.
+ * @param {Array.<*>} objectStack Node stack.
+ */
+ol.format.GML2.prototype.writeFeatureElement = function(node, feature, objectStack) {
+  var fid = feature.getId();
+  if (fid) {
+    node.setAttribute('fid', fid);
+  }
+  var context = /** @type {Object} */ (objectStack[objectStack.length - 1]);
+  var featureNS = context['featureNS'];
+  var geometryName = feature.getGeometryName();
+  if (!context.serializers) {
+    context.serializers = {};
+    context.serializers[featureNS] = {};
+  }
+  var properties = feature.getProperties();
+  var keys = [], values = [];
+  for (var key in properties) {
+    var value = properties[key];
+    if (value !== null) {
+      keys.push(key);
+      values.push(value);
+      if (key == geometryName || value instanceof ol.geom.Geometry) {
+        if (!(key in context.serializers[featureNS])) {
+          context.serializers[featureNS][key] = ol.xml.makeChildAppender(
+              this.writeGeometryElement, this);
+        }
+      } else {
+        if (!(key in context.serializers[featureNS])) {
+          context.serializers[featureNS][key] = ol.xml.makeChildAppender(
+              ol.format.XSD.writeStringTextNode);
+        }
+      }
+    }
+  }
+  var item = ol.obj.assign({}, context);
+  item.node = node;
+  ol.xml.pushSerializeAndPop(/** @type {ol.XmlNodeStackItem} */
+      (item), context.serializers,
+      ol.xml.makeSimpleNodeFactory(undefined, featureNS),
+      values,
+      objectStack, keys);
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {ol.geom.Geometry|ol.Extent} geometry Geometry.
+ * @param {Array.<*>} objectStack Node stack.
+ */
+ol.format.GML2.prototype.writeGeometryElement = function(node, geometry, objectStack) {
+  var context = /** @type {olx.format.WriteOptions} */ (objectStack[objectStack.length - 1]);
+  var item = ol.obj.assign({}, context);
+  item.node = node;
+  var value;
+  if (Array.isArray(geometry)) {
+    if (context.dataProjection) {
+      value = ol.proj.transformExtent(
+          geometry, context.featureProjection, context.dataProjection);
+    } else {
+      value = geometry;
+    }
+  } else {
+    value =
+        ol.format.Feature.transformWithOptions(/** @type {ol.geom.Geometry} */ (geometry), true, context);
+  }
+  ol.xml.pushSerializeAndPop(/** @type {ol.XmlNodeStackItem} */
+      (item), ol.format.GML2.GEOMETRY_SERIALIZERS_,
+      this.GEOMETRY_NODE_FACTORY_, [value],
+      objectStack, undefined, this);
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {ol.geom.LineString} geometry LineString geometry.
+ * @param {Array.<*>} objectStack Node stack.
+ * @private
+ */
+ol.format.GML2.prototype.writeCurveOrLineString_ = function(node, geometry, objectStack) {
+  var context = objectStack[objectStack.length - 1];
+  var srsName = context['srsName'];
+  if (node.nodeName !== 'LineStringSegment' && srsName) {
+    node.setAttribute('srsName', srsName);
+  }
+  if (node.nodeName === 'LineString' ||
+      node.nodeName === 'LineStringSegment') {
+    var coordinates = this.createCoordinatesNode_(node.namespaceURI);
+    node.appendChild(coordinates);
+    this.writeCoordinates_(coordinates, geometry, objectStack);
+  } else if (node.nodeName === 'Curve') {
+    var segments = ol.xml.createElementNS(node.namespaceURI, 'segments');
+    node.appendChild(segments);
+    this.writeCurveSegments_(segments,
+        geometry, objectStack);
+  }
+};
+
+
+/**
+ * @param {string} namespaceURI XML namespace.
+ * @returns {Node} coordinates node.
+ * @private
+ */
+ol.format.GML2.prototype.createCoordinatesNode_ = function(namespaceURI) {
+  var coordinates = ol.xml.createElementNS(namespaceURI, 'coordinates');
+  coordinates.setAttribute('decimal', '.');
+  coordinates.setAttribute('cs', ',');
+  coordinates.setAttribute('ts', ' ');
+
+  return coordinates;
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {ol.geom.LineString|ol.geom.LinearRing} value Geometry.
+ * @param {Array.<*>} objectStack Node stack.
+ * @private
+ */
+ol.format.GML2.prototype.writeCoordinates_ = function(node, value, objectStack) {
+  var context = objectStack[objectStack.length - 1];
+  var hasZ = context['hasZ'];
+  var srsName = context['srsName'];
+  // only 2d for simple features profile
+  var points = value.getCoordinates();
+  var len = points.length;
+  var parts = new Array(len);
+  var point;
+  for (var i = 0; i < len; ++i) {
+    point = points[i];
+    parts[i] = this.getCoords_(point, srsName, hasZ);
+  }
+  ol.format.XSD.writeStringTextNode(node, parts.join(' '));
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {ol.geom.LineString} line LineString geometry.
+ * @param {Array.<*>} objectStack Node stack.
+ * @private
+ */
+ol.format.GML2.prototype.writeCurveSegments_ = function(node, line, objectStack) {
+  var child = ol.xml.createElementNS(node.namespaceURI,
+      'LineStringSegment');
+  node.appendChild(child);
+  this.writeCurveOrLineString_(child, line, objectStack);
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {ol.geom.Polygon} geometry Polygon geometry.
+ * @param {Array.<*>} objectStack Node stack.
+ * @private
+ */
+ol.format.GML2.prototype.writeSurfaceOrPolygon_ = function(node, geometry, objectStack) {
+  var context = objectStack[objectStack.length - 1];
+  var hasZ = context['hasZ'];
+  var srsName = context['srsName'];
+  if (node.nodeName !== 'PolygonPatch' && srsName) {
+    node.setAttribute('srsName', srsName);
+  }
+  if (node.nodeName === 'Polygon' || node.nodeName === 'PolygonPatch') {
+    var rings = geometry.getLinearRings();
+    ol.xml.pushSerializeAndPop(
+        {node: node, hasZ: hasZ, srsName: srsName},
+        ol.format.GML2.RING_SERIALIZERS_,
+        this.RING_NODE_FACTORY_,
+        rings, objectStack, undefined, this);
+  } else if (node.nodeName === 'Surface') {
+    var patches = ol.xml.createElementNS(node.namespaceURI, 'patches');
+    node.appendChild(patches);
+    this.writeSurfacePatches_(
+        patches, geometry, objectStack);
+  }
+};
+
+
+/**
+ * @param {*} value Value.
+ * @param {Array.<*>} objectStack Object stack.
+ * @param {string=} opt_nodeName Node name.
+ * @return {Node} Node.
+ * @private
+ */
+ol.format.GML2.prototype.RING_NODE_FACTORY_ = function(value, objectStack, opt_nodeName) {
+  var context = objectStack[objectStack.length - 1];
+  var parentNode = context.node;
+  var exteriorWritten = context['exteriorWritten'];
+  if (exteriorWritten === undefined) {
+    context['exteriorWritten'] = true;
+  }
+  return ol.xml.createElementNS(parentNode.namespaceURI,
+      exteriorWritten !== undefined ? 'innerBoundaryIs' : 'outerBoundaryIs');
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {ol.geom.Polygon} polygon Polygon geometry.
+ * @param {Array.<*>} objectStack Node stack.
+ * @private
+ */
+ol.format.GML2.prototype.writeSurfacePatches_ = function(node, polygon, objectStack) {
+  var child = ol.xml.createElementNS(node.namespaceURI, 'PolygonPatch');
+  node.appendChild(child);
+  this.writeSurfaceOrPolygon_(child, polygon, objectStack);
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {ol.geom.LinearRing} ring LinearRing geometry.
+ * @param {Array.<*>} objectStack Node stack.
+ * @private
+ */
+ol.format.GML2.prototype.writeRing_ = function(node, ring, objectStack) {
+  var linearRing = ol.xml.createElementNS(node.namespaceURI, 'LinearRing');
+  node.appendChild(linearRing);
+  this.writeLinearRing_(linearRing, ring, objectStack);
+};
+
+
+/**
+ * @param {Array.<number>} point Point geometry.
+ * @param {string=} opt_srsName Optional srsName
+ * @param {boolean=} opt_hasZ whether the geometry has a Z coordinate (is 3D) or not.
+ * @return {string} The coords string.
+ * @private
+ */
+ol.format.GML2.prototype.getCoords_ = function(point, opt_srsName, opt_hasZ) {
+  var axisOrientation = 'enu';
+  if (opt_srsName) {
+    axisOrientation = ol.proj.get(opt_srsName).getAxisOrientation();
+  }
+  var coords = ((axisOrientation.substr(0, 2) === 'en') ?
+    point[0] + ',' + point[1] :
+    point[1] + ',' + point[0]);
+  if (opt_hasZ) {
+    // For newly created points, Z can be undefined.
+    var z = point[2] || 0;
+    coords += ',' + z;
+  }
+
+  return coords;
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {ol.geom.MultiLineString} geometry MultiLineString geometry.
+ * @param {Array.<*>} objectStack Node stack.
+ * @private
+ */
+ol.format.GML2.prototype.writeMultiCurveOrLineString_ = function(node, geometry, objectStack) {
+  var context = objectStack[objectStack.length - 1];
+  var hasZ = context['hasZ'];
+  var srsName = context['srsName'];
+  var curve = context['curve'];
+  if (srsName) {
+    node.setAttribute('srsName', srsName);
+  }
+  var lines = geometry.getLineStrings();
+  ol.xml.pushSerializeAndPop({node: node, hasZ: hasZ, srsName: srsName, curve: curve},
+      ol.format.GML2.LINESTRINGORCURVEMEMBER_SERIALIZERS_,
+      this.MULTIGEOMETRY_MEMBER_NODE_FACTORY_, lines,
+      objectStack, undefined, this);
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {ol.geom.Point} geometry Point geometry.
+ * @param {Array.<*>} objectStack Node stack.
+ * @private
+ */
+ol.format.GML2.prototype.writePoint_ = function(node, geometry, objectStack) {
+  var context = objectStack[objectStack.length - 1];
+  var hasZ = context['hasZ'];
+  var srsName = context['srsName'];
+  if (srsName) {
+    node.setAttribute('srsName', srsName);
+  }
+  var coordinates = this.createCoordinatesNode_(node.namespaceURI);
+  node.appendChild(coordinates);
+  var point = geometry.getCoordinates();
+  var coord = this.getCoords_(point, srsName, hasZ);
+  ol.format.XSD.writeStringTextNode(coordinates, coord);
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {ol.geom.MultiPoint} geometry MultiPoint geometry.
+ * @param {Array.<*>} objectStack Node stack.
+ * @private
+ */
+ol.format.GML2.prototype.writeMultiPoint_ = function(node, geometry,
+    objectStack) {
+  var context = objectStack[objectStack.length - 1];
+  var hasZ = context['hasZ'];
+  var srsName = context['srsName'];
+  if (srsName) {
+    node.setAttribute('srsName', srsName);
+  }
+  var points = geometry.getPoints();
+  ol.xml.pushSerializeAndPop({node: node, hasZ: hasZ, srsName: srsName},
+      ol.format.GML2.POINTMEMBER_SERIALIZERS_,
+      ol.xml.makeSimpleNodeFactory('pointMember'), points,
+      objectStack, undefined, this);
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {ol.geom.Point} point Point geometry.
+ * @param {Array.<*>} objectStack Node stack.
+ * @private
+ */
+ol.format.GML2.prototype.writePointMember_ = function(node, point, objectStack) {
+  var child = ol.xml.createElementNS(node.namespaceURI, 'Point');
+  node.appendChild(child);
+  this.writePoint_(child, point, objectStack);
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {ol.geom.LineString} line LineString geometry.
+ * @param {Array.<*>} objectStack Node stack.
+ * @private
+ */
+ol.format.GML2.prototype.writeLineStringOrCurveMember_ = function(node, line, objectStack) {
+  var child = this.GEOMETRY_NODE_FACTORY_(line, objectStack);
+  if (child) {
+    node.appendChild(child);
+    this.writeCurveOrLineString_(child, line, objectStack);
+  }
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {ol.geom.LinearRing} geometry LinearRing geometry.
+ * @param {Array.<*>} objectStack Node stack.
+ * @private
+ */
+ol.format.GML2.prototype.writeLinearRing_ = function(node, geometry, objectStack) {
+  var context = objectStack[objectStack.length - 1];
+  var srsName = context['srsName'];
+  if (srsName) {
+    node.setAttribute('srsName', srsName);
+  }
+  var coordinates = this.createCoordinatesNode_(node.namespaceURI);
+  node.appendChild(coordinates);
+  this.writeCoordinates_(coordinates, geometry, objectStack);
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {ol.geom.MultiPolygon} geometry MultiPolygon geometry.
+ * @param {Array.<*>} objectStack Node stack.
+ * @private
+ */
+ol.format.GML2.prototype.writeMultiSurfaceOrPolygon_ = function(node, geometry, objectStack) {
+  var context = objectStack[objectStack.length - 1];
+  var hasZ = context['hasZ'];
+  var srsName = context['srsName'];
+  var surface = context['surface'];
+  if (srsName) {
+    node.setAttribute('srsName', srsName);
+  }
+  var polygons = geometry.getPolygons();
+  ol.xml.pushSerializeAndPop({node: node, hasZ: hasZ, srsName: srsName, surface: surface},
+      ol.format.GML2.SURFACEORPOLYGONMEMBER_SERIALIZERS_,
+      this.MULTIGEOMETRY_MEMBER_NODE_FACTORY_, polygons,
+      objectStack, undefined, this);
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {ol.geom.Polygon} polygon Polygon geometry.
+ * @param {Array.<*>} objectStack Node stack.
+ * @private
+ */
+ol.format.GML2.prototype.writeSurfaceOrPolygonMember_ = function(node, polygon, objectStack) {
+  var child = this.GEOMETRY_NODE_FACTORY_(
+      polygon, objectStack);
+  if (child) {
+    node.appendChild(child);
+    this.writeSurfaceOrPolygon_(child, polygon, objectStack);
+  }
+};
+
+
+/**
+ * @param {Node} node Node.
+ * @param {ol.Extent} extent Extent.
+ * @param {Array.<*>} objectStack Node stack.
+ * @private
+ */
+ol.format.GML2.prototype.writeEnvelope = function(node, extent, objectStack) {
+  var context = objectStack[objectStack.length - 1];
+  var srsName = context['srsName'];
+  if (srsName) {
+    node.setAttribute('srsName', srsName);
+  }
+  var keys = ['lowerCorner', 'upperCorner'];
+  var values = [extent[0] + ' ' + extent[1], extent[2] + ' ' + extent[3]];
+  ol.xml.pushSerializeAndPop(/** @type {ol.XmlNodeStackItem} */
+      ({node: node}), ol.format.GML2.ENVELOPE_SERIALIZERS_,
+      ol.xml.OBJECT_PROPERTY_NODE_FACTORY,
+      values,
+      objectStack, keys, this);
+};
+
+
+/**
+ * @const
+ * @type {Object.<string, Object.<string, ol.XmlSerializer>>}
+ * @private
+ */
+ol.format.GML2.GEOMETRY_SERIALIZERS_ = {
+  'http://www.opengis.net/gml': {
+    'Curve': ol.xml.makeChildAppender(
+        ol.format.GML2.prototype.writeCurveOrLineString_),
+    'MultiCurve': ol.xml.makeChildAppender(
+        ol.format.GML2.prototype.writeMultiCurveOrLineString_),
+    'Point': ol.xml.makeChildAppender(ol.format.GML2.prototype.writePoint_),
+    'MultiPoint': ol.xml.makeChildAppender(
+        ol.format.GML2.prototype.writeMultiPoint_),
+    'LineString': ol.xml.makeChildAppender(
+        ol.format.GML2.prototype.writeCurveOrLineString_),
+    'MultiLineString': ol.xml.makeChildAppender(
+        ol.format.GML2.prototype.writeMultiCurveOrLineString_),
+    'LinearRing': ol.xml.makeChildAppender(
+        ol.format.GML2.prototype.writeLinearRing_),
+    'Polygon': ol.xml.makeChildAppender(
+        ol.format.GML2.prototype.writeSurfaceOrPolygon_),
+    'MultiPolygon': ol.xml.makeChildAppender(
+        ol.format.GML2.prototype.writeMultiSurfaceOrPolygon_),
+    'Surface': ol.xml.makeChildAppender(
+        ol.format.GML2.prototype.writeSurfaceOrPolygon_),
+    'MultiSurface': ol.xml.makeChildAppender(
+        ol.format.GML2.prototype.writeMultiSurfaceOrPolygon_),
+    'Envelope': ol.xml.makeChildAppender(
+        ol.format.GML2.prototype.writeEnvelope)
+  }
+};
+
+
+/**
+ * @type {Object.<string, Object.<string, ol.XmlSerializer>>}
+ * @private
+ */
+ol.format.GML2.RING_SERIALIZERS_ = {
+  'http://www.opengis.net/gml': {
+    'outerBoundaryIs': ol.xml.makeChildAppender(ol.format.GML2.prototype.writeRing_),
+    'innerBoundaryIs': ol.xml.makeChildAppender(ol.format.GML2.prototype.writeRing_)
+  }
+};
+
+
+/**
+ * @type {Object.<string, Object.<string, ol.XmlSerializer>>}
+ * @private
+ */
+ol.format.GML2.POINTMEMBER_SERIALIZERS_ = {
+  'http://www.opengis.net/gml': {
+    'pointMember': ol.xml.makeChildAppender(
+        ol.format.GML2.prototype.writePointMember_)
+  }
+};
+
+
+/**
+ * @type {Object.<string, Object.<string, ol.XmlSerializer>>}
+ * @private
+ */
+ol.format.GML2.LINESTRINGORCURVEMEMBER_SERIALIZERS_ = {
+  'http://www.opengis.net/gml': {
+    'lineStringMember': ol.xml.makeChildAppender(
+        ol.format.GML2.prototype.writeLineStringOrCurveMember_),
+    'curveMember': ol.xml.makeChildAppender(
+        ol.format.GML2.prototype.writeLineStringOrCurveMember_)
+  }
+};
+
+
+/**
+ * @const
+ * @param {*} value Value.
+ * @param {Array.<*>} objectStack Object stack.
+ * @param {string=} opt_nodeName Node name.
+ * @return {Node|undefined} Node.
+ * @private
+ */
+ol.format.GML2.prototype.MULTIGEOMETRY_MEMBER_NODE_FACTORY_ = function(value, objectStack, opt_nodeName) {
+  var parentNode = objectStack[objectStack.length - 1].node;
+  return ol.xml.createElementNS('http://www.opengis.net/gml',
+      ol.format.GML2.MULTIGEOMETRY_TO_MEMBER_NODENAME_[parentNode.nodeName]);
+};
+
+/**
+ * @const
+ * @type {Object.<string, string>}
+ * @private
+ */
+ol.format.GML2.MULTIGEOMETRY_TO_MEMBER_NODENAME_ = {
+  'MultiLineString': 'lineStringMember',
+  'MultiCurve': 'curveMember',
+  'MultiPolygon': 'polygonMember',
+  'MultiSurface': 'surfaceMember'
+};
+
+
+/**
+ * @const
+ * @type {Object.<string, Object.<string, ol.XmlSerializer>>}
+ * @private
+ */
+ol.format.GML2.SURFACEORPOLYGONMEMBER_SERIALIZERS_ = {
+  'http://www.opengis.net/gml': {
+    'surfaceMember': ol.xml.makeChildAppender(
+        ol.format.GML2.prototype.writeSurfaceOrPolygonMember_),
+    'polygonMember': ol.xml.makeChildAppender(
+        ol.format.GML2.prototype.writeSurfaceOrPolygonMember_)
+  }
+};
+
+
+/**
+ * @type {Object.<string, Object.<string, ol.XmlSerializer>>}
+ * @private
+ */
+ol.format.GML2.ENVELOPE_SERIALIZERS_ = {
+  'http://www.opengis.net/gml': {
+    'lowerCorner': ol.xml.makeChildAppender(ol.format.XSD.writeStringTextNode),
+    'upperCorner': ol.xml.makeChildAppender(ol.format.XSD.writeStringTextNode)
   }
 };
 
@@ -43745,8 +45879,8 @@ ol.format.GPX.writeWptType_ = function(node, coordinate, objectStack) {
       // pass
   }
   var orderedKeys = (node.nodeName == 'rtept') ?
-      ol.format.GPX.RTEPT_TYPE_SEQUENCE_[namespaceURI] :
-      ol.format.GPX.WPT_TYPE_SEQUENCE_[namespaceURI];
+    ol.format.GPX.RTEPT_TYPE_SEQUENCE_[namespaceURI] :
+    ol.format.GPX.WPT_TYPE_SEQUENCE_[namespaceURI];
   var values = ol.xml.makeSequence(properties, orderedKeys);
   ol.xml.pushSerializeAndPop(/** @type {ol.XmlNodeStackItem} */
       ({node: node, 'properties': properties}),
@@ -43768,7 +45902,7 @@ ol.format.GPX.writeRte_ = function(node, feature, objectStack) {
   var geometry = feature.getGeometry();
   if (geometry) {
     geometry = /** @type {ol.geom.LineString} */
-        (ol.format.Feature.transformWithOptions(geometry, true, options));
+      (ol.format.Feature.transformWithOptions(geometry, true, options));
     context['geometryLayout'] = geometry.getLayout();
     properties['rtept'] = geometry.getCoordinates();
   }
@@ -43795,7 +45929,7 @@ ol.format.GPX.writeTrk_ = function(node, feature, objectStack) {
   var geometry = feature.getGeometry();
   if (geometry) {
     geometry = /** @type {ol.geom.MultiLineString} */
-        (ol.format.Feature.transformWithOptions(geometry, true, options));
+      (ol.format.Feature.transformWithOptions(geometry, true, options));
     properties['trkseg'] = geometry.getLineStrings();
   }
   var parentNode = objectStack[objectStack.length - 1].node;
@@ -43836,7 +45970,7 @@ ol.format.GPX.writeWpt_ = function(node, feature, objectStack) {
   var geometry = feature.getGeometry();
   if (geometry) {
     geometry = /** @type {ol.geom.Point} */
-        (ol.format.Feature.transformWithOptions(geometry, true, options));
+      (ol.format.Feature.transformWithOptions(geometry, true, options));
     context['geometryLayout'] = geometry.getLayout();
     ol.format.GPX.writeWptType_(node, geometry.getCoordinates(), objectStack);
   }
@@ -44310,7 +46444,7 @@ ol.format.IGC = function(opt_options) {
    * @type {ol.format.IGCZ}
    */
   this.altitudeMode_ = options.altitudeMode ?
-      options.altitudeMode : ol.format.IGCZ.NONE;
+    options.altitudeMode : ol.format.IGCZ.NONE;
 
 };
 ol.inherits(ol.format.IGC, ol.format.TextFeature);
@@ -44433,7 +46567,7 @@ ol.format.IGC.prototype.readFeatureFromText = function(text, opt_options) {
   }
   var lineString = new ol.geom.LineString(null);
   var layout = altitudeMode == ol.format.IGCZ.NONE ?
-      ol.geom.GeometryLayout.XYM : ol.geom.GeometryLayout.XYZM;
+    ol.geom.GeometryLayout.XYM : ol.geom.GeometryLayout.XYZM;
   lineString.setFlatCoordinates(layout, flatCoordinates);
   var feature = new ol.Feature(ol.format.Feature.transformWithOptions(
       lineString, false, opt_options));
@@ -44539,7 +46673,7 @@ goog.require('ol.style');
  * @extends {ol.events.EventTarget}
  */
 ol.style.IconImage = function(image, src, size, crossOrigin, imageState,
-                               color) {
+    color) {
 
   ol.events.EventTarget.call(this);
 
@@ -44564,8 +46698,8 @@ ol.style.IconImage = function(image, src, size, crossOrigin, imageState,
    * @type {HTMLCanvasElement}
    */
   this.canvas_ = color ?
-      /** @type {HTMLCanvasElement} */ (document.createElement('CANVAS')) :
-      null;
+    /** @type {HTMLCanvasElement} */ (document.createElement('CANVAS')) :
+    null;
 
   /**
    * @private
@@ -44620,7 +46754,7 @@ ol.inherits(ol.style.IconImage, ol.events.EventTarget);
  * @return {ol.style.IconImage} Icon image.
  */
 ol.style.IconImage.get = function(image, src, size, crossOrigin, imageState,
-                                   color) {
+    color) {
   var iconImageCache = ol.style.iconImageCache;
   var iconImage = iconImageCache.get(src, crossOrigin, color);
   if (!iconImage) {
@@ -44851,21 +46985,21 @@ ol.style.Icon = function(opt_options) {
    * @type {ol.style.IconOrigin}
    */
   this.anchorOrigin_ = options.anchorOrigin !== undefined ?
-      options.anchorOrigin : ol.style.IconOrigin.TOP_LEFT;
+    options.anchorOrigin : ol.style.IconOrigin.TOP_LEFT;
 
   /**
    * @private
    * @type {ol.style.IconAnchorUnits}
    */
   this.anchorXUnits_ = options.anchorXUnits !== undefined ?
-      options.anchorXUnits : ol.style.IconAnchorUnits.FRACTION;
+    options.anchorXUnits : ol.style.IconAnchorUnits.FRACTION;
 
   /**
    * @private
    * @type {ol.style.IconAnchorUnits}
    */
   this.anchorYUnits_ = options.anchorYUnits !== undefined ?
-      options.anchorYUnits : ol.style.IconAnchorUnits.FRACTION;
+    options.anchorYUnits : ol.style.IconAnchorUnits.FRACTION;
 
   /**
    * @private
@@ -44904,14 +47038,14 @@ ol.style.Icon = function(opt_options) {
    * @type {ol.ImageState}
    */
   var imageState = options.src !== undefined ?
-      ol.ImageState.IDLE : ol.ImageState.LOADED;
+    ol.ImageState.IDLE : ol.ImageState.LOADED;
 
   /**
    * @private
    * @type {ol.Color}
    */
   this.color_ = options.color !== undefined ? ol.color.asArray(options.color) :
-      null;
+    null;
 
   /**
    * @private
@@ -44931,7 +47065,7 @@ ol.style.Icon = function(opt_options) {
    * @type {ol.style.IconOrigin}
    */
   this.offsetOrigin_ = options.offsetOrigin !== undefined ?
-      options.offsetOrigin : ol.style.IconOrigin.TOP_LEFT;
+    options.offsetOrigin : ol.style.IconOrigin.TOP_LEFT;
 
   /**
    * @private
@@ -44954,7 +47088,7 @@ ol.style.Icon = function(opt_options) {
    * @type {boolean}
    */
   var rotateWithView = options.rotateWithView !== undefined ?
-      options.rotateWithView : false;
+    options.rotateWithView : false;
 
   /**
    * @type {number}
@@ -44970,7 +47104,7 @@ ol.style.Icon = function(opt_options) {
    * @type {boolean}
    */
   var snapToPixel = options.snapToPixel !== undefined ?
-      options.snapToPixel : true;
+    options.snapToPixel : true;
 
   ol.style.Image.call(this, {
     opacity: opacity,
@@ -45269,7 +47403,7 @@ ol.style.Text = function(opt_options) {
    * @type {ol.style.Fill}
    */
   this.fill_ = options.fill !== undefined ? options.fill :
-      new ol.style.Fill({color: ol.style.Text.DEFAULT_FILL_COLOR_});
+    new ol.style.Fill({color: ol.style.Text.DEFAULT_FILL_COLOR_});
 
   /**
    * @private
@@ -45610,21 +47744,21 @@ ol.format.KML = function(opt_options) {
    * @type {Array.<ol.style.Style>}
    */
   this.defaultStyle_ = options.defaultStyle ?
-      options.defaultStyle : ol.format.KML.DEFAULT_STYLE_ARRAY_;
+    options.defaultStyle : ol.format.KML.DEFAULT_STYLE_ARRAY_;
 
   /**
    * @private
    * @type {boolean}
    */
   this.extractStyles_ = options.extractStyles !== undefined ?
-      options.extractStyles : true;
+    options.extractStyles : true;
 
   /**
    * @private
    * @type {boolean}
    */
   this.writeStyles_ = options.writeStyles !== undefined ?
-      options.writeStyles : true;
+    options.writeStyles : true;
 
   /**
    * @private
@@ -45637,7 +47771,7 @@ ol.format.KML = function(opt_options) {
    * @type {boolean}
    */
   this.showPointNames_ = options.showPointNames !== undefined ?
-      options.showPointNames : true;
+    options.showPointNames : true;
 
 };
 ol.inherits(ol.format.KML, ol.format.XMLFeature);
@@ -45829,7 +47963,8 @@ ol.format.KML.createStyleDefaults_ = function() {
  */
 ol.format.KML.ICON_ANCHOR_UNITS_MAP_ = {
   'fraction': ol.style.IconAnchorUnits.FRACTION,
-  'pixels': ol.style.IconAnchorUnits.PIXELS
+  'pixels': ol.style.IconAnchorUnits.PIXELS,
+  'insetPixels': ol.style.IconAnchorUnits.PIXELS
 };
 
 
@@ -45896,53 +48031,53 @@ ol.format.KML.createFeatureStyleFunction_ = function(style, styleUrl,
     defaultStyle, sharedStyles, showPointNames) {
 
   return (
-      /**
+  /**
        * @param {number} resolution Resolution.
        * @return {Array.<ol.style.Style>} Style.
        * @this {ol.Feature}
        */
-      function(resolution) {
-        var drawName = showPointNames;
-        /** @type {ol.style.Style|undefined} */
-        var nameStyle;
-        var name = '';
-        if (drawName) {
-          if (this.getGeometry()) {
-            drawName = (this.getGeometry().getType() ===
+    function(resolution) {
+      var drawName = showPointNames;
+      /** @type {ol.style.Style|undefined} */
+      var nameStyle;
+      var name = '';
+      if (drawName) {
+        if (this.getGeometry()) {
+          drawName = (this.getGeometry().getType() ===
                         ol.geom.GeometryType.POINT);
-          }
         }
+      }
 
-        if (drawName) {
-          name = /** @type {string} */ (this.get('name'));
-          drawName = drawName && name;
-        }
+      if (drawName) {
+        name = /** @type {string} */ (this.get('name'));
+        drawName = drawName && name;
+      }
 
-        if (style) {
-          if (drawName) {
-            nameStyle = ol.format.KML.createNameStyleFunction_(style[0],
-                name);
-            return style.concat(nameStyle);
-          }
-          return style;
-        }
-        if (styleUrl) {
-          var foundStyle = ol.format.KML.findStyle_(styleUrl, defaultStyle,
-              sharedStyles);
-          if (drawName) {
-            nameStyle = ol.format.KML.createNameStyleFunction_(foundStyle[0],
-                name);
-            return foundStyle.concat(nameStyle);
-          }
-          return foundStyle;
-        }
+      if (style) {
         if (drawName) {
-          nameStyle = ol.format.KML.createNameStyleFunction_(defaultStyle[0],
+          nameStyle = ol.format.KML.createNameStyleFunction_(style[0],
               name);
-          return defaultStyle.concat(nameStyle);
+          return style.concat(nameStyle);
         }
-        return defaultStyle;
-      });
+        return style;
+      }
+      if (styleUrl) {
+        var foundStyle = ol.format.KML.findStyle_(styleUrl, defaultStyle,
+            sharedStyles);
+        if (drawName) {
+          nameStyle = ol.format.KML.createNameStyleFunction_(foundStyle[0],
+              name);
+          return foundStyle.concat(nameStyle);
+        }
+        return foundStyle;
+      }
+      if (drawName) {
+        nameStyle = ol.format.KML.createNameStyleFunction_(defaultStyle[0],
+            name);
+        return defaultStyle.concat(nameStyle);
+      }
+      return defaultStyle;
+    });
 };
 
 
@@ -46031,7 +48166,7 @@ ol.format.KML.readFlatCoordinates_ = function(node) {
  */
 ol.format.KML.readURI_ = function(node) {
   var s = ol.xml.getAllTextContent(node, false).trim();
-  if (node.baseURI) {
+  if (node.baseURI && node.baseURI !== 'about:blank') {
     var url = new URL(s, node.baseURI);
     return url.href;
   } else {
@@ -46048,11 +48183,26 @@ ol.format.KML.readURI_ = function(node) {
 ol.format.KML.readVec2_ = function(node) {
   var xunits = node.getAttribute('xunits');
   var yunits = node.getAttribute('yunits');
+  var origin;
+  if (xunits !== 'insetPixels') {
+    if (yunits !== 'insetPixels') {
+      origin = ol.style.IconOrigin.BOTTOM_LEFT;
+    } else {
+      origin = ol.style.IconOrigin.TOP_LEFT;
+    }
+  } else {
+    if (yunits !== 'insetPixels') {
+      origin = ol.style.IconOrigin.BOTTOM_RIGHT;
+    } else {
+      origin = ol.style.IconOrigin.TOP_RIGHT;
+    }
+  }
   return {
     x: parseFloat(node.getAttribute('x')),
     xunits: ol.format.KML.ICON_ANCHOR_UNITS_MAP_[xunits],
     y: parseFloat(node.getAttribute('y')),
-    yunits: ol.format.KML.ICON_ANCHOR_UNITS_MAP_[yunits]
+    yunits: ol.format.KML.ICON_ANCHOR_UNITS_MAP_[yunits],
+    origin: origin
   };
 };
 
@@ -46077,7 +48227,7 @@ ol.format.KML.readStyleMapValue_ = function(node, objectStack) {
   return ol.xml.pushParseAndPop(undefined,
       ol.format.KML.STYLE_MAP_PARSERS_, node, objectStack);
 };
- /**
+/**
  * @param {Node} node Node.
  * @param {Array.<*>} objectStack Object stack.
  * @private
@@ -46106,12 +48256,14 @@ ol.format.KML.IconStyleParser_ = function(node, objectStack) {
     src = ol.format.KML.DEFAULT_IMAGE_STYLE_SRC_;
   }
   var anchor, anchorXUnits, anchorYUnits;
+  var anchorOrigin = ol.style.IconOrigin.BOTTOM_LEFT;
   var hotSpot = /** @type {ol.KMLVec2_|undefined} */
       (object['hotSpot']);
   if (hotSpot) {
     anchor = [hotSpot.x, hotSpot.y];
     anchorXUnits = hotSpot.xunits;
     anchorYUnits = hotSpot.yunits;
+    anchorOrigin = hotSpot.origin;
   } else if (src === ol.format.KML.DEFAULT_IMAGE_STYLE_SRC_) {
     anchor = ol.format.KML.DEFAULT_IMAGE_STYLE_ANCHOR_;
     anchorXUnits = ol.format.KML.DEFAULT_IMAGE_STYLE_ANCHOR_X_UNITS_;
@@ -46160,7 +48312,7 @@ ol.format.KML.IconStyleParser_ = function(node, objectStack) {
 
     var imageStyle = new ol.style.Icon({
       anchor: anchor,
-      anchorOrigin: ol.style.IconOrigin.BOTTOM_LEFT,
+      anchorOrigin: anchorOrigin,
       anchorXUnits: anchorXUnits,
       anchorYUnits: anchorYUnits,
       crossOrigin: 'anonymous', // FIXME should this be configurable?
@@ -46333,7 +48485,7 @@ ol.format.KML.readGxTrack_ = function(node, objectStack) {
   var whens = gxTrackObject.whens;
   var i, ii;
   for (i = 0, ii = Math.min(flatCoordinates.length, whens.length); i < ii;
-       ++i) {
+    ++i) {
     flatCoordinates[4 * i + 3] = whens[i];
   }
   var lineString = new ol.geom.LineString(null);
@@ -46547,23 +48699,23 @@ ol.format.KML.readStyle_ = function(node, objectStack) {
   }
   var fillStyle = /** @type {ol.style.Fill} */
       ('fillStyle' in styleObject ?
-          styleObject['fillStyle'] : ol.format.KML.DEFAULT_FILL_STYLE_);
+        styleObject['fillStyle'] : ol.format.KML.DEFAULT_FILL_STYLE_);
   var fill = /** @type {boolean|undefined} */ (styleObject['fill']);
   if (fill !== undefined && !fill) {
     fillStyle = null;
   }
   var imageStyle = /** @type {ol.style.Image} */
       ('imageStyle' in styleObject ?
-          styleObject['imageStyle'] : ol.format.KML.DEFAULT_IMAGE_STYLE_);
+        styleObject['imageStyle'] : ol.format.KML.DEFAULT_IMAGE_STYLE_);
   if (imageStyle == ol.format.KML.DEFAULT_NO_IMAGE_STYLE_) {
     imageStyle = undefined;
   }
   var textStyle = /** @type {ol.style.Text} */
       ('textStyle' in styleObject ?
-          styleObject['textStyle'] : ol.format.KML.DEFAULT_TEXT_STYLE_);
+        styleObject['textStyle'] : ol.format.KML.DEFAULT_TEXT_STYLE_);
   var strokeStyle = /** @type {ol.style.Stroke} */
       ('strokeStyle' in styleObject ?
-          styleObject['strokeStyle'] : ol.format.KML.DEFAULT_STROKE_STYLE_);
+        styleObject['strokeStyle'] : ol.format.KML.DEFAULT_STROKE_STYLE_);
   var outline = /** @type {boolean|undefined} */
       (styleObject['outline']);
   if (outline !== undefined && !outline) {
@@ -46591,18 +48743,24 @@ ol.format.KML.setCommonGeometryProperties_ = function(multiGeometry,
     geometries) {
   var ii = geometries.length;
   var extrudes = new Array(geometries.length);
+  var tessellates = new Array(geometries.length);
   var altitudeModes = new Array(geometries.length);
-  var geometry, i, hasExtrude, hasAltitudeMode;
-  hasExtrude = hasAltitudeMode = false;
+  var geometry, i, hasExtrude, hasTessellate, hasAltitudeMode;
+  hasExtrude = hasTessellate = hasAltitudeMode = false;
   for (i = 0; i < ii; ++i) {
     geometry = geometries[i];
     extrudes[i] = geometry.get('extrude');
+    tessellates[i] = geometry.get('tessellate');
     altitudeModes[i] = geometry.get('altitudeMode');
     hasExtrude = hasExtrude || extrudes[i] !== undefined;
+    hasTessellate = hasTessellate || tessellates[i] !== undefined;
     hasAltitudeMode = hasAltitudeMode || altitudeModes[i];
   }
   if (hasExtrude) {
     multiGeometry.set('extrude', extrudes);
+  }
+  if (hasTessellate) {
+    multiGeometry.set('tessellate', tessellates);
   }
   if (hasAltitudeMode) {
     multiGeometry.set('altitudeMode', altitudeModes);
@@ -46618,13 +48776,13 @@ ol.format.KML.setCommonGeometryProperties_ = function(multiGeometry,
 ol.format.KML.DataParser_ = function(node, objectStack) {
   var name = node.getAttribute('name');
   ol.xml.parseNode(ol.format.KML.DATA_PARSERS_, node, objectStack);
-  var featureObject =
-    /** @type {Object} */ (objectStack[objectStack.length - 1]);
+  var featureObject = /** @type {Object} */ (objectStack[objectStack.length - 1]);
   if (name !== null) {
     featureObject[name] = featureObject.value;
   } else if (featureObject.displayName !== null) {
     featureObject[featureObject.displayName] = featureObject.value;
   }
+  delete featureObject['value'];
 };
 
 
@@ -46897,6 +49055,7 @@ ol.format.KML.LOD_PARSERS_ = ol.xml.makeStructureNS(
 ol.format.KML.EXTRUDE_AND_ALTITUDE_MODE_PARSERS_ = ol.xml.makeStructureNS(
     ol.format.KML.NAMESPACE_URIS_, {
       'extrude': ol.xml.makeObjectPropertySetter(ol.format.XSD.readBoolean),
+      'tessellate': ol.xml.makeObjectPropertySetter(ol.format.XSD.readBoolean),
       'altitudeMode': ol.xml.makeObjectPropertySetter(ol.format.XSD.readString)
     });
 
@@ -47263,7 +49422,7 @@ ol.format.KML.prototype.readSharedStyle_ = function(node, objectStack) {
     var style = ol.format.KML.readStyle_(node, objectStack);
     if (style) {
       var styleUri;
-      if (node.baseURI) {
+      if (node.baseURI && node.baseURI !== 'about:blank') {
         var url = new URL('#' + id, node.baseURI);
         styleUri = url.href;
       } else {
@@ -47290,7 +49449,7 @@ ol.format.KML.prototype.readSharedStyleMap_ = function(node, objectStack) {
     return;
   }
   var styleUri;
-  if (node.baseURI) {
+  if (node.baseURI && node.baseURI !== 'about:blank') {
     var url = new URL('#' + id, node.baseURI);
     styleUri = url.href;
   } else {
@@ -47670,16 +49829,16 @@ ol.format.KML.writeDataNode_ = function(node, pair, objectStack) {
   if (typeof value == 'object') {
     if (value !== null && value.displayName) {
       ol.xml.pushSerializeAndPop(context, ol.format.KML.EXTENDEDDATA_NODE_SERIALIZERS_,
-        ol.xml.OBJECT_PROPERTY_NODE_FACTORY, [value.displayName], objectStack, ['displayName']);
+          ol.xml.OBJECT_PROPERTY_NODE_FACTORY, [value.displayName], objectStack, ['displayName']);
     }
 
     if (value !== null && value.value) {
       ol.xml.pushSerializeAndPop(context, ol.format.KML.EXTENDEDDATA_NODE_SERIALIZERS_,
-        ol.xml.OBJECT_PROPERTY_NODE_FACTORY, [value.value], objectStack, ['value']);
+          ol.xml.OBJECT_PROPERTY_NODE_FACTORY, [value.value], objectStack, ['value']);
     }
   } else {
     ol.xml.pushSerializeAndPop(context, ol.format.KML.EXTENDEDDATA_NODE_SERIALIZERS_,
-     ol.xml.OBJECT_PROPERTY_NODE_FACTORY, [value], objectStack, ['value']);
+        ol.xml.OBJECT_PROPERTY_NODE_FACTORY, [value], objectStack, ['value']);
   }
 };
 
@@ -47732,7 +49891,7 @@ ol.format.KML.writeExtendedData_ = function(node, namesAndValues, objectStack) {
 
   for (var i = 0; i < length; i++) {
     ol.xml.pushSerializeAndPop(context, ol.format.KML.EXTENDEDDATA_NODE_SERIALIZERS_,
-      ol.format.KML.DATA_NODE_FACTORY_, [{name: names[i], value: values[i]}], objectStack);
+        ol.format.KML.DATA_NODE_FACTORY_, [{name: names[i], value: values[i]}], objectStack);
   }
 };
 
@@ -47786,7 +49945,7 @@ ol.format.KML.writeIconStyle_ = function(node, style, objectStack) {
       iconProperties['y'] = iconImageSize[1] - (origin[1] + size[1]);
     }
 
-    if (anchor && anchor[0] !== 0 && anchor[1] !== size[1]) {
+    if (anchor && (anchor[0] !== size[0] / 2 || anchor[1] !== size[1] / 2)) {
       var /** @type {ol.KMLVec2_} */ hotSpot = {
         x: anchor[0],
         xunits: ol.style.IconAnchorUnits.PIXELS,
@@ -47946,7 +50105,7 @@ ol.format.KML.writePlacemark_ = function(node, feature, objectStack) {
     var sequence = ol.xml.makeSequence(properties, keys);
     var namesAndValues = {names: keys, values: sequence};
     ol.xml.pushSerializeAndPop(context, ol.format.KML.PLACEMARK_SERIALIZERS_,
-      ol.format.KML.EXTENDEDDATA_NODE_FACTORY_, [namesAndValues], objectStack);
+        ol.format.KML.EXTENDEDDATA_NODE_FACTORY_, [namesAndValues], objectStack);
   }
 
   var styleFunction = feature.getStyleFunction();
@@ -47994,10 +50153,16 @@ ol.format.KML.writePrimitiveGeometry_ = function(node, geometry, objectStack) {
   var /** @type {ol.XmlNodeStackItem} */ context = {node: node};
   context['layout'] = geometry.getLayout();
   context['stride'] = geometry.getStride();
-  ol.xml.pushSerializeAndPop(context,
-      ol.format.KML.PRIMITIVE_GEOMETRY_SERIALIZERS_,
-      ol.format.KML.COORDINATES_NODE_FACTORY_,
-      [flatCoordinates], objectStack);
+
+  // serialize properties (properties unknown to KML are not serialized)
+  var properties = geometry.getProperties();
+  properties.coordinates = flatCoordinates;
+
+  var parentNode = objectStack[objectStack.length - 1].node;
+  var orderedKeys = ol.format.KML.PRIMITIVE_GEOMETRY_SEQUENCE_[parentNode.namespaceURI];
+  var values = ol.xml.makeSequence(properties, orderedKeys);
+  ol.xml.pushSerializeAndPop(context, ol.format.KML.PRIMITIVE_GEOMETRY_SERIALIZERS_,
+      ol.xml.OBJECT_PROPERTY_NODE_FACTORY, values, objectStack, orderedKeys);
 };
 
 
@@ -48157,7 +50322,6 @@ ol.format.KML.GEOMETRY_TYPE_TO_NODENAME_ = {
   'MultiPolygon': 'MultiGeometry',
   'GeometryCollection': 'MultiGeometry'
 };
-
 
 /**
  * @const
@@ -48336,11 +50500,25 @@ ol.format.KML.PLACEMARK_SERIALIZERS_ = ol.xml.makeStructureNS(
 
 /**
  * @const
+ * @type {Object.<string, Array.<string>>}
+ * @private
+ */
+ol.format.KML.PRIMITIVE_GEOMETRY_SEQUENCE_ = ol.xml.makeStructureNS(
+    ol.format.KML.NAMESPACE_URIS_, [
+      'extrude', 'tessellate', 'altitudeMode', 'coordinates'
+    ]);
+
+
+/**
+ * @const
  * @type {Object.<string, Object.<string, ol.XmlSerializer>>}
  * @private
  */
 ol.format.KML.PRIMITIVE_GEOMETRY_SERIALIZERS_ = ol.xml.makeStructureNS(
     ol.format.KML.NAMESPACE_URIS_, {
+      'extrude': ol.xml.makeChildAppender(ol.format.XSD.writeBooleanTextNode),
+      'tessellate': ol.xml.makeChildAppender(ol.format.XSD.writeBooleanTextNode),
+      'altitudeMode': ol.xml.makeChildAppender(ol.format.XSD.writeStringTextNode),
       'coordinates': ol.xml.makeChildAppender(
           ol.format.KML.writeCoordinatesTextNode_)
     });
@@ -48450,16 +50628,6 @@ ol.format.KML.GEOMETRY_NODE_FACTORY_ = function(value, objectStack,
  * @private
  */
 ol.format.KML.COLOR_NODE_FACTORY_ = ol.xml.makeSimpleNodeFactory('color');
-
-
-/**
- * A factory for creating coordinates nodes.
- * @const
- * @type {function(*, Array.<*>, string=): (Node|undefined)}
- * @private
- */
-ol.format.KML.COORDINATES_NODE_FACTORY_ =
-    ol.xml.makeSimpleNodeFactory('coordinates');
 
 
 /**
@@ -48591,233 +50759,191 @@ ol.format.KML.prototype.writeFeaturesNode = function(features, opt_options) {
   return kml;
 };
 
-goog.provide('ol.ext.pbf');
-/** @typedef {function(*)} */
-ol.ext.pbf;
-(function() {
-var exports = {};
-var module = {exports: exports};
-var define;
+
 /**
  * @fileoverview
  * @suppress {accessControls, ambiguousFunctionDecl, checkDebuggerStatement, checkRegExp, checkTypes, checkVars, const, constantProperty, deprecated, duplicate, es5Strict, fileoverviewTags, missingProperties, nonStandardJsDocs, strictModuleDepCheck, suspiciousCode, undefinedNames, undefinedVars, unknownDefines, unusedLocalVariables, uselessCode, visibility}
  */
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.pbf = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
-exports.read = function (buffer, offset, isLE, mLen, nBytes) {
-  var e, m
-  var eLen = nBytes * 8 - mLen - 1
-  var eMax = (1 << eLen) - 1
-  var eBias = eMax >> 1
-  var nBits = -7
-  var i = isLE ? (nBytes - 1) : 0
-  var d = isLE ? -1 : 1
-  var s = buffer[offset + i]
+goog.provide('ol.ext.PBF');
 
-  i += d
+/** @typedef {function(*)} */
+ol.ext.PBF = function() {};
 
-  e = s & ((1 << (-nBits)) - 1)
-  s >>= (-nBits)
-  nBits += eLen
+(function() {(function (exports) {
+'use strict';
+
+var read = function (buffer, offset, isLE, mLen, nBytes) {
+  var e, m;
+  var eLen = nBytes * 8 - mLen - 1;
+  var eMax = (1 << eLen) - 1;
+  var eBias = eMax >> 1;
+  var nBits = -7;
+  var i = isLE ? (nBytes - 1) : 0;
+  var d = isLE ? -1 : 1;
+  var s = buffer[offset + i];
+  i += d;
+  e = s & ((1 << (-nBits)) - 1);
+  s >>= (-nBits);
+  nBits += eLen;
   for (; nBits > 0; e = e * 256 + buffer[offset + i], i += d, nBits -= 8) {}
-
-  m = e & ((1 << (-nBits)) - 1)
-  e >>= (-nBits)
-  nBits += mLen
+  m = e & ((1 << (-nBits)) - 1);
+  e >>= (-nBits);
+  nBits += mLen;
   for (; nBits > 0; m = m * 256 + buffer[offset + i], i += d, nBits -= 8) {}
-
   if (e === 0) {
-    e = 1 - eBias
+    e = 1 - eBias;
   } else if (e === eMax) {
     return m ? NaN : ((s ? -1 : 1) * Infinity)
   } else {
-    m = m + Math.pow(2, mLen)
-    e = e - eBias
+    m = m + Math.pow(2, mLen);
+    e = e - eBias;
   }
   return (s ? -1 : 1) * m * Math.pow(2, e - mLen)
-}
-
-exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
-  var e, m, c
-  var eLen = nBytes * 8 - mLen - 1
-  var eMax = (1 << eLen) - 1
-  var eBias = eMax >> 1
-  var rt = (mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0)
-  var i = isLE ? 0 : (nBytes - 1)
-  var d = isLE ? 1 : -1
-  var s = value < 0 || (value === 0 && 1 / value < 0) ? 1 : 0
-
-  value = Math.abs(value)
-
+};
+var write = function (buffer, value, offset, isLE, mLen, nBytes) {
+  var e, m, c;
+  var eLen = nBytes * 8 - mLen - 1;
+  var eMax = (1 << eLen) - 1;
+  var eBias = eMax >> 1;
+  var rt = (mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0);
+  var i = isLE ? 0 : (nBytes - 1);
+  var d = isLE ? 1 : -1;
+  var s = value < 0 || (value === 0 && 1 / value < 0) ? 1 : 0;
+  value = Math.abs(value);
   if (isNaN(value) || value === Infinity) {
-    m = isNaN(value) ? 1 : 0
-    e = eMax
+    m = isNaN(value) ? 1 : 0;
+    e = eMax;
   } else {
-    e = Math.floor(Math.log(value) / Math.LN2)
+    e = Math.floor(Math.log(value) / Math.LN2);
     if (value * (c = Math.pow(2, -e)) < 1) {
-      e--
-      c *= 2
+      e--;
+      c *= 2;
     }
     if (e + eBias >= 1) {
-      value += rt / c
+      value += rt / c;
     } else {
-      value += rt * Math.pow(2, 1 - eBias)
+      value += rt * Math.pow(2, 1 - eBias);
     }
     if (value * c >= 2) {
-      e++
-      c /= 2
+      e++;
+      c /= 2;
     }
-
     if (e + eBias >= eMax) {
-      m = 0
-      e = eMax
+      m = 0;
+      e = eMax;
     } else if (e + eBias >= 1) {
-      m = (value * c - 1) * Math.pow(2, mLen)
-      e = e + eBias
+      m = (value * c - 1) * Math.pow(2, mLen);
+      e = e + eBias;
     } else {
-      m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen)
-      e = 0
+      m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen);
+      e = 0;
     }
   }
-
   for (; mLen >= 8; buffer[offset + i] = m & 0xff, i += d, m /= 256, mLen -= 8) {}
-
-  e = (e << mLen) | m
-  eLen += mLen
+  e = (e << mLen) | m;
+  eLen += mLen;
   for (; eLen > 0; buffer[offset + i] = e & 0xff, i += d, e /= 256, eLen -= 8) {}
+  buffer[offset + i - d] |= s * 128;
+};
+var index$2 = {
+	read: read,
+	write: write
+};
 
-  buffer[offset + i - d] |= s * 128
-}
-
-},{}],2:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = Pbf;
-
-var ieee754 = _dereq_('ieee754');
-
+var index = Pbf;
 function Pbf(buf) {
     this.buf = ArrayBuffer.isView && ArrayBuffer.isView(buf) ? buf : new Uint8Array(buf || 0);
     this.pos = 0;
     this.type = 0;
     this.length = this.buf.length;
 }
-
-Pbf.Varint  = 0; // varint: int32, int64, uint32, uint64, sint32, sint64, bool, enum
-Pbf.Fixed64 = 1; // 64-bit: double, fixed64, sfixed64
-Pbf.Bytes   = 2; // length-delimited: string, bytes, embedded messages, packed repeated fields
-Pbf.Fixed32 = 5; // 32-bit: float, fixed32, sfixed32
-
-var SHIFT_LEFT_32 = (1 << 16) * (1 << 16),
-    SHIFT_RIGHT_32 = 1 / SHIFT_LEFT_32;
-
+Pbf.Varint  = 0;
+Pbf.Fixed64 = 1;
+Pbf.Bytes   = 2;
+Pbf.Fixed32 = 5;
+var SHIFT_LEFT_32 = (1 << 16) * (1 << 16);
+var SHIFT_RIGHT_32 = 1 / SHIFT_LEFT_32;
 Pbf.prototype = {
-
     destroy: function() {
         this.buf = null;
     },
-
-    // === READING =================================================================
-
     readFields: function(readField, result, end) {
         end = end || this.length;
-
         while (this.pos < end) {
             var val = this.readVarint(),
                 tag = val >> 3,
                 startPos = this.pos;
-
             this.type = val & 0x7;
             readField(tag, result, this);
-
             if (this.pos === startPos) this.skip(val);
         }
         return result;
     },
-
     readMessage: function(readField, result) {
         return this.readFields(readField, result, this.readVarint() + this.pos);
     },
-
     readFixed32: function() {
         var val = readUInt32(this.buf, this.pos);
         this.pos += 4;
         return val;
     },
-
     readSFixed32: function() {
         var val = readInt32(this.buf, this.pos);
         this.pos += 4;
         return val;
     },
-
-    // 64-bit int handling is based on github.com/dpw/node-buffer-more-ints (MIT-licensed)
-
     readFixed64: function() {
         var val = readUInt32(this.buf, this.pos) + readUInt32(this.buf, this.pos + 4) * SHIFT_LEFT_32;
         this.pos += 8;
         return val;
     },
-
     readSFixed64: function() {
         var val = readUInt32(this.buf, this.pos) + readInt32(this.buf, this.pos + 4) * SHIFT_LEFT_32;
         this.pos += 8;
         return val;
     },
-
     readFloat: function() {
-        var val = ieee754.read(this.buf, this.pos, true, 23, 4);
+        var val = index$2.read(this.buf, this.pos, true, 23, 4);
         this.pos += 4;
         return val;
     },
-
     readDouble: function() {
-        var val = ieee754.read(this.buf, this.pos, true, 52, 8);
+        var val = index$2.read(this.buf, this.pos, true, 52, 8);
         this.pos += 8;
         return val;
     },
-
     readVarint: function(isSigned) {
         var buf = this.buf,
             val, b;
-
         b = buf[this.pos++]; val  =  b & 0x7f;        if (b < 0x80) return val;
         b = buf[this.pos++]; val |= (b & 0x7f) << 7;  if (b < 0x80) return val;
         b = buf[this.pos++]; val |= (b & 0x7f) << 14; if (b < 0x80) return val;
         b = buf[this.pos++]; val |= (b & 0x7f) << 21; if (b < 0x80) return val;
         b = buf[this.pos];   val |= (b & 0x0f) << 28;
-
         return readVarintRemainder(val, isSigned, this);
     },
-
-    readVarint64: function() { // for compatibility with v2.0.1
+    readVarint64: function() {
         return this.readVarint(true);
     },
-
     readSVarint: function() {
         var num = this.readVarint();
-        return num % 2 === 1 ? (num + 1) / -2 : num / 2; // zigzag encoding
+        return num % 2 === 1 ? (num + 1) / -2 : num / 2;
     },
-
     readBoolean: function() {
         return Boolean(this.readVarint());
     },
-
     readString: function() {
         var end = this.readVarint() + this.pos,
             str = readUtf8(this.buf, this.pos, end);
         this.pos = end;
         return str;
     },
-
     readBytes: function() {
         var end = this.readVarint() + this.pos,
             buffer = this.buf.subarray(this.pos, end);
         this.pos = end;
         return buffer;
     },
-
-    // verbose for performance reasons; doesn't affect gzipped size
-
     readPackedVarint: function(arr, isSigned) {
         var end = readPackedEnd(this);
         arr = arr || [];
@@ -48872,7 +50998,6 @@ Pbf.prototype = {
         while (this.pos < end) arr.push(this.readSFixed64());
         return arr;
     },
-
     skip: function(val) {
         var type = val & 0x7;
         if (type === Pbf.Varint) while (this.buf[this.pos++] > 0x7f) {}
@@ -48881,18 +51006,12 @@ Pbf.prototype = {
         else if (type === Pbf.Fixed64) this.pos += 8;
         else throw new Error('Unimplemented type: ' + type);
     },
-
-    // === WRITING =================================================================
-
     writeTag: function(tag, type) {
         this.writeVarint((tag << 3) | type);
     },
-
     realloc: function(min) {
         var length = this.length || 16;
-
         while (length < this.pos + min) length *= 2;
-
         if (length !== this.length) {
             var buf = new Uint8Array(length);
             buf.set(this.buf);
@@ -48900,122 +51019,93 @@ Pbf.prototype = {
             this.length = length;
         }
     },
-
     finish: function() {
         this.length = this.pos;
         this.pos = 0;
         return this.buf.subarray(0, this.length);
     },
-
     writeFixed32: function(val) {
         this.realloc(4);
         writeInt32(this.buf, val, this.pos);
         this.pos += 4;
     },
-
     writeSFixed32: function(val) {
         this.realloc(4);
         writeInt32(this.buf, val, this.pos);
         this.pos += 4;
     },
-
     writeFixed64: function(val) {
         this.realloc(8);
         writeInt32(this.buf, val & -1, this.pos);
         writeInt32(this.buf, Math.floor(val * SHIFT_RIGHT_32), this.pos + 4);
         this.pos += 8;
     },
-
     writeSFixed64: function(val) {
         this.realloc(8);
         writeInt32(this.buf, val & -1, this.pos);
         writeInt32(this.buf, Math.floor(val * SHIFT_RIGHT_32), this.pos + 4);
         this.pos += 8;
     },
-
     writeVarint: function(val) {
         val = +val || 0;
-
         if (val > 0xfffffff || val < 0) {
             writeBigVarint(val, this);
             return;
         }
-
         this.realloc(4);
-
         this.buf[this.pos++] =           val & 0x7f  | (val > 0x7f ? 0x80 : 0); if (val <= 0x7f) return;
         this.buf[this.pos++] = ((val >>>= 7) & 0x7f) | (val > 0x7f ? 0x80 : 0); if (val <= 0x7f) return;
         this.buf[this.pos++] = ((val >>>= 7) & 0x7f) | (val > 0x7f ? 0x80 : 0); if (val <= 0x7f) return;
         this.buf[this.pos++] =   (val >>> 7) & 0x7f;
     },
-
     writeSVarint: function(val) {
         this.writeVarint(val < 0 ? -val * 2 - 1 : val * 2);
     },
-
     writeBoolean: function(val) {
         this.writeVarint(Boolean(val));
     },
-
     writeString: function(str) {
         str = String(str);
         this.realloc(str.length * 4);
-
-        this.pos++; // reserve 1 byte for short string length
-
+        this.pos++;
         var startPos = this.pos;
-        // write the string directly to the buffer and see how much was written
         this.pos = writeUtf8(this.buf, str, this.pos);
         var len = this.pos - startPos;
-
         if (len >= 0x80) makeRoomForExtraLength(startPos, len, this);
-
-        // finally, write the message length in the reserved place and restore the position
         this.pos = startPos - 1;
         this.writeVarint(len);
         this.pos += len;
     },
-
     writeFloat: function(val) {
         this.realloc(4);
-        ieee754.write(this.buf, val, this.pos, true, 23, 4);
+        index$2.write(this.buf, val, this.pos, true, 23, 4);
         this.pos += 4;
     },
-
     writeDouble: function(val) {
         this.realloc(8);
-        ieee754.write(this.buf, val, this.pos, true, 52, 8);
+        index$2.write(this.buf, val, this.pos, true, 52, 8);
         this.pos += 8;
     },
-
     writeBytes: function(buffer) {
         var len = buffer.length;
         this.writeVarint(len);
         this.realloc(len);
         for (var i = 0; i < len; i++) this.buf[this.pos++] = buffer[i];
     },
-
     writeRawMessage: function(fn, obj) {
-        this.pos++; // reserve 1 byte for short message length
-
-        // write the message directly to the buffer and see how much was written
+        this.pos++;
         var startPos = this.pos;
         fn(obj, this);
         var len = this.pos - startPos;
-
         if (len >= 0x80) makeRoomForExtraLength(startPos, len, this);
-
-        // finally, write the message length in the reserved place and restore the position
         this.pos = startPos - 1;
         this.writeVarint(len);
         this.pos += len;
     },
-
     writeMessage: function(tag, fn, obj) {
         this.writeTag(tag, Pbf.Bytes);
         this.writeRawMessage(fn, obj);
     },
-
     writePackedVarint:   function(tag, arr) { this.writeMessage(tag, writePackedVarint, arr);   },
     writePackedSVarint:  function(tag, arr) { this.writeMessage(tag, writePackedSVarint, arr);  },
     writePackedBoolean:  function(tag, arr) { this.writeMessage(tag, writePackedBoolean, arr);  },
@@ -49025,7 +51115,6 @@ Pbf.prototype = {
     writePackedSFixed32: function(tag, arr) { this.writeMessage(tag, writePackedSFixed32, arr); },
     writePackedFixed64:  function(tag, arr) { this.writeMessage(tag, writePackedFixed64, arr);  },
     writePackedSFixed64: function(tag, arr) { this.writeMessage(tag, writePackedSFixed64, arr); },
-
     writeBytesField: function(tag, buffer) {
         this.writeTag(tag, Pbf.Bytes);
         this.writeBytes(buffer);
@@ -49070,44 +51159,35 @@ Pbf.prototype = {
         this.writeVarintField(tag, Boolean(val));
     }
 };
-
 function readVarintRemainder(l, s, p) {
     var buf = p.buf,
         h, b;
-
     b = buf[p.pos++]; h  = (b & 0x70) >> 4;  if (b < 0x80) return toNum(l, h, s);
     b = buf[p.pos++]; h |= (b & 0x7f) << 3;  if (b < 0x80) return toNum(l, h, s);
     b = buf[p.pos++]; h |= (b & 0x7f) << 10; if (b < 0x80) return toNum(l, h, s);
     b = buf[p.pos++]; h |= (b & 0x7f) << 17; if (b < 0x80) return toNum(l, h, s);
     b = buf[p.pos++]; h |= (b & 0x7f) << 24; if (b < 0x80) return toNum(l, h, s);
     b = buf[p.pos++]; h |= (b & 0x01) << 31; if (b < 0x80) return toNum(l, h, s);
-
     throw new Error('Expected varint not more than 10 bytes');
 }
-
 function readPackedEnd(pbf) {
     return pbf.type === Pbf.Bytes ?
         pbf.readVarint() + pbf.pos : pbf.pos + 1;
 }
-
 function toNum(low, high, isSigned) {
     if (isSigned) {
         return high * 0x100000000 + (low >>> 0);
     }
-
     return ((high >>> 0) * 0x100000000) + (low >>> 0);
 }
-
 function writeBigVarint(val, pbf) {
     var low, high;
-
     if (val >= 0) {
         low  = (val % 0x100000000) | 0;
         high = (val / 0x100000000) | 0;
     } else {
         low  = ~(-val % 0x100000000);
         high = ~(-val / 0x100000000);
-
         if (low ^ 0xffffffff) {
             low = (low + 1) | 0;
         } else {
@@ -49115,17 +51195,13 @@ function writeBigVarint(val, pbf) {
             high = (high + 1) | 0;
         }
     }
-
     if (val >= 0x10000000000000000 || val < -0x10000000000000000) {
         throw new Error('Given varint doesn\'t fit into 10 bytes');
     }
-
     pbf.realloc(10);
-
     writeBigVarintLow(low, high, pbf);
     writeBigVarintHigh(high, pbf);
 }
-
 function writeBigVarintLow(low, high, pbf) {
     pbf.buf[pbf.pos++] = low & 0x7f | 0x80; low >>>= 7;
     pbf.buf[pbf.pos++] = low & 0x7f | 0x80; low >>>= 7;
@@ -49133,10 +51209,8 @@ function writeBigVarintLow(low, high, pbf) {
     pbf.buf[pbf.pos++] = low & 0x7f | 0x80; low >>>= 7;
     pbf.buf[pbf.pos]   = low & 0x7f;
 }
-
 function writeBigVarintHigh(high, pbf) {
     var lsb = (high & 0x07) << 4;
-
     pbf.buf[pbf.pos++] |= lsb         | ((high >>>= 3) ? 0x80 : 0); if (!high) return;
     pbf.buf[pbf.pos++]  = high & 0x7f | ((high >>>= 7) ? 0x80 : 0); if (!high) return;
     pbf.buf[pbf.pos++]  = high & 0x7f | ((high >>>= 7) ? 0x80 : 0); if (!high) return;
@@ -49144,18 +51218,14 @@ function writeBigVarintHigh(high, pbf) {
     pbf.buf[pbf.pos++]  = high & 0x7f | ((high >>>= 7) ? 0x80 : 0); if (!high) return;
     pbf.buf[pbf.pos++]  = high & 0x7f;
 }
-
 function makeRoomForExtraLength(startPos, len, pbf) {
     var extraLen =
         len <= 0x3fff ? 1 :
         len <= 0x1fffff ? 2 :
         len <= 0xfffffff ? 3 : Math.ceil(Math.log(len) / (Math.LN2 * 7));
-
-    // if 1 byte isn't enough for encoding message length, shift the data to the right
     pbf.realloc(extraLen);
     for (var i = pbf.pos - 1; i >= startPos; i--) pbf.buf[i + extraLen] = pbf.buf[i];
 }
-
 function writePackedVarint(arr, pbf)   { for (var i = 0; i < arr.length; i++) pbf.writeVarint(arr[i]);   }
 function writePackedSVarint(arr, pbf)  { for (var i = 0; i < arr.length; i++) pbf.writeSVarint(arr[i]);  }
 function writePackedFloat(arr, pbf)    { for (var i = 0; i < arr.length; i++) pbf.writeFloat(arr[i]);    }
@@ -49165,46 +51235,36 @@ function writePackedFixed32(arr, pbf)  { for (var i = 0; i < arr.length; i++) pb
 function writePackedSFixed32(arr, pbf) { for (var i = 0; i < arr.length; i++) pbf.writeSFixed32(arr[i]); }
 function writePackedFixed64(arr, pbf)  { for (var i = 0; i < arr.length; i++) pbf.writeFixed64(arr[i]);  }
 function writePackedSFixed64(arr, pbf) { for (var i = 0; i < arr.length; i++) pbf.writeSFixed64(arr[i]); }
-
-// Buffer code below from https://github.com/feross/buffer, MIT-licensed
-
 function readUInt32(buf, pos) {
     return ((buf[pos]) |
         (buf[pos + 1] << 8) |
         (buf[pos + 2] << 16)) +
         (buf[pos + 3] * 0x1000000);
 }
-
 function writeInt32(buf, val, pos) {
     buf[pos] = val;
     buf[pos + 1] = (val >>> 8);
     buf[pos + 2] = (val >>> 16);
     buf[pos + 3] = (val >>> 24);
 }
-
 function readInt32(buf, pos) {
     return ((buf[pos]) |
         (buf[pos + 1] << 8) |
         (buf[pos + 2] << 16)) +
         (buf[pos + 3] << 24);
 }
-
 function readUtf8(buf, pos, end) {
     var str = '';
     var i = pos;
-
     while (i < end) {
         var b0 = buf[i];
-        var c = null; // codepoint
+        var c = null;
         var bytesPerSequence =
             b0 > 0xEF ? 4 :
             b0 > 0xDF ? 3 :
             b0 > 0xBF ? 2 : 1;
-
         if (i + bytesPerSequence > end) break;
-
         var b1, b2, b3;
-
         if (bytesPerSequence === 1) {
             if (b0 < 0x80) {
                 c = b0;
@@ -49237,28 +51297,22 @@ function readUtf8(buf, pos, end) {
                 }
             }
         }
-
         if (c === null) {
             c = 0xFFFD;
             bytesPerSequence = 1;
-
         } else if (c > 0xFFFF) {
             c -= 0x10000;
             str += String.fromCharCode(c >>> 10 & 0x3FF | 0xD800);
             c = 0xDC00 | c & 0x3FF;
         }
-
         str += String.fromCharCode(c);
         i += bytesPerSequence;
     }
-
     return str;
 }
-
 function writeUtf8(buf, str, pos) {
     for (var i = 0, c, lead; i < str.length; i++) {
-        c = str.charCodeAt(i); // code point
-
+        c = str.charCodeAt(i);
         if (c > 0xD7FF && c < 0xE000) {
             if (lead) {
                 if (c < 0xDC00) {
@@ -49287,7 +51341,6 @@ function writeUtf8(buf, str, pos) {
             buf[pos++] = 0xBD;
             lead = null;
         }
-
         if (c < 0x80) {
             buf[pos++] = c;
         } else {
@@ -49308,83 +51361,72 @@ function writeUtf8(buf, str, pos) {
     return pos;
 }
 
-},{"ieee754":1}]},{},[2])(2)
-});
-ol.ext.pbf = module.exports;
-})();
+exports['default'] = index;
 
-goog.provide('ol.ext.vectortile');
-/** @typedef {function(*)} */
-ol.ext.vectortile;
-(function() {
-var exports = {};
-var module = {exports: exports};
-var define;
+}((this.PBF = this.PBF || {})));}).call(ol.ext);
+ol.ext.PBF = ol.ext.PBF.default;
+
+
 /**
  * @fileoverview
  * @suppress {accessControls, ambiguousFunctionDecl, checkDebuggerStatement, checkRegExp, checkTypes, checkVars, const, constantProperty, deprecated, duplicate, es5Strict, fileoverviewTags, missingProperties, nonStandardJsDocs, strictModuleDepCheck, suspiciousCode, undefinedNames, undefinedVars, unknownDefines, unusedLocalVariables, uselessCode, visibility}
  */
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.vectortile = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+goog.provide('ol.ext.vectortile.VectorTile');
+
+/** @typedef {function(*)} */
+ol.ext.vectortile.VectorTile = function() {};
+
+(function() {(function (exports) {
 'use strict';
 
-module.exports = Point;
-
+var index$2 = Point;
 function Point(x, y) {
     this.x = x;
     this.y = y;
 }
-
 Point.prototype = {
     clone: function() { return new Point(this.x, this.y); },
-
-    add:     function(p) { return this.clone()._add(p);     },
-    sub:     function(p) { return this.clone()._sub(p);     },
-    mult:    function(k) { return this.clone()._mult(k);    },
-    div:     function(k) { return this.clone()._div(k);     },
-    rotate:  function(a) { return this.clone()._rotate(a);  },
+    add:     function(p) { return this.clone()._add(p); },
+    sub:     function(p) { return this.clone()._sub(p); },
+    multByPoint:    function(p) { return this.clone()._multByPoint(p); },
+    divByPoint:     function(p) { return this.clone()._divByPoint(p); },
+    mult:    function(k) { return this.clone()._mult(k); },
+    div:     function(k) { return this.clone()._div(k); },
+    rotate:  function(a) { return this.clone()._rotate(a); },
+    rotateAround:  function(a,p) { return this.clone()._rotateAround(a,p); },
     matMult: function(m) { return this.clone()._matMult(m); },
     unit:    function() { return this.clone()._unit(); },
     perp:    function() { return this.clone()._perp(); },
     round:   function() { return this.clone()._round(); },
-
     mag: function() {
         return Math.sqrt(this.x * this.x + this.y * this.y);
     },
-
-    equals: function(p) {
-        return this.x === p.x &&
-               this.y === p.y;
+    equals: function(other) {
+        return this.x === other.x &&
+               this.y === other.y;
     },
-
     dist: function(p) {
         return Math.sqrt(this.distSqr(p));
     },
-
     distSqr: function(p) {
         var dx = p.x - this.x,
             dy = p.y - this.y;
         return dx * dx + dy * dy;
     },
-
     angle: function() {
         return Math.atan2(this.y, this.x);
     },
-
     angleTo: function(b) {
         return Math.atan2(this.y - b.y, this.x - b.x);
     },
-
     angleWith: function(b) {
         return this.angleWithSep(b.x, b.y);
     },
-
-    // Find the angle of the two vectors, solving the formula for the cross product a x b = |a||b|sin(Î¸) for Î¸.
     angleWithSep: function(x, y) {
         return Math.atan2(
             this.x * y - this.y * x,
             this.x * x + this.y * y);
     },
-
     _matMult: function(m) {
         var x = m[0] * this.x + m[1] * this.y,
             y = m[2] * this.x + m[3] * this.y;
@@ -49392,43 +51434,46 @@ Point.prototype = {
         this.y = y;
         return this;
     },
-
     _add: function(p) {
         this.x += p.x;
         this.y += p.y;
         return this;
     },
-
     _sub: function(p) {
         this.x -= p.x;
         this.y -= p.y;
         return this;
     },
-
     _mult: function(k) {
         this.x *= k;
         this.y *= k;
         return this;
     },
-
     _div: function(k) {
         this.x /= k;
         this.y /= k;
         return this;
     },
-
+    _multByPoint: function(p) {
+        this.x *= p.x;
+        this.y *= p.y;
+        return this;
+    },
+    _divByPoint: function(p) {
+        this.x /= p.x;
+        this.y /= p.y;
+        return this;
+    },
     _unit: function() {
         this._div(this.mag());
         return this;
     },
-
     _perp: function() {
         var y = this.y;
         this.y = this.x;
         this.x = -y;
         return this;
     },
-
     _rotate: function(angle) {
         var cos = Math.cos(angle),
             sin = Math.sin(angle),
@@ -49438,15 +51483,21 @@ Point.prototype = {
         this.y = y;
         return this;
     },
-
+    _rotateAround: function(angle, p) {
+        var cos = Math.cos(angle),
+            sin = Math.sin(angle),
+            x = p.x + cos * (this.x - p.x) - sin * (this.y - p.y),
+            y = p.y + sin * (this.x - p.x) + cos * (this.y - p.y);
+        this.x = x;
+        this.y = y;
+        return this;
+    },
     _round: function() {
         this.x = Math.round(this.x);
         this.y = Math.round(this.y);
         return this;
     }
 };
-
-// constructs Point from an array if necessary
 Point.convert = function (a) {
     if (a instanceof Point) {
         return a;
@@ -49457,75 +51508,35 @@ Point.convert = function (a) {
     return a;
 };
 
-},{}],2:[function(_dereq_,module,exports){
-module.exports.VectorTile = _dereq_('./lib/vectortile.js');
-module.exports.VectorTileFeature = _dereq_('./lib/vectortilefeature.js');
-module.exports.VectorTileLayer = _dereq_('./lib/vectortilelayer.js');
-
-},{"./lib/vectortile.js":3,"./lib/vectortilefeature.js":4,"./lib/vectortilelayer.js":5}],3:[function(_dereq_,module,exports){
-'use strict';
-
-var VectorTileLayer = _dereq_('./vectortilelayer');
-
-module.exports = VectorTile;
-
-function VectorTile(pbf, end) {
-    this.layers = pbf.readFields(readTile, {}, end);
-}
-
-function readTile(tag, layers, pbf) {
-    if (tag === 3) {
-        var layer = new VectorTileLayer(pbf, pbf.readVarint() + pbf.pos);
-        if (layer.length) layers[layer.name] = layer;
-    }
-}
-
-
-},{"./vectortilelayer":5}],4:[function(_dereq_,module,exports){
-'use strict';
-
-var Point = _dereq_('point-geometry');
-
-module.exports = VectorTileFeature;
-
-function VectorTileFeature(pbf, end, extent, keys, values) {
-    // Public
+var vectortilefeature = VectorTileFeature$1;
+function VectorTileFeature$1(pbf, end, extent, keys, values) {
     this.properties = {};
     this.extent = extent;
     this.type = 0;
-
-    // Private
     this._pbf = pbf;
     this._geometry = -1;
     this._keys = keys;
     this._values = values;
-
     pbf.readFields(readFeature, this, end);
 }
-
 function readFeature(tag, feature, pbf) {
     if (tag == 1) feature.id = pbf.readVarint();
     else if (tag == 2) readTag(pbf, feature);
     else if (tag == 3) feature.type = pbf.readVarint();
     else if (tag == 4) feature._geometry = pbf.pos;
 }
-
 function readTag(pbf, feature) {
     var end = pbf.readVarint() + pbf.pos;
-
     while (pbf.pos < end) {
         var key = feature._keys[pbf.readVarint()],
             value = feature._values[pbf.readVarint()];
         feature.properties[key] = value;
     }
 }
-
-VectorTileFeature.types = ['Unknown', 'Point', 'LineString', 'Polygon'];
-
-VectorTileFeature.prototype.loadGeometry = function() {
+VectorTileFeature$1.types = ['Unknown', 'Point', 'LineString', 'Polygon'];
+VectorTileFeature$1.prototype.loadGeometry = function() {
     var pbf = this._pbf;
     pbf.pos = this._geometry;
-
     var end = pbf.readVarint() + pbf.pos,
         cmd = 1,
         length = 0,
@@ -49533,48 +51544,35 @@ VectorTileFeature.prototype.loadGeometry = function() {
         y = 0,
         lines = [],
         line;
-
     while (pbf.pos < end) {
         if (!length) {
             var cmdLen = pbf.readVarint();
             cmd = cmdLen & 0x7;
             length = cmdLen >> 3;
         }
-
         length--;
-
         if (cmd === 1 || cmd === 2) {
             x += pbf.readSVarint();
             y += pbf.readSVarint();
-
-            if (cmd === 1) { // moveTo
+            if (cmd === 1) {
                 if (line) lines.push(line);
                 line = [];
             }
-
-            line.push(new Point(x, y));
-
+            line.push(new index$2(x, y));
         } else if (cmd === 7) {
-
-            // Workaround for https://github.com/mapbox/mapnik-vector-tile/issues/90
             if (line) {
-                line.push(line[0].clone()); // closePolygon
+                line.push(line[0].clone());
             }
-
         } else {
             throw new Error('unknown command ' + cmd);
         }
     }
-
     if (line) lines.push(line);
-
     return lines;
 };
-
-VectorTileFeature.prototype.bbox = function() {
+VectorTileFeature$1.prototype.bbox = function() {
     var pbf = this._pbf;
     pbf.pos = this._geometry;
-
     var end = pbf.readVarint() + pbf.pos,
         cmd = 1,
         length = 0,
@@ -49584,16 +51582,13 @@ VectorTileFeature.prototype.bbox = function() {
         x2 = -Infinity,
         y1 = Infinity,
         y2 = -Infinity;
-
     while (pbf.pos < end) {
         if (!length) {
             var cmdLen = pbf.readVarint();
             cmd = cmdLen & 0x7;
             length = cmdLen >> 3;
         }
-
         length--;
-
         if (cmd === 1 || cmd === 2) {
             x += pbf.readSVarint();
             y += pbf.readSVarint();
@@ -49601,23 +51596,19 @@ VectorTileFeature.prototype.bbox = function() {
             if (x > x2) x2 = x;
             if (y < y1) y1 = y;
             if (y > y2) y2 = y;
-
         } else if (cmd !== 7) {
             throw new Error('unknown command ' + cmd);
         }
     }
-
     return [x1, y1, x2, y2];
 };
-
-VectorTileFeature.prototype.toGeoJSON = function(x, y, z) {
+VectorTileFeature$1.prototype.toGeoJSON = function(x, y, z) {
     var size = this.extent * Math.pow(2, z),
         x0 = this.extent * x,
         y0 = this.extent * y,
         coords = this.loadGeometry(),
-        type = VectorTileFeature.types[this.type],
+        type = VectorTileFeature$1.types[this.type],
         i, j;
-
     function project(line) {
         for (var j = 0; j < line.length; j++) {
             var p = line[j], y2 = 180 - (p.y + y0) * 360 / size;
@@ -49627,7 +51618,6 @@ VectorTileFeature.prototype.toGeoJSON = function(x, y, z) {
             ];
         }
     }
-
     switch (this.type) {
     case 1:
         var points = [];
@@ -49637,13 +51627,11 @@ VectorTileFeature.prototype.toGeoJSON = function(x, y, z) {
         coords = points;
         project(coords);
         break;
-
     case 2:
         for (i = 0; i < coords.length; i++) {
             project(coords[i]);
         }
         break;
-
     case 3:
         coords = classifyRings(coords);
         for (i = 0; i < coords.length; i++) {
@@ -49653,13 +51641,11 @@ VectorTileFeature.prototype.toGeoJSON = function(x, y, z) {
         }
         break;
     }
-
     if (coords.length === 1) {
         coords = coords[0];
     } else {
         type = 'Multi' + type;
     }
-
     var result = {
         type: "Feature",
         geometry: {
@@ -49668,44 +51654,31 @@ VectorTileFeature.prototype.toGeoJSON = function(x, y, z) {
         },
         properties: this.properties
     };
-
     if ('id' in this) {
         result.id = this.id;
     }
-
     return result;
 };
-
-// classifies an array of rings into polygons with outer rings and holes
-
 function classifyRings(rings) {
     var len = rings.length;
-
     if (len <= 1) return [rings];
-
     var polygons = [],
         polygon,
         ccw;
-
     for (var i = 0; i < len; i++) {
         var area = signedArea(rings[i]);
         if (area === 0) continue;
-
         if (ccw === undefined) ccw = area < 0;
-
         if (ccw === area < 0) {
             if (polygon) polygons.push(polygon);
             polygon = [rings[i]];
-
         } else {
             polygon.push(rings[i]);
         }
     }
     if (polygon) polygons.push(polygon);
-
     return polygons;
 }
-
 function signedArea(ring) {
     var sum = 0;
     for (var i = 0, len = ring.length, j = len - 1, p1, p2; i < len; j = i++) {
@@ -49716,31 +51689,19 @@ function signedArea(ring) {
     return sum;
 }
 
-},{"point-geometry":1}],5:[function(_dereq_,module,exports){
-'use strict';
-
-var VectorTileFeature = _dereq_('./vectortilefeature.js');
-
-module.exports = VectorTileLayer;
-
-function VectorTileLayer(pbf, end) {
-    // Public
+var vectortilelayer = VectorTileLayer$1;
+function VectorTileLayer$1(pbf, end) {
     this.version = 1;
     this.name = null;
     this.extent = 4096;
     this.length = 0;
-
-    // Private
     this._pbf = pbf;
     this._keys = [];
     this._values = [];
     this._features = [];
-
     pbf.readFields(readLayer, this, end);
-
     this.length = this._features.length;
 }
-
 function readLayer(tag, layer, pbf) {
     if (tag === 15) layer.version = pbf.readVarint();
     else if (tag === 1) layer.name = pbf.readString();
@@ -49749,14 +51710,11 @@ function readLayer(tag, layer, pbf) {
     else if (tag === 3) layer._keys.push(pbf.readString());
     else if (tag === 4) layer._values.push(readValueMessage(pbf));
 }
-
 function readValueMessage(pbf) {
     var value = null,
         end = pbf.readVarint() + pbf.pos;
-
     while (pbf.pos < end) {
         var tag = pbf.readVarint() >> 3;
-
         value = tag === 1 ? pbf.readString() :
             tag === 2 ? pbf.readFloat() :
             tag === 3 ? pbf.readDouble() :
@@ -49765,24 +51723,41 @@ function readValueMessage(pbf) {
             tag === 6 ? pbf.readSVarint() :
             tag === 7 ? pbf.readBoolean() : null;
     }
-
     return value;
 }
-
-// return feature `i` from this layer as a `VectorTileFeature`
-VectorTileLayer.prototype.feature = function(i) {
+VectorTileLayer$1.prototype.feature = function(i) {
     if (i < 0 || i >= this._features.length) throw new Error('feature index out of bounds');
-
     this._pbf.pos = this._features[i];
-
     var end = this._pbf.readVarint() + this._pbf.pos;
-    return new VectorTileFeature(this._pbf, end, this.extent, this._keys, this._values);
+    return new vectortilefeature(this._pbf, end, this.extent, this._keys, this._values);
 };
 
-},{"./vectortilefeature.js":4}]},{},[2])(2)
-});
-ol.ext.vectortile = module.exports;
-})();
+var vectortile = VectorTile$1;
+function VectorTile$1(pbf, end) {
+    this.layers = pbf.readFields(readTile, {}, end);
+}
+function readTile(tag, layers, pbf) {
+    if (tag === 3) {
+        var layer = new vectortilelayer(pbf, pbf.readVarint() + pbf.pos);
+        if (layer.length) layers[layer.name] = layer;
+    }
+}
+
+var VectorTile = vectortile;
+var VectorTileFeature = vectortilefeature;
+var VectorTileLayer = vectortilelayer;
+var index = {
+	VectorTile: VectorTile,
+	VectorTileFeature: VectorTileFeature,
+	VectorTileLayer: VectorTileLayer
+};
+
+exports['default'] = index;
+exports.VectorTile = VectorTile;
+exports.VectorTileFeature = VectorTileFeature;
+exports.VectorTileLayer = VectorTileLayer;
+
+}((this.vectortile = this.vectortile || {})));}).call(ol.ext);
 
 goog.provide('ol.render.Feature');
 
@@ -49802,13 +51777,20 @@ goog.require('ol.geom.GeometryType');
  *     to be right-handed for polygons.
  * @param {Array.<number>|Array.<Array.<number>>} ends Ends or Endss.
  * @param {Object.<string, *>} properties Properties.
+ * @param {number|string|undefined} id Feature id.
  */
-ol.render.Feature = function(type, flatCoordinates, ends, properties) {
+ol.render.Feature = function(type, flatCoordinates, ends, properties, id) {
   /**
    * @private
    * @type {ol.Extent|undefined}
    */
   this.extent_;
+
+  /**
+   * @private
+   * @type {number|string|undefined}
+   */
+  this.id_ = id;
 
   /**
    * @private
@@ -49863,12 +51845,22 @@ ol.render.Feature.prototype.getEnds = function() {
 ol.render.Feature.prototype.getExtent = function() {
   if (!this.extent_) {
     this.extent_ = this.type_ === ol.geom.GeometryType.POINT ?
-        ol.extent.createOrUpdateFromCoordinate(this.flatCoordinates_) :
-        ol.extent.createOrUpdateFromFlatCoordinates(
-            this.flatCoordinates_, 0, this.flatCoordinates_.length, 2);
+      ol.extent.createOrUpdateFromCoordinate(this.flatCoordinates_) :
+      ol.extent.createOrUpdateFromFlatCoordinates(
+          this.flatCoordinates_, 0, this.flatCoordinates_.length, 2);
 
   }
   return this.extent_;
+};
+
+/**
+ * Get the feature identifier.  This is a stable identifier for the feature and
+ * is set when reading data from a remote source.
+ * @return {number|string|undefined} Id.
+ * @api
+ */
+ol.render.Feature.prototype.getId = function() {
+  return this.id_;
 };
 
 
@@ -49888,7 +51880,8 @@ ol.render.Feature.prototype.getFlatCoordinates =
 
 
 /**
- * Get the feature for working with its geometry.
+ * For API compatibility with {@link ol.Feature}, this method is useful when
+ * determining the geometry type in style function (see {@link #getType}).
  * @return {ol.render.Feature} Feature.
  * @api
  */
@@ -49943,8 +51936,8 @@ ol.render.Feature.prototype.getType = function() {
 goog.provide('ol.format.MVT');
 
 goog.require('ol');
-goog.require('ol.ext.pbf');
-goog.require('ol.ext.vectortile');
+goog.require('ol.ext.PBF');
+goog.require('ol.ext.vectortile.VectorTile');
 goog.require('ol.format.Feature');
 goog.require('ol.format.FormatType');
 goog.require('ol.geom.GeometryLayout');
@@ -49984,12 +51977,12 @@ ol.format.MVT = function(opt_options) {
 
   /**
    * @private
-   * @type {function((ol.geom.Geometry|Object.<string, *>)=)|
+   * @type {function((ol.geom.Geometry|Object.<string,*>)=)|
    *     function(ol.geom.GeometryType,Array.<number>,
-   *         (Array.<number>|Array.<Array.<number>>),Object.<string, *>)}
+   *         (Array.<number>|Array.<Array.<number>>),Object.<string,*>,number)}
    */
   this.featureClass_ = options.featureClass ?
-      options.featureClass : ol.render.Feature;
+    options.featureClass : ol.render.Feature;
 
   /**
    * @private
@@ -50009,8 +52002,23 @@ ol.format.MVT = function(opt_options) {
    */
   this.layers_ = options.layers ? options.layers : null;
 
+  /**
+   * @private
+   * @type {ol.Extent}
+   */
+  this.extent_ = null;
+
 };
 ol.inherits(ol.format.MVT, ol.format.Feature);
+
+
+/**
+ * @inheritDoc
+ * @api
+ */
+ol.format.MVT.prototype.getLastExtent = function() {
+  return this.extent_;
+};
 
 
 /**
@@ -50064,7 +52072,7 @@ ol.format.MVT.prototype.readRenderFeature_ = function(rawFeature, layer) {
   var geometryType;
   if (type === 1) {
     geometryType = coords.length === 1 ?
-        ol.geom.GeometryType.POINT : ol.geom.GeometryType.MULTI_POINT;
+      ol.geom.GeometryType.POINT : ol.geom.GeometryType.MULTI_POINT;
   } else if (type === 2) {
     if (coords.length === 1) {
       geometryType = ol.geom.GeometryType.LINE_STRING;
@@ -50077,8 +52085,9 @@ ol.format.MVT.prototype.readRenderFeature_ = function(rawFeature, layer) {
 
   var values = rawFeature.properties;
   values[this.layerName_] = layer;
+  var id = rawFeature.id;
 
-  return new this.featureClass_(geometryType, flatCoordinates, ends, values);
+  return new this.featureClass_(geometryType, flatCoordinates, ends, values, id);
 };
 
 
@@ -50089,7 +52098,7 @@ ol.format.MVT.prototype.readRenderFeature_ = function(rawFeature, layer) {
 ol.format.MVT.prototype.readFeatures = function(source, opt_options) {
   var layers = this.layers_;
 
-  var pbf = new ol.ext.pbf(/** @type {ArrayBuffer} */ (source));
+  var pbf = new ol.ext.PBF(/** @type {ArrayBuffer} */ (source));
   var tile = new ol.ext.vectortile.VectorTile(pbf);
   var features = [];
   var featureClass = this.featureClass_;
@@ -50100,14 +52109,17 @@ ol.format.MVT.prototype.readFeatures = function(source, opt_options) {
     }
     layer = tile.layers[name];
 
+    var rawFeature;
     for (var i = 0, ii = layer.length; i < ii; ++i) {
+      rawFeature = layer.feature(i);
       if (featureClass === ol.render.Feature) {
-        feature = this.readRenderFeature_(layer.feature(i), name);
+        feature = this.readRenderFeature_(rawFeature, name);
       } else {
-        feature = this.readFeature_(layer.feature(i), name, opt_options);
+        feature = this.readFeature_(rawFeature, name, opt_options);
       }
       features.push(feature);
     }
+    this.extent_ = layer ? [0, 0, layer.extent, layer.extent] : null;
   }
 
   return features;
@@ -50177,7 +52189,7 @@ ol.format.MVT.readGeometry_ = function(rawFeature) {
   var geom;
   if (type === 1) {
     geom = coords.length === 1 ?
-        new ol.geom.Point(null) : new ol.geom.MultiPoint(null);
+      new ol.geom.Point(null) : new ol.geom.MultiPoint(null);
   } else if (type === 2) {
     if (coords.length === 1) {
       geom = new ol.geom.LineString(null);
@@ -50917,13 +52929,13 @@ ol.format.OWS.REQUEST_METHOD_PARSERS_ = ol.xml.makeStructureNS(
  */
 ol.format.OWS.SERVICE_CONTACT_PARSERS_ =
     ol.xml.makeStructureNS(
-    ol.format.OWS.NAMESPACE_URIS_, {
-      'IndividualName': ol.xml.makeObjectPropertySetter(
-          ol.format.XSD.readString),
-      'PositionName': ol.xml.makeObjectPropertySetter(ol.format.XSD.readString),
-      'ContactInfo': ol.xml.makeObjectPropertySetter(
-          ol.format.OWS.readContactInfo_)
-    });
+        ol.format.OWS.NAMESPACE_URIS_, {
+          'IndividualName': ol.xml.makeObjectPropertySetter(
+              ol.format.XSD.readString),
+          'PositionName': ol.xml.makeObjectPropertySetter(ol.format.XSD.readString),
+          'ContactInfo': ol.xml.makeObjectPropertySetter(
+              ol.format.OWS.readContactInfo_)
+        });
 
 
 /**
@@ -50933,12 +52945,12 @@ ol.format.OWS.SERVICE_CONTACT_PARSERS_ =
  */
 ol.format.OWS.SERVICE_IDENTIFICATION_PARSERS_ =
     ol.xml.makeStructureNS(
-    ol.format.OWS.NAMESPACE_URIS_, {
-      'Title': ol.xml.makeObjectPropertySetter(ol.format.XSD.readString),
-      'ServiceTypeVersion': ol.xml.makeObjectPropertySetter(
-          ol.format.XSD.readString),
-      'ServiceType': ol.xml.makeObjectPropertySetter(ol.format.XSD.readString)
-    });
+        ol.format.OWS.NAMESPACE_URIS_, {
+          'Title': ol.xml.makeObjectPropertySetter(ol.format.XSD.readString),
+          'ServiceTypeVersion': ol.xml.makeObjectPropertySetter(
+              ol.format.XSD.readString),
+          'ServiceType': ol.xml.makeObjectPropertySetter(ol.format.XSD.readString)
+        });
 
 
 /**
@@ -50948,12 +52960,12 @@ ol.format.OWS.SERVICE_IDENTIFICATION_PARSERS_ =
  */
 ol.format.OWS.SERVICE_PROVIDER_PARSERS_ =
     ol.xml.makeStructureNS(
-    ol.format.OWS.NAMESPACE_URIS_, {
-      'ProviderName': ol.xml.makeObjectPropertySetter(ol.format.XSD.readString),
-      'ProviderSite': ol.xml.makeObjectPropertySetter(ol.format.XLink.readHref),
-      'ServiceContact': ol.xml.makeObjectPropertySetter(
-          ol.format.OWS.readServiceContact_)
-    });
+        ol.format.OWS.NAMESPACE_URIS_, {
+          'ProviderName': ol.xml.makeObjectPropertySetter(ol.format.XSD.readString),
+          'ProviderSite': ol.xml.makeObjectPropertySetter(ol.format.XLink.readHref),
+          'ServiceContact': ol.xml.makeObjectPropertySetter(
+              ol.format.OWS.readServiceContact_)
+        });
 
 goog.provide('ol.geom.flat.flip');
 
@@ -51037,7 +53049,7 @@ ol.format.Polyline = function(opt_options) {
    * @type {ol.geom.GeometryLayout}
    */
   this.geometryLayout_ = options.geometryLayout ?
-      options.geometryLayout : ol.geom.GeometryLayout.XY;
+    options.geometryLayout : ol.geom.GeometryLayout.XY;
 };
 ol.inherits(ol.format.Polyline, ol.format.TextFeature);
 
@@ -51323,9 +53335,9 @@ ol.format.Polyline.prototype.readGeometryFromText = function(text, opt_options) 
       flatCoordinates, 0, flatCoordinates.length, stride);
 
   return /** @type {ol.geom.Geometry} */ (
-      ol.format.Feature.transformWithOptions(
-          new ol.geom.LineString(coordinates, this.geometryLayout_), false,
-          this.adaptOptions(opt_options)));
+    ol.format.Feature.transformWithOptions(
+        new ol.geom.LineString(coordinates, this.geometryLayout_), false,
+        this.adaptOptions(opt_options)));
 };
 
 
@@ -51379,8 +53391,8 @@ ol.format.Polyline.prototype.writeGeometry;
  */
 ol.format.Polyline.prototype.writeGeometryText = function(geometry, opt_options) {
   geometry = /** @type {ol.geom.LineString} */
-      (ol.format.Feature.transformWithOptions(
-          geometry, true, this.adaptOptions(opt_options)));
+    (ol.format.Feature.transformWithOptions(
+        geometry, true, this.adaptOptions(opt_options)));
   var flatCoordinates = geometry.getFlatCoordinates();
   var stride = geometry.getStride();
   ol.geom.flat.flip.flipXY(
@@ -51400,7 +53412,6 @@ goog.require('ol.geom.MultiPoint');
 goog.require('ol.geom.MultiPolygon');
 goog.require('ol.geom.Point');
 goog.require('ol.geom.Polygon');
-goog.require('ol.obj');
 goog.require('ol.proj');
 
 
@@ -51420,11 +53431,23 @@ ol.format.TopoJSON = function(opt_options) {
   ol.format.JSONFeature.call(this);
 
   /**
+   * @private
+   * @type {string|undefined}
+   */
+  this.layerName_ = options.layerName;
+
+  /**
+   * @private
+   * @type {Array.<string>}
+   */
+  this.layers_ = options.layers ? options.layers : null;
+
+  /**
    * @inheritDoc
    */
   this.defaultDataProjection = ol.proj.get(
       options.defaultDataProjection ?
-          options.defaultDataProjection : 'EPSG:4326');
+        options.defaultDataProjection : 'EPSG:4326');
 
 };
 ol.inherits(ol.format.TopoJSON, ol.format.JSONFeature);
@@ -51592,18 +53615,21 @@ ol.format.TopoJSON.readMultiPolygonGeometry_ = function(object, arcs) {
  * @param {Array.<Array.<ol.Coordinate>>} arcs Array of arcs.
  * @param {Array.<number>} scale Scale for each dimension.
  * @param {Array.<number>} translate Translation for each dimension.
+ * @param {string|undefined} property Property to set the `GeometryCollection`'s parent
+ *     object to.
+ * @param {string} name Name of the `Topology`'s child object.
  * @param {olx.format.ReadOptions=} opt_options Read options.
  * @return {Array.<ol.Feature>} Array of features.
  * @private
  */
 ol.format.TopoJSON.readFeaturesFromGeometryCollection_ = function(
-    collection, arcs, scale, translate, opt_options) {
+    collection, arcs, scale, translate, property, name, opt_options) {
   var geometries = collection.geometries;
   var features = [];
   var i, ii;
   for (i = 0, ii = geometries.length; i < ii; ++i) {
     features[i] = ol.format.TopoJSON.readFeatureFromGeometry_(
-        geometries[i], arcs, scale, translate, opt_options);
+        geometries[i], arcs, scale, translate, property, name, opt_options);
   }
   return features;
 };
@@ -51616,12 +53642,15 @@ ol.format.TopoJSON.readFeaturesFromGeometryCollection_ = function(
  * @param {Array.<Array.<ol.Coordinate>>} arcs Array of arcs.
  * @param {Array.<number>} scale Scale for each dimension.
  * @param {Array.<number>} translate Translation for each dimension.
+ * @param {string|undefined} property Property to set the `GeometryCollection`'s parent
+ *     object to.
+ * @param {string} name Name of the `Topology`'s child object.
  * @param {olx.format.ReadOptions=} opt_options Read options.
  * @return {ol.Feature} Feature.
  * @private
  */
 ol.format.TopoJSON.readFeatureFromGeometry_ = function(object, arcs,
-    scale, translate, opt_options) {
+    scale, translate, property, name, opt_options) {
   var geometry;
   var type = object.type;
   var geometryReader = ol.format.TopoJSON.GEOMETRY_READERS_[type];
@@ -51632,12 +53661,19 @@ ol.format.TopoJSON.readFeatureFromGeometry_ = function(object, arcs,
   }
   var feature = new ol.Feature();
   feature.setGeometry(/** @type {ol.geom.Geometry} */ (
-      ol.format.Feature.transformWithOptions(geometry, false, opt_options)));
+    ol.format.Feature.transformWithOptions(geometry, false, opt_options)));
   if (object.id !== undefined) {
     feature.setId(object.id);
   }
-  if (object.properties) {
-    feature.setProperties(object.properties);
+  var properties = object.properties;
+  if (property) {
+    if (!properties) {
+      properties = {};
+    }
+    properties[property] = name;
+  }
+  if (properties) {
+    feature.setProperties(properties);
   }
   return feature;
 };
@@ -51673,21 +53709,24 @@ ol.format.TopoJSON.prototype.readFeaturesFromObject = function(
     }
     /** @type {Array.<ol.Feature>} */
     var features = [];
-    var topoJSONFeatures = ol.obj.getValues(topoJSONTopology.objects);
-    var i, ii;
-    var feature;
-    for (i = 0, ii = topoJSONFeatures.length; i < ii; ++i) {
-      if (topoJSONFeatures[i].type === 'GeometryCollection') {
+    var topoJSONFeatures = topoJSONTopology.objects;
+    var property = this.layerName_;
+    var objectName, feature;
+    for (objectName in topoJSONFeatures) {
+      if (this.layers_ && this.layers_.indexOf(objectName) == -1) {
+        continue;
+      }
+      if (topoJSONFeatures[objectName].type === 'GeometryCollection') {
         feature = /** @type {TopoJSONGeometryCollection} */
-            (topoJSONFeatures[i]);
+          (topoJSONFeatures[objectName]);
         features.push.apply(features,
             ol.format.TopoJSON.readFeaturesFromGeometryCollection_(
-                feature, arcs, scale, translate, opt_options));
+                feature, arcs, scale, translate, property, objectName, opt_options));
       } else {
         feature = /** @type {TopoJSONGeometry} */
-            (topoJSONFeatures[i]);
+          (topoJSONFeatures[objectName]);
         features.push(ol.format.TopoJSON.readFeatureFromGeometry_(
-            feature, arcs, scale, translate, opt_options));
+            feature, arcs, scale, translate, property, objectName, opt_options));
       }
     }
     return features;
@@ -51825,6 +53864,7 @@ goog.provide('ol.format.WFS');
 
 goog.require('ol');
 goog.require('ol.asserts');
+goog.require('ol.format.GML2');
 goog.require('ol.format.GML3');
 goog.require('ol.format.GMLBase');
 goog.require('ol.format.filter');
@@ -51869,14 +53909,15 @@ ol.format.WFS = function(opt_options) {
    * @type {ol.format.GMLBase}
    */
   this.gmlFormat_ = options.gmlFormat ?
-      options.gmlFormat : new ol.format.GML3();
+    options.gmlFormat : new ol.format.GML3();
 
   /**
    * @private
    * @type {string}
    */
   this.schemaLocation_ = options.schemaLocation ?
-      options.schemaLocation : ol.format.WFS.SCHEMA_LOCATION;
+    options.schemaLocation :
+    ol.format.WFS.SCHEMA_LOCATIONS[ol.format.WFS.DEFAULT_VERSION];
 
   ol.format.XMLFeature.call(this);
 };
@@ -51915,8 +53956,26 @@ ol.format.WFS.WFSNS = 'http://www.opengis.net/wfs';
  * @const
  * @type {string}
  */
-ol.format.WFS.SCHEMA_LOCATION = 'http://www.opengis.net/wfs ' +
-    'http://schemas.opengis.net/wfs/1.1.0/wfs.xsd';
+ol.format.WFS.FESNS = 'http://www.opengis.net/fes';
+
+
+/**
+ * @const
+ * @type {Object.<string, string>}
+ */
+ol.format.WFS.SCHEMA_LOCATIONS = {
+  '1.1.0': 'http://www.opengis.net/wfs ' +
+      'http://schemas.opengis.net/wfs/1.1.0/wfs.xsd',
+  '1.0.0': 'http://www.opengis.net/wfs ' +
+      'http://schemas.opengis.net/wfs/1.0.0/wfs.xsd'
+};
+
+
+/**
+ * @const
+ * @type {string}
+ */
+ol.format.WFS.DEFAULT_VERSION = '1.1.0';
 
 
 /**
@@ -52183,9 +54242,14 @@ ol.format.WFS.writeFeature_ = function(node, feature, objectStack) {
   var context = objectStack[objectStack.length - 1];
   var featureType = context['featureType'];
   var featureNS = context['featureNS'];
+  var gmlVersion = context['gmlVersion'];
   var child = ol.xml.createElementNS(featureNS, featureType);
   node.appendChild(child);
-  ol.format.GML3.prototype.writeFeatureElement(child, feature, objectStack);
+  if (gmlVersion === 2) {
+    ol.format.GML2.prototype.writeFeatureElement(child, feature, objectStack);
+  } else {
+    ol.format.GML3.prototype.writeFeatureElement(child, feature, objectStack);
+  }
 };
 
 
@@ -52205,6 +54269,25 @@ ol.format.WFS.writeOgcFidFilter_ = function(node, fid, objectStack) {
 
 
 /**
+ * @param {string|undefined} featurePrefix The prefix of the feature.
+ * @param {string} featureType The type of the feature.
+ * @returns {string} The value of the typeName property.
+ * @private
+ */
+ol.format.WFS.getTypeName_ = function(featurePrefix, featureType) {
+  featurePrefix = featurePrefix ? featurePrefix :
+    ol.format.WFS.FEATURE_PREFIX;
+  var prefix = featurePrefix + ':';
+  // The featureType already contains the prefix.
+  if (featureType.indexOf(prefix) === 0) {
+    return featureType;
+  } else {
+    return prefix + featureType;
+  }
+};
+
+
+/**
  * @param {Node} node Node.
  * @param {ol.Feature} feature Feature.
  * @param {Array.<*>} objectStack Node stack.
@@ -52215,10 +54298,9 @@ ol.format.WFS.writeDelete_ = function(node, feature, objectStack) {
   ol.asserts.assert(feature.getId() !== undefined, 26); // Features must have an id set
   var featureType = context['featureType'];
   var featurePrefix = context['featurePrefix'];
-  featurePrefix = featurePrefix ? featurePrefix :
-      ol.format.WFS.FEATURE_PREFIX;
   var featureNS = context['featureNS'];
-  node.setAttribute('typeName', featurePrefix + ':' + featureType);
+  var typeName = ol.format.WFS.getTypeName_(featurePrefix, featureType);
+  node.setAttribute('typeName', typeName);
   ol.xml.setAttributeNS(node, ol.format.WFS.XMLNS, 'xmlns:' + featurePrefix,
       featureNS);
   var fid = feature.getId();
@@ -52239,10 +54321,9 @@ ol.format.WFS.writeUpdate_ = function(node, feature, objectStack) {
   ol.asserts.assert(feature.getId() !== undefined, 27); // Features must have an id set
   var featureType = context['featureType'];
   var featurePrefix = context['featurePrefix'];
-  featurePrefix = featurePrefix ? featurePrefix :
-      ol.format.WFS.FEATURE_PREFIX;
   var featureNS = context['featureNS'];
-  node.setAttribute('typeName', featurePrefix + ':' + featureType);
+  var typeName = ol.format.WFS.getTypeName_(featurePrefix, featureType);
+  node.setAttribute('typeName', typeName);
   ol.xml.setAttributeNS(node, ol.format.WFS.XMLNS, 'xmlns:' + featurePrefix,
       featureNS);
   var fid = feature.getId();
@@ -52256,10 +54337,11 @@ ol.format.WFS.writeUpdate_ = function(node, feature, objectStack) {
       }
     }
     ol.xml.pushSerializeAndPop(/** @type {ol.XmlNodeStackItem} */ (
-        {node: node, 'srsName': context['srsName']}),
-        ol.format.WFS.TRANSACTION_SERIALIZERS_,
-        ol.xml.makeSimpleNodeFactory('Property'), values,
-        objectStack);
+      {'gmlVersion': context['gmlVersion'], node: node,
+        'hasZ': context['hasZ'], 'srsName': context['srsName']}),
+    ol.format.WFS.TRANSACTION_SERIALIZERS_,
+    ol.xml.makeSimpleNodeFactory('Property'), values,
+    objectStack);
     ol.format.WFS.writeOgcFidFilter_(node, fid, objectStack);
   }
 };
@@ -52273,14 +54355,21 @@ ol.format.WFS.writeUpdate_ = function(node, feature, objectStack) {
  */
 ol.format.WFS.writeProperty_ = function(node, pair, objectStack) {
   var name = ol.xml.createElementNS(ol.format.WFS.WFSNS, 'Name');
+  var context = objectStack[objectStack.length - 1];
+  var gmlVersion = context['gmlVersion'];
   node.appendChild(name);
   ol.format.XSD.writeStringTextNode(name, pair.name);
   if (pair.value !== undefined && pair.value !== null) {
     var value = ol.xml.createElementNS(ol.format.WFS.WFSNS, 'Value');
     node.appendChild(value);
     if (pair.value instanceof ol.geom.Geometry) {
-      ol.format.GML3.prototype.writeGeometryElement(value,
-          pair.value, objectStack);
+      if (gmlVersion === 2) {
+        ol.format.GML2.prototype.writeGeometryElement(value,
+            pair.value, objectStack);
+      } else {
+        ol.format.GML3.prototype.writeGeometryElement(value,
+            pair.value, objectStack);
+      }
     } else {
       ol.format.XSD.writeStringTextNode(value, pair.value);
     }
@@ -52335,8 +54424,14 @@ ol.format.WFS.writeQuery_ = function(node, featureType, objectStack) {
   var featureNS = context['featureNS'];
   var propertyNames = context['propertyNames'];
   var srsName = context['srsName'];
-  var prefix = featurePrefix ? featurePrefix + ':' : '';
-  node.setAttribute('typeName', prefix + featureType);
+  var typeName;
+  // If feature prefix is not defined, we must not use the default prefix.
+  if (featurePrefix) {
+    typeName = ol.format.WFS.getTypeName_(featurePrefix, featureType);
+  } else {
+    typeName = featureType;
+  }
+  node.setAttribute('typeName', typeName);
   if (srsName) {
     node.setAttribute('srsName', srsName);
   }
@@ -52422,6 +54517,32 @@ ol.format.WFS.writeWithinFilter_ = function(node, filter, objectStack) {
 
 /**
  * @param {Node} node Node.
+ * @param {ol.format.filter.During} filter Filter.
+ * @param {Array.<*>} objectStack Node stack.
+ * @private
+ */
+ol.format.WFS.writeDuringFilter_ = function(node, filter, objectStack) {
+
+  var valueReference = ol.xml.createElementNS(ol.format.WFS.FESNS, 'ValueReference');
+  ol.format.XSD.writeStringTextNode(valueReference, filter.propertyName);
+  node.appendChild(valueReference);
+
+  var timePeriod = ol.xml.createElementNS(ol.format.GMLBase.GMLNS, 'TimePeriod');
+
+  node.appendChild(timePeriod);
+
+  var begin = ol.xml.createElementNS(ol.format.GMLBase.GMLNS, 'begin');
+  timePeriod.appendChild(begin);
+  ol.format.WFS.writeTimeInstant_(begin, filter.begin);
+
+  var end = ol.xml.createElementNS(ol.format.GMLBase.GMLNS, 'end');
+  timePeriod.appendChild(end);
+  ol.format.WFS.writeTimeInstant_(end, filter.end);
+};
+
+
+/**
+ * @param {Node} node Node.
  * @param {ol.format.filter.LogicalNary} filter Filter.
  * @param {Array.<*>} objectStack Node stack.
  * @private
@@ -52429,12 +54550,14 @@ ol.format.WFS.writeWithinFilter_ = function(node, filter, objectStack) {
 ol.format.WFS.writeLogicalFilter_ = function(node, filter, objectStack) {
   /** @type {ol.XmlNodeStackItem} */
   var item = {node: node};
-  filter.conditions.forEach(function(condition) {
+  var conditions = filter.conditions;
+  for (var i = 0, ii = conditions.length; i < ii; ++i) {
+    var condition = conditions[i];
     ol.xml.pushSerializeAndPop(item,
         ol.format.WFS.GETFEATURE_SERIALIZERS_,
         ol.xml.makeSimpleNodeFactory(condition.getTagName()),
         [condition], objectStack);
-  });
+  }
 };
 
 
@@ -52552,6 +54675,21 @@ ol.format.WFS.writeOgcLiteral_ = function(node, value) {
 
 
 /**
+ * @param {Node} node Node.
+ * @param {string} time PropertyName value.
+ * @private
+ */
+ol.format.WFS.writeTimeInstant_ = function(node, time) {
+  var timeInstant = ol.xml.createElementNS(ol.format.GMLBase.GMLNS, 'TimeInstant');
+  node.appendChild(timeInstant);
+
+  var timePosition = ol.xml.createElementNS(ol.format.GMLBase.GMLNS, 'timePosition');
+  timeInstant.appendChild(timePosition);
+  ol.format.XSD.writeStringTextNode(timePosition, time);
+};
+
+
+/**
  * @type {Object.<string, Object.<string, ol.XmlSerializer>>}
  * @private
  */
@@ -52560,6 +54698,7 @@ ol.format.WFS.GETFEATURE_SERIALIZERS_ = {
     'Query': ol.xml.makeChildAppender(ol.format.WFS.writeQuery_)
   },
   'http://www.opengis.net/ogc': {
+    'During': ol.xml.makeChildAppender(ol.format.WFS.writeDuringFilter_),
     'And': ol.xml.makeChildAppender(ol.format.WFS.writeLogicalFilter_),
     'Or': ol.xml.makeChildAppender(ol.format.WFS.writeLogicalFilter_),
     'Not': ol.xml.makeChildAppender(ol.format.WFS.writeNotFilter_),
@@ -52576,6 +54715,20 @@ ol.format.WFS.GETFEATURE_SERIALIZERS_ = {
     'PropertyIsBetween': ol.xml.makeChildAppender(ol.format.WFS.writeIsBetweenFilter_),
     'PropertyIsLike': ol.xml.makeChildAppender(ol.format.WFS.writeIsLikeFilter_)
   }
+};
+
+
+/**
+ * Encode filter as WFS `Filter` and return the Node.
+ *
+ * @param {ol.format.filter.Filter} filter Filter.
+ * @return {Node} Result.
+ * @api
+ */
+ol.format.WFS.writeFilter = function(filter) {
+  var child = ol.xml.createElementNS(ol.format.WFS.OGCNS, 'Filter');
+  ol.format.WFS.writeFilterCondition_(child, filter, []);
+  return child;
 };
 
 
@@ -52674,8 +54827,11 @@ ol.format.WFS.prototype.writeTransaction = function(inserts, updates, deletes,
     options) {
   var objectStack = [];
   var node = ol.xml.createElementNS(ol.format.WFS.WFSNS, 'Transaction');
+  var version = options.version ?
+    options.version : ol.format.WFS.DEFAULT_VERSION;
+  var gmlVersion = version === '1.0.0' ? 2 : 3;
   node.setAttribute('service', 'WFS');
-  node.setAttribute('version', '1.1.0');
+  node.setAttribute('version', version);
   var baseObj;
   /** @type {ol.XmlNodeStackItem} */
   var obj;
@@ -52685,12 +54841,14 @@ ol.format.WFS.prototype.writeTransaction = function(inserts, updates, deletes,
       node.setAttribute('handle', options.handle);
     }
   }
+  var schemaLocation = ol.format.WFS.SCHEMA_LOCATIONS[version];
   ol.xml.setAttributeNS(node, 'http://www.w3.org/2001/XMLSchema-instance',
-      'xsi:schemaLocation', this.schemaLocation_);
+      'xsi:schemaLocation', schemaLocation);
+  var featurePrefix = options.featurePrefix ? options.featurePrefix : ol.format.WFS.FEATURE_PREFIX;
   if (inserts) {
     obj = {node: node, 'featureNS': options.featureNS,
-      'featureType': options.featureType, 'featurePrefix': options.featurePrefix,
-      'srsName': options.srsName};
+      'featureType': options.featureType, 'featurePrefix': featurePrefix,
+      'gmlVersion': gmlVersion, 'hasZ': options.hasZ, 'srsName': options.srsName};
     ol.obj.assign(obj, baseObj);
     ol.xml.pushSerializeAndPop(obj,
         ol.format.WFS.TRANSACTION_SERIALIZERS_,
@@ -52699,8 +54857,8 @@ ol.format.WFS.prototype.writeTransaction = function(inserts, updates, deletes,
   }
   if (updates) {
     obj = {node: node, 'featureNS': options.featureNS,
-      'featureType': options.featureType, 'featurePrefix': options.featurePrefix,
-      'srsName': options.srsName};
+      'featureType': options.featureType, 'featurePrefix': featurePrefix,
+      'gmlVersion': gmlVersion, 'hasZ': options.hasZ, 'srsName': options.srsName};
     ol.obj.assign(obj, baseObj);
     ol.xml.pushSerializeAndPop(obj,
         ol.format.WFS.TRANSACTION_SERIALIZERS_,
@@ -52709,16 +54867,16 @@ ol.format.WFS.prototype.writeTransaction = function(inserts, updates, deletes,
   }
   if (deletes) {
     ol.xml.pushSerializeAndPop({node: node, 'featureNS': options.featureNS,
-      'featureType': options.featureType, 'featurePrefix': options.featurePrefix,
-      'srsName': options.srsName},
+      'featureType': options.featureType, 'featurePrefix': featurePrefix,
+      'gmlVersion': gmlVersion, 'srsName': options.srsName},
     ol.format.WFS.TRANSACTION_SERIALIZERS_,
     ol.xml.makeSimpleNodeFactory('Delete'), deletes,
     objectStack);
   }
   if (options.nativeElements) {
     ol.xml.pushSerializeAndPop({node: node, 'featureNS': options.featureNS,
-      'featureType': options.featureType, 'featurePrefix': options.featurePrefix,
-      'srsName': options.srsName},
+      'featureType': options.featureType, 'featurePrefix': featurePrefix,
+      'gmlVersion': gmlVersion, 'srsName': options.srsName},
     ol.format.WFS.TRANSACTION_SERIALIZERS_,
     ol.xml.makeSimpleNodeFactory('Native'), options.nativeElements,
     objectStack);
@@ -52812,7 +54970,7 @@ ol.format.WKT = function(opt_options) {
    * @private
    */
   this.splitCollection_ = options.splitCollection !== undefined ?
-      options.splitCollection : false;
+    options.splitCollection : false;
 
 };
 ol.inherits(ol.format.WKT, ol.format.TextFeature);
@@ -53104,7 +55262,7 @@ ol.format.WKT.prototype.readGeometryFromText = function(text, opt_options) {
   var geometry = this.parse_(text);
   if (geometry) {
     return /** @type {ol.geom.Geometry} */ (
-        ol.format.Feature.transformWithOptions(geometry, false, opt_options));
+      ol.format.Feature.transformWithOptions(geometry, false, opt_options));
   } else {
     return null;
   }
@@ -53179,7 +55337,7 @@ ol.format.WKT.prototype.writeGeometry;
  */
 ol.format.WKT.prototype.writeGeometryText = function(geometry, opt_options) {
   return ol.format.WKT.encode_(/** @type {ol.geom.Geometry} */ (
-      ol.format.Feature.transformWithOptions(geometry, true, opt_options)));
+    ol.format.Feature.transformWithOptions(geometry, true, opt_options)));
 };
 
 
@@ -53309,7 +55467,7 @@ ol.format.WKT.Lexer.prototype.readNumber_ = function() {
     }
     c = this.nextChar_();
   } while (
-      this.isNumeric_(c, decimal) ||
+    this.isNumeric_(c, decimal) ||
       // if we haven't detected a scientific number before, 'e' or 'E'
       // hint that we should continue to read
       !scientificNotation && (c == 'e' || c == 'E') ||
@@ -53784,7 +55942,7 @@ ol.format.WMSCapabilities.prototype.readFromNode = function(node) {
  */
 ol.format.WMSCapabilities.readAttribution_ = function(node, objectStack) {
   return ol.xml.pushParseAndPop(
-        {}, ol.format.WMSCapabilities.ATTRIBUTION_PARSERS_, node, objectStack);
+      {}, ol.format.WMSCapabilities.ATTRIBUTION_PARSERS_, node, objectStack);
 };
 
 
@@ -53823,9 +55981,9 @@ ol.format.WMSCapabilities.readBoundingBox_ = function(node, objectStack) {
  */
 ol.format.WMSCapabilities.readEXGeographicBoundingBox_ = function(node, objectStack) {
   var geographicBoundingBox = ol.xml.pushParseAndPop(
-        {},
-        ol.format.WMSCapabilities.EX_GEOGRAPHIC_BOUNDING_BOX_PARSERS_,
-        node, objectStack);
+      {},
+      ol.format.WMSCapabilities.EX_GEOGRAPHIC_BOUNDING_BOX_PARSERS_,
+      node, objectStack);
   if (!geographicBoundingBox) {
     return undefined;
   }
@@ -53856,7 +56014,7 @@ ol.format.WMSCapabilities.readEXGeographicBoundingBox_ = function(node, objectSt
  */
 ol.format.WMSCapabilities.readCapability_ = function(node, objectStack) {
   return ol.xml.pushParseAndPop(
-        {}, ol.format.WMSCapabilities.CAPABILITY_PARSERS_, node, objectStack);
+      {}, ol.format.WMSCapabilities.CAPABILITY_PARSERS_, node, objectStack);
 };
 
 
@@ -53868,7 +56026,7 @@ ol.format.WMSCapabilities.readCapability_ = function(node, objectStack) {
  */
 ol.format.WMSCapabilities.readService_ = function(node, objectStack) {
   return ol.xml.pushParseAndPop(
-        {}, ol.format.WMSCapabilities.SERVICE_PARSERS_, node, objectStack);
+      {}, ol.format.WMSCapabilities.SERVICE_PARSERS_, node, objectStack);
 };
 
 
@@ -53880,8 +56038,8 @@ ol.format.WMSCapabilities.readService_ = function(node, objectStack) {
  */
 ol.format.WMSCapabilities.readContactInformation_ = function(node, objectStack) {
   return ol.xml.pushParseAndPop(
-        {}, ol.format.WMSCapabilities.CONTACT_INFORMATION_PARSERS_,
-        node, objectStack);
+      {}, ol.format.WMSCapabilities.CONTACT_INFORMATION_PARSERS_,
+      node, objectStack);
 };
 
 
@@ -53893,8 +56051,8 @@ ol.format.WMSCapabilities.readContactInformation_ = function(node, objectStack) 
  */
 ol.format.WMSCapabilities.readContactPersonPrimary_ = function(node, objectStack) {
   return ol.xml.pushParseAndPop(
-        {}, ol.format.WMSCapabilities.CONTACT_PERSON_PARSERS_,
-        node, objectStack);
+      {}, ol.format.WMSCapabilities.CONTACT_PERSON_PARSERS_,
+      node, objectStack);
 };
 
 
@@ -53906,8 +56064,8 @@ ol.format.WMSCapabilities.readContactPersonPrimary_ = function(node, objectStack
  */
 ol.format.WMSCapabilities.readContactAddress_ = function(node, objectStack) {
   return ol.xml.pushParseAndPop(
-        {}, ol.format.WMSCapabilities.CONTACT_ADDRESS_PARSERS_,
-        node, objectStack);
+      {}, ol.format.WMSCapabilities.CONTACT_ADDRESS_PARSERS_,
+      node, objectStack);
 };
 
 
@@ -53919,7 +56077,7 @@ ol.format.WMSCapabilities.readContactAddress_ = function(node, objectStack) {
  */
 ol.format.WMSCapabilities.readException_ = function(node, objectStack) {
   return ol.xml.pushParseAndPop(
-        [], ol.format.WMSCapabilities.EXCEPTION_PARSERS_, node, objectStack);
+      [], ol.format.WMSCapabilities.EXCEPTION_PARSERS_, node, objectStack);
 };
 
 
@@ -53931,7 +56089,7 @@ ol.format.WMSCapabilities.readException_ = function(node, objectStack) {
  */
 ol.format.WMSCapabilities.readCapabilityLayer_ = function(node, objectStack) {
   return ol.xml.pushParseAndPop(
-        {}, ol.format.WMSCapabilities.LAYER_PARSERS_, node, objectStack);
+      {}, ol.format.WMSCapabilities.LAYER_PARSERS_, node, objectStack);
 };
 
 
@@ -53946,7 +56104,7 @@ ol.format.WMSCapabilities.readLayer_ = function(node, objectStack) {
         (objectStack[objectStack.length - 1]);
 
   var layerObject = ol.xml.pushParseAndPop(
-        {}, ol.format.WMSCapabilities.LAYER_PARSERS_, node, objectStack);
+      {}, ol.format.WMSCapabilities.LAYER_PARSERS_, node, objectStack);
 
   if (!layerObject) {
     return undefined;
@@ -53959,7 +56117,7 @@ ol.format.WMSCapabilities.readLayer_ = function(node, objectStack) {
   layerObject['queryable'] = queryable !== undefined ? queryable : false;
 
   var cascaded = ol.format.XSD.readNonNegativeIntegerString(
-        node.getAttribute('cascaded'));
+      node.getAttribute('cascaded'));
   if (cascaded === undefined) {
     cascaded = parentLayerObject['cascaded'];
   }
@@ -53992,7 +56150,7 @@ ol.format.WMSCapabilities.readLayer_ = function(node, objectStack) {
   }
   layerObject['fixedHeight'] = fixedHeight;
 
-    // See 7.2.4.8
+  // See 7.2.4.8
   var addKeys = ['Style', 'CRS', 'AuthorityURL'];
   addKeys.forEach(function(key) {
     if (key in parentLayerObject) {
@@ -54027,9 +56185,9 @@ ol.format.WMSCapabilities.readDimension_ = function(node, objectStack) {
     'unitSymbol': node.getAttribute('unitSymbol'),
     'default': node.getAttribute('default'),
     'multipleValues': ol.format.XSD.readBooleanString(
-          node.getAttribute('multipleValues')),
+        node.getAttribute('multipleValues')),
     'nearestValue': ol.format.XSD.readBooleanString(
-          node.getAttribute('nearestValue')),
+        node.getAttribute('nearestValue')),
     'current': ol.format.XSD.readBooleanString(node.getAttribute('current')),
     'values': ol.format.XSD.readString(node)
   };
@@ -54045,8 +56203,8 @@ ol.format.WMSCapabilities.readDimension_ = function(node, objectStack) {
  */
 ol.format.WMSCapabilities.readFormatOnlineresource_ = function(node, objectStack) {
   return ol.xml.pushParseAndPop(
-        {}, ol.format.WMSCapabilities.FORMAT_ONLINERESOURCE_PARSERS_,
-        node, objectStack);
+      {}, ol.format.WMSCapabilities.FORMAT_ONLINERESOURCE_PARSERS_,
+      node, objectStack);
 };
 
 
@@ -54058,7 +56216,7 @@ ol.format.WMSCapabilities.readFormatOnlineresource_ = function(node, objectStack
  */
 ol.format.WMSCapabilities.readRequest_ = function(node, objectStack) {
   return ol.xml.pushParseAndPop(
-        {}, ol.format.WMSCapabilities.REQUEST_PARSERS_, node, objectStack);
+      {}, ol.format.WMSCapabilities.REQUEST_PARSERS_, node, objectStack);
 };
 
 
@@ -54070,7 +56228,7 @@ ol.format.WMSCapabilities.readRequest_ = function(node, objectStack) {
  */
 ol.format.WMSCapabilities.readDCPType_ = function(node, objectStack) {
   return ol.xml.pushParseAndPop(
-        {}, ol.format.WMSCapabilities.DCPTYPE_PARSERS_, node, objectStack);
+      {}, ol.format.WMSCapabilities.DCPTYPE_PARSERS_, node, objectStack);
 };
 
 
@@ -54082,7 +56240,7 @@ ol.format.WMSCapabilities.readDCPType_ = function(node, objectStack) {
  */
 ol.format.WMSCapabilities.readHTTP_ = function(node, objectStack) {
   return ol.xml.pushParseAndPop(
-        {}, ol.format.WMSCapabilities.HTTP_PARSERS_, node, objectStack);
+      {}, ol.format.WMSCapabilities.HTTP_PARSERS_, node, objectStack);
 };
 
 
@@ -54094,7 +56252,7 @@ ol.format.WMSCapabilities.readHTTP_ = function(node, objectStack) {
  */
 ol.format.WMSCapabilities.readOperationType_ = function(node, objectStack) {
   return ol.xml.pushParseAndPop(
-        {}, ol.format.WMSCapabilities.OPERATIONTYPE_PARSERS_, node, objectStack);
+      {}, ol.format.WMSCapabilities.OPERATIONTYPE_PARSERS_, node, objectStack);
 };
 
 
@@ -54161,7 +56319,7 @@ ol.format.WMSCapabilities.readMetadataURL_ = function(node, objectStack) {
  */
 ol.format.WMSCapabilities.readStyle_ = function(node, objectStack) {
   return ol.xml.pushParseAndPop(
-        {}, ol.format.WMSCapabilities.STYLE_PARSERS_, node, objectStack);
+      {}, ol.format.WMSCapabilities.STYLE_PARSERS_, node, objectStack);
 };
 
 
@@ -54173,7 +56331,7 @@ ol.format.WMSCapabilities.readStyle_ = function(node, objectStack) {
  */
 ol.format.WMSCapabilities.readKeywordList_ = function(node, objectStack) {
   return ol.xml.pushParseAndPop(
-        [], ol.format.WMSCapabilities.KEYWORDLIST_PARSERS_, node, objectStack);
+      [], ol.format.WMSCapabilities.KEYWORDLIST_PARSERS_, node, objectStack);
 };
 
 
@@ -54716,7 +56874,7 @@ ol.format.WMTSCapabilities.prototype.readFromNode = function(node) {
   }
   WMTSCapabilityObject['version'] = version;
   WMTSCapabilityObject = ol.xml.pushParseAndPop(WMTSCapabilityObject,
-        ol.format.WMTSCapabilities.PARSERS_, node, []);
+      ol.format.WMTSCapabilities.PARSERS_, node, []);
   return WMTSCapabilityObject ? WMTSCapabilityObject : null;
 };
 
@@ -54729,7 +56887,7 @@ ol.format.WMTSCapabilities.prototype.readFromNode = function(node) {
  */
 ol.format.WMTSCapabilities.readContents_ = function(node, objectStack) {
   return ol.xml.pushParseAndPop({},
-        ol.format.WMTSCapabilities.CONTENTS_PARSERS_, node, objectStack);
+      ol.format.WMTSCapabilities.CONTENTS_PARSERS_, node, objectStack);
 };
 
 
@@ -54741,7 +56899,7 @@ ol.format.WMTSCapabilities.readContents_ = function(node, objectStack) {
  */
 ol.format.WMTSCapabilities.readLayer_ = function(node, objectStack) {
   return ol.xml.pushParseAndPop({},
-        ol.format.WMTSCapabilities.LAYER_PARSERS_, node, objectStack);
+      ol.format.WMTSCapabilities.LAYER_PARSERS_, node, objectStack);
 };
 
 
@@ -55150,15 +57308,16 @@ ol.GeolocationProperty = {
 goog.provide('ol.Geolocation');
 
 goog.require('ol');
-goog.require('ol.Object');
 goog.require('ol.GeolocationProperty');
+goog.require('ol.Object');
+goog.require('ol.Sphere');
 goog.require('ol.events');
 goog.require('ol.events.EventType');
 goog.require('ol.geom.Polygon');
 goog.require('ol.has');
 goog.require('ol.math');
 goog.require('ol.proj');
-goog.require('ol.sphere.WGS84');
+goog.require('ol.proj.EPSG4326');
 
 
 /**
@@ -55208,6 +57367,12 @@ ol.Geolocation = function(opt_options) {
 
   /**
    * @private
+   * @type {ol.Sphere}
+   */
+  this.sphere_ = new ol.Sphere(ol.proj.EPSG4326.RADIUS);
+
+  /**
+   * @private
    * @type {number|undefined}
    */
   this.watchId_ = undefined;
@@ -55220,7 +57385,7 @@ ol.Geolocation = function(opt_options) {
       this.handleTrackingChanged_, this);
 
   if (options.projection !== undefined) {
-    this.setProjection(ol.proj.get(options.projection));
+    this.setProjection(options.projection);
   }
   if (options.trackingOptions !== undefined) {
     this.setTrackingOptions(options.trackingOptions);
@@ -55287,9 +57452,9 @@ ol.Geolocation.prototype.positionChange_ = function(position) {
       coords.altitude === null ? undefined : coords.altitude);
   this.set(ol.GeolocationProperty.ALTITUDE_ACCURACY,
       coords.altitudeAccuracy === null ?
-      undefined : coords.altitudeAccuracy);
+        undefined : coords.altitudeAccuracy);
   this.set(ol.GeolocationProperty.HEADING, coords.heading === null ?
-      undefined : ol.math.toRadians(coords.heading));
+    undefined : ol.math.toRadians(coords.heading));
   if (!this.position_) {
     this.position_ = [coords.longitude, coords.latitude];
   } else {
@@ -55301,7 +57466,7 @@ ol.Geolocation.prototype.positionChange_ = function(position) {
   this.set(ol.GeolocationProperty.SPEED,
       coords.speed === null ? undefined : coords.speed);
   var geometry = ol.geom.Polygon.circular(
-      ol.sphere.WGS84, this.position_, coords.accuracy);
+      this.sphere_, this.position_, coords.accuracy);
   geometry.applyTransform(this.transform_);
   this.set(ol.GeolocationProperty.ACCURACY_GEOMETRY, geometry);
   this.changed();
@@ -55333,19 +57498,19 @@ ol.Geolocation.prototype.positionError_ = function(error) {
  */
 ol.Geolocation.prototype.getAccuracy = function() {
   return /** @type {number|undefined} */ (
-      this.get(ol.GeolocationProperty.ACCURACY));
+    this.get(ol.GeolocationProperty.ACCURACY));
 };
 
 
 /**
  * Get a geometry of the position accuracy.
- * @return {?ol.geom.Geometry} A geometry of the position accuracy.
+ * @return {?ol.geom.Polygon} A geometry of the position accuracy.
  * @observable
  * @api
  */
 ol.Geolocation.prototype.getAccuracyGeometry = function() {
-  return /** @type {?ol.geom.Geometry} */ (
-      this.get(ol.GeolocationProperty.ACCURACY_GEOMETRY) || null);
+  return /** @type {?ol.geom.Polygon} */ (
+    this.get(ol.GeolocationProperty.ACCURACY_GEOMETRY) || null);
 };
 
 
@@ -55358,7 +57523,7 @@ ol.Geolocation.prototype.getAccuracyGeometry = function() {
  */
 ol.Geolocation.prototype.getAltitude = function() {
   return /** @type {number|undefined} */ (
-      this.get(ol.GeolocationProperty.ALTITUDE));
+    this.get(ol.GeolocationProperty.ALTITUDE));
 };
 
 
@@ -55371,7 +57536,7 @@ ol.Geolocation.prototype.getAltitude = function() {
  */
 ol.Geolocation.prototype.getAltitudeAccuracy = function() {
   return /** @type {number|undefined} */ (
-      this.get(ol.GeolocationProperty.ALTITUDE_ACCURACY));
+    this.get(ol.GeolocationProperty.ALTITUDE_ACCURACY));
 };
 
 
@@ -55383,7 +57548,7 @@ ol.Geolocation.prototype.getAltitudeAccuracy = function() {
  */
 ol.Geolocation.prototype.getHeading = function() {
   return /** @type {number|undefined} */ (
-      this.get(ol.GeolocationProperty.HEADING));
+    this.get(ol.GeolocationProperty.HEADING));
 };
 
 
@@ -55396,7 +57561,7 @@ ol.Geolocation.prototype.getHeading = function() {
  */
 ol.Geolocation.prototype.getPosition = function() {
   return /** @type {ol.Coordinate|undefined} */ (
-      this.get(ol.GeolocationProperty.POSITION));
+    this.get(ol.GeolocationProperty.POSITION));
 };
 
 
@@ -55409,7 +57574,7 @@ ol.Geolocation.prototype.getPosition = function() {
  */
 ol.Geolocation.prototype.getProjection = function() {
   return /** @type {ol.proj.Projection|undefined} */ (
-      this.get(ol.GeolocationProperty.PROJECTION));
+    this.get(ol.GeolocationProperty.PROJECTION));
 };
 
 
@@ -55422,7 +57587,7 @@ ol.Geolocation.prototype.getProjection = function() {
  */
 ol.Geolocation.prototype.getSpeed = function() {
   return /** @type {number|undefined} */ (
-      this.get(ol.GeolocationProperty.SPEED));
+    this.get(ol.GeolocationProperty.SPEED));
 };
 
 
@@ -55434,7 +57599,7 @@ ol.Geolocation.prototype.getSpeed = function() {
  */
 ol.Geolocation.prototype.getTracking = function() {
   return /** @type {boolean} */ (
-      this.get(ol.GeolocationProperty.TRACKING));
+    this.get(ol.GeolocationProperty.TRACKING));
 };
 
 
@@ -55449,19 +57614,19 @@ ol.Geolocation.prototype.getTracking = function() {
  */
 ol.Geolocation.prototype.getTrackingOptions = function() {
   return /** @type {GeolocationPositionOptions|undefined} */ (
-      this.get(ol.GeolocationProperty.TRACKING_OPTIONS));
+    this.get(ol.GeolocationProperty.TRACKING_OPTIONS));
 };
 
 
 /**
  * Set the projection to use for transforming the coordinates.
- * @param {ol.proj.Projection} projection The projection the position is
+ * @param {ol.ProjectionLike} projection The projection the position is
  *     reported in.
  * @observable
  * @api
  */
 ol.Geolocation.prototype.setProjection = function(projection) {
-  this.set(ol.GeolocationProperty.PROJECTION, projection);
+  this.set(ol.GeolocationProperty.PROJECTION, ol.proj.get(projection));
 };
 
 
@@ -55875,7 +58040,7 @@ ol.geom.flat.geodesic.greatCircleArc = function(
         var lat = Math.asin(sinLat1 * cosD + cosLat1 * sinD * Math.cos(theta));
         var lon = ol.math.toRadians(lon1) +
             Math.atan2(Math.sin(theta) * sinD * cosLat1,
-                       cosD - sinLat1 * Math.sin(lat));
+                cosD - sinLat1 * Math.sin(lat));
         return [ol.math.toDegrees(lon), ol.math.toDegrees(lat)];
       }, ol.proj.getTransform(geoProjection, projection), squaredTolerance);
 };
@@ -55928,14 +58093,18 @@ ol.geom.flat.geodesic.parallel = function(lat, lon1, lon2, projection, squaredTo
 
 goog.provide('ol.Graticule');
 
+goog.require('ol.coordinate');
 goog.require('ol.extent');
 goog.require('ol.geom.GeometryLayout');
 goog.require('ol.geom.LineString');
+goog.require('ol.geom.Point');
 goog.require('ol.geom.flat.geodesic');
 goog.require('ol.math');
 goog.require('ol.proj');
 goog.require('ol.render.EventType');
+goog.require('ol.style.Fill');
 goog.require('ol.style.Stroke');
+goog.require('ol.style.Text');
 
 
 /**
@@ -55947,115 +58116,200 @@ goog.require('ol.style.Stroke');
 ol.Graticule = function(opt_options) {
   var options = opt_options || {};
 
- /**
-  * @type {ol.Map}
-  * @private
-  */
+  /**
+   * @type {ol.Map}
+   * @private
+   */
   this.map_ = null;
 
- /**
-  * @type {ol.proj.Projection}
-  * @private
-  */
+  /**
+   * @type {ol.proj.Projection}
+   * @private
+   */
   this.projection_ = null;
 
- /**
-  * @type {number}
-  * @private
-  */
+  /**
+   * @type {number}
+   * @private
+   */
   this.maxLat_ = Infinity;
 
- /**
-  * @type {number}
-  * @private
-  */
+  /**
+   * @type {number}
+   * @private
+   */
   this.maxLon_ = Infinity;
 
- /**
-  * @type {number}
-  * @private
-  */
+  /**
+   * @type {number}
+   * @private
+   */
   this.minLat_ = -Infinity;
 
- /**
-  * @type {number}
-  * @private
-  */
+  /**
+   * @type {number}
+   * @private
+   */
   this.minLon_ = -Infinity;
 
- /**
-  * @type {number}
-  * @private
-  */
+  /**
+   * @type {number}
+   * @private
+   */
   this.maxLatP_ = Infinity;
 
- /**
-  * @type {number}
-  * @private
-  */
+  /**
+   * @type {number}
+   * @private
+   */
   this.maxLonP_ = Infinity;
 
- /**
-  * @type {number}
-  * @private
-  */
+  /**
+   * @type {number}
+   * @private
+   */
   this.minLatP_ = -Infinity;
 
- /**
-  * @type {number}
-  * @private
-  */
+  /**
+   * @type {number}
+   * @private
+   */
   this.minLonP_ = -Infinity;
 
- /**
-  * @type {number}
-  * @private
-  */
+  /**
+   * @type {number}
+   * @private
+   */
   this.targetSize_ = options.targetSize !== undefined ?
-     options.targetSize : 100;
+    options.targetSize : 100;
 
- /**
-  * @type {number}
-  * @private
-  */
+  /**
+   * @type {number}
+   * @private
+   */
   this.maxLines_ = options.maxLines !== undefined ? options.maxLines : 100;
 
- /**
-  * @type {Array.<ol.geom.LineString>}
-  * @private
-  */
+  /**
+   * @type {Array.<ol.geom.LineString>}
+   * @private
+   */
   this.meridians_ = [];
 
- /**
-  * @type {Array.<ol.geom.LineString>}
-  * @private
-  */
+  /**
+   * @type {Array.<ol.geom.LineString>}
+   * @private
+   */
   this.parallels_ = [];
 
- /**
-  * @type {ol.style.Stroke}
-  * @private
-  */
+  /**
+   * @type {ol.style.Stroke}
+   * @private
+   */
   this.strokeStyle_ = options.strokeStyle !== undefined ?
-     options.strokeStyle : ol.Graticule.DEFAULT_STROKE_STYLE_;
+    options.strokeStyle : ol.Graticule.DEFAULT_STROKE_STYLE_;
 
- /**
-  * @type {ol.TransformFunction|undefined}
-  * @private
-  */
+  /**
+   * @type {ol.TransformFunction|undefined}
+   * @private
+   */
   this.fromLonLatTransform_ = undefined;
 
- /**
-  * @type {ol.TransformFunction|undefined}
-  * @private
-  */
+  /**
+   * @type {ol.TransformFunction|undefined}
+   * @private
+   */
   this.toLonLatTransform_ = undefined;
 
- /**
-  * @type {ol.Coordinate}
-  * @private
-  */
+  /**
+   * @type {ol.Coordinate}
+   * @private
+   */
   this.projectionCenterLonLat_ = null;
+
+  /**
+   * @type {Array.<ol.GraticuleLabelDataType>}
+   * @private
+   */
+  this.meridiansLabels_ = null;
+
+  /**
+   * @type {Array.<ol.GraticuleLabelDataType>}
+   * @private
+   */
+  this.parallelsLabels_ = null;
+
+  if (options.showLabels == true) {
+    var degreesToString = ol.coordinate.degreesToStringHDMS;
+
+    /**
+     * @type {null|function(number):string}
+     * @private
+     */
+    this.lonLabelFormatter_ = options.lonLabelFormatter == undefined ?
+      degreesToString.bind(this, 'EW') : options.lonLabelFormatter;
+
+    /**
+     * @type {function(number):string}
+     * @private
+     */
+    this.latLabelFormatter_ = options.latLabelFormatter == undefined ?
+      degreesToString.bind(this, 'NS') : options.latLabelFormatter;
+
+    /**
+     * Longitude label position in fractions (0..1) of view extent. 0 means
+     * bottom, 1 means top.
+     * @type {number}
+     * @private
+     */
+    this.lonLabelPosition_ = options.lonLabelPosition == undefined ? 0 :
+      options.lonLabelPosition;
+
+    /**
+     * Latitude Label position in fractions (0..1) of view extent. 0 means left, 1
+     * means right.
+     * @type {number}
+     * @private
+     */
+    this.latLabelPosition_ = options.latLabelPosition == undefined ? 1 :
+      options.latLabelPosition;
+
+    /**
+     * @type {ol.style.Text}
+     * @private
+     */
+    this.lonLabelStyle_ = options.lonLabelStyle !== undefined ? options.lonLabelStyle :
+      new ol.style.Text({
+        font: '12px Calibri,sans-serif',
+        textBaseline: 'bottom',
+        fill: new ol.style.Fill({
+          color: 'rgba(0,0,0,1)'
+        }),
+        stroke: new ol.style.Stroke({
+          color: 'rgba(255,255,255,1)',
+          width: 3
+        })
+      });
+
+    /**
+     * @type {ol.style.Text}
+     * @private
+     */
+    this.latLabelStyle_ = options.latLabelStyle !== undefined ? options.latLabelStyle :
+      new ol.style.Text({
+        font: '12px Calibri,sans-serif',
+        textAlign: 'end',
+        fill: new ol.style.Fill({
+          color: 'rgba(0,0,0,1)'
+        }),
+        stroke: new ol.style.Stroke({
+          color: 'rgba(255,255,255,1)',
+          width: 3
+        })
+      });
+
+    this.meridiansLabels_ = [];
+    this.parallelsLabels_ = [];
+  }
 
   this.setMap(options.map !== undefined ? options.map : null);
 };
@@ -56094,9 +58348,37 @@ ol.Graticule.prototype.addMeridian_ = function(lon, minLat, maxLat, squaredToler
   var lineString = this.getMeridian_(lon, minLat, maxLat,
       squaredTolerance, index);
   if (ol.extent.intersects(lineString.getExtent(), extent)) {
+    if (this.meridiansLabels_) {
+      var textPoint = this.getMeridianPoint_(lineString, extent, index);
+      this.meridiansLabels_[index] = {
+        geom: textPoint,
+        text: this.lonLabelFormatter_(lon)
+      };
+    }
     this.meridians_[index++] = lineString;
   }
   return index;
+};
+
+/**
+ * @param {ol.geom.LineString} lineString Meridian
+ * @param {ol.Extent} extent Extent.
+ * @param {number} index Index.
+ * @return {ol.geom.Point} Meridian point.
+ * @private
+ */
+ol.Graticule.prototype.getMeridianPoint_ = function(lineString, extent, index) {
+  var flatCoordinates = lineString.getFlatCoordinates();
+  var clampedBottom = Math.max(extent[1], flatCoordinates[1]);
+  var clampedTop = Math.min(extent[3], flatCoordinates[flatCoordinates.length - 1]);
+  var lat = ol.math.clamp(
+      extent[1] + Math.abs(extent[1] - extent[3]) * this.lonLabelPosition_,
+      clampedBottom, clampedTop);
+  var coordinate = [flatCoordinates[0], lat];
+  var point = this.meridiansLabels_[index] !== undefined ?
+    this.meridiansLabels_[index].geom : new ol.geom.Point(null);
+  point.setCoordinates(coordinate);
+  return point;
 };
 
 
@@ -56114,9 +58396,38 @@ ol.Graticule.prototype.addParallel_ = function(lat, minLon, maxLon, squaredToler
   var lineString = this.getParallel_(lat, minLon, maxLon, squaredTolerance,
       index);
   if (ol.extent.intersects(lineString.getExtent(), extent)) {
+    if (this.parallelsLabels_) {
+      var textPoint = this.getParallelPoint_(lineString, extent, index);
+      this.parallelsLabels_[index] = {
+        geom: textPoint,
+        text: this.latLabelFormatter_(lat)
+      };
+    }
     this.parallels_[index++] = lineString;
   }
   return index;
+};
+
+
+/**
+ * @param {ol.geom.LineString} lineString Parallels.
+ * @param {ol.Extent} extent Extent.
+ * @param {number} index Index.
+ * @return {ol.geom.Point} Parallel point.
+ * @private
+ */
+ol.Graticule.prototype.getParallelPoint_ = function(lineString, extent, index) {
+  var flatCoordinates = lineString.getFlatCoordinates();
+  var clampedLeft = Math.max(extent[0], flatCoordinates[0]);
+  var clampedRight = Math.min(extent[2], flatCoordinates[flatCoordinates.length - 2]);
+  var lon = ol.math.clamp(
+      extent[0] + Math.abs(extent[0] - extent[2]) * this.latLabelPosition_,
+      clampedLeft, clampedRight);
+  var coordinate = [lon, flatCoordinates[1]];
+  var point = this.parallelsLabels_[index] !== undefined ?
+    this.parallelsLabels_[index].geom : new ol.geom.Point(null);
+  point.setCoordinates(coordinate);
+  return point;
 };
 
 
@@ -56132,6 +58443,12 @@ ol.Graticule.prototype.createGraticule_ = function(extent, center, resolution, s
   var interval = this.getInterval_(resolution);
   if (interval == -1) {
     this.meridians_.length = this.parallels_.length = 0;
+    if (this.meridiansLabels_) {
+      this.meridiansLabels_.length = 0;
+    }
+    if (this.parallelsLabels_) {
+      this.parallelsLabels_.length = 0;
+    }
     return;
   }
 
@@ -56177,6 +58494,9 @@ ol.Graticule.prototype.createGraticule_ = function(extent, center, resolution, s
   }
 
   this.meridians_.length = idx;
+  if (this.meridiansLabels_) {
+    this.meridiansLabels_.length = idx;
+  }
 
   // Create parallels
 
@@ -56200,6 +58520,9 @@ ol.Graticule.prototype.createGraticule_ = function(extent, center, resolution, s
   }
 
   this.parallels_.length = idx;
+  if (this.parallelsLabels_) {
+    this.parallelsLabels_.length = idx;
+  }
 
 };
 
@@ -56257,11 +58580,11 @@ ol.Graticule.prototype.getMap = function() {
  * @private
  */
 ol.Graticule.prototype.getMeridian_ = function(lon, minLat, maxLat,
-                                               squaredTolerance, index) {
+    squaredTolerance, index) {
   var flatCoordinates = ol.geom.flat.geodesic.meridian(lon,
-     minLat, maxLat, this.projection_, squaredTolerance);
+      minLat, maxLat, this.projection_, squaredTolerance);
   var lineString = this.meridians_[index] !== undefined ?
-     this.meridians_[index] : new ol.geom.LineString(null);
+    this.meridians_[index] : new ol.geom.LineString(null);
   lineString.setFlatCoordinates(ol.geom.GeometryLayout.XY, flatCoordinates);
   return lineString;
 };
@@ -56287,18 +58610,18 @@ ol.Graticule.prototype.getMeridians = function() {
  * @private
  */
 ol.Graticule.prototype.getParallel_ = function(lat, minLon, maxLon,
-                                               squaredTolerance, index) {
+    squaredTolerance, index) {
   var flatCoordinates = ol.geom.flat.geodesic.parallel(lat,
-     this.minLon_, this.maxLon_, this.projection_, squaredTolerance);
+      minLon, maxLon, this.projection_, squaredTolerance);
   var lineString = this.parallels_[index] !== undefined ?
-     this.parallels_[index] : new ol.geom.LineString(null);
+    this.parallels_[index] : new ol.geom.LineString(null);
   lineString.setFlatCoordinates(ol.geom.GeometryLayout.XY, flatCoordinates);
   return lineString;
 };
 
 
 /**
- * Get the list of parallels.  Pallels are lines of equal latitude.
+ * Get the list of parallels.  Parallels are lines of equal latitude.
  * @return {Array.<ol.geom.LineString>} The parallels.
  * @api
  */
@@ -56330,23 +58653,6 @@ ol.Graticule.prototype.handlePostCompose_ = function(e) {
     this.updateProjectionInfo_(projection);
   }
 
-  //Fix the extent if wrapped.
-  //(note: this is the same extent as vectorContext.extent_)
-  var offsetX = 0;
-  if (projection.canWrapX()) {
-    var projectionExtent = projection.getExtent();
-    var worldWidth = ol.extent.getWidth(projectionExtent);
-    var x = frameState.focus[0];
-    if (x < projectionExtent[0] || x > projectionExtent[2]) {
-      var worldsAway = Math.ceil((projectionExtent[0] - x) / worldWidth);
-      offsetX = worldWidth * worldsAway;
-      extent = [
-        extent[0] + offsetX, extent[1],
-        extent[2] + offsetX, extent[3]
-      ];
-    }
-  }
-
   this.createGraticule_(extent, center, resolution, squaredTolerance);
 
   // Draw the lines
@@ -56354,11 +58660,28 @@ ol.Graticule.prototype.handlePostCompose_ = function(e) {
   var i, l, line;
   for (i = 0, l = this.meridians_.length; i < l; ++i) {
     line = this.meridians_[i];
-    vectorContext.drawLineString(line, null);
+    vectorContext.drawGeometry(line);
   }
   for (i = 0, l = this.parallels_.length; i < l; ++i) {
     line = this.parallels_[i];
-    vectorContext.drawLineString(line, null);
+    vectorContext.drawGeometry(line);
+  }
+  var labelData;
+  if (this.meridiansLabels_) {
+    for (i = 0, l = this.meridiansLabels_.length; i < l; ++i) {
+      labelData = this.meridiansLabels_[i];
+      this.lonLabelStyle_.setText(labelData.text);
+      vectorContext.setTextStyle(this.lonLabelStyle_);
+      vectorContext.drawGeometry(labelData.geom);
+    }
+  }
+  if (this.parallelsLabels_) {
+    for (i = 0, l = this.parallelsLabels_.length; i < l; ++i) {
+      labelData = this.parallelsLabels_[i];
+      this.latLabelStyle_.setText(labelData.text);
+      vectorContext.setTextStyle(this.latLabelStyle_);
+      vectorContext.drawGeometry(labelData.geom);
+    }
   }
 };
 
@@ -56373,7 +58696,7 @@ ol.Graticule.prototype.updateProjectionInfo_ = function(projection) {
   var extent = projection.getExtent();
   var worldExtent = projection.getWorldExtent();
   var worldExtentP = ol.proj.transformExtent(worldExtent,
-     epsg4326Projection, projection);
+      epsg4326Projection, projection);
 
   var maxLat = worldExtent[3];
   var maxLon = worldExtent[2];
@@ -56397,13 +58720,13 @@ ol.Graticule.prototype.updateProjectionInfo_ = function(projection) {
 
 
   this.fromLonLatTransform_ = ol.proj.getTransform(
-     epsg4326Projection, projection);
+      epsg4326Projection, projection);
 
   this.toLonLatTransform_ = ol.proj.getTransform(
-     projection, epsg4326Projection);
+      projection, epsg4326Projection);
 
   this.projectionCenterLonLat_ = this.toLonLatTransform_(
-     ol.extent.getCenter(extent));
+      ol.extent.getCenter(extent));
 
   this.projection_ = projection;
 };
@@ -56736,7 +59059,7 @@ ol.ImageCanvas = function(extent, resolution, pixelRatio, attributions,
   this.loader_ = opt_loader !== undefined ? opt_loader : null;
 
   var state = opt_loader !== undefined ?
-      ol.ImageState.IDLE : ol.ImageState.LOADED;
+    ol.ImageState.IDLE : ol.ImageState.LOADED;
 
   ol.ImageBase.call(this, extent, resolution, pixelRatio, state, attributions);
 
@@ -56862,14 +59185,6 @@ ol.Tile.prototype.changed = function() {
 
 
 /**
- * Get the HTML image element for this tile (may be a Canvas, Image, or Video).
- * @abstract
- * @return {HTMLCanvasElement|HTMLImageElement|HTMLVideoElement} Image.
- */
-ol.Tile.prototype.getImage = function() {};
-
-
-/**
  * @return {string} Key.
  */
 ol.Tile.prototype.getKey = function() {
@@ -56955,6 +59270,13 @@ ol.Tile.prototype.getState = function() {
   return this.state;
 };
 
+/**
+ * @param {ol.TileState} state State.
+ */
+ol.Tile.prototype.setState = function(state) {
+  this.state = state;
+  this.changed();
+};
 
 /**
  * Load the image or retry if loading previously failed.
@@ -56970,6 +59292,7 @@ goog.provide('ol.ImageTile');
 goog.require('ol');
 goog.require('ol.Tile');
 goog.require('ol.TileState');
+goog.require('ol.dom');
 goog.require('ol.events');
 goog.require('ol.events.EventType');
 
@@ -56997,7 +59320,7 @@ ol.ImageTile = function(tileCoord, state, src, crossOrigin, tileLoadFunction) {
 
   /**
    * @private
-   * @type {Image}
+   * @type {Image|HTMLCanvasElement}
    */
   this.image_ = new Image();
   if (crossOrigin !== null) {
@@ -57026,6 +59349,7 @@ ol.inherits(ol.ImageTile, ol.Tile);
 ol.ImageTile.prototype.disposeInternal = function() {
   if (this.state == ol.TileState.LOADING) {
     this.unlistenImage_();
+    this.image_.src = ol.ImageTile.blankImage.toDataURL('image/png');
   }
   if (this.interimTile) {
     this.interimTile.dispose();
@@ -57037,8 +59361,8 @@ ol.ImageTile.prototype.disposeInternal = function() {
 
 
 /**
- * Get the image element for this tile.
- * @inheritDoc
+ * Get the HTML image element for this tile (may be a Canvas, Image, or Video).
+ * @return {HTMLCanvasElement|HTMLImageElement|HTMLVideoElement} Image.
  * @api
  */
 ol.ImageTile.prototype.getImage = function() {
@@ -57062,6 +59386,7 @@ ol.ImageTile.prototype.getKey = function() {
 ol.ImageTile.prototype.handleImageError_ = function() {
   this.state = ol.TileState.ERROR;
   this.unlistenImage_();
+  this.image_ = ol.ImageTile.blankImage;
   this.changed();
 };
 
@@ -57111,6 +59436,18 @@ ol.ImageTile.prototype.unlistenImage_ = function() {
   this.imageListenerKeys_ = null;
 };
 
+
+/**
+ * A blank image.
+ * @type {HTMLCanvasElement}
+ */
+ol.ImageTile.blankImage = (function() {
+  var ctx = ol.dom.createCanvasContext2D(1, 1);
+  ctx.fillStyle = 'rgba(0,0,0,0)';
+  ctx.fillRect(0, 0, 1, 1);
+  return ctx.canvas;
+})();
+
 // FIXME should handle all geo-referenced data, not just vector data
 
 goog.provide('ol.interaction.DragAndDrop');
@@ -57147,20 +59484,26 @@ ol.interaction.DragAndDrop = function(opt_options) {
    * @type {Array.<function(new: ol.format.Feature)>}
    */
   this.formatConstructors_ = options.formatConstructors ?
-      options.formatConstructors : [];
+    options.formatConstructors : [];
 
   /**
    * @private
    * @type {ol.proj.Projection}
    */
   this.projection_ = options.projection ?
-      ol.proj.get(options.projection) : null;
+    ol.proj.get(options.projection) : null;
 
   /**
    * @private
    * @type {Array.<ol.EventsKey>}
    */
   this.dropListenKeys_ = null;
+
+  /**
+   * @private
+   * @type {ol.source.Vector}
+   */
+  this.source_ = options.source || null;
 
   /**
    * @private
@@ -57235,6 +59578,10 @@ ol.interaction.DragAndDrop.prototype.handleResult_ = function(file, event) {
       break;
     }
   }
+  if (this.source_) {
+    this.source_.clear();
+    this.source_.addFeatures(features);
+  }
   this.dispatchEvent(
       new ol.interaction.DragAndDrop.Event(
           ol.interaction.DragAndDrop.EventType_.ADD_FEATURES, file,
@@ -57254,14 +59601,10 @@ ol.interaction.DragAndDrop.handleEvent = ol.functions.TRUE;
 
 
 /**
- * @inheritDoc
+ * @private
  */
-ol.interaction.DragAndDrop.prototype.setMap = function(map) {
-  if (this.dropListenKeys_) {
-    this.dropListenKeys_.forEach(ol.events.unlistenByKey);
-    this.dropListenKeys_ = null;
-  }
-  ol.interaction.Interaction.prototype.setMap.call(this, map);
+ol.interaction.DragAndDrop.prototype.registerListeners_ = function() {
+  var map = this.getMap();
   if (map) {
     var dropArea = this.target ? this.target : map.getViewport();
     this.dropListenKeys_ = [
@@ -57279,6 +59622,31 @@ ol.interaction.DragAndDrop.prototype.setMap = function(map) {
 
 
 /**
+ * @inheritDoc
+ */
+ol.interaction.DragAndDrop.prototype.setActive = function(active) {
+  ol.interaction.Interaction.prototype.setActive.call(this, active);
+  if (active) {
+    this.registerListeners_();
+  } else {
+    this.unregisterListeners_();
+  }
+};
+
+
+/**
+ * @inheritDoc
+ */
+ol.interaction.DragAndDrop.prototype.setMap = function(map) {
+  this.unregisterListeners_();
+  ol.interaction.Interaction.prototype.setMap.call(this, map);
+  if (this.getActive()) {
+    this.registerListeners_();
+  }
+};
+
+
+/**
  * @param {ol.format.Feature} format Format.
  * @param {string} text Text.
  * @param {olx.format.ReadOptions} options Read options.
@@ -57290,6 +59658,17 @@ ol.interaction.DragAndDrop.prototype.tryReadFeatures_ = function(format, text, o
     return format.readFeatures(text, options);
   } catch (e) {
     return null;
+  }
+};
+
+
+/**
+ * @private
+ */
+ol.interaction.DragAndDrop.prototype.unregisterListeners_ = function() {
+  if (this.dropListenKeys_) {
+    this.dropListenKeys_.forEach(ol.events.unlistenByKey);
+    this.dropListenKeys_ = null;
   }
 };
 
@@ -57352,6 +59731,7 @@ ol.inherits(ol.interaction.DragAndDrop.Event, ol.events.Event);
 goog.provide('ol.interaction.DragRotateAndZoom');
 
 goog.require('ol');
+goog.require('ol.RotationConstraint');
 goog.require('ol.ViewHint');
 goog.require('ol.events.condition');
 goog.require('ol.interaction.Interaction');
@@ -57388,7 +59768,7 @@ ol.interaction.DragRotateAndZoom = function(opt_options) {
    * @type {ol.EventsConditionType}
    */
   this.condition_ = options.condition ?
-      options.condition : ol.events.condition.shiftKeyOnly;
+    options.condition : ol.events.condition.shiftKeyOnly;
 
   /**
    * @private
@@ -57436,7 +59816,7 @@ ol.interaction.DragRotateAndZoom.handleDragEvent_ = function(mapBrowserEvent) {
   var theta = Math.atan2(deltaY, deltaX);
   var magnitude = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
   var view = map.getView();
-  if (this.lastAngle_ !== undefined) {
+  if (view.getConstraints().rotation !== ol.RotationConstraint.disable && this.lastAngle_ !== undefined) {
     var angleDelta = theta - this.lastAngle_;
     ol.interaction.Interaction.rotateWithoutConstraints(
         view, view.getRotation() - angleDelta);
@@ -57528,15 +59908,16 @@ ol.render.canvas.Instruction = {
   BEGIN_PATH: 1,
   CIRCLE: 2,
   CLOSE_PATH: 3,
-  DRAW_IMAGE: 4,
-  DRAW_TEXT: 5,
-  END_GEOMETRY: 6,
-  FILL: 7,
-  MOVE_TO_LINE_TO: 8,
-  SET_FILL_STYLE: 9,
-  SET_STROKE_STYLE: 10,
-  SET_TEXT_STYLE: 11,
-  STROKE: 12
+  CUSTOM: 4,
+  DRAW_IMAGE: 5,
+  DRAW_TEXT: 6,
+  END_GEOMETRY: 7,
+  FILL: 8,
+  MOVE_TO_LINE_TO: 9,
+  SET_FILL_STYLE: 10,
+  SET_STROKE_STYLE: 11,
+  SET_TEXT_STYLE: 12,
+  STROKE: 13
 };
 
 goog.provide('ol.render.canvas.Replay');
@@ -57545,6 +59926,8 @@ goog.require('ol');
 goog.require('ol.array');
 goog.require('ol.extent');
 goog.require('ol.extent.Relationship');
+goog.require('ol.geom.GeometryType');
+goog.require('ol.geom.flat.inflate');
 goog.require('ol.geom.flat.transform');
 goog.require('ol.has');
 goog.require('ol.obj');
@@ -57626,6 +60009,12 @@ ol.render.canvas.Replay = function(tolerance, maxExtent, resolution, overlaps) {
    * @type {Array.<number>}
    */
   this.coordinates = [];
+
+  /**
+   * @private
+   * @type {Object.<number,ol.Coordinate|Array.<ol.Coordinate>|Array.<Array.<ol.Coordinate>>>}
+   */
+  this.coordinateCache_ = {};
 
   /**
    * @private
@@ -57716,6 +60105,75 @@ ol.render.canvas.Replay.prototype.appendFlatCoordinates = function(flatCoordinat
 
 
 /**
+ * @param {Array.<number>} flatCoordinates Flat coordinates.
+ * @param {number} offset Offset.
+ * @param {Array.<number>} ends Ends.
+ * @param {number} stride Stride.
+ * @param {Array.<number>} replayEnds Replay ends.
+ * @return {number} Offset.
+ */
+ol.render.canvas.Replay.prototype.drawCustomCoordinates_ = function(flatCoordinates, offset, ends, stride, replayEnds) {
+  for (var i = 0, ii = ends.length; i < ii; ++i) {
+    var end = ends[i];
+    var replayEnd = this.appendFlatCoordinates(flatCoordinates, offset, end, stride, false, false);
+    replayEnds.push(replayEnd);
+    offset = end;
+  }
+  return offset;
+};
+
+
+/**
+ * @inheritDoc.
+ */
+ol.render.canvas.Replay.prototype.drawCustom = function(geometry, feature, renderer) {
+  this.beginGeometry(geometry, feature);
+  var type = geometry.getType();
+  var stride = geometry.getStride();
+  var replayBegin = this.coordinates.length;
+  var flatCoordinates, replayEnd, replayEnds, replayEndss;
+  var offset;
+  if (type == ol.geom.GeometryType.MULTI_POLYGON) {
+    geometry = /** @type {ol.geom.MultiPolygon} */ (geometry);
+    flatCoordinates = geometry.getOrientedFlatCoordinates();
+    replayEndss = [];
+    var endss = geometry.getEndss();
+    offset = 0;
+    for (var i = 0, ii = endss.length; i < ii; ++i) {
+      var myEnds = [];
+      offset = this.drawCustomCoordinates_(flatCoordinates, offset, endss[i], stride, myEnds);
+      replayEndss.push(myEnds);
+    }
+    this.instructions.push([ol.render.canvas.Instruction.CUSTOM,
+      replayBegin, replayEndss, geometry, renderer, ol.geom.flat.inflate.coordinatesss]);
+  } else if (type == ol.geom.GeometryType.POLYGON || type == ol.geom.GeometryType.MULTI_LINE_STRING) {
+    replayEnds = [];
+    flatCoordinates = (type == ol.geom.GeometryType.POLYGON) ?
+      /** @type {ol.geom.Polygon} */ (geometry).getOrientedFlatCoordinates() :
+      geometry.getFlatCoordinates();
+    offset = this.drawCustomCoordinates_(flatCoordinates, 0,
+        /** @type {ol.geom.Polygon|ol.geom.MultiLineString} */ (geometry).getEnds(),
+        stride, replayEnds);
+    this.instructions.push([ol.render.canvas.Instruction.CUSTOM,
+      replayBegin, replayEnds, geometry, renderer, ol.geom.flat.inflate.coordinatess]);
+  } else if (type == ol.geom.GeometryType.LINE_STRING || type == ol.geom.GeometryType.MULTI_POINT) {
+    flatCoordinates = geometry.getFlatCoordinates();
+    replayEnd = this.appendFlatCoordinates(
+        flatCoordinates, 0, flatCoordinates.length, stride, false, false);
+    this.instructions.push([ol.render.canvas.Instruction.CUSTOM,
+      replayBegin, replayEnd, geometry, renderer, ol.geom.flat.inflate.coordinates]);
+  } else if (type == ol.geom.GeometryType.POINT) {
+    flatCoordinates = geometry.getFlatCoordinates();
+    this.coordinates.push(flatCoordinates[0], flatCoordinates[1]);
+    replayEnd = this.coordinates.length;
+    this.instructions.push([ol.render.canvas.Instruction.CUSTOM,
+      replayBegin, replayEnd, geometry, renderer]);
+  }
+  this.endGeometry(geometry, feature);
+};
+
+
+/**
  * @protected
  * @param {ol.geom.Geometry|ol.render.Feature} geometry Geometry.
  * @param {ol.Feature|ol.render.Feature} feature Feature.
@@ -57790,6 +60248,15 @@ ol.render.canvas.Replay.prototype.replay_ = function(
   var prevX, prevY, roundX, roundY;
   var pendingFill = 0;
   var pendingStroke = 0;
+  var coordinateCache = this.coordinateCache_;
+
+  var state = /** @type {olx.render.State} */ ({
+    context: context,
+    pixelRatio: pixelRatio,
+    resolution: this.resolution,
+    rotation: viewRotation
+  });
+
   // When the batch size gets too big, performance decreases. 200 is a good
   // balance between batch size and number of fill/stroke instructions.
   var batchSize =
@@ -57797,7 +60264,7 @@ ol.render.canvas.Replay.prototype.replay_ = function(
   while (i < ii) {
     var instruction = instructions[i];
     var type = /** @type {ol.render.canvas.Instruction} */ (instruction[0]);
-    var feature, fill, stroke, text, x, y;
+    var /** @type {ol.Feature|ol.render.Feature} */ feature, fill, stroke, text, x, y;
     switch (type) {
       case ol.render.canvas.Instruction.BEGIN_GEOMETRY:
         feature = /** @type {ol.Feature|ol.render.Feature} */ (instruction[1]);
@@ -57842,6 +60309,28 @@ ol.render.canvas.Replay.prototype.replay_ = function(
         break;
       case ol.render.canvas.Instruction.CLOSE_PATH:
         context.closePath();
+        ++i;
+        break;
+      case ol.render.canvas.Instruction.CUSTOM:
+        d = /** @type {number} */ (instruction[1]);
+        dd = instruction[2];
+        var geometry = /** @type {ol.geom.SimpleGeometry} */ (instruction[3]);
+        var renderer = instruction[4];
+        var fn = instruction.length == 6 ? instruction[5] : undefined;
+        state.geometry = geometry;
+        state.feature = feature;
+        if (!(i in coordinateCache)) {
+          coordinateCache[i] = [];
+        }
+        var coords = coordinateCache[i];
+        if (fn) {
+          fn(pixelCoordinates, d, dd, 2, coords);
+        } else {
+          coords[0] = pixelCoordinates[d];
+          coords[1] = pixelCoordinates[d + 1];
+          coords.length = 2;
+        }
+        renderer(coords, state);
         ++i;
         break;
       case ol.render.canvas.Instruction.DRAW_IMAGE:
@@ -57955,8 +60444,7 @@ ol.render.canvas.Replay.prototype.replay_ = function(
         break;
       case ol.render.canvas.Instruction.END_GEOMETRY:
         if (featureCallback !== undefined) {
-          feature =
-              /** @type {ol.Feature|ol.render.Feature} */ (instruction[1]);
+          feature = /** @type {ol.Feature|ol.render.Feature} */ (instruction[1]);
           var result = featureCallback(feature);
           if (result) {
             return result;
@@ -58014,7 +60502,7 @@ ol.render.canvas.Replay.prototype.replay_ = function(
         break;
       case ol.render.canvas.Instruction.SET_STROKE_STYLE:
         var usePixelRatio = instruction[8] !== undefined ?
-            instruction[8] : true;
+          instruction[8] : true;
         var renderedPixelRatio = instruction[9];
 
         var lineWidth = /** @type {number} */ (instruction[2]);
@@ -58298,10 +60786,10 @@ ol.render.canvas.ImageReplay.prototype.drawPoint = function(pointGeometry, featu
   var stride = pointGeometry.getStride();
   var myBegin = this.coordinates.length;
   var myEnd = this.drawCoordinates_(
-        flatCoordinates, 0, flatCoordinates.length, stride);
+      flatCoordinates, 0, flatCoordinates.length, stride);
   this.instructions.push([
     ol.render.canvas.Instruction.DRAW_IMAGE, myBegin, myEnd, this.image_,
-      // Remaining arguments to DRAW_IMAGE are in alphabetical order
+    // Remaining arguments to DRAW_IMAGE are in alphabetical order
     this.anchorX_, this.anchorY_, this.height_, this.opacity_,
     this.originX_, this.originY_, this.rotateWithView_, this.rotation_,
     this.scale_, this.snapToPixel_, this.width_
@@ -58309,7 +60797,7 @@ ol.render.canvas.ImageReplay.prototype.drawPoint = function(pointGeometry, featu
   this.hitDetectionInstructions.push([
     ol.render.canvas.Instruction.DRAW_IMAGE, myBegin, myEnd,
     this.hitDetectionImage_,
-      // Remaining arguments to DRAW_IMAGE are in alphabetical order
+    // Remaining arguments to DRAW_IMAGE are in alphabetical order
     this.anchorX_, this.anchorY_, this.height_, this.opacity_,
     this.originX_, this.originY_, this.rotateWithView_, this.rotation_,
     this.scale_, this.snapToPixel_, this.width_
@@ -58330,10 +60818,10 @@ ol.render.canvas.ImageReplay.prototype.drawMultiPoint = function(multiPointGeome
   var stride = multiPointGeometry.getStride();
   var myBegin = this.coordinates.length;
   var myEnd = this.drawCoordinates_(
-        flatCoordinates, 0, flatCoordinates.length, stride);
+      flatCoordinates, 0, flatCoordinates.length, stride);
   this.instructions.push([
     ol.render.canvas.Instruction.DRAW_IMAGE, myBegin, myEnd, this.image_,
-      // Remaining arguments to DRAW_IMAGE are in alphabetical order
+    // Remaining arguments to DRAW_IMAGE are in alphabetical order
     this.anchorX_, this.anchorY_, this.height_, this.opacity_,
     this.originX_, this.originY_, this.rotateWithView_, this.rotation_,
     this.scale_, this.snapToPixel_, this.width_
@@ -58341,7 +60829,7 @@ ol.render.canvas.ImageReplay.prototype.drawMultiPoint = function(multiPointGeome
   this.hitDetectionInstructions.push([
     ol.render.canvas.Instruction.DRAW_IMAGE, myBegin, myEnd,
     this.hitDetectionImage_,
-      // Remaining arguments to DRAW_IMAGE are in alphabetical order
+    // Remaining arguments to DRAW_IMAGE are in alphabetical order
     this.anchorX_, this.anchorY_, this.height_, this.opacity_,
     this.originX_, this.originY_, this.rotateWithView_, this.rotation_,
     this.scale_, this.snapToPixel_, this.width_
@@ -58435,7 +60923,7 @@ ol.render.canvas.LineStringReplay = function(tolerance, maxExtent, resolution, o
    *         currentLineJoin: (string|undefined),
    *         currentLineWidth: (number|undefined),
    *         currentMiterLimit: (number|undefined),
-   *         lastStroke: number,
+   *         lastStroke: (number|undefined),
    *         strokeStyle: (ol.ColorLike|undefined),
    *         lineCap: (string|undefined),
    *         lineDash: Array.<number>,
@@ -58452,7 +60940,7 @@ ol.render.canvas.LineStringReplay = function(tolerance, maxExtent, resolution, o
     currentLineJoin: undefined,
     currentLineWidth: undefined,
     currentMiterLimit: undefined,
-    lastStroke: 0,
+    lastStroke: undefined,
     strokeStyle: undefined,
     lineCap: undefined,
     lineDash: null,
@@ -58520,10 +61008,11 @@ ol.render.canvas.LineStringReplay.prototype.setStrokeStyle_ = function() {
       state.currentLineJoin != lineJoin ||
       state.currentLineWidth != lineWidth ||
       state.currentMiterLimit != miterLimit) {
-    if (state.lastStroke != this.coordinates.length) {
+    if (state.lastStroke != undefined && state.lastStroke != this.coordinates.length) {
       this.instructions.push([ol.render.canvas.Instruction.STROKE]);
       state.lastStroke = this.coordinates.length;
     }
+    state.lastStroke = 0;
     this.instructions.push([
       ol.render.canvas.Instruction.SET_STROKE_STYLE,
       strokeStyle, lineWidth, lineCap, lineJoin, miterLimit, lineDash, lineDashOffset, true, 1
@@ -58606,7 +61095,7 @@ ol.render.canvas.LineStringReplay.prototype.drawMultiLineString = function(multi
  */
 ol.render.canvas.LineStringReplay.prototype.finish = function() {
   var state = this.state_;
-  if (state.lastStroke != this.coordinates.length) {
+  if (state.lastStroke != undefined && state.lastStroke != this.coordinates.length) {
     this.instructions.push([ol.render.canvas.Instruction.STROKE]);
   }
   this.reverseHitDetectionInstructions();
@@ -58620,25 +61109,25 @@ ol.render.canvas.LineStringReplay.prototype.finish = function() {
 ol.render.canvas.LineStringReplay.prototype.setFillStrokeStyle = function(fillStyle, strokeStyle) {
   var strokeStyleColor = strokeStyle.getColor();
   this.state_.strokeStyle = ol.colorlike.asColorLike(strokeStyleColor ?
-      strokeStyleColor : ol.render.canvas.defaultStrokeStyle);
+    strokeStyleColor : ol.render.canvas.defaultStrokeStyle);
   var strokeStyleLineCap = strokeStyle.getLineCap();
   this.state_.lineCap = strokeStyleLineCap !== undefined ?
-      strokeStyleLineCap : ol.render.canvas.defaultLineCap;
+    strokeStyleLineCap : ol.render.canvas.defaultLineCap;
   var strokeStyleLineDash = strokeStyle.getLineDash();
   this.state_.lineDash = strokeStyleLineDash ?
-      strokeStyleLineDash : ol.render.canvas.defaultLineDash;
+    strokeStyleLineDash : ol.render.canvas.defaultLineDash;
   var strokeStyleLineDashOffset = strokeStyle.getLineDashOffset();
   this.state_.lineDashOffset = strokeStyleLineDashOffset ?
-      strokeStyleLineDashOffset : ol.render.canvas.defaultLineDashOffset;
+    strokeStyleLineDashOffset : ol.render.canvas.defaultLineDashOffset;
   var strokeStyleLineJoin = strokeStyle.getLineJoin();
   this.state_.lineJoin = strokeStyleLineJoin !== undefined ?
-      strokeStyleLineJoin : ol.render.canvas.defaultLineJoin;
+    strokeStyleLineJoin : ol.render.canvas.defaultLineJoin;
   var strokeStyleWidth = strokeStyle.getWidth();
   this.state_.lineWidth = strokeStyleWidth !== undefined ?
-      strokeStyleWidth : ol.render.canvas.defaultLineWidth;
+    strokeStyleWidth : ol.render.canvas.defaultLineWidth;
   var strokeStyleMiterLimit = strokeStyle.getMiterLimit();
   this.state_.miterLimit = strokeStyleMiterLimit !== undefined ?
-      strokeStyleMiterLimit : ol.render.canvas.defaultMiterLimit;
+    strokeStyleMiterLimit : ol.render.canvas.defaultMiterLimit;
 
   if (this.state_.lineWidth > this.maxLineWidth) {
     this.maxLineWidth = this.state_.lineWidth;
@@ -58827,7 +61316,7 @@ ol.render.canvas.PolygonReplay.prototype.drawPolygon = function(polygonGeometry,
   this.hitDetectionInstructions.push([
     ol.render.canvas.Instruction.SET_FILL_STYLE,
     ol.color.asString(ol.render.canvas.defaultFillStyle)]
-                                    );
+  );
   if (state.strokeStyle !== undefined) {
     this.hitDetectionInstructions.push([
       ol.render.canvas.Instruction.SET_STROKE_STYLE,
@@ -58924,32 +61413,32 @@ ol.render.canvas.PolygonReplay.prototype.setFillStrokeStyle = function(fillStyle
   if (fillStyle) {
     var fillStyleColor = fillStyle.getColor();
     state.fillStyle = ol.colorlike.asColorLike(fillStyleColor ?
-        fillStyleColor : ol.render.canvas.defaultFillStyle);
+      fillStyleColor : ol.render.canvas.defaultFillStyle);
   } else {
     state.fillStyle = undefined;
   }
   if (strokeStyle) {
     var strokeStyleColor = strokeStyle.getColor();
     state.strokeStyle = ol.colorlike.asColorLike(strokeStyleColor ?
-        strokeStyleColor : ol.render.canvas.defaultStrokeStyle);
+      strokeStyleColor : ol.render.canvas.defaultStrokeStyle);
     var strokeStyleLineCap = strokeStyle.getLineCap();
     state.lineCap = strokeStyleLineCap !== undefined ?
-        strokeStyleLineCap : ol.render.canvas.defaultLineCap;
+      strokeStyleLineCap : ol.render.canvas.defaultLineCap;
     var strokeStyleLineDash = strokeStyle.getLineDash();
     state.lineDash = strokeStyleLineDash ?
-        strokeStyleLineDash.slice() : ol.render.canvas.defaultLineDash;
+      strokeStyleLineDash.slice() : ol.render.canvas.defaultLineDash;
     var strokeStyleLineDashOffset = strokeStyle.getLineDashOffset();
     state.lineDashOffset = strokeStyleLineDashOffset ?
-        strokeStyleLineDashOffset : ol.render.canvas.defaultLineDashOffset;
+      strokeStyleLineDashOffset : ol.render.canvas.defaultLineDashOffset;
     var strokeStyleLineJoin = strokeStyle.getLineJoin();
     state.lineJoin = strokeStyleLineJoin !== undefined ?
-        strokeStyleLineJoin : ol.render.canvas.defaultLineJoin;
+      strokeStyleLineJoin : ol.render.canvas.defaultLineJoin;
     var strokeStyleWidth = strokeStyle.getWidth();
     state.lineWidth = strokeStyleWidth !== undefined ?
-        strokeStyleWidth : ol.render.canvas.defaultLineWidth;
+      strokeStyleWidth : ol.render.canvas.defaultLineWidth;
     var strokeStyleMiterLimit = strokeStyle.getMiterLimit();
     state.miterLimit = strokeStyleMiterLimit !== undefined ?
-        strokeStyleMiterLimit : ol.render.canvas.defaultMiterLimit;
+      strokeStyleMiterLimit : ol.render.canvas.defaultMiterLimit;
 
     if (state.lineWidth > this.maxLineWidth) {
       this.maxLineWidth = state.lineWidth;
@@ -59255,7 +61744,7 @@ ol.render.canvas.TextReplay.prototype.setTextStyle = function(textStyle) {
     } else {
       var textFillStyleColor = textFillStyle.getColor();
       var fillStyle = ol.colorlike.asColorLike(textFillStyleColor ?
-          textFillStyleColor : ol.render.canvas.defaultFillStyle);
+        textFillStyleColor : ol.render.canvas.defaultFillStyle);
       if (!this.textFillState_) {
         this.textFillState_ = {
           fillStyle: fillStyle
@@ -59277,19 +61766,19 @@ ol.render.canvas.TextReplay.prototype.setTextStyle = function(textStyle) {
       var textStrokeStyleWidth = textStrokeStyle.getWidth();
       var textStrokeStyleMiterLimit = textStrokeStyle.getMiterLimit();
       var lineCap = textStrokeStyleLineCap !== undefined ?
-          textStrokeStyleLineCap : ol.render.canvas.defaultLineCap;
+        textStrokeStyleLineCap : ol.render.canvas.defaultLineCap;
       var lineDash = textStrokeStyleLineDash ?
-          textStrokeStyleLineDash.slice() : ol.render.canvas.defaultLineDash;
+        textStrokeStyleLineDash.slice() : ol.render.canvas.defaultLineDash;
       var lineDashOffset = textStrokeStyleLineDashOffset !== undefined ?
-          textStrokeStyleLineDashOffset : ol.render.canvas.defaultLineDashOffset;
+        textStrokeStyleLineDashOffset : ol.render.canvas.defaultLineDashOffset;
       var lineJoin = textStrokeStyleLineJoin !== undefined ?
-          textStrokeStyleLineJoin : ol.render.canvas.defaultLineJoin;
+        textStrokeStyleLineJoin : ol.render.canvas.defaultLineJoin;
       var lineWidth = textStrokeStyleWidth !== undefined ?
-          textStrokeStyleWidth : ol.render.canvas.defaultLineWidth;
+        textStrokeStyleWidth : ol.render.canvas.defaultLineWidth;
       var miterLimit = textStrokeStyleMiterLimit !== undefined ?
-          textStrokeStyleMiterLimit : ol.render.canvas.defaultMiterLimit;
+        textStrokeStyleMiterLimit : ol.render.canvas.defaultMiterLimit;
       var strokeStyle = ol.colorlike.asColorLike(textStrokeStyleColor ?
-          textStrokeStyleColor : ol.render.canvas.defaultStrokeStyle);
+        textStrokeStyleColor : ol.render.canvas.defaultStrokeStyle);
       if (!this.textStrokeState_) {
         this.textStrokeState_ = {
           lineCap: lineCap,
@@ -59321,11 +61810,11 @@ ol.render.canvas.TextReplay.prototype.setTextStyle = function(textStyle) {
     var textTextAlign = textStyle.getTextAlign();
     var textTextBaseline = textStyle.getTextBaseline();
     var font = textFont !== undefined ?
-        textFont : ol.render.canvas.defaultFont;
+      textFont : ol.render.canvas.defaultFont;
     var textAlign = textTextAlign !== undefined ?
-        textTextAlign : ol.render.canvas.defaultTextAlign;
+      textTextAlign : ol.render.canvas.defaultTextAlign;
     var textBaseline = textTextBaseline !== undefined ?
-        textTextBaseline : ol.render.canvas.defaultTextBaseline;
+      textTextBaseline : ol.render.canvas.defaultTextBaseline;
     if (!this.textState_) {
       this.textState_ = {
         font: font,
@@ -59356,6 +61845,7 @@ goog.require('ol.extent');
 goog.require('ol.geom.flat.transform');
 goog.require('ol.obj');
 goog.require('ol.render.ReplayGroup');
+goog.require('ol.render.canvas.Replay');
 goog.require('ol.render.canvas.ImageReplay');
 goog.require('ol.render.canvas.LineStringReplay');
 goog.require('ol.render.canvas.PolygonReplay');
@@ -59509,6 +61999,24 @@ ol.render.canvas.ReplayGroup.getCircleArray_ = function(radius) {
   ol.render.canvas.ReplayGroup.circleArrayCache_[radius] = arr;
   return arr;
 };
+
+
+/**
+ * @param {Array.<ol.render.ReplayType>} replays Replays.
+ * @return {boolean} Has replays of the provided types.
+ */
+ol.render.canvas.ReplayGroup.prototype.hasReplays = function(replays) {
+  for (var zIndex in this.replaysByZIndex_) {
+    var candidates = this.replaysByZIndex_[zIndex];
+    for (var i = 0, ii = replays.length; i < ii; ++i) {
+      if (replays[i] in candidates) {
+        return true;
+      }
+    }
+  }
+  return false;
+};
+
 
 /**
  * FIXME empty description for jsdoc
@@ -59736,6 +62244,7 @@ ol.render.canvas.ReplayGroup.prototype.replayHitDetection_ = function(
  */
 ol.render.canvas.ReplayGroup.BATCH_CONSTRUCTORS_ = {
   'Circle': ol.render.canvas.PolygonReplay,
+  'Default': ol.render.canvas.Replay,
   'Image': ol.render.canvas.ImageReplay,
   'LineString': ol.render.canvas.LineStringReplay,
   'Polygon': ol.render.canvas.PolygonReplay,
@@ -59810,20 +62319,20 @@ ol.renderer.Layer.prototype.hasFeatureAtCoordinate = ol.functions.FALSE;
  */
 ol.renderer.Layer.prototype.createLoadedTileFinder = function(source, projection, tiles) {
   return (
-      /**
-       * @param {number} zoom Zoom level.
-       * @param {ol.TileRange} tileRange Tile range.
-       * @return {boolean} The tile range is fully loaded.
-       */
-      function(zoom, tileRange) {
-        function callback(tile) {
-          if (!tiles[zoom]) {
-            tiles[zoom] = {};
-          }
-          tiles[zoom][tile.tileCoord.toString()] = tile;
+    /**
+     * @param {number} zoom Zoom level.
+     * @param {ol.TileRange} tileRange Tile range.
+     * @return {boolean} The tile range is fully loaded.
+     */
+    function(zoom, tileRange) {
+      function callback(tile) {
+        if (!tiles[zoom]) {
+          tiles[zoom] = {};
         }
-        return source.forEachLoadedTile(projection, zoom, tileRange, callback);
-      });
+        tiles[zoom][tile.tileCoord.toString()] = tile;
+      }
+      return source.forEachLoadedTile(projection, zoom, tileRange, callback);
+    });
 };
 
 
@@ -59896,12 +62405,14 @@ ol.renderer.Layer.prototype.scheduleExpireCache = function(frameState, tileSourc
      */
     var postRenderFunction = function(tileSource, map, frameState) {
       var tileSourceKey = ol.getUid(tileSource).toString();
-      tileSource.expireCache(frameState.viewState.projection,
-                             frameState.usedTiles[tileSourceKey]);
+      if (tileSourceKey in frameState.usedTiles) {
+        tileSource.expireCache(frameState.viewState.projection,
+            frameState.usedTiles[tileSourceKey]);
+      }
     }.bind(null, tileSource);
 
     frameState.postRenderFunctions.push(
-      /** @type {ol.PostRenderFunction} */ (postRenderFunction)
+        /** @type {ol.PostRenderFunction} */ (postRenderFunction)
     );
   }
 };
@@ -60110,7 +62621,7 @@ ol.renderer.canvas.Layer.prototype.dispatchComposeEvent_ = function(type, contex
     var rotation = frameState.viewState.rotation;
     ol.render.canvas.rotateAtOffset(context, -rotation, width / 2, height / 2);
     var transform = opt_transform !== undefined ?
-        opt_transform : this.getTransform(frameState, 0);
+      opt_transform : this.getTransform(frameState, 0);
     var render = new ol.render.canvas.Immediate(
         context, frameState.pixelRatio, frameState.extent, transform,
         frameState.viewState.rotation);
@@ -60220,6 +62731,7 @@ goog.provide('ol.renderer.vector');
 
 goog.require('ol');
 goog.require('ol.ImageState');
+goog.require('ol.geom.GeometryType');
 goog.require('ol.render.ReplayType');
 
 
@@ -60329,9 +62841,34 @@ ol.renderer.vector.renderFeature_ = function(
     return;
   }
   var simplifiedGeometry = geometry.getSimplifiedGeometry(squaredTolerance);
-  var geometryRenderer =
-      ol.renderer.vector.GEOMETRY_RENDERERS_[simplifiedGeometry.getType()];
-  geometryRenderer(replayGroup, simplifiedGeometry, style, feature);
+  var renderer = style.getRenderer();
+  if (renderer) {
+    ol.renderer.vector.renderGeometry_(replayGroup, simplifiedGeometry, style, feature);
+  } else {
+    var geometryRenderer =
+        ol.renderer.vector.GEOMETRY_RENDERERS_[simplifiedGeometry.getType()];
+    geometryRenderer(replayGroup, simplifiedGeometry, style, feature);
+  }
+};
+
+
+/**
+ * @param {ol.render.ReplayGroup} replayGroup Replay group.
+ * @param {ol.geom.Geometry} geometry Geometry.
+ * @param {ol.style.Style} style Style.
+ * @param {ol.Feature|ol.render.Feature} feature Feature.
+ * @private
+ */
+ol.renderer.vector.renderGeometry_ = function(replayGroup, geometry, style, feature) {
+  if (geometry.getType() == ol.geom.GeometryType.GEOMETRY_COLLECTION) {
+    var geometries = /** @type {ol.geom.GeometryCollection} */ (geometry).getGeometries();
+    for (var i = 0, ii = geometries.length; i < ii; ++i) {
+      ol.renderer.vector.renderGeometry_(replayGroup, geometries[i], style, feature);
+    }
+    return;
+  }
+  var replay = replayGroup.getReplay(style.getZIndex(), ol.render.ReplayType.DEFAULT);
+  replay.drawCustom(/** @type {ol.geom.SimpleGeometry} */ (geometry), feature, style.getRenderer());
 };
 
 
@@ -60613,7 +63150,7 @@ ol.renderer.canvas.VectorLayer.prototype.composeFrame = function(frameState, lay
   var extent = frameState.extent;
   var pixelRatio = frameState.pixelRatio;
   var skippedFeatureUids = layerState.managed ?
-      frameState.skippedFeatureUids : {};
+    frameState.skippedFeatureUids : {};
   var viewState = frameState.viewState;
   var projection = viewState.projection;
   var rotation = viewState.rotation;
@@ -60636,7 +63173,9 @@ ol.renderer.canvas.VectorLayer.prototype.composeFrame = function(frameState, lay
     var drawOffsetX = 0;
     var drawOffsetY = 0;
     var replayContext;
-    if (layer.hasListener(ol.render.EventType.RENDER)) {
+    var transparentLayer = layerState.opacity !== 1;
+    var hasRenderListeners = layer.hasListener(ol.render.EventType.RENDER);
+    if (transparentLayer || hasRenderListeners) {
       var drawWidth = context.canvas.width;
       var drawHeight = context.canvas.height;
       if (rotation) {
@@ -60652,11 +63191,15 @@ ol.renderer.canvas.VectorLayer.prototype.composeFrame = function(frameState, lay
     } else {
       replayContext = context;
     }
-    // for performance reasons, context.save / context.restore is not used
-    // to save and restore the transformation matrix and the opacity.
-    // see http://jsperf.com/context-save-restore-versus-variable
+
     var alpha = replayContext.globalAlpha;
-    replayContext.globalAlpha = layerState.opacity;
+    if (!transparentLayer) {
+      // for performance reasons, context.save / context.restore is not used
+      // to save and restore the transformation matrix and the opacity.
+      // see http://jsperf.com/context-save-restore-versus-variable
+      replayContext.globalAlpha = layerState.opacity;
+    }
+
     if (replayContext != context) {
       replayContext.translate(drawOffsetX, drawOffsetY);
     }
@@ -60698,11 +63241,23 @@ ol.renderer.canvas.VectorLayer.prototype.composeFrame = function(frameState, lay
         width / 2, height / 2);
 
     if (replayContext != context) {
-      this.dispatchRenderEvent(replayContext, frameState, transform);
-      context.drawImage(replayContext.canvas, -drawOffsetX, -drawOffsetY);
+      if (hasRenderListeners) {
+        this.dispatchRenderEvent(replayContext, frameState, transform);
+      }
+      if (transparentLayer) {
+        var mainContextAlpha = context.globalAlpha;
+        context.globalAlpha = layerState.opacity;
+        context.drawImage(replayContext.canvas, -drawOffsetX, -drawOffsetY);
+        context.globalAlpha = mainContextAlpha;
+      } else {
+        context.drawImage(replayContext.canvas, -drawOffsetX, -drawOffsetY);
+      }
       replayContext.translate(-drawOffsetX, -drawOffsetY);
     }
-    replayContext.globalAlpha = alpha;
+
+    if (!transparentLayer) {
+      replayContext.globalAlpha = alpha;
+    }
   }
 
   if (clipped) {
@@ -60816,10 +63371,9 @@ ol.renderer.canvas.VectorLayer.prototype.prepareFrame = function(frameState, lay
 
   this.dirty_ = false;
 
-  var replayGroup =
-      new ol.render.canvas.ReplayGroup(
-          ol.renderer.vector.getTolerance(resolution, pixelRatio), extent,
-          resolution, vectorSource.getOverlaps(), vectorLayer.getRenderBuffer());
+  var replayGroup = new ol.render.canvas.ReplayGroup(
+      ol.renderer.vector.getTolerance(resolution, pixelRatio), extent,
+      resolution, vectorSource.getOverlaps(), vectorLayer.getRenderBuffer());
   vectorSource.loadFeatures(extent, resolution, projection);
   /**
    * @param {ol.Feature} feature Feature.
@@ -60841,7 +63395,7 @@ ol.renderer.canvas.VectorLayer.prototype.prepareFrame = function(frameState, lay
           feature, resolution, pixelRatio, styles, replayGroup);
       this.dirty_ = this.dirty_ || dirty;
     }
-  };
+  }.bind(this);
   if (vectorLayerRenderOrder) {
     /** @type {Array.<ol.Feature>} */
     var features = [];
@@ -60853,7 +63407,9 @@ ol.renderer.canvas.VectorLayer.prototype.prepareFrame = function(frameState, lay
           features.push(feature);
         }, this);
     features.sort(vectorLayerRenderOrder);
-    features.forEach(renderFeature, this);
+    for (var i = 0, ii = features.length; i < ii; ++i) {
+      renderFeature(features[i]);
+    }
   } else {
     vectorSource.forEachFeatureInExtent(extent, renderFeature, this);
   }
@@ -60900,6 +63456,7 @@ ol.renderer.canvas.VectorLayer.prototype.renderFeature = function(feature, resol
 };
 
 // This file is automatically generated, do not edit
+/* eslint openlayers-internal/no-missing-requires: 0 */
 goog.provide('ol.renderer.webgl.defaultmapshader');
 
 goog.require('ol');
@@ -60938,8 +63495,8 @@ if (ol.ENABLE_WEBGL) {
    * @type {string}
    */
   ol.renderer.webgl.defaultmapshader.Fragment.SOURCE = ol.DEBUG_WEBGL ?
-      ol.renderer.webgl.defaultmapshader.Fragment.DEBUG_SOURCE :
-      ol.renderer.webgl.defaultmapshader.Fragment.OPTIMIZED_SOURCE;
+    ol.renderer.webgl.defaultmapshader.Fragment.DEBUG_SOURCE :
+    ol.renderer.webgl.defaultmapshader.Fragment.OPTIMIZED_SOURCE;
 
 
   ol.renderer.webgl.defaultmapshader.fragment = new ol.renderer.webgl.defaultmapshader.Fragment();
@@ -60975,8 +63532,8 @@ if (ol.ENABLE_WEBGL) {
    * @type {string}
    */
   ol.renderer.webgl.defaultmapshader.Vertex.SOURCE = ol.DEBUG_WEBGL ?
-      ol.renderer.webgl.defaultmapshader.Vertex.DEBUG_SOURCE :
-      ol.renderer.webgl.defaultmapshader.Vertex.OPTIMIZED_SOURCE;
+    ol.renderer.webgl.defaultmapshader.Vertex.DEBUG_SOURCE :
+    ol.renderer.webgl.defaultmapshader.Vertex.OPTIMIZED_SOURCE;
 
 
   ol.renderer.webgl.defaultmapshader.vertex = new ol.renderer.webgl.defaultmapshader.Vertex();
@@ -61144,7 +63701,7 @@ if (ol.ENABLE_WEBGL) {
       }.bind(null, gl, this.framebuffer, this.texture);
 
       frameState.postRenderFunctions.push(
-        /** @type {ol.PostRenderFunction} */ (postRenderFunction)
+          /** @type {ol.PostRenderFunction} */ (postRenderFunction)
       );
 
       var texture = ol.webgl.Context.createEmptyTexture(
@@ -61187,8 +63744,8 @@ if (ol.ENABLE_WEBGL) {
 
     var locations;
     if (!this.defaultLocations_) {
-      locations =
-          new ol.renderer.webgl.defaultmapshader.Locations(gl, program);
+      // eslint-disable-next-line openlayers-internal/no-missing-requires
+      locations = new ol.renderer.webgl.defaultmapshader.Locations(gl, program);
       this.defaultLocations_ = locations;
     } else {
       locations = this.defaultLocations_;
@@ -61648,7 +64205,7 @@ goog.require('ol.style.Style');
  */
 ol.layer.Vector = function(opt_options) {
   var options = opt_options ?
-     opt_options : /** @type {olx.layer.VectorOptions} */ ({});
+    opt_options : /** @type {olx.layer.VectorOptions} */ ({});
 
   var baseOptions = ol.obj.assign({}, options);
 
@@ -61658,42 +64215,42 @@ ol.layer.Vector = function(opt_options) {
   delete baseOptions.updateWhileInteracting;
   ol.layer.Layer.call(this, /** @type {olx.layer.LayerOptions} */ (baseOptions));
 
- /**
-  * @type {number}
-  * @private
-  */
+  /**
+   * @type {number}
+   * @private
+   */
   this.renderBuffer_ = options.renderBuffer !== undefined ?
-     options.renderBuffer : 100;
+    options.renderBuffer : 100;
 
- /**
-  * User provided style.
-  * @type {ol.style.Style|Array.<ol.style.Style>|ol.StyleFunction}
-  * @private
-  */
+  /**
+   * User provided style.
+   * @type {ol.style.Style|Array.<ol.style.Style>|ol.StyleFunction}
+   * @private
+   */
   this.style_ = null;
 
- /**
-  * Style function for use within the library.
-  * @type {ol.StyleFunction|undefined}
-  * @private
-  */
+  /**
+   * Style function for use within the library.
+   * @type {ol.StyleFunction|undefined}
+   * @private
+   */
   this.styleFunction_ = undefined;
 
   this.setStyle(options.style);
 
- /**
-  * @type {boolean}
-  * @private
-  */
+  /**
+   * @type {boolean}
+   * @private
+   */
   this.updateWhileAnimating_ = options.updateWhileAnimating !== undefined ?
-     options.updateWhileAnimating : false;
+    options.updateWhileAnimating : false;
 
- /**
-  * @type {boolean}
-  * @private
-  */
+  /**
+   * @type {boolean}
+   * @private
+   */
   this.updateWhileInteracting_ = options.updateWhileInteracting !== undefined ?
-     options.updateWhileInteracting : false;
+    options.updateWhileInteracting : false;
 };
 ol.inherits(ol.layer.Vector, ol.layer.Layer);
 
@@ -61726,8 +64283,8 @@ ol.layer.Vector.prototype.getRenderBuffer = function() {
  *     order.
  */
 ol.layer.Vector.prototype.getRenderOrder = function() {
-  return /** @type {function(ol.Feature, ol.Feature):number|null|undefined} */ (
-      this.get(ol.layer.Vector.Property_.RENDER_ORDER));
+  return /** @type {ol.RenderOrderFunction|null|undefined} */ (
+    this.get(ol.layer.Vector.Property_.RENDER_ORDER));
 };
 
 
@@ -61781,7 +64338,7 @@ ol.layer.Vector.prototype.getUpdateWhileInteracting = function() {
 
 
 /**
- * @param {function(ol.Feature, ol.Feature):number|null|undefined} renderOrder
+ * @param {ol.RenderOrderFunction|null|undefined} renderOrder
  *     Render order.
  */
 ol.layer.Vector.prototype.setRenderOrder = function(renderOrder) {
@@ -61803,7 +64360,7 @@ ol.layer.Vector.prototype.setRenderOrder = function(renderOrder) {
 ol.layer.Vector.prototype.setStyle = function(style) {
   this.style_ = style !== undefined ? style : ol.style.Style.defaultFunction;
   this.styleFunction_ = style === null ?
-      undefined : ol.style.Style.createFunction(this.style_);
+    undefined : ol.style.Style.createFunction(this.style_);
   this.changed();
 };
 
@@ -61852,27 +64409,27 @@ ol.loadingstrategy.bbox = function(extent, resolution) {
  */
 ol.loadingstrategy.tile = function(tileGrid) {
   return (
-      /**
+  /**
        * @param {ol.Extent} extent Extent.
        * @param {number} resolution Resolution.
        * @return {Array.<ol.Extent>} Extents.
        */
-      function(extent, resolution) {
-        var z = tileGrid.getZForResolution(resolution);
-        var tileRange = tileGrid.getTileRangeForExtentAndZ(extent, z);
-        /** @type {Array.<ol.Extent>} */
-        var extents = [];
-        /** @type {ol.TileCoord} */
-        var tileCoord = [z, 0, 0];
-        for (tileCoord[1] = tileRange.minX; tileCoord[1] <= tileRange.maxX;
-             ++tileCoord[1]) {
-          for (tileCoord[2] = tileRange.minY; tileCoord[2] <= tileRange.maxY;
-               ++tileCoord[2]) {
-            extents.push(tileGrid.getTileCoordExtent(tileCoord));
-          }
+    function(extent, resolution) {
+      var z = tileGrid.getZForResolution(resolution);
+      var tileRange = tileGrid.getTileRangeForExtentAndZ(extent, z);
+      /** @type {Array.<ol.Extent>} */
+      var extents = [];
+      /** @type {ol.TileCoord} */
+      var tileCoord = [z, 0, 0];
+      for (tileCoord[1] = tileRange.minX; tileCoord[1] <= tileRange.maxX;
+        ++tileCoord[1]) {
+        for (tileCoord[2] = tileRange.minY; tileCoord[2] <= tileRange.maxY;
+          ++tileCoord[2]) {
+          extents.push(tileGrid.getTileCoordExtent(tileCoord));
         }
-        return extents;
-      });
+      }
+      return extents;
+    });
 };
 
 goog.provide('ol.source.Source');
@@ -61925,7 +64482,7 @@ ol.source.Source = function(options) {
    * @type {ol.source.State}
    */
   this.state_ = options.state !== undefined ?
-      options.state : ol.source.State.READY;
+    options.state : ol.source.State.READY;
 
   /**
    * @private
@@ -62200,7 +64757,7 @@ ol.source.Vector = function(opt_options) {
    * @type {ol.LoadingStrategy}
    */
   this.strategy_ = options.strategy !== undefined ? options.strategy :
-      ol.loadingstrategy.all;
+    ol.loadingstrategy.all;
 
   var useSpatialIndex =
       options.useSpatialIndex !== undefined ? options.useSpatialIndex : true;
@@ -62273,7 +64830,9 @@ ol.inherits(ol.source.Vector, ol.source.Source);
 /**
  * Add a single feature to the source.  If you want to add a batch of features
  * at once, call {@link ol.source.Vector#addFeatures source.addFeatures()}
- * instead.
+ * instead. A feature will not be added to the source if feature with
+ * the same id is already there. The reason for this behavior is to avoid
+ * feature duplication when using bbox or tile loading strategies.
  * @param {ol.Feature} feature Feature to add.
  * @api
  */
@@ -62726,11 +65285,13 @@ ol.source.Vector.prototype.getClosestFeatureToCoordinate = function(coordinate, 
  *
  * This method is not available when the source is configured with
  * `useSpatialIndex` set to `false`.
- * @return {!ol.Extent} Extent.
+ * @param {ol.Extent=} opt_extent Destination extent. If provided, no new extent
+ *     will be created. Instead, that extent's coordinates will be overwritten.
+ * @return {ol.Extent} Extent.
  * @api
  */
-ol.source.Vector.prototype.getExtent = function() {
-  return this.featuresRtree_.getExtent();
+ol.source.Vector.prototype.getExtent = function(opt_extent) {
+  return this.featuresRtree_.getExtent(opt_extent);
 };
 
 
@@ -63007,6 +65568,12 @@ ol.interaction.Draw = function(options) {
   });
 
   /**
+   * @type {boolean}
+   * @private
+   */
+  this.shouldHandle_ = false;
+
+  /**
    * @type {ol.Pixel}
    * @private
    */
@@ -63061,8 +65628,8 @@ ol.interaction.Draw = function(options) {
    * @private
    */
   this.minPoints_ = options.minPoints ?
-      options.minPoints :
-      (this.mode_ === ol.interaction.Draw.Mode_.POLYGON ? 3 : 2);
+    options.minPoints :
+    (this.mode_ === ol.interaction.Draw.Mode_.POLYGON ? 3 : 2);
 
   /**
    * The number of points that can be drawn before a polygon ring or line string
@@ -63073,7 +65640,7 @@ ol.interaction.Draw = function(options) {
   this.maxPoints_ = options.maxPoints ? options.maxPoints : Infinity;
 
   /**
-   * A function to decide if a potential finish coordinate is permissable
+   * A function to decide if a potential finish coordinate is permissible
    * @private
    * @type {ol.EventsConditionType}
    */
@@ -63083,14 +65650,14 @@ ol.interaction.Draw = function(options) {
   if (!geometryFunction) {
     if (this.type_ === ol.geom.GeometryType.CIRCLE) {
       /**
-       * @param {ol.Coordinate|Array.<ol.Coordinate>|Array.<Array.<ol.Coordinate>>} coordinates
+       * @param {!Array.<ol.Coordinate>} coordinates
        *     The coordinates.
        * @param {ol.geom.SimpleGeometry=} opt_geometry Optional geometry.
        * @return {ol.geom.SimpleGeometry} A geometry.
        */
       geometryFunction = function(coordinates, opt_geometry) {
         var circle = opt_geometry ? /** @type {ol.geom.Circle} */ (opt_geometry) :
-            new ol.geom.Circle([NaN, NaN]);
+          new ol.geom.Circle([NaN, NaN]);
         var squaredLength = ol.coordinate.squaredDistance(
             coordinates[0], coordinates[1]);
         circle.setCenterAndRadius(coordinates[0], Math.sqrt(squaredLength));
@@ -63107,7 +65674,7 @@ ol.interaction.Draw = function(options) {
         Constructor = ol.geom.Polygon;
       }
       /**
-       * @param {ol.Coordinate|Array.<ol.Coordinate>|Array.<Array.<ol.Coordinate>>} coordinates
+       * @param {!Array.<ol.Coordinate>} coordinates
        *     The coordinates.
        * @param {ol.geom.SimpleGeometry=} opt_geometry Optional geometry.
        * @return {ol.geom.SimpleGeometry} A geometry.
@@ -63185,7 +65752,7 @@ ol.interaction.Draw = function(options) {
    * @private
    */
   this.squaredClickTolerance_ = options.clickTolerance ?
-      options.clickTolerance * options.clickTolerance : 36;
+    options.clickTolerance * options.clickTolerance : 36;
 
   /**
    * Draw overlay where our sketch features are drawn.
@@ -63198,7 +65765,7 @@ ol.interaction.Draw = function(options) {
       wrapX: options.wrapX ? options.wrapX : false
     }),
     style: options.style ? options.style :
-        ol.interaction.Draw.getDefaultStyleFunction()
+      ol.interaction.Draw.getDefaultStyleFunction()
   });
 
   /**
@@ -63213,7 +65780,7 @@ ol.interaction.Draw = function(options) {
    * @type {ol.EventsConditionType}
    */
   this.condition_ = options.condition ?
-      options.condition : ol.events.condition.noModifierKeys;
+    options.condition : ol.events.condition.noModifierKeys;
 
   /**
    * @private
@@ -63224,7 +65791,7 @@ ol.interaction.Draw = function(options) {
     this.freehandCondition_ = ol.events.condition.always;
   } else {
     this.freehandCondition_ = options.freehandCondition ?
-        options.freehandCondition : ol.events.condition.shiftKeyOnly;
+      options.freehandCondition : ol.events.condition.shiftKeyOnly;
   }
 
   ol.events.listen(this,
@@ -63287,6 +65854,8 @@ ol.interaction.Draw.handleEvent = function(event) {
  * @private
  */
 ol.interaction.Draw.handleDownEvent_ = function(event) {
+  this.shouldHandle_ = !this.freehand_;
+
   if (this.freehand_) {
     this.downPx_ = event.pixel;
     if (!this.finishCoordinate_) {
@@ -63309,18 +65878,13 @@ ol.interaction.Draw.handleDownEvent_ = function(event) {
  * @private
  */
 ol.interaction.Draw.handleUpEvent_ = function(event) {
-  var downPx = this.downPx_;
-  var clickPx = event.pixel;
-  var dx = downPx[0] - clickPx[0];
-  var dy = downPx[1] - clickPx[1];
-  var squaredDistance = dx * dx + dy * dy;
   var pass = true;
-  var shouldHandle = this.freehand_ ?
-      squaredDistance > this.squaredClickTolerance_ :
-      squaredDistance <= this.squaredClickTolerance_;
+
+  this.handlePointerMove_(event);
+
   var circleMode = this.mode_ === ol.interaction.Draw.Mode_.CIRCLE;
-  if (shouldHandle) {
-    this.handlePointerMove_(event);
+
+  if (this.shouldHandle_) {
     if (!this.finishCoordinate_) {
       this.startDrawing_(event);
       if (this.mode_ === ol.interaction.Draw.Mode_.POINT) {
@@ -63336,8 +65900,9 @@ ol.interaction.Draw.handleUpEvent_ = function(event) {
       this.addToDrawing_(event);
     }
     pass = false;
-  } else if (circleMode) {
+  } else if (this.freehand_) {
     this.finishCoordinate_ = null;
+    this.abortDrawing_();
   }
   return pass;
 };
@@ -63350,6 +65915,19 @@ ol.interaction.Draw.handleUpEvent_ = function(event) {
  * @private
  */
 ol.interaction.Draw.prototype.handlePointerMove_ = function(event) {
+  if (this.downPx_ &&
+      ((!this.freehand_ && this.shouldHandle_) ||
+      (this.freehand_ && !this.shouldHandle_))) {
+    var downPx = this.downPx_;
+    var clickPx = event.pixel;
+    var dx = downPx[0] - clickPx[0];
+    var dy = downPx[1] - clickPx[1];
+    var squaredDistance = dx * dx + dy * dy;
+    this.shouldHandle_ = this.freehand_ ?
+      squaredDistance > this.squaredClickTolerance_ :
+      squaredDistance <= this.squaredClickTolerance_;
+  }
+
   if (this.finishCoordinate_) {
     this.modifyDrawing_(event);
   } else {
@@ -63474,9 +66052,7 @@ ol.interaction.Draw.prototype.modifyDrawing_ = function(event) {
   }
   last[0] = coordinate[0];
   last[1] = coordinate[1];
-  this.geometryFunction_(
-      /** @type {!ol.Coordinate|!Array.<ol.Coordinate>|!Array.<Array.<ol.Coordinate>>} */ (this.sketchCoords_),
-      geometry);
+  this.geometryFunction_(/** @type {!Array.<ol.Coordinate>} */ (this.sketchCoords_), geometry);
   if (this.sketchPoint_) {
     var sketchPointGeom = /** @type {ol.geom.Point} */ (this.sketchPoint_.getGeometry());
     sketchPointGeom.setCoordinates(coordinate);
@@ -63548,12 +66124,18 @@ ol.interaction.Draw.prototype.addToDrawing_ = function(event) {
  * @api
  */
 ol.interaction.Draw.prototype.removeLastPoint = function() {
+  if (!this.sketchFeature_) {
+    return;
+  }
   var geometry = /** @type {ol.geom.SimpleGeometry} */ (this.sketchFeature_.getGeometry());
   var coordinates, sketchLineGeom;
   if (this.mode_ === ol.interaction.Draw.Mode_.LINE_STRING) {
     coordinates = this.sketchCoords_;
     coordinates.splice(-2, 1);
     this.geometryFunction_(coordinates, geometry);
+    if (coordinates.length >= 2) {
+      this.finishCoordinate_ = coordinates[coordinates.length - 2].slice();
+    }
   } else if (this.mode_ === ol.interaction.Draw.Mode_.POLYGON) {
     coordinates = this.sketchCoords_[0];
     coordinates.splice(-2, 1);
@@ -63708,23 +66290,23 @@ ol.interaction.Draw.prototype.updateState_ = function() {
  */
 ol.interaction.Draw.createRegularPolygon = function(opt_sides, opt_angle) {
   return (
-      /**
+  /**
        * @param {ol.Coordinate|Array.<ol.Coordinate>|Array.<Array.<ol.Coordinate>>} coordinates
        * @param {ol.geom.SimpleGeometry=} opt_geometry
        * @return {ol.geom.SimpleGeometry}
        */
-      function(coordinates, opt_geometry) {
-        var center = coordinates[0];
-        var end = coordinates[1];
-        var radius = Math.sqrt(
-            ol.coordinate.squaredDistance(center, end));
-        var geometry = opt_geometry ? /** @type {ol.geom.Polygon} */ (opt_geometry) :
-            ol.geom.Polygon.fromCircle(new ol.geom.Circle(center), opt_sides);
-        var angle = opt_angle ? opt_angle :
-            Math.atan((end[1] - center[1]) / (end[0] - center[0]));
-        ol.geom.Polygon.makeRegular(geometry, center, radius, angle);
-        return geometry;
-      }
+    function(coordinates, opt_geometry) {
+      var center = coordinates[0];
+      var end = coordinates[1];
+      var radius = Math.sqrt(
+          ol.coordinate.squaredDistance(center, end));
+      var geometry = opt_geometry ? /** @type {ol.geom.Polygon} */ (opt_geometry) :
+        ol.geom.Polygon.fromCircle(new ol.geom.Circle(center), opt_sides);
+      var angle = opt_angle ? opt_angle :
+        Math.atan((end[1] - center[1]) / (end[0] - center[0]));
+      ol.geom.Polygon.makeRegular(geometry, center, radius, angle);
+      return geometry;
+    }
   );
 };
 
@@ -63739,7 +66321,7 @@ ol.interaction.Draw.createRegularPolygon = function(opt_sides, opt_angle) {
 ol.interaction.Draw.createBox = function() {
   return (
     /**
-     * @param {ol.Coordinate|Array.<ol.Coordinate>|Array.<Array.<ol.Coordinate>>} coordinates
+     * @param {Array.<ol.Coordinate>} coordinates
      * @param {ol.geom.SimpleGeometry=} opt_geometry
      * @return {ol.geom.SimpleGeometry}
      */
@@ -63822,6 +66404,21 @@ ol.interaction.Draw.Event = function(type, feature) {
 };
 ol.inherits(ol.interaction.Draw.Event, ol.events.Event);
 
+goog.provide('ol.interaction.ExtentEventType');
+
+
+/**
+ * @enum {string}
+ */
+ol.interaction.ExtentEventType = {
+  /**
+   * Triggered after the extent is changed
+   * @event ol.interaction.Extent.Event#extentchanged
+   * @api
+   */
+  EXTENTCHANGED: 'extentchanged'
+};
+
 goog.provide('ol.interaction.Extent');
 
 goog.require('ol');
@@ -63834,6 +66431,7 @@ goog.require('ol.extent');
 goog.require('ol.geom.GeometryType');
 goog.require('ol.geom.Point');
 goog.require('ol.geom.Polygon');
+goog.require('ol.interaction.ExtentEventType');
 goog.require('ol.interaction.Pointer');
 goog.require('ol.layer.Vector');
 goog.require('ol.source.Vector');
@@ -63900,10 +66498,6 @@ ol.interaction.Extent = function(opt_options) {
     opt_options = {};
   }
 
-  if (opt_options.extent) {
-    this.setExtent(opt_options.extent);
-  }
-
   /* Inherit ol.interaction.Pointer */
   ol.interaction.Pointer.call(this, {
     handleDownEvent: ol.interaction.Extent.handleDownEvent_,
@@ -63941,6 +66535,10 @@ ol.interaction.Extent = function(opt_options) {
     updateWhileAnimating: true,
     updateWhileInteracting: true
   });
+
+  if (opt_options.extent) {
+    this.setExtent(opt_options.extent);
+  }
 };
 
 ol.inherits(ol.interaction.Extent, ol.interaction.Pointer);
@@ -64007,13 +66605,13 @@ ol.interaction.Extent.handleDownEvent_ = function(mapBrowserEvent) {
     //snap to edge
     } else if (x !== null) {
       this.pointerHandler_ = ol.interaction.Extent.getEdgeHandler_(
-        getOpposingPoint([x, extent[1]]),
-        getOpposingPoint([x, extent[3]])
+          getOpposingPoint([x, extent[1]]),
+          getOpposingPoint([x, extent[3]])
       );
     } else if (y !== null) {
       this.pointerHandler_ = ol.interaction.Extent.getEdgeHandler_(
-        getOpposingPoint([extent[0], y]),
-        getOpposingPoint([extent[2], y])
+          getOpposingPoint([extent[0], y]),
+          getOpposingPoint([extent[2], y])
       );
     }
   //no snap - new bbox
@@ -64161,7 +66759,7 @@ ol.interaction.Extent.prototype.snapToVertex_ = function(pixel, map) {
       this.snappedToVertex_ = dist <= this.pixelTolerance_;
       if (this.snappedToVertex_) {
         vertex = squaredDist1 > squaredDist2 ?
-            closestSegment[1] : closestSegment[0];
+          closestSegment[1] : closestSegment[0];
       }
       return vertex;
     }
@@ -64269,34 +66867,22 @@ ol.interaction.Extent.prototype.setExtent = function(extent) {
  * this type.
  *
  * @constructor
+ * @implements {oli.ExtentEvent}
  * @param {ol.Extent} extent the new extent
  * @extends {ol.events.Event}
  */
 ol.interaction.Extent.Event = function(extent) {
-  ol.events.Event.call(this, ol.interaction.Extent.EventType_.EXTENTCHANGED);
+  ol.events.Event.call(this, ol.interaction.ExtentEventType.EXTENTCHANGED);
 
   /**
    * The current extent.
    * @type {ol.Extent}
    * @api
    */
-  this.extent_ = extent;
+  this.extent = extent;
+
 };
 ol.inherits(ol.interaction.Extent.Event, ol.events.Event);
-
-
-/**
- * @enum {string}
- * @private
- */
-ol.interaction.Extent.EventType_ = {
-  /**
-   * Triggered after the extent is changed
-   * @event ol.interaction.Extent.Event
-   * @api
-   */
-  EXTENTCHANGED: 'extentchanged'
-};
 
 goog.provide('ol.interaction.ModifyEventType');
 
@@ -64322,6 +66908,7 @@ ol.interaction.ModifyEventType = {
 goog.provide('ol.interaction.Modify');
 
 goog.require('ol');
+goog.require('ol.Collection');
 goog.require('ol.CollectionEventType');
 goog.require('ol.Feature');
 goog.require('ol.MapBrowserEventType');
@@ -64340,13 +66927,22 @@ goog.require('ol.interaction.ModifyEventType');
 goog.require('ol.interaction.Pointer');
 goog.require('ol.layer.Vector');
 goog.require('ol.source.Vector');
+goog.require('ol.source.VectorEventType');
 goog.require('ol.structs.RBush');
 goog.require('ol.style.Style');
 
-
 /**
  * @classdesc
- * Interaction for modifying feature geometries.
+ * Interaction for modifying feature geometries.  To modify features that have
+ * been added to an existing source, construct the modify interaction with the
+ * `source` option.  If you want to modify features in a collection (for example,
+ * the collection used by a select interaction), construct the interaction with
+ * the `features` option.  The interaction must be constructed with either a
+ * `source` or `features` option.
+ *
+ * By default, the interaction will allow deletion of vertices when the `alt`
+ * key is pressed.  To configure the interaction with a different condition
+ * for deletion, use the `deleteCondition` option.
  *
  * @constructor
  * @extends {ol.interaction.Pointer}
@@ -64368,7 +66964,7 @@ ol.interaction.Modify = function(options) {
    * @type {ol.EventsConditionType}
    */
   this.condition_ = options.condition ?
-      options.condition : ol.events.condition.primaryAction;
+    options.condition : ol.events.condition.primaryAction;
 
 
   /**
@@ -64377,7 +66973,7 @@ ol.interaction.Modify = function(options) {
    * @return {boolean} Combined condition result.
    */
   this.defaultDeleteCondition_ = function(mapBrowserEvent) {
-    return ol.events.condition.noModifierKeys(mapBrowserEvent) &&
+    return ol.events.condition.altKeyOnly(mapBrowserEvent) &&
       ol.events.condition.singleClick(mapBrowserEvent);
   };
 
@@ -64386,7 +66982,14 @@ ol.interaction.Modify = function(options) {
    * @private
    */
   this.deleteCondition_ = options.deleteCondition ?
-      options.deleteCondition : this.defaultDeleteCondition_;
+    options.deleteCondition : this.defaultDeleteCondition_;
+
+  /**
+   * @type {ol.EventsConditionType}
+   * @private
+   */
+  this.insertVertexCondition_ = options.insertVertexCondition ?
+    options.insertVertexCondition : ol.events.condition.always;
 
   /**
    * Editing vertex.
@@ -64434,7 +67037,7 @@ ol.interaction.Modify = function(options) {
    * @private
    */
   this.pixelTolerance_ = options.pixelTolerance !== undefined ?
-      options.pixelTolerance : 10;
+    options.pixelTolerance : 10;
 
   /**
    * @type {boolean}
@@ -64467,7 +67070,7 @@ ol.interaction.Modify = function(options) {
       wrapX: !!options.wrapX
     }),
     style: options.style ? options.style :
-        ol.interaction.Modify.getDefaultStyleFunction(),
+      ol.interaction.Modify.getDefaultStyleFunction(),
     updateWhileAnimating: true,
     updateWhileInteracting: true
   });
@@ -64489,11 +67092,33 @@ ol.interaction.Modify = function(options) {
     'GeometryCollection': this.writeGeometryCollectionGeometry_
   };
 
+
+  /**
+   * @type {ol.source.Vector}
+   * @private
+   */
+  this.source_ = null;
+
+  var features;
+  if (options.source) {
+    this.source_ = options.source;
+    features = new ol.Collection(this.source_.getFeatures());
+    ol.events.listen(this.source_, ol.source.VectorEventType.ADDFEATURE,
+        this.handleSourceAdd_, this);
+    ol.events.listen(this.source_, ol.source.VectorEventType.REMOVEFEATURE,
+        this.handleSourceRemove_, this);
+  } else {
+    features = options.features;
+  }
+  if (!features) {
+    throw new Error('The modify interaction requires features or a source');
+  }
+
   /**
    * @type {ol.Collection.<ol.Feature>}
    * @private
    */
-  this.features_ = options.features;
+  this.features_ = features;
 
   this.features_.forEach(this.addFeature_, this);
   ol.events.listen(this.features_, ol.CollectionEventType.ADD,
@@ -64612,6 +67237,28 @@ ol.interaction.Modify.prototype.setActive = function(active) {
 ol.interaction.Modify.prototype.setMap = function(map) {
   this.overlay_.setMap(map);
   ol.interaction.Pointer.prototype.setMap.call(this, map);
+};
+
+
+/**
+ * @param {ol.source.Vector.Event} event Event.
+ * @private
+ */
+ol.interaction.Modify.prototype.handleSourceAdd_ = function(event) {
+  if (event.feature) {
+    this.features_.push(event.feature);
+  }
+};
+
+
+/**
+ * @param {ol.source.Vector.Event} event Event.
+ * @private
+ */
+ol.interaction.Modify.prototype.handleSourceRemove_ = function(event) {
+  if (event.feature) {
+    this.features_.remove(event.feature);
+  }
 };
 
 
@@ -64871,6 +67518,7 @@ ol.interaction.Modify.handleDownEvent_ = function(evt) {
     return false;
   }
   this.handlePointerAtPixel_(evt.pixel, evt.map);
+  var pixelCoordinate = evt.map.getCoordinateFromPixel(evt.pixel);
   this.dragSegments_.length = 0;
   this.modified_ = false;
   var vertexFeature = this.vertexFeature_;
@@ -64896,7 +67544,7 @@ ol.interaction.Modify.handleDownEvent_ = function(evt) {
       if (segmentDataMatch.geometry.getType() === ol.geom.GeometryType.CIRCLE &&
       segmentDataMatch.index === ol.interaction.Modify.MODIFY_SEGMENT_CIRCLE_CIRCUMFERENCE_INDEX) {
 
-        var closestVertex = ol.interaction.Modify.closestOnSegmentData_(vertex, segmentDataMatch);
+        var closestVertex = ol.interaction.Modify.closestOnSegmentData_(pixelCoordinate, segmentDataMatch);
         if (ol.coordinate.equals(closestVertex, vertex) && !componentSegments[uid][0]) {
           this.dragSegments_.push([segmentDataMatch, 0]);
           componentSegments[uid][0] = segmentDataMatch;
@@ -64920,7 +67568,7 @@ ol.interaction.Modify.handleDownEvent_ = function(evt) {
 
         this.dragSegments_.push([segmentDataMatch, 1]);
         componentSegments[uid][1] = segmentDataMatch;
-      } else if (ol.getUid(segment) in this.vertexSegments_ &&
+      } else if (this.insertVertexCondition_(evt) && ol.getUid(segment) in this.vertexSegments_ &&
           (!componentSegments[uid][0] && !componentSegments[uid][1])) {
         insertVertices.push([segmentDataMatch, vertex]);
       }
@@ -65138,7 +67786,7 @@ ol.interaction.Modify.prototype.handlePointerAtPixel_ = function(pixel, map) {
         this.snappedToVertex_ = dist <= this.pixelTolerance_;
         if (this.snappedToVertex_) {
           vertex = squaredDist1 > squaredDist2 ?
-              closestSegment[1] : closestSegment[0];
+            closestSegment[1] : closestSegment[0];
         }
         this.createOrUpdateVertexFeature_(vertex);
         var segment;
@@ -65408,6 +68056,7 @@ ol.interaction.Modify.prototype.removeVertex_ = function() {
         this.overlay_.getSource().removeFeature(this.vertexFeature_);
         this.vertexFeature_ = null;
       }
+      dragSegments.length = 0;
     }
 
   }
@@ -65539,28 +68188,28 @@ ol.interaction.Select = function(opt_options) {
    * @type {ol.EventsConditionType}
    */
   this.condition_ = options.condition ?
-      options.condition : ol.events.condition.singleClick;
+    options.condition : ol.events.condition.singleClick;
 
   /**
    * @private
    * @type {ol.EventsConditionType}
    */
   this.addCondition_ = options.addCondition ?
-      options.addCondition : ol.events.condition.never;
+    options.addCondition : ol.events.condition.never;
 
   /**
    * @private
    * @type {ol.EventsConditionType}
    */
   this.removeCondition_ = options.removeCondition ?
-      options.removeCondition : ol.events.condition.never;
+    options.removeCondition : ol.events.condition.never;
 
   /**
    * @private
    * @type {ol.EventsConditionType}
    */
   this.toggleCondition_ = options.toggleCondition ?
-      options.toggleCondition : ol.events.condition.shiftKeyOnly;
+    options.toggleCondition : ol.events.condition.shiftKeyOnly;
 
   /**
    * @private
@@ -65573,7 +68222,7 @@ ol.interaction.Select = function(opt_options) {
    * @type {ol.SelectFilterFunction}
    */
   this.filter_ = options.filter ? options.filter :
-      ol.functions.TRUE;
+    ol.functions.TRUE;
 
   /**
    * @private
@@ -65588,7 +68237,7 @@ ol.interaction.Select = function(opt_options) {
       wrapX: options.wrapX
     }),
     style: options.style ? options.style :
-        ol.interaction.Select.getDefaultStyleFunction(),
+      ol.interaction.Select.getDefaultStyleFunction(),
     updateWhileAnimating: true,
     updateWhileInteracting: true
   });
@@ -65710,18 +68359,19 @@ ol.interaction.Select.handleEvent = function(mapBrowserEvent) {
     // the pixel.
     ol.obj.clear(this.featureLayerAssociation_);
     map.forEachFeatureAtPixel(mapBrowserEvent.pixel,
-      (/**
-         * @param {ol.Feature|ol.render.Feature} feature Feature.
-         * @param {ol.layer.Layer} layer Layer.
-         * @return {boolean|undefined} Continue to iterate over the features.
-         */
-        function(feature, layer) {
-          if (this.filter_(feature, layer)) {
-            selected.push(feature);
-            this.addFeatureLayerAssociation_(feature, layer);
-            return !this.multi_;
-          }
-        }).bind(this), {
+        (
+          /**
+           * @param {ol.Feature|ol.render.Feature} feature Feature.
+           * @param {ol.layer.Layer} layer Layer.
+           * @return {boolean|undefined} Continue to iterate over the features.
+           */
+          function(feature, layer) {
+            if (this.filter_(feature, layer)) {
+              selected.push(feature);
+              this.addFeatureLayerAssociation_(feature, layer);
+              return !this.multi_;
+            }
+          }).bind(this), {
           layerFilter: this.layerFilter_,
           hitTolerance: this.hitTolerance_
         });
@@ -65743,25 +68393,26 @@ ol.interaction.Select.handleEvent = function(mapBrowserEvent) {
   } else {
     // Modify the currently selected feature(s).
     map.forEachFeatureAtPixel(mapBrowserEvent.pixel,
-      (/**
-         * @param {ol.Feature|ol.render.Feature} feature Feature.
-         * @param {ol.layer.Layer} layer Layer.
-         * @return {boolean|undefined} Continue to iterate over the features.
-         */
-        function(feature, layer) {
-          if (this.filter_(feature, layer)) {
-            if ((add || toggle) &&
+        (
+          /**
+           * @param {ol.Feature|ol.render.Feature} feature Feature.
+           * @param {ol.layer.Layer} layer Layer.
+           * @return {boolean|undefined} Continue to iterate over the features.
+           */
+          function(feature, layer) {
+            if (this.filter_(feature, layer)) {
+              if ((add || toggle) &&
                 !ol.array.includes(features.getArray(), feature)) {
-              selected.push(feature);
-              this.addFeatureLayerAssociation_(feature, layer);
-            } else if ((remove || toggle) &&
+                selected.push(feature);
+                this.addFeatureLayerAssociation_(feature, layer);
+              } else if ((remove || toggle) &&
                 ol.array.includes(features.getArray(), feature)) {
-              deselected.push(feature);
-              this.removeFeatureLayerAssociation_(feature);
+                deselected.push(feature);
+                this.removeFeatureLayerAssociation_(feature);
+              }
+              return !this.multi_;
             }
-            return !this.multi_;
-          }
-        }).bind(this), {
+          }).bind(this), {
           layerFilter: this.layerFilter_,
           hitTolerance: this.hitTolerance_
         });
@@ -65931,6 +68582,8 @@ goog.require('ol.events');
 goog.require('ol.events.EventType');
 goog.require('ol.extent');
 goog.require('ol.functions');
+goog.require('ol.geom.GeometryType');
+goog.require('ol.geom.Polygon');
 goog.require('ol.interaction.Pointer');
 goog.require('ol.obj');
 goog.require('ol.source.Vector');
@@ -66035,7 +68688,7 @@ ol.interaction.Snap = function(opt_options) {
    * @private
    */
   this.pixelTolerance_ = options.pixelTolerance !== undefined ?
-      options.pixelTolerance : 10;
+    options.pixelTolerance : 10;
 
   /**
    * @type {function(ol.SnapSegmentDataType, ol.SnapSegmentDataType): number}
@@ -66065,7 +68718,8 @@ ol.interaction.Snap = function(opt_options) {
     'MultiPoint': this.writeMultiPointGeometry_,
     'MultiLineString': this.writeMultiLineStringGeometry_,
     'MultiPolygon': this.writeMultiPolygonGeometry_,
-    'GeometryCollection': this.writeGeometryCollectionGeometry_
+    'GeometryCollection': this.writeGeometryCollectionGeometry_,
+    'Circle': this.writeCircleGeometry_
   };
 };
 ol.inherits(ol.interaction.Snap, ol.interaction.Pointer);
@@ -66229,17 +68883,17 @@ ol.interaction.Snap.prototype.setMap = function(map) {
   if (map) {
     if (this.features_) {
       keys.push(
-        ol.events.listen(this.features_, ol.CollectionEventType.ADD,
-            this.handleFeatureAdd_, this),
-        ol.events.listen(this.features_, ol.CollectionEventType.REMOVE,
-            this.handleFeatureRemove_, this)
+          ol.events.listen(this.features_, ol.CollectionEventType.ADD,
+              this.handleFeatureAdd_, this),
+          ol.events.listen(this.features_, ol.CollectionEventType.REMOVE,
+              this.handleFeatureRemove_, this)
       );
     } else if (this.source_) {
       keys.push(
-        ol.events.listen(this.source_, ol.source.VectorEventType.ADDFEATURE,
-            this.handleFeatureAdd_, this),
-        ol.events.listen(this.source_, ol.source.VectorEventType.REMOVEFEATURE,
-            this.handleFeatureRemove_, this)
+          ol.events.listen(this.source_, ol.source.VectorEventType.ADDFEATURE,
+              this.handleFeatureAdd_, this),
+          ol.events.listen(this.source_, ol.source.VectorEventType.REMOVEFEATURE,
+              this.handleFeatureRemove_, this)
       );
     }
     features.forEach(this.forEachFeatureAdd_, this);
@@ -66268,6 +68922,15 @@ ol.interaction.Snap.prototype.snapTo = function(pixel, pixelCoordinate, map) {
   var box = ol.extent.boundingExtent([lowerLeft, upperRight]);
 
   var segments = this.rBush_.getInExtent(box);
+
+  // If snapping on vertices only, don't consider circles
+  if (this.vertex_ && !this.edge_) {
+    segments = segments.filter(function(segment) {
+      return segment.feature.getGeometry().getType() !==
+          ol.geom.GeometryType.CIRCLE;
+    });
+  }
+
   var snappedToVertex = false;
   var snapped = false;
   var vertex = null;
@@ -66277,6 +68940,8 @@ ol.interaction.Snap.prototype.snapTo = function(pixel, pixelCoordinate, map) {
     this.pixelCoordinate_ = pixelCoordinate;
     segments.sort(this.sortByDistance_);
     var closestSegment = segments[0].segment;
+    var isCircle = segments[0].feature.getGeometry().getType() ===
+        ol.geom.GeometryType.CIRCLE;
     if (this.vertex_ && !this.edge_) {
       pixel1 = map.getPixelFromCoordinate(closestSegment[0]);
       pixel2 = map.getPixelFromCoordinate(closestSegment[1]);
@@ -66287,16 +68952,21 @@ ol.interaction.Snap.prototype.snapTo = function(pixel, pixelCoordinate, map) {
       if (snappedToVertex) {
         snapped = true;
         vertex = squaredDist1 > squaredDist2 ?
-            closestSegment[1] : closestSegment[0];
+          closestSegment[1] : closestSegment[0];
         vertexPixel = map.getPixelFromCoordinate(vertex);
       }
     } else if (this.edge_) {
-      vertex = (ol.coordinate.closestOnSegment(pixelCoordinate,
-          closestSegment));
+      if (isCircle) {
+        vertex = ol.coordinate.closestOnCircle(pixelCoordinate,
+            /** @type {ol.geom.Circle} */ (segments[0].feature.getGeometry()));
+      } else {
+        vertex = (ol.coordinate.closestOnSegment(pixelCoordinate,
+            closestSegment));
+      }
       vertexPixel = map.getPixelFromCoordinate(vertex);
       if (ol.coordinate.distance(pixel, vertexPixel) <= this.pixelTolerance_) {
         snapped = true;
-        if (this.vertex_) {
+        if (this.vertex_ && !isCircle) {
           pixel1 = map.getPixelFromCoordinate(closestSegment[0]);
           pixel2 = map.getPixelFromCoordinate(closestSegment[1]);
           squaredDist1 = ol.coordinate.squaredDistance(vertexPixel, pixel1);
@@ -66305,7 +68975,7 @@ ol.interaction.Snap.prototype.snapTo = function(pixel, pixelCoordinate, map) {
           snappedToVertex = dist <= this.pixelTolerance_;
           if (snappedToVertex) {
             vertex = squaredDist1 > squaredDist2 ?
-                closestSegment[1] : closestSegment[0];
+              closestSegment[1] : closestSegment[0];
             vertexPixel = map.getPixelFromCoordinate(vertex);
           }
         }
@@ -66335,14 +69005,36 @@ ol.interaction.Snap.prototype.updateFeature_ = function(feature) {
 
 /**
  * @param {ol.Feature} feature Feature
+ * @param {ol.geom.Circle} geometry Geometry.
+ * @private
+ */
+ol.interaction.Snap.prototype.writeCircleGeometry_ = function(feature, geometry) {
+  var polygon = ol.geom.Polygon.fromCircle(geometry);
+  var coordinates = polygon.getCoordinates()[0];
+  var i, ii, segment, segmentData;
+  for (i = 0, ii = coordinates.length - 1; i < ii; ++i) {
+    segment = coordinates.slice(i, i + 2);
+    segmentData = /** @type {ol.SnapSegmentDataType} */ ({
+      feature: feature,
+      segment: segment
+    });
+    this.rBush_.insert(ol.extent.boundingExtent(segment), segmentData);
+  }
+};
+
+
+/**
+ * @param {ol.Feature} feature Feature
  * @param {ol.geom.GeometryCollection} geometry Geometry.
  * @private
  */
 ol.interaction.Snap.prototype.writeGeometryCollectionGeometry_ = function(feature, geometry) {
   var i, geometries = geometry.getGeometriesArray();
   for (i = 0; i < geometries.length; ++i) {
-    this.SEGMENT_WRITERS_[geometries[i].getType()].call(
-        this, feature, geometries[i]);
+    var segmentWriter = this.SEGMENT_WRITERS_[geometries[i].getType()];
+    if (segmentWriter) {
+      segmentWriter.call(this, feature, geometries[i]);
+    }
   }
 };
 
@@ -66513,7 +69205,7 @@ ol.interaction.Snap.sortByDistance = function(a, b) {
   return ol.coordinate.squaredDistanceToSegment(
       this.pixelCoordinate_, a.segment) -
       ol.coordinate.squaredDistanceToSegment(
-      this.pixelCoordinate_, b.segment);
+          this.pixelCoordinate_, b.segment);
 };
 
 goog.provide('ol.interaction.TranslateEventType');
@@ -66547,10 +69239,13 @@ goog.provide('ol.interaction.Translate');
 
 goog.require('ol');
 goog.require('ol.Collection');
+goog.require('ol.Object');
+goog.require('ol.events');
 goog.require('ol.events.Event');
 goog.require('ol.functions');
 goog.require('ol.array');
 goog.require('ol.interaction.Pointer');
+goog.require('ol.interaction.Property');
 goog.require('ol.interaction.TranslateEventType');
 
 
@@ -66573,13 +69268,6 @@ ol.interaction.Translate = function(opt_options) {
   });
 
   var options = opt_options ? opt_options : {};
-
-  /**
-   * @type {string|undefined}
-   * @private
-   */
-  this.previousCursor_ = undefined;
-
 
   /**
    * The last position we translated to.
@@ -66627,6 +69315,11 @@ ol.interaction.Translate = function(opt_options) {
    * @private
    */
   this.lastFeature_ = null;
+
+  ol.events.listen(this,
+      ol.Object.getChangeEventType(ol.interaction.Property.ACTIVE),
+      this.handleActiveChanged_, this);
+
 };
 ol.inherits(ol.interaction.Translate, ol.interaction.Pointer);
 
@@ -66712,23 +69405,15 @@ ol.interaction.Translate.handleDragEvent_ = function(event) {
  * @private
  */
 ol.interaction.Translate.handleMoveEvent_ = function(event) {
-  var elem = event.map.getTargetElement();
+  var elem = event.map.getViewport();
 
   // Change the cursor to grab/grabbing if hovering any of the features managed
   // by the interaction
   if (this.featuresAtPixel_(event.pixel, event.map)) {
-    this.previousCursor_ = this.previousCursor_ !== undefined ?
-        this.previousCursor_ : elem.style.cursor;
-    // WebKit browsers don't support the grab icons without a prefix
-    elem.style.cursor = this.lastCoordinate_ ?
-        '-webkit-grabbing' : '-webkit-grab';
-
-    // Thankfully, attempting to set the standard ones will silently fail,
-    // keeping the prefixed icons
-    elem.style.cursor = this.lastCoordinate_ ?  'grabbing' : 'grab';
-  } else if (this.previousCursor_ !== undefined) {
-    elem.style.cursor = this.previousCursor_;
-    this.previousCursor_ = undefined;
+    elem.classList.remove(this.lastCoordinate_ ? 'ol-grab' : 'ol-grabbing');
+    elem.classList.add(this.lastCoordinate_ ? 'ol-grabbing' : 'ol-grab');
+  } else {
+    elem.classList.remove('ol-grab', 'ol-grabbing');
   }
 };
 
@@ -66775,6 +69460,41 @@ ol.interaction.Translate.prototype.getHitTolerance = function() {
  */
 ol.interaction.Translate.prototype.setHitTolerance = function(hitTolerance) {
   this.hitTolerance_ = hitTolerance;
+};
+
+
+/**
+ * @inheritDoc
+ */
+ol.interaction.Translate.prototype.setMap = function(map) {
+  var oldMap = this.getMap();
+  ol.interaction.Pointer.prototype.setMap.call(this, map);
+  this.updateState_(oldMap);
+};
+
+
+/**
+ * @private
+ */
+ol.interaction.Translate.prototype.handleActiveChanged_ = function() {
+  this.updateState_(null);
+};
+
+
+/**
+ * @param {ol.Map} oldMap Old map.
+ * @private
+ */
+ol.interaction.Translate.prototype.updateState_ = function(oldMap) {
+  var map = this.getMap();
+  var active = this.getActive();
+  if (!map || !active) {
+    map = map || oldMap;
+    if (map) {
+      var elem = map.getViewport();
+      elem.classList.remove('ol-grab', 'ol-grabbing');
+    }
+  }
 };
 
 
@@ -66879,7 +69599,7 @@ ol.layer.Heatmap = function(opt_options) {
       this.handleGradientChanged_, this);
 
   this.setGradient(options.gradient ?
-      options.gradient : ol.layer.Heatmap.DEFAULT_GRADIENT);
+    options.gradient : ol.layer.Heatmap.DEFAULT_GRADIENT);
 
   this.setBlur(options.blur !== undefined ? options.blur : 15);
 
@@ -67003,7 +69723,7 @@ ol.layer.Heatmap.prototype.getBlur = function() {
  */
 ol.layer.Heatmap.prototype.getGradient = function() {
   return /** @type {Array.<string>} */ (
-      this.get(ol.layer.Heatmap.Property_.GRADIENT));
+    this.get(ol.layer.Heatmap.Property_.GRADIENT));
 };
 
 
@@ -67106,6 +69826,7 @@ goog.provide('ol.renderer.canvas.IntermediateCanvas');
 goog.require('ol');
 goog.require('ol.coordinate');
 goog.require('ol.dom');
+goog.require('ol.extent');
 goog.require('ol.renderer.canvas.Layer');
 goog.require('ol.transform');
 
@@ -67132,12 +69853,6 @@ ol.renderer.canvas.IntermediateCanvas = function(layer) {
    */
   this.hitCanvasContext_ = null;
 
-  /**
-   * @protected
-   * @type {number}
-   */
-  this.renderedResolution;
-
 };
 ol.inherits(ol.renderer.canvas.IntermediateCanvas, ol.renderer.canvas.Layer);
 
@@ -67154,7 +69869,9 @@ ol.renderer.canvas.IntermediateCanvas.prototype.composeFrame = function(frameSta
 
     // clipped rendering if layer extent is set
     var extent = layerState.extent;
-    var clipped = extent !== undefined;
+    var clipped = extent !== undefined &&
+        !ol.extent.containsExtent(extent, frameState.extent) &&
+        ol.extent.intersects(extent, frameState.extent);
     if (clipped) {
       this.clip(context, frameState, /** @type {ol.Extent} */ (extent));
     }
@@ -67413,12 +70130,14 @@ ol.reproj.calculateSourceResolution = function(sourceProj, targetProj,
   // coordinates may be slightly different. We need to reverse-compensate this
   // in order to achieve optimal results.
 
-  var compensationFactor =
-      ol.proj.getPointResolution(sourceProj, sourceResolution, sourceCenter) /
-      sourceResolution;
-
-  if (isFinite(compensationFactor) && compensationFactor > 0) {
-    sourceResolution /= compensationFactor;
+  var sourceExtent = sourceProj.getExtent();
+  if (!sourceExtent || ol.extent.containsCoordinate(sourceExtent, sourceCenter)) {
+    var compensationFactor =
+        ol.proj.getPointResolution(sourceProj, sourceResolution, sourceCenter) /
+        sourceResolution;
+    if (isFinite(compensationFactor) && compensationFactor > 0) {
+      sourceResolution /= compensationFactor;
+    }
   }
 
   return sourceResolution;
@@ -67466,7 +70185,7 @@ ol.reproj.render = function(width, height, pixelRatio,
     triangulation, sources, gutter, opt_renderEdges) {
 
   var context = ol.dom.createCanvasContext2D(Math.round(pixelRatio * width),
-                                             Math.round(pixelRatio * height));
+      Math.round(pixelRatio * height));
 
   if (sources.length === 0) {
     return context.canvas;
@@ -67573,10 +70292,10 @@ ol.reproj.render = function(width, height, pixelRatio,
         affineCoefs[0], affineCoefs[2], affineCoefs[1], affineCoefs[3], u0, v0);
 
     context.translate(sourceDataExtent[0] - sourceNumericalShiftX,
-                      sourceDataExtent[3] - sourceNumericalShiftY);
+        sourceDataExtent[3] - sourceNumericalShiftY);
 
     context.scale(sourceResolution / pixelRatio,
-                  -sourceResolution / pixelRatio);
+        -sourceResolution / pixelRatio);
 
     context.drawImage(stitchContext.canvas, 0, 0);
     context.restore();
@@ -67702,14 +70421,14 @@ ol.reproj.Triangulation = function(sourceProj, targetProj, targetExtent,
    * @private
    */
   this.sourceWorldWidth_ = this.sourceProj_.getExtent() ?
-      ol.extent.getWidth(this.sourceProj_.getExtent()) : null;
+    ol.extent.getWidth(this.sourceProj_.getExtent()) : null;
 
   /**
    * @type {?number}
    * @private
    */
   this.targetWorldWidth_ = this.targetProj_.getExtent() ?
-      ol.extent.getWidth(this.targetProj_.getExtent()) : null;
+    ol.extent.getWidth(this.targetProj_.getExtent()) : null;
 
   var destinationTopLeft = ol.extent.getTopLeft(targetExtent);
   var destinationTopRight = ol.extent.getTopRight(targetExtent);
@@ -67739,8 +70458,8 @@ ol.reproj.Triangulation = function(sourceProj, targetProj, targetExtent,
       if (Math.max(triangle.source[0][0], triangle.source[1][0],
           triangle.source[2][0]) - leftBound > this.sourceWorldWidth_ / 2) {
         var newTriangle = [[triangle.source[0][0], triangle.source[0][1]],
-                           [triangle.source[1][0], triangle.source[1][1]],
-                           [triangle.source[2][0], triangle.source[2][1]]];
+          [triangle.source[1][0], triangle.source[1][1]],
+          [triangle.source[2][0], triangle.source[2][1]]];
         if ((newTriangle[0][0] - leftBound) > this.sourceWorldWidth_ / 2) {
           newTriangle[0][0] -= this.sourceWorldWidth_;
         }
@@ -67809,7 +70528,7 @@ ol.reproj.Triangulation.prototype.addQuad_ = function(a, b, c, d,
 
   var sourceQuadExtent = ol.extent.boundingExtent([aSrc, bSrc, cSrc, dSrc]);
   var sourceCoverageX = this.sourceWorldWidth_ ?
-      ol.extent.getWidth(sourceQuadExtent) / this.sourceWorldWidth_ : null;
+    ol.extent.getWidth(sourceQuadExtent) / this.sourceWorldWidth_ : null;
   var sourceWorldWidth = /** @type {number} */ (this.sourceWorldWidth_);
 
   // when the quad is wrapped in the source projection
@@ -67982,7 +70701,7 @@ ol.reproj.Image = function(sourceProj, targetProj,
   var maxTargetExtent = targetProj.getExtent();
 
   var limitedTargetExtent = maxTargetExtent ?
-      ol.extent.getIntersection(targetExtent, maxTargetExtent) : targetExtent;
+    ol.extent.getIntersection(targetExtent, maxTargetExtent) : targetExtent;
 
   var targetCenter = ol.extent.getCenter(limitedTargetExtent);
   var sourceResolution = ol.reproj.calculateSourceResolution(
@@ -68048,7 +70767,7 @@ ol.reproj.Image = function(sourceProj, targetProj,
   }
 
   ol.ImageBase.call(this, targetExtent, targetResolution, this.sourcePixelRatio_,
-            state, attributions);
+      state, attributions);
 };
 ol.inherits(ol.reproj.Image, ol.ImageBase);
 
@@ -68176,7 +70895,7 @@ ol.source.Image = function(options) {
    * @type {Array.<number>}
    */
   this.resolutions_ = options.resolutions !== undefined ?
-      options.resolutions : null;
+    options.resolutions : null;
 
 
   /**
@@ -68241,7 +70960,6 @@ ol.source.Image.prototype.getImage = function(extent, resolution, pixelRatio, pr
           ol.proj.equivalent(
               this.reprojectedImage_.getProjection(), projection) &&
           this.reprojectedImage_.getResolution() == resolution &&
-          this.reprojectedImage_.getPixelRatio() == pixelRatio &&
           ol.extent.equals(this.reprojectedImage_.getExtent(), extent)) {
         return this.reprojectedImage_;
       }
@@ -68419,7 +71137,7 @@ ol.source.ImageCanvas = function(options) {
    * @type {number}
    */
   this.ratio_ = options.ratio !== undefined ?
-      options.ratio : 1.5;
+    options.ratio : 1.5;
 
 };
 ol.inherits(ol.source.ImageCanvas, ol.source.Image);
@@ -68757,7 +71475,7 @@ ol.source.ImageVector.prototype.renderFeature_ = function(feature, resolution, p
 ol.source.ImageVector.prototype.setStyle = function(style) {
   this.style_ = style !== undefined ? style : ol.style.Style.defaultFunction;
   this.styleFunction_ = !style ?
-      undefined : ol.style.Style.createFunction(this.style_);
+    undefined : ol.style.Style.createFunction(this.style_);
   this.changed();
 };
 
@@ -68903,7 +71621,7 @@ if (ol.ENABLE_WEBGL) {
               }
             }.bind(null, gl, this.texture);
             frameState.postRenderFunctions.push(
-              /** @type {ol.PostRenderFunction} */ (postRenderFunction)
+                /** @type {ol.PostRenderFunction} */ (postRenderFunction)
             );
           }
         }
@@ -68946,7 +71664,7 @@ if (ol.ENABLE_WEBGL) {
    * @private
    */
   ol.renderer.webgl.ImageLayer.prototype.updateProjectionMatrix_ = function(canvasWidth, canvasHeight, pixelRatio,
-          viewCenter, viewResolution, viewRotation, imageExtent) {
+      viewCenter, viewResolution, viewRotation, imageExtent) {
 
     var canvasExtentWidth = canvasWidth * viewResolution;
     var canvasExtentHeight = canvasHeight * viewResolution;
@@ -69162,7 +71880,7 @@ ol.renderer.canvas.TileLayer = function(tileLayer) {
    * @protected
    * @type {CanvasRenderingContext2D}
    */
-  this.context = ol.dom.createCanvasContext2D();
+  this.context = this.context === null ? null :  ol.dom.createCanvasContext2D();
 
   /**
    * @private
@@ -69280,6 +71998,15 @@ ol.renderer.canvas.TileLayer.prototype.prepareFrame = function(frameState, layer
   for (x = tileRange.minX; x <= tileRange.maxX; ++x) {
     for (y = tileRange.minY; y <= tileRange.maxY; ++y) {
       tile = tileSource.getTile(z, x, y, pixelRatio, projection);
+      if (tile.getState() == ol.TileState.ERROR) {
+        if (!tileLayer.getUseInterimTilesOnError()) {
+          // When useInterimTilesOnError is false, we consider the error tile as loaded.
+          tile.setState(ol.TileState.LOADED);
+        } else if (tileLayer.getPreload() > 0) {
+          // Preloaded tiles for lower resolutions might have finished loading.
+          newTiles = true;
+        }
+      }
       if (!this.isDrawableTile_(tile)) {
         tile = tile.getInterimTile();
       }
@@ -69306,27 +72033,31 @@ ol.renderer.canvas.TileLayer.prototype.prepareFrame = function(frameState, layer
     }
   }
 
+  var renderedResolution = tileResolution * pixelRatio / tilePixelRatio * oversampling;
   var hints = frameState.viewHints;
-  if (!(this.renderedResolution && Date.now() - frameState.time > 16 &&
-      (hints[ol.ViewHint.ANIMATING] || hints[ol.ViewHint.INTERACTING])) &&
-      (newTiles || !(this.renderedExtent_ &&
-      ol.extent.containsExtent(this.renderedExtent_, extent)) ||
-      this.renderedRevision != sourceRevision) ||
-      oversampling != this.oversampling_) {
+  var animatingOrInteracting = hints[ol.ViewHint.ANIMATING] || hints[ol.ViewHint.INTERACTING];
+  if (!(this.renderedResolution && Date.now() - frameState.time > 16 && animatingOrInteracting) && (
+    newTiles ||
+        !(this.renderedExtent_ && ol.extent.containsExtent(this.renderedExtent_, extent)) ||
+        this.renderedRevision != sourceRevision ||
+        oversampling != this.oversampling_ ||
+        !animatingOrInteracting && renderedResolution != this.renderedResolution
+  )) {
 
-    var tilePixelSize = tileSource.getTilePixelSize(z, pixelRatio, projection);
-    var width = Math.round(tileRange.getWidth() * tilePixelSize[0] / oversampling);
-    var height = Math.round(tileRange.getHeight() * tilePixelSize[0] / oversampling);
     var context = this.context;
-    var canvas = context.canvas;
-    var opaque = tileSource.getOpaque(projection);
-    if (canvas.width != width || canvas.height != height) {
-      this.oversampling_ = oversampling;
-      canvas.width = width;
-      canvas.height = height;
-    } else {
-      context.clearRect(0, 0, width, height);
-      oversampling = this.oversampling_;
+    if (context) {
+      var tilePixelSize = tileSource.getTilePixelSize(z, pixelRatio, projection);
+      var width = Math.round(tileRange.getWidth() * tilePixelSize[0] / oversampling);
+      var height = Math.round(tileRange.getHeight() * tilePixelSize[1] / oversampling);
+      var canvas = context.canvas;
+      if (canvas.width != width || canvas.height != height) {
+        this.oversampling_ = oversampling;
+        canvas.width = width;
+        canvas.height = height;
+      } else {
+        context.clearRect(0, 0, width, height);
+        oversampling = this.oversampling_;
+      }
     }
 
     this.renderedTiles.length = 0;
@@ -69349,9 +72080,6 @@ ol.renderer.canvas.TileLayer.prototype.prepareFrame = function(frameState, layer
         y = (imageExtent[3] - tileExtent[3]) / tileResolution * tilePixelRatio / oversampling;
         w = currentTilePixelSize[0] * currentScale / oversampling;
         h = currentTilePixelSize[1] * currentScale / oversampling;
-        if (!opaque) {
-          context.clearRect(x, y, w, h);
-        }
         this.drawTileImage(tile, frameState, layerState, x, y, w, h, tileGutter);
         this.renderedTiles.push(tile);
       }
@@ -69397,7 +72125,10 @@ ol.renderer.canvas.TileLayer.prototype.prepareFrame = function(frameState, layer
  * @param {number} gutter Tile gutter.
  */
 ol.renderer.canvas.TileLayer.prototype.drawTileImage = function(tile, frameState, layerState, x, y, w, h, gutter) {
-  var image = tile.getImage();
+  if (!this.getLayer().getSource().getOpaque(frameState.viewState.projection)) {
+    this.context.clearRect(x, y, w, h);
+  }
+  var image = tile.getImage(this.getLayer());
   if (image) {
     this.context.drawImage(image, gutter, gutter,
         image.width - 2 * gutter, image.height - 2 * gutter, x, y, w, h);
@@ -69409,7 +72140,8 @@ ol.renderer.canvas.TileLayer.prototype.drawTileImage = function(tile, frameState
  * @inheritDoc
  */
 ol.renderer.canvas.TileLayer.prototype.getImage = function() {
-  return this.context.canvas;
+  var context = this.context;
+  return context ? context.canvas : null;
 };
 
 
@@ -69428,6 +72160,7 @@ ol.renderer.canvas.TileLayer.prototype.getImageTransform = function() {
 };
 
 // This file is automatically generated, do not edit
+/* eslint openlayers-internal/no-missing-requires: 0 */
 goog.provide('ol.renderer.webgl.tilelayershader');
 
 goog.require('ol');
@@ -69466,8 +72199,8 @@ if (ol.ENABLE_WEBGL) {
    * @type {string}
    */
   ol.renderer.webgl.tilelayershader.Fragment.SOURCE = ol.DEBUG_WEBGL ?
-      ol.renderer.webgl.tilelayershader.Fragment.DEBUG_SOURCE :
-      ol.renderer.webgl.tilelayershader.Fragment.OPTIMIZED_SOURCE;
+    ol.renderer.webgl.tilelayershader.Fragment.DEBUG_SOURCE :
+    ol.renderer.webgl.tilelayershader.Fragment.OPTIMIZED_SOURCE;
 
 
   ol.renderer.webgl.tilelayershader.fragment = new ol.renderer.webgl.tilelayershader.Fragment();
@@ -69503,8 +72236,8 @@ if (ol.ENABLE_WEBGL) {
    * @type {string}
    */
   ol.renderer.webgl.tilelayershader.Vertex.SOURCE = ol.DEBUG_WEBGL ?
-      ol.renderer.webgl.tilelayershader.Vertex.DEBUG_SOURCE :
-      ol.renderer.webgl.tilelayershader.Vertex.OPTIMIZED_SOURCE;
+    ol.renderer.webgl.tilelayershader.Vertex.DEBUG_SOURCE :
+    ol.renderer.webgl.tilelayershader.Vertex.OPTIMIZED_SOURCE;
 
 
   ol.renderer.webgl.tilelayershader.vertex = new ol.renderer.webgl.tilelayershader.Vertex();
@@ -69650,24 +72383,24 @@ if (ol.ENABLE_WEBGL) {
     var mapRenderer = this.mapRenderer;
 
     return (
-        /**
-         * @param {number} zoom Zoom level.
-         * @param {ol.TileRange} tileRange Tile range.
-         * @return {boolean} The tile range is fully loaded.
-         */
-        function(zoom, tileRange) {
-          function callback(tile) {
-            var loaded = mapRenderer.isTileTextureLoaded(tile);
-            if (loaded) {
-              if (!tiles[zoom]) {
-                tiles[zoom] = {};
-              }
-              tiles[zoom][tile.tileCoord.toString()] = tile;
+      /**
+       * @param {number} zoom Zoom level.
+       * @param {ol.TileRange} tileRange Tile range.
+       * @return {boolean} The tile range is fully loaded.
+       */
+      function(zoom, tileRange) {
+        function callback(tile) {
+          var loaded = mapRenderer.isTileTextureLoaded(tile);
+          if (loaded) {
+            if (!tiles[zoom]) {
+              tiles[zoom] = {};
             }
-            return loaded;
+            tiles[zoom][tile.tileCoord.toString()] = tile;
           }
-          return source.forEachLoadedTile(projection, zoom, tileRange, callback);
-        });
+          return loaded;
+        }
+        return source.forEachLoadedTile(projection, zoom, tileRange, callback);
+      });
   };
 
 
@@ -69743,8 +72476,8 @@ if (ol.ENABLE_WEBGL) {
       var program = context.getProgram(this.fragmentShader_, this.vertexShader_);
       context.useProgram(program);
       if (!this.locations_) {
-        this.locations_ =
-            new ol.renderer.webgl.tilelayershader.Locations(gl, program);
+        // eslint-disable-next-line openlayers-internal/no-missing-requires
+        this.locations_ = new ol.renderer.webgl.tilelayershader.Locations(gl, program);
       }
 
       context.bindBuffer(ol.webgl.ARRAY_BUFFER, this.renderArrayBuffer_);
@@ -69967,7 +72700,7 @@ ol.layer.Tile = function(opt_options) {
 
   this.setPreload(options.preload !== undefined ? options.preload : 0);
   this.setUseInterimTilesOnError(options.useInterimTilesOnError !== undefined ?
-      options.useInterimTilesOnError : true);
+    options.useInterimTilesOnError : true);
 };
 ol.inherits(ol.layer.Tile, ol.layer.Layer);
 
@@ -70026,7 +72759,7 @@ ol.layer.Tile.prototype.setPreload = function(preload) {
  */
 ol.layer.Tile.prototype.getUseInterimTilesOnError = function() {
   return /** @type {boolean} */ (
-      this.get(ol.layer.TileProperty.USE_INTERIM_TILES_ON_ERROR));
+    this.get(ol.layer.TileProperty.USE_INTERIM_TILES_ON_ERROR));
 };
 
 
@@ -70065,6 +72798,8 @@ ol.layer.VectorTileRenderType = {
 goog.provide('ol.renderer.canvas.VectorTileLayer');
 
 goog.require('ol');
+goog.require('ol.TileState');
+goog.require('ol.dom');
 goog.require('ol.extent');
 goog.require('ol.proj');
 goog.require('ol.proj.Units');
@@ -70085,6 +72820,11 @@ goog.require('ol.transform');
  * @param {ol.layer.VectorTile} layer VectorTile layer.
  */
 ol.renderer.canvas.VectorTileLayer = function(layer) {
+
+  /**
+   * @type {CanvasRenderingContext2D}
+   */
+  this.context = null;
 
   ol.renderer.canvas.TileLayer.call(this, layer);
 
@@ -70119,7 +72859,8 @@ ol.inherits(ol.renderer.canvas.VectorTileLayer, ol.renderer.canvas.TileLayer);
  * @type {!Object.<string, Array.<ol.render.ReplayType>>}
  */
 ol.renderer.canvas.VectorTileLayer.IMAGE_REPLAYS = {
-  'image': ol.render.replay.ORDER,
+  'image': [ol.render.ReplayType.POLYGON, ol.render.ReplayType.CIRCLE,
+    ol.render.ReplayType.LINE_STRING, ol.render.ReplayType.IMAGE, ol.render.ReplayType.TEXT],
   'hybrid': [ol.render.ReplayType.POLYGON, ol.render.ReplayType.LINE_STRING]
 };
 
@@ -70129,7 +72870,8 @@ ol.renderer.canvas.VectorTileLayer.IMAGE_REPLAYS = {
  * @type {!Object.<string, Array.<ol.render.ReplayType>>}
  */
 ol.renderer.canvas.VectorTileLayer.VECTOR_REPLAYS = {
-  'hybrid': [ol.render.ReplayType.IMAGE, ol.render.ReplayType.TEXT],
+  'image': [ol.render.ReplayType.DEFAULT],
+  'hybrid': [ol.render.ReplayType.IMAGE, ol.render.ReplayType.TEXT, ol.render.ReplayType.DEFAULT],
   'vector': ol.render.replay.ORDER
 };
 
@@ -70138,9 +72880,17 @@ ol.renderer.canvas.VectorTileLayer.VECTOR_REPLAYS = {
  * @inheritDoc
  */
 ol.renderer.canvas.VectorTileLayer.prototype.prepareFrame = function(frameState, layerState) {
-  var layerRevision = this.getLayer().getRevision();
+  var layer = this.getLayer();
+  var layerRevision = layer.getRevision();
   if (this.renderedLayerRevision_ != layerRevision) {
     this.renderedTiles.length = 0;
+    var renderMode = layer.getRenderMode();
+    if (!this.context && renderMode != ol.layer.VectorTileRenderType.VECTOR) {
+      this.context = ol.dom.createCanvasContext2D();
+    }
+    if (this.context && renderMode == ol.layer.VectorTileRenderType.VECTOR) {
+      this.context = null;
+    }
   }
   this.renderedLayerRevision_ = layerRevision;
   return ol.renderer.canvas.TileLayer.prototype.prepareFrame.apply(this, arguments);
@@ -70148,96 +72898,107 @@ ol.renderer.canvas.VectorTileLayer.prototype.prepareFrame = function(frameState,
 
 
 /**
- * @param {ol.VectorTile} tile Tile.
+ * @param {ol.VectorImageTile} tile Tile.
  * @param {olx.FrameState} frameState Frame state.
  * @private
  */
-ol.renderer.canvas.VectorTileLayer.prototype.createReplayGroup_ = function(tile,
-    frameState) {
+ol.renderer.canvas.VectorTileLayer.prototype.createReplayGroup_ = function(
+    tile, frameState) {
   var layer = this.getLayer();
   var pixelRatio = frameState.pixelRatio;
   var projection = frameState.viewState.projection;
   var revision = layer.getRevision();
-  var renderOrder = layer.getRenderOrder() || null;
+  var renderOrder = /** @type {ol.RenderOrderFunction} */
+      (layer.getRenderOrder()) || null;
 
-  var replayState = tile.getReplayState();
+  var replayState = tile.getReplayState(layer);
   if (!replayState.dirty && replayState.renderedRevision == revision &&
       replayState.renderedRenderOrder == renderOrder) {
     return;
   }
 
-  replayState.replayGroup = null;
-  replayState.dirty = false;
-
   var source = /** @type {ol.source.VectorTile} */ (layer.getSource());
-  var tileGrid = source.getTileGrid();
-  var tileCoord = tile.tileCoord;
-  var tileProjection = tile.getProjection();
-  var resolution = tileGrid.getResolution(tileCoord[0]);
-  var extent, reproject, tileResolution;
-  if (tileProjection.getUnits() == ol.proj.Units.TILE_PIXELS) {
-    var tilePixelRatio = tileResolution = source.getTilePixelRatio();
-    var tileSize = ol.size.toSize(tileGrid.getTileSize(tileCoord[0]));
-    extent = [0, 0, tileSize[0] * tilePixelRatio, tileSize[1] * tilePixelRatio];
-  } else {
-    tileResolution = resolution;
-    extent = tileGrid.getTileCoordExtent(tileCoord);
-    if (!ol.proj.equivalent(projection, tileProjection)) {
-      reproject = true;
-      tile.setProjection(projection);
-    }
-  }
-  replayState.dirty = false;
-  var replayGroup = new ol.render.canvas.ReplayGroup(0, extent,
-      tileResolution, source.getOverlaps(), layer.getRenderBuffer());
-  var squaredTolerance = ol.renderer.vector.getSquaredTolerance(
-      tileResolution, pixelRatio);
+  var sourceTileGrid = source.getTileGrid();
+  var tileGrid = source.getTileGridForProjection(projection);
+  var resolution = tileGrid.getResolution(tile.tileCoord[0]);
+  var tileExtent = tileGrid.getTileCoordExtent(tile.wrappedTileCoord);
 
-  /**
-   * @param {ol.Feature|ol.render.Feature} feature Feature.
-   * @this {ol.renderer.canvas.VectorTileLayer}
-   */
-  function renderFeature(feature) {
-    var styles;
-    var styleFunction = feature.getStyleFunction();
-    if (styleFunction) {
-      styles = styleFunction.call(/** @type {ol.Feature} */ (feature), resolution);
+  for (var t = 0, tt = tile.tileKeys.length; t < tt; ++t) {
+    var sourceTile = tile.getTile(tile.tileKeys[t]);
+    replayState.dirty = false;
+
+    var sourceTileCoord = sourceTile.tileCoord;
+    var tileProjection = sourceTile.getProjection();
+    var sourceTileResolution = sourceTileGrid.getResolution(sourceTile.tileCoord[0]);
+    var sourceTileExtent = sourceTileGrid.getTileCoordExtent(sourceTileCoord);
+    var sharedExtent = ol.extent.getIntersection(tileExtent, sourceTileExtent);
+    var extent, reproject, tileResolution;
+    if (tileProjection.getUnits() == ol.proj.Units.TILE_PIXELS) {
+      var tilePixelRatio = tileResolution = this.getTilePixelRatio_(source, sourceTile);
+      var transform = ol.transform.compose(this.tmpTransform_,
+          0, 0,
+          1 / sourceTileResolution * tilePixelRatio, -1 / sourceTileResolution * tilePixelRatio,
+          0,
+          -sourceTileExtent[0], -sourceTileExtent[3]);
+      extent = (ol.transform.apply(transform, [sharedExtent[0], sharedExtent[3]])
+          .concat(ol.transform.apply(transform, [sharedExtent[2], sharedExtent[1]])));
     } else {
-      styleFunction = layer.getStyleFunction();
+      tileResolution = resolution;
+      extent = sharedExtent;
+      if (!ol.proj.equivalent(projection, tileProjection)) {
+        reproject = true;
+        sourceTile.setProjection(projection);
+      }
+    }
+    replayState.dirty = false;
+    var replayGroup = new ol.render.canvas.ReplayGroup(0, extent,
+        tileResolution, source.getOverlaps(), layer.getRenderBuffer());
+    var squaredTolerance = ol.renderer.vector.getSquaredTolerance(
+        tileResolution, pixelRatio);
+
+    /**
+     * @param {ol.Feature|ol.render.Feature} feature Feature.
+     * @this {ol.renderer.canvas.VectorTileLayer}
+     */
+    var renderFeature = function(feature) {
+      var styles;
+      var styleFunction = feature.getStyleFunction();
       if (styleFunction) {
-        styles = styleFunction(feature, resolution);
+        styles = styleFunction.call(/** @type {ol.Feature} */ (feature), resolution);
+      } else {
+        styleFunction = layer.getStyleFunction();
+        if (styleFunction) {
+          styles = styleFunction(feature, resolution);
+        }
       }
-    }
-    if (styles) {
-      if (!Array.isArray(styles)) {
-        styles = [styles];
+      if (styles) {
+        if (!Array.isArray(styles)) {
+          styles = [styles];
+        }
+        var dirty = this.renderFeature(feature, squaredTolerance, styles,
+            replayGroup);
+        this.dirty_ = this.dirty_ || dirty;
+        replayState.dirty = replayState.dirty || dirty;
       }
-      var dirty = this.renderFeature(feature, squaredTolerance, styles,
-          replayGroup);
-      this.dirty_ = this.dirty_ || dirty;
-      replayState.dirty = replayState.dirty || dirty;
+    };
+
+    var features = sourceTile.getFeatures();
+    if (renderOrder && renderOrder !== replayState.renderedRenderOrder) {
+      features.sort(renderOrder);
     }
-  }
-
-  var features = tile.getFeatures();
-  if (renderOrder && renderOrder !== replayState.renderedRenderOrder) {
-    features.sort(renderOrder);
-  }
-  var feature;
-  for (var i = 0, ii = features.length; i < ii; ++i) {
-    feature = features[i];
-    if (reproject) {
-      feature.getGeometry().transform(tileProjection, projection);
+    var feature;
+    for (var i = 0, ii = features.length; i < ii; ++i) {
+      feature = features[i];
+      if (reproject) {
+        feature.getGeometry().transform(tileProjection, projection);
+      }
+      renderFeature.call(this, feature);
     }
-    renderFeature.call(this, feature);
+    replayGroup.finish();
+    sourceTile.setReplayGroup(layer, tile.tileCoord.toString(), replayGroup);
   }
-
-  replayGroup.finish();
-
   replayState.renderedRevision = revision;
   replayState.renderedRenderOrder = renderOrder;
-  replayState.replayGroup = replayGroup;
-  replayState.resolution = NaN;
 };
 
 
@@ -70246,13 +73007,12 @@ ol.renderer.canvas.VectorTileLayer.prototype.createReplayGroup_ = function(tile,
  */
 ol.renderer.canvas.VectorTileLayer.prototype.drawTileImage = function(
     tile, frameState, layerState, x, y, w, h, gutter) {
-  var vectorTile = /** @type {ol.VectorTile} */ (tile);
-  this.createReplayGroup_(vectorTile, frameState);
-  var layer = this.getLayer();
-  if (layer.getRenderMode() != ol.layer.VectorTileRenderType.VECTOR) {
-    this.renderTileImage_(vectorTile, frameState, layerState);
+  var vectorImageTile = /** @type {ol.VectorImageTile} */ (tile);
+  this.createReplayGroup_(vectorImageTile, frameState);
+  if (this.context) {
+    this.renderTileImage_(vectorImageTile, frameState, layerState);
+    ol.renderer.canvas.TileLayer.prototype.drawTileImage.apply(this, arguments);
   }
-  ol.renderer.canvas.TileLayer.prototype.drawTileImage.apply(this, arguments);
 };
 
 
@@ -70267,54 +73027,63 @@ ol.renderer.canvas.VectorTileLayer.prototype.forEachFeatureAtCoordinate = functi
   /** @type {Object.<string, boolean>} */
   var features = {};
 
-  /** @type {Array.<ol.VectorTile>} */
-  var replayables = this.renderedTiles;
+  /** @type {Array.<ol.VectorImageTile>} */
+  var renderedTiles = this.renderedTiles;
 
   var source = /** @type {ol.source.VectorTile} */ (layer.getSource());
-  var tileGrid = source.getTileGrid();
-  var found, tileSpaceCoordinate;
+  var tileGrid = source.getTileGridForProjection(frameState.viewState.projection);
+  var sourceTileGrid = source.getTileGrid();
+  var bufferedExtent, found, tileSpaceCoordinate;
   var i, ii, origin, replayGroup;
-  var tile, tileCoord, tileExtent, tilePixelRatio, tileResolution;
-  for (i = 0, ii = replayables.length; i < ii; ++i) {
-    tile = replayables[i];
+  var tile, tileCoord, tileExtent, tilePixelRatio, tileRenderResolution;
+  for (i = 0, ii = renderedTiles.length; i < ii; ++i) {
+    tile = renderedTiles[i];
     tileCoord = tile.tileCoord;
-    tileExtent = source.getTileGrid().getTileCoordExtent(tileCoord, this.tmpExtent);
-    if (!ol.extent.containsCoordinate(ol.extent.buffer(tileExtent, hitTolerance * resolution), coordinate)) {
+    tileExtent = tileGrid.getTileCoordExtent(tileCoord, this.tmpExtent);
+    bufferedExtent = ol.extent.buffer(tileExtent, hitTolerance * resolution, bufferedExtent);
+    if (!ol.extent.containsCoordinate(bufferedExtent, coordinate)) {
       continue;
     }
-    if (tile.getProjection().getUnits() === ol.proj.Units.TILE_PIXELS) {
-      origin = ol.extent.getTopLeft(tileExtent);
-      tilePixelRatio = source.getTilePixelRatio();
-      tileResolution = tileGrid.getResolution(tileCoord[0]) / tilePixelRatio;
-      tileSpaceCoordinate = [
-        (coordinate[0] - origin[0]) / tileResolution,
-        (origin[1] - coordinate[1]) / tileResolution
-      ];
-      resolution = tilePixelRatio;
-    } else {
-      tileSpaceCoordinate = coordinate;
+    for (var t = 0, tt = tile.tileKeys.length; t < tt; ++t) {
+      var sourceTile = tile.getTile(tile.tileKeys[t]);
+      if (sourceTile.getProjection().getUnits() === ol.proj.Units.TILE_PIXELS) {
+        var sourceTileCoord = sourceTile.tileCoord;
+        var sourceTileExtent = sourceTileGrid.getTileCoordExtent(sourceTileCoord, this.tmpExtent);
+        origin = ol.extent.getTopLeft(sourceTileExtent);
+        tilePixelRatio = this.getTilePixelRatio_(source, sourceTile);
+        var sourceTileResolution = sourceTileGrid.getResolution(sourceTileCoord[0]);
+        tileRenderResolution = sourceTileResolution / tilePixelRatio;
+        tileSpaceCoordinate = [
+          (coordinate[0] - origin[0]) / tileRenderResolution,
+          (origin[1] - coordinate[1]) / tileRenderResolution
+        ];
+        var upscaling = tileGrid.getResolution(tileCoord[0]) / sourceTileResolution;
+        resolution = tilePixelRatio * upscaling;
+      } else {
+        tileSpaceCoordinate = coordinate;
+      }
+      replayGroup = sourceTile.getReplayGroup(layer, tile.tileCoord.toString());
+      found = found || replayGroup.forEachFeatureAtCoordinate(
+          tileSpaceCoordinate, resolution, rotation, hitTolerance, {},
+          /**
+           * @param {ol.Feature|ol.render.Feature} feature Feature.
+           * @return {?} Callback result.
+           */
+          function(feature) {
+            var key = ol.getUid(feature).toString();
+            if (!(key in features)) {
+              features[key] = true;
+              return callback.call(thisArg, feature, layer);
+            }
+          });
     }
-    replayGroup = tile.getReplayState().replayGroup;
-    found = found || replayGroup.forEachFeatureAtCoordinate(
-        tileSpaceCoordinate, resolution, rotation, hitTolerance, {},
-        /**
-         * @param {ol.Feature|ol.render.Feature} feature Feature.
-         * @return {?} Callback result.
-         */
-        function(feature) {
-          var key = ol.getUid(feature).toString();
-          if (!(key in features)) {
-            features[key] = true;
-            return callback.call(thisArg, feature, layer);
-          }
-        });
   }
   return found;
 };
 
 
 /**
- * @param {ol.Tile} tile Tile.
+ * @param {ol.VectorTile} tile Tile.
  * @param {olx.FrameState} frameState Frame state.
  * @return {ol.Transform} transform Transform.
  * @private
@@ -70326,7 +73095,7 @@ ol.renderer.canvas.VectorTileLayer.prototype.getReplayTransform_ = function(tile
     var tileGrid = source.getTileGrid();
     var tileCoord = tile.tileCoord;
     var tileResolution =
-        tileGrid.getResolution(tileCoord[0]) / source.getTilePixelRatio();
+        tileGrid.getResolution(tileCoord[0]) / this.getTilePixelRatio_(source, tile);
     var viewState = frameState.viewState;
     var pixelRatio = frameState.pixelRatio;
     var renderResolution = viewState.resolution / pixelRatio;
@@ -70349,6 +73118,18 @@ ol.renderer.canvas.VectorTileLayer.prototype.getReplayTransform_ = function(tile
 
 
 /**
+ * @private
+ * @param {ol.source.VectorTile} source Source.
+ * @param {ol.VectorTile} tile Tile.
+ * @return {number} The tile's pixel ratio.
+ */
+ol.renderer.canvas.VectorTileLayer.prototype.getTilePixelRatio_ = function(source, tile) {
+  return ol.extent.getWidth(tile.getExtent()) /
+        ol.size.toSize(source.getTileGrid().getTileSize(tile.tileCoord[0]))[0];
+};
+
+
+/**
  * Handle changes in image style state.
  * @param {ol.events.Event} event Image style change event.
  * @private
@@ -70362,27 +73143,45 @@ ol.renderer.canvas.VectorTileLayer.prototype.handleStyleImageChange_ = function(
  * @inheritDoc
  */
 ol.renderer.canvas.VectorTileLayer.prototype.postCompose = function(context, frameState, layerState) {
-  var renderMode = this.getLayer().getRenderMode();
+  var layer = this.getLayer();
+  var source = /** @type {ol.source.VectorTile} */ (layer.getSource());
+  var renderMode = layer.getRenderMode();
   var replays = ol.renderer.canvas.VectorTileLayer.VECTOR_REPLAYS[renderMode];
-  if (replays) {
-    var pixelRatio = frameState.pixelRatio;
-    var rotation = frameState.viewState.rotation;
-    var size = frameState.size;
-    var offsetX = Math.round(pixelRatio * size[0] / 2);
-    var offsetY = Math.round(pixelRatio * size[1] / 2);
-    var tiles = this.renderedTiles;
-    var clips = [];
-    var zs = [];
-    for (var i = tiles.length - 1; i >= 0; --i) {
-      var tile = /** @type {ol.VectorTile} */ (tiles[i]);
-      // Create a clip mask for regions in this low resolution tile that are
-      // already filled by a higher resolution tile
-      var transform = this.getReplayTransform_(tile, frameState);
-      var currentClip = tile.getReplayState().replayGroup.getClipCoords(transform);
-      var currentZ = tile.tileCoord[0];
+  var pixelRatio = frameState.pixelRatio;
+  var rotation = frameState.viewState.rotation;
+  var size = frameState.size;
+  var offsetX = Math.round(pixelRatio * size[0] / 2);
+  var offsetY = Math.round(pixelRatio * size[1] / 2);
+  var tiles = this.renderedTiles;
+  var sourceTileGrid = source.getTileGrid();
+  var tileGrid = source.getTileGridForProjection(frameState.viewState.projection);
+  var clips = [];
+  var zs = [];
+  for (var i = tiles.length - 1; i >= 0; --i) {
+    var tile = /** @type {ol.VectorImageTile} */ (tiles[i]);
+    if (tile.getState() == ol.TileState.ABORT) {
+      continue;
+    }
+    var tileCoord = tile.tileCoord;
+    var worldOffset = tileGrid.getTileCoordExtent(tileCoord)[0] -
+        tileGrid.getTileCoordExtent(tile.wrappedTileCoord)[0];
+    for (var t = 0, tt = tile.tileKeys.length; t < tt; ++t) {
+      var sourceTile = tile.getTile(tile.tileKeys[t]);
+      var tilePixelRatio = this.getTilePixelRatio_(source, sourceTile);
+      var replayGroup = sourceTile.getReplayGroup(layer, tileCoord.toString());
+      if (renderMode != ol.layer.VectorTileRenderType.VECTOR && !replayGroup.hasReplays(replays)) {
+        continue;
+      }
+      var currentZ = sourceTile.tileCoord[0];
+      var sourceResolution = sourceTileGrid.getResolution(currentZ);
+      var transform = this.getReplayTransform_(sourceTile, frameState);
+      ol.transform.translate(transform, worldOffset * tilePixelRatio / sourceResolution, 0);
+      var currentClip = replayGroup.getClipCoords(transform);
       context.save();
       context.globalAlpha = layerState.opacity;
       ol.render.canvas.rotateAtOffset(context, -rotation, offsetX, offsetY);
+      // Create a clip mask for regions in this low resolution tile that are
+      // already filled by a higher resolution tile
       for (var j = 0, jj = clips.length; j < jj; ++j) {
         var clip = clips[j];
         if (currentZ < zs[j]) {
@@ -70400,7 +73199,6 @@ ol.renderer.canvas.VectorTileLayer.prototype.postCompose = function(context, fra
           context.clip();
         }
       }
-      var replayGroup = tile.getReplayState().replayGroup;
       replayGroup.replay(context, pixelRatio, transform, rotation, {}, replays);
       context.restore();
       clips.push(currentClip);
@@ -70440,7 +73238,7 @@ ol.renderer.canvas.VectorTileLayer.prototype.renderFeature = function(feature, s
 
 
 /**
- * @param {ol.VectorTile} tile Tile.
+ * @param {ol.VectorImageTile} tile Tile.
  * @param {olx.FrameState} frameState Frame state.
  * @param {ol.LayerState} layerState Layer state.
  * @private
@@ -70448,34 +73246,44 @@ ol.renderer.canvas.VectorTileLayer.prototype.renderFeature = function(feature, s
 ol.renderer.canvas.VectorTileLayer.prototype.renderTileImage_ = function(
     tile, frameState, layerState) {
   var layer = this.getLayer();
-  var replayState = tile.getReplayState();
+  var replayState = tile.getReplayState(layer);
   var revision = layer.getRevision();
   var replays = ol.renderer.canvas.VectorTileLayer.IMAGE_REPLAYS[layer.getRenderMode()];
   if (replays && replayState.renderedTileRevision !== revision) {
     replayState.renderedTileRevision = revision;
-    var tileCoord = tile.tileCoord;
-    var z = tile.tileCoord[0];
+    var tileCoord = tile.wrappedTileCoord;
+    var z = tileCoord[0];
     var pixelRatio = frameState.pixelRatio;
-    var source = layer.getSource();
-    var tileGrid = source.getTileGrid();
-    var tilePixelRatio = source.getTilePixelRatio();
-    var transform = ol.transform.reset(this.tmpTransform_);
-    if (tile.getProjection().getUnits() == ol.proj.Units.TILE_PIXELS) {
-      var renderPixelRatio = pixelRatio / tilePixelRatio;
-      ol.transform.scale(transform, renderPixelRatio, renderPixelRatio);
-    } else {
-      var resolution = tileGrid.getResolution(z);
-      var pixelScale = pixelRatio / resolution;
-      var tileExtent = tileGrid.getTileCoordExtent(tileCoord, this.tmpExtent);
-      ol.transform.scale(transform, pixelScale, -pixelScale);
-      ol.transform.translate(transform, -tileExtent[0], -tileExtent[3]);
-    }
-
-    var context = tile.getContext();
+    var source = /** @type {ol.source.VectorTile} */ (layer.getSource());
+    var sourceTileGrid = source.getTileGrid();
+    var tileGrid = source.getTileGridForProjection(frameState.viewState.projection);
+    var resolution = tileGrid.getResolution(z);
+    var context = tile.getContext(layer);
     var size = source.getTilePixelSize(z, pixelRatio, frameState.viewState.projection);
     context.canvas.width = size[0];
     context.canvas.height = size[1];
-    replayState.replayGroup.replay(context, pixelRatio, transform, 0, {}, replays);
+    var tileExtent = tileGrid.getTileCoordExtent(tileCoord);
+    for (var i = 0, ii = tile.tileKeys.length; i < ii; ++i) {
+      var sourceTile = tile.getTile(tile.tileKeys[i]);
+      var tilePixelRatio = this.getTilePixelRatio_(source, sourceTile);
+      var sourceTileCoord = sourceTile.tileCoord;
+      var pixelScale = pixelRatio / resolution;
+      var transform = ol.transform.reset(this.tmpTransform_);
+      if (sourceTile.getProjection().getUnits() == ol.proj.Units.TILE_PIXELS) {
+        var sourceTileExtent = sourceTileGrid.getTileCoordExtent(sourceTileCoord, this.tmpExtent);
+        var sourceResolution = sourceTileGrid.getResolution(sourceTileCoord[0]);
+        var renderPixelRatio = pixelRatio / tilePixelRatio * sourceResolution / resolution;
+        ol.transform.scale(transform, renderPixelRatio, renderPixelRatio);
+        var offsetX = (sourceTileExtent[0] - tileExtent[0]) / sourceResolution * tilePixelRatio;
+        var offsetY = (tileExtent[3] - sourceTileExtent[3]) / sourceResolution * tilePixelRatio;
+        ol.transform.translate(transform, Math.round(offsetX), Math.round(offsetY));
+      } else {
+        ol.transform.scale(transform, pixelScale, -pixelScale);
+        ol.transform.translate(transform, -tileExtent[0], -tileExtent[3]);
+      }
+      var replayGroup = sourceTile.getReplayGroup(layer, tile.tileCoord.toString());
+      replayGroup.replay(context, pixelRatio, transform, 0, {}, replays, true);
+    }
   }
 };
 
@@ -70514,13 +73322,13 @@ ol.layer.VectorTile = function(opt_options) {
 
   this.setPreload(options.preload ? options.preload : 0);
   this.setUseInterimTilesOnError(options.useInterimTilesOnError ?
-      options.useInterimTilesOnError : true);
+    options.useInterimTilesOnError : true);
 
   ol.asserts.assert(options.renderMode == undefined ||
       options.renderMode == ol.layer.VectorTileRenderType.IMAGE ||
       options.renderMode == ol.layer.VectorTileRenderType.HYBRID ||
       options.renderMode == ol.layer.VectorTileRenderType.VECTOR,
-      28); // `renderMode` must be `'image'`, `'hybrid'` or `'vector'`
+  28); // `renderMode` must be `'image'`, `'hybrid'` or `'vector'`
 
   /**
    * @private
@@ -70552,7 +73360,7 @@ ol.layer.VectorTile.prototype.createRenderer = function(mapRenderer) {
  * @api
  */
 ol.layer.VectorTile.prototype.getPreload = function() {
-  return /** @type {number} */ (this.get(ol.layer.VectorTile.Property_.PRELOAD));
+  return /** @type {number} */ (this.get(ol.layer.TileProperty.PRELOAD));
 };
 
 
@@ -70572,7 +73380,7 @@ ol.layer.VectorTile.prototype.getRenderMode = function() {
  */
 ol.layer.VectorTile.prototype.getUseInterimTilesOnError = function() {
   return /** @type {boolean} */ (
-      this.get(ol.layer.VectorTile.Property_.USE_INTERIM_TILES_ON_ERROR));
+    this.get(ol.layer.TileProperty.USE_INTERIM_TILES_ON_ERROR));
 };
 
 
@@ -70600,13 +73408,12 @@ ol.layer.VectorTile.prototype.setUseInterimTilesOnError = function(useInterimTil
 
 
 /**
- * @enum {string}
- * @private
+ * Return the associated {@link ol.source.VectorTile vectortilesource} of the layer.
+ * @function
+ * @return {ol.source.VectorTile} Source.
+ * @api
  */
-ol.layer.VectorTile.Property_ = {
-  PRELOAD: 'preload',
-  USE_INTERIM_TILES_ON_ERROR: 'useInterimTilesOnError'
-};
+ol.layer.VectorTile.prototype.getSource;
 
 goog.provide('ol.net');
 
@@ -70647,6 +73454,20 @@ ol.net.jsonp = function(url, callback, opt_errback, opt_callbackParam) {
   };
   document.getElementsByTagName('head')[0].appendChild(script);
 };
+
+goog.provide('ol.proj.common');
+
+goog.require('ol.proj');
+
+
+/**
+ * Deprecated.  Transforms between EPSG:4326 and EPSG:3857 are now included by
+ * default.  There is no need to call this function in application code and it
+ * will be removed in a future major release.
+ * @deprecated This function is no longer necessary.
+ * @api
+ */
+ol.proj.common.add = ol.proj.addCommon;
 
 goog.provide('ol.render');
 
@@ -70797,7 +73618,7 @@ ol.reproj.Tile = function(sourceProj, sourceTileGrid,
   var maxSourceExtent = this.sourceTileGrid_.getExtent();
 
   var limitedTargetExtent = maxTargetExtent ?
-      ol.extent.getIntersection(targetExtent, maxTargetExtent) : targetExtent;
+    ol.extent.getIntersection(targetExtent, maxTargetExtent) : targetExtent;
 
   if (ol.extent.getArea(limitedTargetExtent) === 0) {
     // Tile is completely outside range -> EMPTY
@@ -70831,7 +73652,7 @@ ol.reproj.Tile = function(sourceProj, sourceTileGrid,
   }
 
   var errorThresholdInPixels = opt_errorThreshold !== undefined ?
-      opt_errorThreshold : ol.DEFAULT_RASTER_REPROJECTION_ERROR_THRESHOLD;
+    opt_errorThreshold : ol.DEFAULT_RASTER_REPROJECTION_ERROR_THRESHOLD;
 
   /**
    * @private
@@ -70896,7 +73717,8 @@ ol.reproj.Tile.prototype.disposeInternal = function() {
 
 
 /**
- * @inheritDoc
+ * Get the HTML Canvas element for this tile.
+ * @return {HTMLCanvasElement} Canvas.
  */
 ol.reproj.Tile.prototype.getImage = function() {
   return this.canvas_;
@@ -71016,31 +73838,31 @@ ol.TileUrlFunction.createFromTemplate = function(template, tileGrid) {
   var yRegEx = /\{y\}/g;
   var dashYRegEx = /\{-y\}/g;
   return (
-      /**
-       * @param {ol.TileCoord} tileCoord Tile Coordinate.
-       * @param {number} pixelRatio Pixel ratio.
-       * @param {ol.proj.Projection} projection Projection.
-       * @return {string|undefined} Tile URL.
-       */
-      function(tileCoord, pixelRatio, projection) {
-        if (!tileCoord) {
-          return undefined;
-        } else {
-          return template.replace(zRegEx, tileCoord[0].toString())
-              .replace(xRegEx, tileCoord[1].toString())
-              .replace(yRegEx, function() {
-                var y = -tileCoord[2] - 1;
-                return y.toString();
-              })
-              .replace(dashYRegEx, function() {
-                var z = tileCoord[0];
-                var range = tileGrid.getFullTileRange(z);
-                ol.asserts.assert(range, 55); // The {-y} placeholder requires a tile grid with extent
-                var y = range.getHeight() + tileCoord[2];
-                return y.toString();
-              });
-        }
-      });
+    /**
+     * @param {ol.TileCoord} tileCoord Tile Coordinate.
+     * @param {number} pixelRatio Pixel ratio.
+     * @param {ol.proj.Projection} projection Projection.
+     * @return {string|undefined} Tile URL.
+     */
+    function(tileCoord, pixelRatio, projection) {
+      if (!tileCoord) {
+        return undefined;
+      } else {
+        return template.replace(zRegEx, tileCoord[0].toString())
+            .replace(xRegEx, tileCoord[1].toString())
+            .replace(yRegEx, function() {
+              var y = -tileCoord[2] - 1;
+              return y.toString();
+            })
+            .replace(dashYRegEx, function() {
+              var z = tileCoord[0];
+              var range = tileGrid.getFullTileRange(z);
+              ol.asserts.assert(range, 55); // The {-y} placeholder requires a tile grid with extent
+              var y = range.getHeight() + tileCoord[2];
+              return y.toString();
+            });
+      }
+    });
 };
 
 
@@ -71069,21 +73891,21 @@ ol.TileUrlFunction.createFromTileUrlFunctions = function(tileUrlFunctions) {
     return tileUrlFunctions[0];
   }
   return (
-      /**
-       * @param {ol.TileCoord} tileCoord Tile Coordinate.
-       * @param {number} pixelRatio Pixel ratio.
-       * @param {ol.proj.Projection} projection Projection.
-       * @return {string|undefined} Tile URL.
-       */
-      function(tileCoord, pixelRatio, projection) {
-        if (!tileCoord) {
-          return undefined;
-        } else {
-          var h = ol.tilecoord.hash(tileCoord);
-          var index = ol.math.modulo(h, tileUrlFunctions.length);
-          return tileUrlFunctions[index](tileCoord, pixelRatio, projection);
-        }
-      });
+    /**
+     * @param {ol.TileCoord} tileCoord Tile Coordinate.
+     * @param {number} pixelRatio Pixel ratio.
+     * @param {ol.proj.Projection} projection Projection.
+     * @return {string|undefined} Tile URL.
+     */
+    function(tileCoord, pixelRatio, projection) {
+      if (!tileCoord) {
+        return undefined;
+      } else {
+        var h = ol.tilecoord.hash(tileCoord);
+        var index = ol.math.modulo(h, tileUrlFunctions.length);
+        return tileUrlFunctions[index](tileCoord, pixelRatio, projection);
+      }
+    });
 };
 
 
@@ -71145,10 +73967,9 @@ ol.TileCache = function(opt_highWaterMark) {
   ol.structs.LRUCache.call(this);
 
   /**
-   * @private
    * @type {number}
    */
-  this.highWaterMark_ = opt_highWaterMark !== undefined ? opt_highWaterMark : 2048;
+  this.highWaterMark = opt_highWaterMark !== undefined ? opt_highWaterMark : 2048;
 
 };
 ol.inherits(ol.TileCache, ol.structs.LRUCache);
@@ -71158,7 +73979,7 @@ ol.inherits(ol.TileCache, ol.structs.LRUCache);
  * @return {boolean} Can expire cache.
  */
 ol.TileCache.prototype.canExpireCache = function() {
-  return this.getCount() > this.highWaterMark_;
+  return this.getCount() > this.highWaterMark;
 };
 
 
@@ -71225,7 +74046,7 @@ ol.source.Tile = function(options) {
    * @type {number}
    */
   this.tilePixelRatio_ = options.tilePixelRatio !== undefined ?
-      options.tilePixelRatio : 1;
+    options.tilePixelRatio : 1;
 
   /**
    * @protected
@@ -71424,12 +74245,11 @@ ol.source.Tile.prototype.getTileCacheForProjection = function(projection) {
 /**
  * Get the tile pixel ratio for this source. Subclasses may override this
  * method, which is meant to return a supported pixel ratio that matches the
- * provided `opt_pixelRatio` as close as possible. When no `opt_pixelRatio` is
- * provided, it is meant to return `this.tilePixelRatio_`.
- * @param {number=} opt_pixelRatio Pixel ratio.
+ * provided `pixelRatio` as close as possible.
+ * @param {number} pixelRatio Pixel ratio.
  * @return {number} Tile pixel ratio.
  */
-ol.source.Tile.prototype.getTilePixelRatio = function(opt_pixelRatio) {
+ol.source.Tile.prototype.getTilePixelRatio = function(pixelRatio) {
   return this.tilePixelRatio_;
 };
 
@@ -71463,7 +74283,7 @@ ol.source.Tile.prototype.getTilePixelSize = function(z, pixelRatio, projection) 
  */
 ol.source.Tile.prototype.getTileCoordForTileUrlFunction = function(tileCoord, opt_projection) {
   var projection = opt_projection !== undefined ?
-      opt_projection : this.getProjection();
+    opt_projection : this.getProjection();
   var tileGrid = this.getTileGridForProjection(projection);
   if (this.getWrapX() && projection.isGlobal()) {
     tileCoord = ol.tilegrid.wrapX(tileGrid, tileCoord, projection);
@@ -71591,8 +74411,8 @@ ol.source.UrlTile = function(options) {
    * @type {ol.TileUrlFunctionType}
    */
   this.tileUrlFunction = this.fixedTileUrlFunction ?
-      this.fixedTileUrlFunction.bind(this) :
-      ol.TileUrlFunction.nullTileUrlFunction;
+    this.fixedTileUrlFunction.bind(this) :
+    ol.TileUrlFunction.nullTileUrlFunction;
 
   /**
    * @protected
@@ -71713,8 +74533,8 @@ ol.source.UrlTile.prototype.setTileUrlFunction = function(tileUrlFunction, opt_k
 ol.source.UrlTile.prototype.setUrl = function(url) {
   var urls = this.urls = ol.TileUrlFunction.expandUrl(url);
   this.setTileUrlFunction(this.fixedTileUrlFunction ?
-      this.fixedTileUrlFunction.bind(this) :
-      ol.TileUrlFunction.createFromTemplates(urls, this.tileGrid), url);
+    this.fixedTileUrlFunction.bind(this) :
+    ol.TileUrlFunction.createFromTemplates(urls, this.tileGrid), url);
 };
 
 
@@ -71727,8 +74547,8 @@ ol.source.UrlTile.prototype.setUrls = function(urls) {
   this.urls = urls;
   var key = urls.join('\n');
   this.setTileUrlFunction(this.fixedTileUrlFunction ?
-      this.fixedTileUrlFunction.bind(this) :
-      ol.TileUrlFunction.createFromTemplates(urls, this.tileGrid), key);
+    this.fixedTileUrlFunction.bind(this) :
+    ol.TileUrlFunction.createFromTemplates(urls, this.tileGrid), key);
 };
 
 
@@ -71778,7 +74598,7 @@ ol.source.TileImage = function(options) {
     state: options.state,
     tileGrid: options.tileGrid,
     tileLoadFunction: options.tileLoadFunction ?
-        options.tileLoadFunction : ol.source.TileImage.defaultTileLoadFunction,
+      options.tileLoadFunction : ol.source.TileImage.defaultTileLoadFunction,
     tilePixelRatio: options.tilePixelRatio,
     tileUrlFunction: options.tileUrlFunction,
     url: options.url,
@@ -71799,7 +74619,7 @@ ol.source.TileImage = function(options) {
    *        ?string, ol.TileLoadFunctionType)}
    */
   this.tileClass = options.tileClass !== undefined ?
-      options.tileClass : ol.ImageTile;
+    options.tileClass : ol.ImageTile;
 
   /**
    * @protected
@@ -71938,7 +74758,7 @@ ol.source.TileImage.prototype.getTileCacheForProjection = function(projection) {
   } else {
     var projKey = ol.getUid(projection).toString();
     if (!(projKey in this.tileCacheForProjection)) {
-      this.tileCacheForProjection[projKey] = new ol.TileCache();
+      this.tileCacheForProjection[projKey] = new ol.TileCache(this.tileCache.highWaterMark);
     }
     return this.tileCacheForProjection[projKey];
   }
@@ -71960,7 +74780,7 @@ ol.source.TileImage.prototype.createTile_ = function(z, x, y, pixelRatio, projec
   var urlTileCoord = this.getTileCoordForTileUrlFunction(
       tileCoord, projection);
   var tileUrl = urlTileCoord ?
-      this.tileUrlFunction(urlTileCoord, pixelRatio, projection) : undefined;
+    this.tileUrlFunction(urlTileCoord, pixelRatio, projection) : undefined;
   var tile = new this.tileClass(
       tileCoord,
       tileUrl !== undefined ? ol.TileState.IDLE : ol.TileState.EMPTY,
@@ -72013,6 +74833,7 @@ ol.source.TileImage.prototype.getTile = function(z, x, y, pixelRatio, projection
 
       if (tile) {
         newTile.interimTile = tile;
+        newTile.refreshInterimChain();
         cache.replace(tileCoordKey, newTile);
       } else {
         cache.set(tileCoordKey, newTile);
@@ -72201,7 +75022,7 @@ ol.inherits(ol.source.BingMaps, ol.source.TileImage);
  */
 ol.source.BingMaps.TOS_ATTRIBUTION = new ol.Attribution({
   html: '<a class="ol-attribution-bing-tos" ' +
-      'href="http://www.microsoft.com/maps/product/terms.html">' +
+      'href="https://www.microsoft.com/maps/product/terms.html">' +
       'Terms of Use</a>'
 });
 
@@ -72252,12 +75073,12 @@ ol.source.BingMaps.prototype.handleImageryMetadataResponse = function(response) 
   var sourceProjection = this.getProjection();
   var extent = ol.tilegrid.extentFromProjection(sourceProjection);
   var tileSize = resource.imageWidth == resource.imageHeight ?
-      resource.imageWidth : [resource.imageWidth, resource.imageHeight];
+    resource.imageWidth : [resource.imageWidth, resource.imageHeight];
   var tileGrid = ol.tilegrid.createXYZ({
     extent: extent,
     minZoom: resource.zoomMin,
     maxZoom: maxZoom,
-    tileSize: tileSize / this.getTilePixelRatio()
+    tileSize: tileSize / (this.hidpi_ ? 2 : 1)
   });
   this.tileGrid = tileGrid;
 
@@ -72270,26 +75091,26 @@ ol.source.BingMaps.prototype.handleImageryMetadataResponse = function(response) 
             .replace('{subdomain}', subdomain)
             .replace('{culture}', culture);
         return (
-            /**
-             * @param {ol.TileCoord} tileCoord Tile coordinate.
-             * @param {number} pixelRatio Pixel ratio.
-             * @param {ol.proj.Projection} projection Projection.
-             * @return {string|undefined} Tile URL.
-             */
-            function(tileCoord, pixelRatio, projection) {
-              if (!tileCoord) {
-                return undefined;
-              } else {
-                ol.tilecoord.createOrUpdate(tileCoord[0], tileCoord[1],
-                    -tileCoord[2] - 1, quadKeyTileCoord);
-                var url = imageUrl;
-                if (hidpi) {
-                  url += '&dpi=d1&device=mobile';
-                }
-                return url.replace('{quadkey}', ol.tilecoord.quadKey(
-                    quadKeyTileCoord));
+          /**
+           * @param {ol.TileCoord} tileCoord Tile coordinate.
+           * @param {number} pixelRatio Pixel ratio.
+           * @param {ol.proj.Projection} projection Projection.
+           * @return {string|undefined} Tile URL.
+           */
+          function(tileCoord, pixelRatio, projection) {
+            if (!tileCoord) {
+              return undefined;
+            } else {
+              ol.tilecoord.createOrUpdate(tileCoord[0], tileCoord[1],
+                  -tileCoord[2] - 1, quadKeyTileCoord);
+              var url = imageUrl;
+              if (hidpi) {
+                url += '&dpi=d1&device=mobile';
               }
-            });
+              return url.replace('{quadkey}', ol.tilecoord.quadKey(
+                  quadKeyTileCoord));
+            }
+          });
       }));
 
   if (resource.imageryProviders) {
@@ -72360,15 +75181,15 @@ goog.require('ol.tilegrid');
 ol.source.XYZ = function(opt_options) {
   var options = opt_options || {};
   var projection = options.projection !== undefined ?
-      options.projection : 'EPSG:3857';
+    options.projection : 'EPSG:3857';
 
   var tileGrid = options.tileGrid !== undefined ? options.tileGrid :
-      ol.tilegrid.createXYZ({
-        extent: ol.tilegrid.extentFromProjection(projection),
-        maxZoom: options.maxZoom,
-        minZoom: options.minZoom,
-        tileSize: options.tileSize
-      });
+    ol.tilegrid.createXYZ({
+      extent: ol.tilegrid.extentFromProjection(projection),
+      maxZoom: options.maxZoom,
+      minZoom: options.minZoom,
+      tileSize: options.tileSize
+    });
 
   ol.source.TileImage.call(this, {
     attributions: options.attributions,
@@ -72593,27 +75414,28 @@ ol.source.Cluster = function(options) {
 
   /**
    * @type {number|undefined}
-   * @private
+   * @protected
    */
-  this.resolution_ = undefined;
+  this.resolution = undefined;
 
   /**
    * @type {number}
-   * @private
+   * @protected
    */
-  this.distance_ = options.distance !== undefined ? options.distance : 20;
+  this.distance = options.distance !== undefined ? options.distance : 20;
 
   /**
    * @type {Array.<ol.Feature>}
-   * @private
+   * @protected
    */
-  this.features_ = [];
+  this.features = [];
 
   /**
    * @param {ol.Feature} feature Feature.
    * @return {ol.geom.Point} Cluster calculation point.
+   * @protected
    */
-  this.geometryFunction_ = options.geometryFunction || function(feature) {
+  this.geometryFunction = options.geometryFunction || function(feature) {
     var geometry = /** @type {ol.geom.Point} */ (feature.getGeometry());
     ol.asserts.assert(geometry instanceof ol.geom.Point,
         10); // The default `geometryFunction` can only handle `ol.geom.Point` geometries
@@ -72622,14 +75444,24 @@ ol.source.Cluster = function(options) {
 
   /**
    * @type {ol.source.Vector}
-   * @private
+   * @protected
    */
-  this.source_ = options.source;
+  this.source = options.source;
 
-  this.source_.on(ol.events.EventType.CHANGE,
-      ol.source.Cluster.prototype.refresh_, this);
+  this.source.on(ol.events.EventType.CHANGE,
+      ol.source.Cluster.prototype.refresh, this);
 };
 ol.inherits(ol.source.Cluster, ol.source.Vector);
+
+
+/**
+ * Get the distance in pixels between clusters.
+ * @return {number} Distance.
+ * @api
+ */
+ol.source.Cluster.prototype.getDistance = function() {
+  return this.distance;
+};
 
 
 /**
@@ -72638,7 +75470,7 @@ ol.inherits(ol.source.Cluster, ol.source.Vector);
  * @api
  */
 ol.source.Cluster.prototype.getSource = function() {
-  return this.source_;
+  return this.source;
 };
 
 
@@ -72647,12 +75479,12 @@ ol.source.Cluster.prototype.getSource = function() {
  */
 ol.source.Cluster.prototype.loadFeatures = function(extent, resolution,
     projection) {
-  this.source_.loadFeatures(extent, resolution, projection);
-  if (resolution !== this.resolution_) {
+  this.source.loadFeatures(extent, resolution, projection);
+  if (resolution !== this.resolution) {
     this.clear();
-    this.resolution_ = resolution;
-    this.cluster_();
-    this.addFeatures(this.features_);
+    this.resolution = resolution;
+    this.cluster();
+    this.addFeatures(this.features);
   }
 };
 
@@ -72663,34 +75495,34 @@ ol.source.Cluster.prototype.loadFeatures = function(extent, resolution,
  * @api
  */
 ol.source.Cluster.prototype.setDistance = function(distance) {
-  this.distance_ = distance;
-  this.refresh_();
+  this.distance = distance;
+  this.refresh();
 };
 
 
 /**
  * handle the source changing
- * @private
+ * @override
  */
-ol.source.Cluster.prototype.refresh_ = function() {
+ol.source.Cluster.prototype.refresh = function() {
   this.clear();
-  this.cluster_();
-  this.addFeatures(this.features_);
-  this.changed();
+  this.cluster();
+  this.addFeatures(this.features);
+  ol.source.Vector.prototype.refresh.call(this);
 };
 
 
 /**
- * @private
+ * @protected
  */
-ol.source.Cluster.prototype.cluster_ = function() {
-  if (this.resolution_ === undefined) {
+ol.source.Cluster.prototype.cluster = function() {
+  if (this.resolution === undefined) {
     return;
   }
-  this.features_.length = 0;
+  this.features.length = 0;
   var extent = ol.extent.createEmpty();
-  var mapDistance = this.distance_ * this.resolution_;
-  var features = this.source_.getFeatures();
+  var mapDistance = this.distance * this.resolution;
+  var features = this.source.getFeatures();
 
   /**
    * @type {!Object.<string, boolean>}
@@ -72700,13 +75532,13 @@ ol.source.Cluster.prototype.cluster_ = function() {
   for (var i = 0, ii = features.length; i < ii; i++) {
     var feature = features[i];
     if (!(ol.getUid(feature).toString() in clustered)) {
-      var geometry = this.geometryFunction_(feature);
+      var geometry = this.geometryFunction(feature);
       if (geometry) {
         var coordinates = geometry.getCoordinates();
         ol.extent.createOrUpdateFromCoordinate(coordinates, extent);
         ol.extent.buffer(extent, mapDistance, extent);
 
-        var neighbors = this.source_.getFeaturesInExtent(extent);
+        var neighbors = this.source.getFeaturesInExtent(extent);
         neighbors = neighbors.filter(function(neighbor) {
           var uid = ol.getUid(neighbor).toString();
           if (!(uid in clustered)) {
@@ -72716,7 +75548,7 @@ ol.source.Cluster.prototype.cluster_ = function() {
             return false;
           }
         });
-        this.features_.push(this.createCluster_(neighbors));
+        this.features.push(this.createCluster(neighbors));
       }
     }
   }
@@ -72726,12 +75558,12 @@ ol.source.Cluster.prototype.cluster_ = function() {
 /**
  * @param {Array.<ol.Feature>} features Features
  * @return {ol.Feature} The cluster feature.
- * @private
+ * @protected
  */
-ol.source.Cluster.prototype.createCluster_ = function(features) {
+ol.source.Cluster.prototype.createCluster = function(features) {
   var centroid = [0, 0];
   for (var i = features.length - 1; i >= 0; --i) {
-    var geometry = this.geometryFunction_(features[i]);
+    var geometry = this.geometryFunction(features[i]);
     if (geometry) {
       ol.coordinate.add(centroid, geometry.getCoordinates());
     } else {
@@ -72835,7 +75667,7 @@ ol.source.ImageArcGISRest = function(opt_options) {
    * @type {ol.ImageLoadFunctionType}
    */
   this.imageLoadFunction_ = options.imageLoadFunction !== undefined ?
-      options.imageLoadFunction : ol.source.Image.defaultImageLoadFunction;
+    options.imageLoadFunction : ol.source.Image.defaultImageLoadFunction;
 
 
   /**
@@ -72987,8 +75819,8 @@ ol.source.ImageArcGISRest.prototype.getRequestUrl_ = function(extent, size, pixe
   var url = this.url_;
 
   var modifiedUrl = url
-   .replace(/MapServer\/?$/, 'MapServer/export')
-   .replace(/ImageServer\/?$/, 'ImageServer/exportImage');
+      .replace(/MapServer\/?$/, 'MapServer/export')
+      .replace(/ImageServer\/?$/, 'ImageServer/exportImage');
   if (modifiedUrl == url) {
     ol.asserts.assert(false, 50); // `options.featureTypes` should be an Array
   }
@@ -73084,7 +75916,7 @@ ol.source.ImageMapGuide = function(options) {
    * @type {number}
    */
   this.displayDpi_ = options.displayDpi !== undefined ?
-      options.displayDpi : 96;
+    options.displayDpi : 96;
 
   /**
    * @private
@@ -73103,7 +75935,7 @@ ol.source.ImageMapGuide = function(options) {
    * @type {ol.ImageLoadFunctionType}
    */
   this.imageLoadFunction_ = options.imageLoadFunction !== undefined ?
-      options.imageLoadFunction : ol.source.Image.defaultImageLoadFunction;
+    options.imageLoadFunction : ol.source.Image.defaultImageLoadFunction;
 
   /**
    * @private
@@ -73116,7 +75948,7 @@ ol.source.ImageMapGuide = function(options) {
    * @type {number}
    */
   this.metersPerUnit_ = options.metersPerUnit !== undefined ?
-      options.metersPerUnit : 1;
+    options.metersPerUnit : 1;
 
   /**
    * @private
@@ -73129,7 +75961,7 @@ ol.source.ImageMapGuide = function(options) {
    * @type {boolean}
    */
   this.useOverlay_ = options.useOverlay !== undefined ?
-      options.useOverlay : false;
+    options.useOverlay : false;
 
   /**
    * @private
@@ -73310,11 +76142,11 @@ ol.source.ImageStatic = function(options) {
   var imageExtent = options.imageExtent;
 
   var crossOrigin = options.crossOrigin !== undefined ?
-      options.crossOrigin : null;
+    options.crossOrigin : null;
 
   var /** @type {ol.ImageLoadFunctionType} */ imageLoadFunction =
       options.imageLoadFunction !== undefined ?
-      options.imageLoadFunction : ol.source.Image.defaultImageLoadFunction;
+        options.imageLoadFunction : ol.source.Image.defaultImageLoadFunction;
 
   ol.source.Image.call(this, {
     attributions: options.attributions,
@@ -73365,10 +76197,8 @@ ol.source.ImageStatic.prototype.handleImageChange = function(evt) {
       imageWidth = this.imageSize_[0];
       imageHeight = this.imageSize_[1];
     } else {
-      // TODO: remove the type cast when a closure-compiler > 20160315 is used.
-      // see: https://github.com/google/closure-compiler/pull/1664
-      imageWidth = /** @type {number} */ (image.width);
-      imageHeight = /** @type {number} */ (image.height);
+      imageWidth = image.width;
+      imageHeight = image.height;
     }
     var resolution = ol.extent.getHeight(imageExtent) / imageHeight;
     var targetWidth = Math.ceil(ol.extent.getWidth(imageExtent) / resolution);
@@ -73456,7 +76286,7 @@ ol.source.ImageWMS = function(opt_options) {
    * @type {ol.ImageLoadFunctionType}
    */
   this.imageLoadFunction_ = options.imageLoadFunction !== undefined ?
-      options.imageLoadFunction : ol.source.Image.defaultImageLoadFunction;
+    options.imageLoadFunction : ol.source.Image.defaultImageLoadFunction;
 
   /**
    * @private
@@ -73475,8 +76305,7 @@ ol.source.ImageWMS = function(opt_options) {
    * @private
    * @type {ol.source.WMSServerType|undefined}
    */
-  this.serverType_ =
-      /** @type {ol.source.WMSServerType|undefined} */ (options.serverType);
+  this.serverType_ = /** @type {ol.source.WMSServerType|undefined} */ (options.serverType);
 
   /**
    * @private
@@ -73595,11 +76424,11 @@ ol.source.ImageWMS.prototype.getImageInternal = function(extent, resolution, pix
   var center = ol.extent.getCenter(extent);
   var viewWidth = Math.ceil(ol.extent.getWidth(extent) / imageResolution);
   var viewHeight = Math.ceil(ol.extent.getHeight(extent) / imageResolution);
-  var viewExtent = ol.extent.getForViewAndSize(center, resolution, 0,
+  var viewExtent = ol.extent.getForViewAndSize(center, imageResolution, 0,
       [viewWidth, viewHeight]);
   var requestWidth = Math.ceil(this.ratio_ * ol.extent.getWidth(extent) / imageResolution);
   var requestHeight = Math.ceil(this.ratio_ * ol.extent.getHeight(extent) / imageResolution);
-  var requestExtent = ol.extent.getForViewAndSize(center, resolution, 0,
+  var requestExtent = ol.extent.getForViewAndSize(center, imageResolution, 0,
       [requestWidth, requestHeight]);
 
   var image = this.image_;
@@ -73793,10 +76622,10 @@ ol.source.OSM = function(opt_options) {
   }
 
   var crossOrigin = options.crossOrigin !== undefined ?
-      options.crossOrigin : 'anonymous';
+    options.crossOrigin : 'anonymous';
 
   var url = options.url !== undefined ?
-      options.url : 'https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    options.url : 'https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
   ol.source.XYZ.call(this, {
     attributions: attributions,
@@ -73827,33 +76656,41 @@ ol.source.OSM.ATTRIBUTION = new ol.Attribution({
       'contributors.'
 });
 
-goog.provide('ol.ext.pixelworks');
-/** @typedef {function(*)} */
-ol.ext.pixelworks;
-(function() {
-var exports = {};
-var module = {exports: exports};
-var define;
+
 /**
  * @fileoverview
  * @suppress {accessControls, ambiguousFunctionDecl, checkDebuggerStatement, checkRegExp, checkTypes, checkVars, const, constantProperty, deprecated, duplicate, es5Strict, fileoverviewTags, missingProperties, nonStandardJsDocs, strictModuleDepCheck, suspiciousCode, undefinedNames, undefinedVars, unknownDefines, unusedLocalVariables, uselessCode, visibility}
  */
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.pixelworks = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
-var Processor = _dereq_('./processor');
+goog.provide('ol.ext.pixelworks.Processor');
 
-exports.Processor = Processor;
+/** @typedef {function(*)} */
+ol.ext.pixelworks.Processor = function() {};
 
-},{"./processor":2}],2:[function(_dereq_,module,exports){
-var newImageData = _dereq_('./util').newImageData;
+(function() {(function (exports) {
+'use strict';
 
-/**
- * Create a function for running operations.  This function is serialized for
- * use in a worker.
- * @param {function(Array, Object):*} operation The operation.
- * @return {function(Object):ArrayBuffer} A function that takes an object with
- * buffers, meta, imageOps, width, and height properties and returns an array
- * buffer.
- */
+var hasImageData = true;
+try {
+  new ImageData(10, 10);
+} catch (_) {
+  hasImageData = false;
+}
+var context = document.createElement('canvas').getContext('2d');
+function newImageData$1(data, width, height) {
+  if (hasImageData) {
+    return new ImageData(data, width, height);
+  } else {
+    var imageData = context.createImageData(width, height);
+    imageData.data.set(data);
+    return imageData;
+  }
+}
+var newImageData_1 = newImageData$1;
+var util = {
+	newImageData: newImageData_1
+};
+
+var newImageData = util.newImageData;
 function createMinion(operation) {
   var workerHasImageData = true;
   try {
@@ -73861,7 +76698,6 @@ function createMinion(operation) {
   } catch (_) {
     workerHasImageData = false;
   }
-
   function newWorkerImageData(data, width, height) {
     if (workerHasImageData) {
       return new ImageData(data, width, height);
@@ -73869,19 +76705,15 @@ function createMinion(operation) {
       return {data: data, width: width, height: height};
     }
   }
-
   return function(data) {
-    // bracket notation for minification support
     var buffers = data['buffers'];
     var meta = data['meta'];
     var imageOps = data['imageOps'];
     var width = data['width'];
     var height = data['height'];
-
     var numBuffers = buffers.length;
     var numBytes = buffers[0].byteLength;
     var output, b;
-
     if (imageOps) {
       var images = new Array(numBuffers);
       for (b = 0; b < numBuffers; ++b) {
@@ -73915,18 +76747,10 @@ function createMinion(operation) {
     return output.buffer;
   };
 }
-
-/**
- * Create a worker for running operations.
- * @param {Object} config Configuration.
- * @param {function(MessageEvent)} onMessage Called with a message event.
- * @return {Worker} The worker.
- */
 function createWorker(config, onMessage) {
   var lib = Object.keys(config.lib || {}).map(function(name) {
     return 'var ' + name + ' = ' + config.lib[name].toString() + ';';
   });
-
   var lines = lib.concat([
     'var __minion__ = (' + createMinion.toString() + ')(', config.operation.toString(), ');',
     'self.addEventListener("message", function(event) {',
@@ -73934,20 +76758,12 @@ function createWorker(config, onMessage) {
     '  self.postMessage({buffer: buffer, meta: event.data.meta}, [buffer]);',
     '});'
   ]);
-
   var blob = new Blob(lines, {type: 'text/javascript'});
   var source = URL.createObjectURL(blob);
   var worker = new Worker(source);
   worker.addEventListener('message', onMessage);
   return worker;
 }
-
-/**
- * Create a faux worker for running operations.
- * @param {Object} config Configuration.
- * @param {function(MessageEvent)} onMessage Called with a message event.
- * @return {Object} The faux worker.
- */
 function createFauxWorker(config, onMessage) {
   var minion = createMinion(config.operation);
   return {
@@ -73958,11 +76774,6 @@ function createFauxWorker(config, onMessage) {
     }
   };
 }
-
-/**
- * A processor runs pixel or image operations in workers.
- * @param {Object} config Configuration.
- */
 function Processor(config) {
   this._imageOps = !!config.imageOps;
   var threads;
@@ -73988,17 +76799,6 @@ function Processor(config) {
   this._dataLookup = {};
   this._job = null;
 }
-
-/**
- * Run operation on input data.
- * @param {Array.<Array|ImageData>} inputs Array of pixels or image data
- *     (depending on the operation type).
- * @param {Object} meta A user data object.  This is passed to all operations
- *     and must be serializable.
- * @param {function(Error, ImageData, Object)} callback Called when work
- *     completes.  The first argument is any error.  The second is the ImageData
- *     generated by operations.  The third is the user data object.
- */
 Processor.prototype.process = function(inputs, meta, callback) {
   this._enqueue({
     inputs: inputs,
@@ -74007,31 +76807,18 @@ Processor.prototype.process = function(inputs, meta, callback) {
   });
   this._dispatch();
 };
-
-/**
- * Stop responding to any completed work and destroy the processor.
- */
 Processor.prototype.destroy = function() {
   for (var key in this) {
     this[key] = null;
   }
   this._destroyed = true;
 };
-
-/**
- * Add a job to the queue.
- * @param {Object} job The job.
- */
 Processor.prototype._enqueue = function(job) {
   this._queue.push(job);
   while (this._queue.length > this._maxQueueLength) {
     this._queue.shift().callback(null, null);
   }
 };
-
-/**
- * Dispatch a job.
- */
 Processor.prototype._dispatch = function() {
   if (this._running === 0 && this._queue.length > 0) {
     var job = this._job = this._queue.shift();
@@ -74070,12 +76857,6 @@ Processor.prototype._dispatch = function() {
     }
   }
 };
-
-/**
- * Handle messages from the worker.
- * @param {number} index The worker index.
- * @param {MessageEvent} event The message event.
- */
 Processor.prototype._onWorkerMessage = function(index, event) {
   if (this._destroyed) {
     return;
@@ -74086,11 +76867,6 @@ Processor.prototype._onWorkerMessage = function(index, event) {
     this._resolveJob();
   }
 };
-
-/**
- * Resolve a job.  If there are no more worker threads, the processor callback
- * will be called.
- */
 Processor.prototype._resolveJob = function() {
   var job = this._job;
   var threads = this._workers.length;
@@ -74116,35 +76892,17 @@ Processor.prototype._resolveJob = function() {
       newImageData(data, job.inputs[0].width, job.inputs[0].height), meta);
   this._dispatch();
 };
+var processor = Processor;
 
-module.exports = Processor;
+var Processor_1 = processor;
+var index = {
+	Processor: Processor_1
+};
 
-},{"./util":3}],3:[function(_dereq_,module,exports){
-var hasImageData = true;
-try {
-  new ImageData(10, 10);
-} catch (_) {
-  hasImageData = false;
-}
+exports['default'] = index;
+exports.Processor = Processor_1;
 
-var context = document.createElement('canvas').getContext('2d');
-
-function newImageData(data, width, height) {
-  if (hasImageData) {
-    return new ImageData(data, width, height);
-  } else {
-    var imageData = context.createImageData(width, height);
-    imageData.data.set(data);
-    return imageData;
-  }
-}
-
-exports.newImageData = newImageData;
-
-},{}]},{},[1])(1)
-});
-ol.ext.pixelworks = module.exports;
-})();
+}((this.pixelworks = this.pixelworks || {})));}).call(ol.ext);
 
 goog.provide('ol.source.RasterOperationType');
 
@@ -74166,7 +76924,7 @@ goog.require('ol.dom');
 goog.require('ol.events');
 goog.require('ol.events.Event');
 goog.require('ol.events.EventType');
-goog.require('ol.ext.pixelworks');
+goog.require('ol.ext.pixelworks.Processor');
 goog.require('ol.extent');
 goog.require('ol.layer.Image');
 goog.require('ol.layer.Tile');
@@ -74205,7 +76963,7 @@ ol.source.Raster = function(options) {
    * @type {ol.source.RasterOperationType}
    */
   this.operationType_ = options.operationType !== undefined ?
-      options.operationType : ol.source.RasterOperationType.PIXEL;
+    options.operationType : ol.source.RasterOperationType.PIXEL;
 
   /**
    * @private
@@ -74226,12 +76984,6 @@ ol.source.Raster = function(options) {
 
   /**
    * @private
-   * @type {CanvasRenderingContext2D}
-   */
-  this.canvasContext_ = ol.dom.createCanvasContext2D();
-
-  /**
-   * @private
    * @type {ol.TileQueue}
    */
   this.tileQueue_ = new ol.TileQueue(
@@ -74247,11 +76999,11 @@ ol.source.Raster = function(options) {
   }
 
   /**
-   * The most recently rendered state.
-   * @type {?ol.SourceRasterRenderedState}
+   * The most recently requested frame state.
+   * @type {olx.FrameState}
    * @private
    */
-  this.renderedState_ = null;
+  this.requestedFrameState_;
 
   /**
    * The most recently rendered image canvas.
@@ -74259,6 +77011,12 @@ ol.source.Raster = function(options) {
    * @private
    */
   this.renderedImageCanvas_ = null;
+
+  /**
+   * The most recently rendered revision.
+   * @type {number}
+   */
+  this.renderedRevision_;
 
   /**
    * @private
@@ -74329,85 +77087,23 @@ ol.source.Raster.prototype.setOperation = function(operation, opt_lib) {
 ol.source.Raster.prototype.updateFrameState_ = function(extent, resolution, projection) {
 
   var frameState = /** @type {olx.FrameState} */ (
-      ol.obj.assign({}, this.frameState_));
+    ol.obj.assign({}, this.frameState_));
 
   frameState.viewState = /** @type {olx.ViewState} */ (
-      ol.obj.assign({}, frameState.viewState));
+    ol.obj.assign({}, frameState.viewState));
 
   var center = ol.extent.getCenter(extent);
-  var width = Math.round(ol.extent.getWidth(extent) / resolution);
-  var height = Math.round(ol.extent.getHeight(extent) / resolution);
 
-  frameState.extent = extent;
-  frameState.focus = ol.extent.getCenter(extent);
-  frameState.size[0] = width;
-  frameState.size[1] = height;
+  frameState.extent = extent.slice();
+  frameState.focus = center;
+  frameState.size[0] = Math.round(ol.extent.getWidth(extent) / resolution);
+  frameState.size[1] = Math.round(ol.extent.getHeight(extent) / resolution);
 
   var viewState = frameState.viewState;
   viewState.center = center;
   viewState.projection = projection;
   viewState.resolution = resolution;
   return frameState;
-};
-
-
-/**
- * Determine if the most recently rendered image canvas is dirty.
- * @param {ol.Extent} extent The requested extent.
- * @param {number} resolution The requested resolution.
- * @return {boolean} The image is dirty.
- * @private
- */
-ol.source.Raster.prototype.isDirty_ = function(extent, resolution) {
-  var state = this.renderedState_;
-  return !state ||
-      this.getRevision() !== state.revision ||
-      resolution !== state.resolution ||
-      !ol.extent.equals(extent, state.extent);
-};
-
-
-/**
- * @inheritDoc
- */
-ol.source.Raster.prototype.getImage = function(extent, resolution, pixelRatio, projection) {
-
-  if (!this.allSourcesReady_()) {
-    return null;
-  }
-
-  var currentExtent = extent.slice();
-  if (!this.isDirty_(currentExtent, resolution)) {
-    return this.renderedImageCanvas_;
-  }
-
-  var context = this.canvasContext_;
-  var canvas = context.canvas;
-
-  var width = Math.round(ol.extent.getWidth(currentExtent) / resolution);
-  var height = Math.round(ol.extent.getHeight(currentExtent) / resolution);
-
-  if (width !== canvas.width ||
-      height !== canvas.height) {
-    canvas.width = width;
-    canvas.height = height;
-  }
-
-  var frameState = this.updateFrameState_(currentExtent, resolution, projection);
-
-  var imageCanvas = new ol.ImageCanvas(
-      currentExtent, resolution, 1, this.getAttributions(), canvas,
-      this.composeFrame_.bind(this, frameState));
-
-  this.renderedImageCanvas_ = imageCanvas;
-
-  this.renderedState_ = {
-    extent: currentExtent,
-    resolution: resolution,
-    revision: this.getRevision()
-  };
-
-  return imageCanvas;
 };
 
 
@@ -74431,13 +77127,40 @@ ol.source.Raster.prototype.allSourcesReady_ = function() {
 
 
 /**
- * Compose the frame.  This renders data from all sources, runs pixel-wise
- * operations, and renders the result to the stored canvas context.
- * @param {olx.FrameState} frameState The frame state.
- * @param {function(Error)} callback Called when composition is complete.
+ * @inheritDoc
+ */
+ol.source.Raster.prototype.getImage = function(extent, resolution, pixelRatio, projection) {
+  if (!this.allSourcesReady_()) {
+    return null;
+  }
+
+  var frameState = this.updateFrameState_(extent, resolution, projection);
+  this.requestedFrameState_ = frameState;
+
+  // check if we can't reuse the existing ol.ImageCanvas
+  if (this.renderedImageCanvas_) {
+    var renderedResolution = this.renderedImageCanvas_.getResolution();
+    var renderedExtent = this.renderedImageCanvas_.getExtent();
+    if (resolution !== renderedResolution || !ol.extent.equals(extent, renderedExtent)) {
+      this.renderedImageCanvas_ = null;
+    }
+  }
+
+  if (!this.renderedImageCanvas_ || this.getRevision() !== this.renderedRevision_) {
+    this.processSources_();
+  }
+
+  frameState.tileQueue.loadMoreTiles(16, 16);
+  return this.renderedImageCanvas_;
+};
+
+
+/**
+ * Start processing source data.
  * @private
  */
-ol.source.Raster.prototype.composeFrame_ = function(frameState, callback) {
+ol.source.Raster.prototype.processSources_ = function() {
+  var frameState = this.requestedFrameState_;
   var len = this.renderers_.length;
   var imageDatas = new Array(len);
   for (var i = 0; i < len; ++i) {
@@ -74446,53 +77169,56 @@ ol.source.Raster.prototype.composeFrame_ = function(frameState, callback) {
     if (imageData) {
       imageDatas[i] = imageData;
     } else {
-      // image not yet ready
-      imageDatas = null;
-      break;
+      return;
     }
   }
 
-  if (imageDatas) {
-    var data = {};
-    this.dispatchEvent(new ol.source.Raster.Event(
-        ol.source.Raster.EventType_.BEFOREOPERATIONS, frameState, data));
-
-    this.worker_.process(imageDatas, data,
-        this.onWorkerComplete_.bind(this, frameState, callback));
-  }
-
-  frameState.tileQueue.loadMoreTiles(16, 16);
+  var data = {};
+  this.dispatchEvent(new ol.source.Raster.Event(
+      ol.source.Raster.EventType_.BEFOREOPERATIONS, frameState, data));
+  this.worker_.process(imageDatas, data,
+      this.onWorkerComplete_.bind(this, frameState));
 };
 
 
 /**
  * Called when pixel processing is complete.
  * @param {olx.FrameState} frameState The frame state.
- * @param {function(Error)} callback Called when rendering is complete.
  * @param {Error} err Any error during processing.
  * @param {ImageData} output The output image data.
  * @param {Object} data The user data.
  * @private
  */
-ol.source.Raster.prototype.onWorkerComplete_ = function(frameState, callback, err, output, data) {
-  if (err) {
-    callback(err);
+ol.source.Raster.prototype.onWorkerComplete_ = function(frameState, err, output, data) {
+  if (err || !output) {
     return;
   }
-  if (!output) {
-    // job aborted
+
+  // do nothing if extent or resolution changed
+  var extent = frameState.extent;
+  var resolution = frameState.viewState.resolution;
+  if (resolution !== this.requestedFrameState_.viewState.resolution ||
+      !ol.extent.equals(extent, this.requestedFrameState_.extent)) {
     return;
   }
+
+  var context;
+  if (this.renderedImageCanvas_) {
+    context = this.renderedImageCanvas_.getImage().getContext('2d');
+  } else {
+    var width = Math.round(ol.extent.getWidth(extent) / resolution);
+    var height = Math.round(ol.extent.getHeight(extent) / resolution);
+    context = ol.dom.createCanvasContext2D(width, height);
+    this.renderedImageCanvas_ = new ol.ImageCanvas(
+        extent, resolution, 1, this.getAttributions(), context.canvas);
+  }
+  context.putImageData(output, 0, 0);
+
+  this.changed();
+  this.renderedRevision_ = this.getRevision();
 
   this.dispatchEvent(new ol.source.Raster.Event(
       ol.source.Raster.EventType_.AFTEROPERATIONS, frameState, data));
-
-  var resolution = frameState.viewState.resolution / frameState.pixelRatio;
-  if (!this.isDirty_(frameState.extent, resolution)) {
-    this.canvasContext_.putImageData(output, 0, 0);
-  }
-
-  callback(null);
 };
 
 
@@ -74697,7 +77423,7 @@ ol.source.Stamen = function(options) {
   var layerConfig = ol.source.Stamen.LayerConfig[options.layer];
 
   var url = options.url !== undefined ? options.url :
-      'https://stamen-tiles-{a-d}.a.ssl.fastly.net/' + options.layer +
+    'https://stamen-tiles-{a-d}.a.ssl.fastly.net/' + options.layer +
       '/{z}/{x}/{y}.' + layerConfig.extension;
 
   ol.source.XYZ.call(this, {
@@ -74709,7 +77435,8 @@ ol.source.Stamen = function(options) {
     opaque: layerConfig.opaque,
     reprojectionErrorThreshold: options.reprojectionErrorThreshold,
     tileLoadFunction: options.tileLoadFunction,
-    url: url
+    url: url,
+    wrapX: options.wrapX
   });
 };
 ol.inherits(ol.source.Stamen, ol.source.XYZ);
@@ -74721,8 +77448,8 @@ ol.inherits(ol.source.Stamen, ol.source.XYZ);
  */
 ol.source.Stamen.ATTRIBUTIONS = [
   new ol.Attribution({
-    html: 'Map tiles by <a href="http://stamen.com/">Stamen Design</a>, ' +
-        'under <a href="http://creativecommons.org/licenses/by/3.0/">CC BY' +
+    html: 'Map tiles by <a href="https://stamen.com/">Stamen Design</a>, ' +
+        'under <a href="https://creativecommons.org/licenses/by/3.0/">CC BY' +
         ' 3.0</a>.'
   }),
   ol.source.OSM.ATTRIBUTION
@@ -74893,7 +77620,7 @@ ol.source.TileArcGISRest.prototype.getParams = function() {
  * @private
  */
 ol.source.TileArcGISRest.prototype.getRequestUrl_ = function(tileCoord, tileSize, tileExtent,
-        pixelRatio, projection, params) {
+    pixelRatio, projection, params) {
 
   var urls = this.urls;
   if (!urls) {
@@ -74909,7 +77636,7 @@ ol.source.TileArcGISRest.prototype.getRequestUrl_ = function(tileCoord, tileSize
   params['IMAGESR'] = srid;
   params['DPI'] = Math.round(
       params['DPI'] ? params['DPI'] * pixelRatio : 90 * pixelRatio
-      );
+  );
 
   var url;
   if (urls.length == 1) {
@@ -75028,7 +77755,7 @@ ol.source.TileDebug.prototype.getTile = function(z, x, y) {
     var tileCoord = [z, x, y];
     var textTileCoord = this.getTileCoordForTileUrlFunction(tileCoord);
     var text = !textTileCoord ? '' :
-        this.getTileCoordForTileUrlFunction(textTileCoord).toString();
+      this.getTileCoordForTileUrlFunction(textTileCoord).toString();
     var tile = new ol.source.TileDebug.Tile_(tileCoord, tileSize, text);
     this.tileCache.set(tileCoordKey, tile);
     return tile;
@@ -75073,7 +77800,6 @@ ol.inherits(ol.source.TileDebug.Tile_, ol.Tile);
 /**
  * Get the image element for this tile.
  * @return {HTMLCanvasElement} Image.
- * @override
  */
 ol.source.TileDebug.Tile_.prototype.getImage = function() {
   if (this.canvas_) {
@@ -75113,6 +77839,7 @@ goog.provide('ol.source.TileJSON');
 goog.require('ol');
 goog.require('ol.Attribution');
 goog.require('ol.TileUrlFunction');
+goog.require('ol.asserts');
 goog.require('ol.extent');
 goog.require('ol.net');
 goog.require('ol.proj');
@@ -75149,15 +77876,21 @@ ol.source.TileJSON = function(options) {
     wrapX: options.wrapX !== undefined ? options.wrapX : true
   });
 
-  if (options.jsonp) {
-    ol.net.jsonp(options.url, this.handleTileJSONResponse.bind(this),
-        this.handleTileJSONError.bind(this));
+  if (options.url) {
+    if (options.jsonp) {
+      ol.net.jsonp(options.url, this.handleTileJSONResponse.bind(this),
+          this.handleTileJSONError.bind(this));
+    } else {
+      var client = new XMLHttpRequest();
+      client.addEventListener('load', this.onXHRLoad_.bind(this));
+      client.addEventListener('error', this.onXHRError_.bind(this));
+      client.open('GET', options.url);
+      client.send();
+    }
+  } else if (options.tileJSON) {
+    this.handleTileJSONResponse(options.tileJSON);
   } else {
-    var client = new XMLHttpRequest();
-    client.addEventListener('load', this.onXHRLoad_.bind(this));
-    client.addEventListener('error', this.onXHRError_.bind(this));
-    client.open('GET', options.url);
-    client.send();
+    ol.asserts.assert(false, 51); // Either `url` or `tileJSON` options must be provided
   }
 
 };
@@ -75234,7 +77967,7 @@ ol.source.TileJSON.prototype.handleTileJSONResponse = function(tileJSON) {
 
   if (tileJSON.attribution !== undefined && !this.getAttributions()) {
     var attributionExtent = extent !== undefined ?
-        extent : epsg4326Projection.getExtent();
+      extent : epsg4326Projection.getExtent();
     /** @type {Object.<string, Array.<ol.TileRange>>} */
     var tileRanges = {};
     var z, zKey;
@@ -75301,7 +78034,7 @@ ol.source.TileUTFGrid = function(options) {
    * @type {boolean}
    */
   this.preemptive_ = options.preemptive !== undefined ?
-      options.preemptive : true;
+    options.preemptive : true;
 
   /**
    * @private
@@ -75462,7 +78195,7 @@ ol.source.TileUTFGrid.prototype.handleTileJSONResponse = function(tileJSON) {
 
   if (tileJSON.attribution !== undefined) {
     var attributionExtent = extent !== undefined ?
-        extent : epsg4326Projection.getExtent();
+      extent : epsg4326Projection.getExtent();
     /** @type {Object.<string, Array.<ol.TileRange>>} */
     var tileRanges = {};
     var z, zKey;
@@ -75585,7 +78318,6 @@ ol.inherits(ol.source.TileUTFGrid.Tile_, ol.Tile);
 /**
  * Get the image element for this tile.
  * @return {Image} Image.
- * @override
  */
 ol.source.TileUTFGrid.Tile_.prototype.getImage = function() {
   return null;
@@ -75797,6 +78529,7 @@ ol.source.TileWMS = function(opt_options) {
     opaque: !transparent,
     projection: options.projection,
     reprojectionErrorThreshold: options.reprojectionErrorThreshold,
+    tileClass: options.tileClass,
     tileGrid: options.tileGrid,
     tileLoadFunction: options.tileLoadFunction,
     url: options.url,
@@ -75826,8 +78559,7 @@ ol.source.TileWMS = function(opt_options) {
    * @private
    * @type {ol.source.WMSServerType|undefined}
    */
-  this.serverType_ =
-      /** @type {ol.source.WMSServerType|undefined} */ (options.serverType);
+  this.serverType_ = /** @type {ol.source.WMSServerType|undefined} */ (options.serverType);
 
   /**
    * @private
@@ -75955,7 +78687,7 @@ ol.source.TileWMS.prototype.getParams = function() {
  * @private
  */
 ol.source.TileWMS.prototype.getRequestUrl_ = function(tileCoord, tileSize, tileExtent,
-        pixelRatio, projection, params) {
+    pixelRatio, projection, params) {
 
   var urls = this.urls;
   if (!urls) {
@@ -76023,7 +78755,7 @@ ol.source.TileWMS.prototype.getRequestUrl_ = function(tileCoord, tileSize, tileE
  */
 ol.source.TileWMS.prototype.getTilePixelRatio = function(pixelRatio) {
   return (!this.hidpi_ || this.serverType_ === undefined) ? 1 :
-      /** @type {number} */ (pixelRatio);
+  /** @type {number} */ (pixelRatio);
 };
 
 
@@ -76136,13 +78868,294 @@ ol.source.TileWMS.prototype.updateV13_ = function() {
   this.v13_ = ol.string.compareVersions(version, '1.3') >= 0;
 };
 
+goog.provide('ol.VectorImageTile');
+
+goog.require('ol');
+goog.require('ol.Tile');
+goog.require('ol.TileState');
+goog.require('ol.array');
+goog.require('ol.dom');
+goog.require('ol.events');
+goog.require('ol.extent');
+goog.require('ol.events.EventType');
+goog.require('ol.featureloader');
+
+
+/**
+ * @constructor
+ * @extends {ol.Tile}
+ * @param {ol.TileCoord} tileCoord Tile coordinate.
+ * @param {ol.TileState} state State.
+ * @param {string} src Data source url.
+ * @param {ol.format.Feature} format Feature format.
+ * @param {ol.TileLoadFunctionType} tileLoadFunction Tile load function.
+ * @param {ol.TileCoord} urlTileCoord Wrapped tile coordinate for source urls.
+ * @param {ol.TileUrlFunctionType} tileUrlFunction Tile url function.
+ * @param {ol.tilegrid.TileGrid} sourceTileGrid Tile grid of the source.
+ * @param {ol.tilegrid.TileGrid} tileGrid Tile grid of the renderer.
+ * @param {Object.<string,ol.VectorTile>} sourceTiles Source tiles.
+ * @param {number} pixelRatio Pixel ratio.
+ * @param {ol.proj.Projection} projection Projection.
+ * @param {function(new: ol.VectorTile, ol.TileCoord, ol.TileState, string,
+ *     ol.format.Feature, ol.TileLoadFunctionType)} tileClass Class to
+ *     instantiate for source tiles.
+ * @param {function(this: ol.source.VectorTile, ol.events.Event)} handleTileChange
+ *     Function to call when a source tile's state changes.
+ */
+ol.VectorImageTile = function(tileCoord, state, src, format, tileLoadFunction,
+    urlTileCoord, tileUrlFunction, sourceTileGrid, tileGrid, sourceTiles,
+    pixelRatio, projection, tileClass, handleTileChange) {
+
+  ol.Tile.call(this, tileCoord, state);
+
+  /**
+   * @private
+   * @type {Object.<string, CanvasRenderingContext2D>}
+   */
+  this.context_ = {};
+
+  /**
+   * @private
+   * @type {ol.FeatureLoader}
+   */
+  this.loader_;
+
+  /**
+   * @private
+   * @type {Object.<string, ol.TileReplayState>}
+   */
+  this.replayState_ = {};
+
+  /**
+   * @private
+   * @type {Object.<string,ol.VectorTile>}
+   */
+  this.sourceTiles_ = sourceTiles;
+
+  /**
+   * Keys of source tiles used by this tile. Use with {@link #getTile}.
+   * @type {Array.<string>}
+   */
+  this.tileKeys = [];
+
+  /**
+   * @type {string}
+   */
+  this.src_ = src;
+
+  /**
+   * @type {ol.TileCoord}
+   */
+  this.wrappedTileCoord = urlTileCoord;
+
+  /**
+   * @type {Array.<ol.EventsKey>}
+   */
+  this.loadListenerKeys_ = [];
+
+  /**
+   * @type {Array.<ol.EventsKey>}
+   */
+  this.sourceTileListenerKeys_ = [];
+
+  if (urlTileCoord) {
+    var extent = tileGrid.getTileCoordExtent(urlTileCoord);
+    var resolution = tileGrid.getResolution(tileCoord[0]);
+    var sourceZ = sourceTileGrid.getZForResolution(resolution);
+    sourceTileGrid.forEachTileCoord(extent, sourceZ, function(sourceTileCoord) {
+      var sharedExtent = ol.extent.getIntersection(extent,
+          sourceTileGrid.getTileCoordExtent(sourceTileCoord));
+      if (ol.extent.getWidth(sharedExtent) / resolution >= 0.5 &&
+          ol.extent.getHeight(sharedExtent) / resolution >= 0.5) {
+        // only include source tile if overlap is at least 1 pixel
+        var sourceTileKey = sourceTileCoord.toString();
+        var sourceTile = sourceTiles[sourceTileKey];
+        if (!sourceTile) {
+          var tileUrl = tileUrlFunction(sourceTileCoord, pixelRatio, projection);
+          sourceTile = sourceTiles[sourceTileKey] = new tileClass(sourceTileCoord,
+              tileUrl == undefined ? ol.TileState.EMPTY : ol.TileState.IDLE,
+              tileUrl == undefined ? '' : tileUrl,
+              format, tileLoadFunction);
+          this.sourceTileListenerKeys_.push(
+              ol.events.listen(sourceTile, ol.events.EventType.CHANGE, handleTileChange));
+        }
+        sourceTile.consumers++;
+        this.tileKeys.push(sourceTileKey);
+      }
+    }.bind(this));
+  }
+
+};
+ol.inherits(ol.VectorImageTile, ol.Tile);
+
+
+/**
+ * @inheritDoc
+ */
+ol.VectorImageTile.prototype.disposeInternal = function() {
+  for (var i = 0, ii = this.tileKeys.length; i < ii; ++i) {
+    var sourceTileKey = this.tileKeys[i];
+    var sourceTile = this.getTile(sourceTileKey);
+    sourceTile.consumers--;
+    if (sourceTile.consumers == 0) {
+      delete this.sourceTiles_[sourceTileKey];
+      sourceTile.dispose();
+    }
+  }
+  this.tileKeys.length = 0;
+  this.sourceTiles_ = null;
+  if (this.state == ol.TileState.LOADING) {
+    this.loadListenerKeys_.forEach(ol.events.unlistenByKey);
+    this.loadListenerKeys_.length = 0;
+  }
+  if (this.interimTile) {
+    this.interimTile.dispose();
+  }
+  this.state = ol.TileState.ABORT;
+  this.changed();
+  this.sourceTileListenerKeys_.forEach(ol.events.unlistenByKey);
+  this.sourceTileListenerKeys_.length = 0;
+  ol.Tile.prototype.disposeInternal.call(this);
+};
+
+
+/**
+ * @param {ol.layer.Layer} layer Layer.
+ * @return {CanvasRenderingContext2D} The rendering context.
+ */
+ol.VectorImageTile.prototype.getContext = function(layer) {
+  var key = ol.getUid(layer).toString();
+  if (!(key in this.context_)) {
+    this.context_[key] = ol.dom.createCanvasContext2D();
+  }
+  return this.context_[key];
+};
+
+
+/**
+ * Get the Canvas for this tile.
+ * @param {ol.layer.Layer} layer Layer.
+ * @return {HTMLCanvasElement} Canvas.
+ */
+ol.VectorImageTile.prototype.getImage = function(layer) {
+  return this.getReplayState(layer).renderedTileRevision == -1 ?
+    null : this.getContext(layer).canvas;
+};
+
+
+/**
+ * @param {ol.layer.Layer} layer Layer.
+ * @return {ol.TileReplayState} The replay state.
+ */
+ol.VectorImageTile.prototype.getReplayState = function(layer) {
+  var key = ol.getUid(layer).toString();
+  if (!(key in this.replayState_)) {
+    this.replayState_[key] = {
+      dirty: false,
+      renderedRenderOrder: null,
+      renderedRevision: -1,
+      renderedTileRevision: -1
+    };
+  }
+  return this.replayState_[key];
+};
+
+
+/**
+ * @inheritDoc
+ */
+ol.VectorImageTile.prototype.getKey = function() {
+  return this.tileKeys.join('/') + '/' + this.src_;
+};
+
+
+/**
+ * @param {string} tileKey Key (tileCoord) of the source tile.
+ * @return {ol.VectorTile} Source tile.
+ */
+ol.VectorImageTile.prototype.getTile = function(tileKey) {
+  return this.sourceTiles_[tileKey];
+};
+
+
+/**
+ * @inheritDoc
+ */
+ol.VectorImageTile.prototype.load = function() {
+  var leftToLoad = 0;
+  if (this.state == ol.TileState.IDLE) {
+    this.setState(ol.TileState.LOADING);
+  }
+  if (this.state == ol.TileState.LOADING) {
+    this.tileKeys.forEach(function(sourceTileKey) {
+      var sourceTile = this.getTile(sourceTileKey);
+      if (sourceTile.state == ol.TileState.IDLE) {
+        sourceTile.setLoader(this.loader_);
+        sourceTile.load();
+      }
+      if (sourceTile.state == ol.TileState.LOADING) {
+        var key = ol.events.listen(sourceTile, ol.events.EventType.CHANGE, function(e) {
+          var state = sourceTile.getState();
+          if (state == ol.TileState.LOADED ||
+              state == ol.TileState.ERROR) {
+            --leftToLoad;
+            ol.events.unlistenByKey(key);
+            ol.array.remove(this.loadListenerKeys_, key);
+            if (leftToLoad == 0) {
+              this.finishLoading_();
+            }
+          }
+        }.bind(this));
+        this.loadListenerKeys_.push(key);
+        ++leftToLoad;
+      }
+    }.bind(this));
+  }
+  if (leftToLoad == 0) {
+    setTimeout(this.finishLoading_.bind(this), 0);
+  }
+};
+
+
+/**
+ * @private
+ */
+ol.VectorImageTile.prototype.finishLoading_ = function() {
+  var errors = false;
+  var loaded = this.tileKeys.length;
+  var state;
+  for (var i = loaded - 1; i >= 0; --i) {
+    state = this.getTile(this.tileKeys[i]).getState();
+    if (state != ol.TileState.LOADED) {
+      if (state == ol.TileState.ERROR) {
+        errors = true;
+      }
+      --loaded;
+    }
+  }
+  this.setState(loaded > 0 ?
+    ol.TileState.LOADED :
+    (errors ? ol.TileState.ERROR : ol.TileState.EMPTY));
+};
+
+
+/**
+ * Sets the loader for a tile.
+ * @param {ol.VectorTile} tile Vector tile.
+ * @param {string} url URL.
+ */
+ol.VectorImageTile.defaultLoadFunction = function(tile, url) {
+  var loader = ol.featureloader.loadFeaturesXhr(
+      url, tile.getFormat(), tile.onLoad.bind(tile), tile.onError.bind(tile));
+
+  tile.setLoader(loader);
+};
+
 goog.provide('ol.VectorTile');
 
 goog.require('ol');
 goog.require('ol.Tile');
 goog.require('ol.TileState');
-goog.require('ol.dom');
-goog.require('ol.featureloader');
 
 
 /**
@@ -76159,10 +79172,15 @@ ol.VectorTile = function(tileCoord, state, src, format, tileLoadFunction) {
   ol.Tile.call(this, tileCoord, state);
 
   /**
-   * @private
-   * @type {CanvasRenderingContext2D}
+   * @type {number}
    */
-  this.context_ = ol.dom.createCanvasContext2D();
+  this.consumers = 0;
+
+  /**
+   * @private
+   * @type {ol.Extent}
+   */
+  this.extent_ = null;
 
   /**
    * @private
@@ -76191,15 +79209,9 @@ ol.VectorTile = function(tileCoord, state, src, format, tileLoadFunction) {
 
   /**
    * @private
-   * @type {ol.TileReplayState}
+   * @type {Object.<string, ol.render.ReplayGroup>}
    */
-  this.replayState_ = {
-    dirty: false,
-    renderedRenderOrder: null,
-    renderedRevision: -1,
-    renderedTileRevision: -1,
-    replayGroup: null
-  };
+  this.replayGroups_ = {};
 
   /**
    * @private
@@ -76218,19 +79230,23 @@ ol.inherits(ol.VectorTile, ol.Tile);
 
 
 /**
- * @return {CanvasRenderingContext2D} The rendering context.
+ * @inheritDoc
  */
-ol.VectorTile.prototype.getContext = function() {
-  return this.context_;
+ol.VectorTile.prototype.disposeInternal = function() {
+  this.features_ = null;
+  this.replayGroups_ = {};
+  this.state = ol.TileState.ABORT;
+  this.changed();
+  ol.Tile.prototype.disposeInternal.call(this);
 };
 
 
 /**
- * @override
+ * Gets the extent of the vector tile.
+ * @return {ol.Extent} The extent.
  */
-ol.VectorTile.prototype.getImage = function() {
-  return this.replayState_.renderedTileRevision == -1 ?
-      null : this.context_.canvas;
+ol.VectorTile.prototype.getExtent = function() {
+  return this.extent_ || ol.VectorTile.DEFAULT_EXTENT;
 };
 
 
@@ -76245,18 +79261,13 @@ ol.VectorTile.prototype.getFormat = function() {
 
 
 /**
- * @return {Array.<ol.Feature>} Features.
+ * Get the features for this tile. Geometries will be in the projection returned
+ * by {@link ol.VectorTile#getProjection}.
+ * @return {Array.<ol.Feature|ol.render.Feature>} Features.
+ * @api
  */
 ol.VectorTile.prototype.getFeatures = function() {
   return this.features_;
-};
-
-
-/**
- * @return {ol.TileReplayState} The replay state.
- */
-ol.VectorTile.prototype.getReplayState = function() {
-  return this.replayState_;
 };
 
 
@@ -76269,10 +79280,23 @@ ol.VectorTile.prototype.getKey = function() {
 
 
 /**
+ * Get the feature projection of features returned by
+ * {@link ol.VectorTile#getFeatures}.
  * @return {ol.proj.Projection} Feature projection.
+ * @api
  */
 ol.VectorTile.prototype.getProjection = function() {
   return this.projection_;
+};
+
+
+/**
+ * @param {ol.layer.Layer} layer Layer.
+ * @param {string} key Key.
+ * @return {ol.render.ReplayGroup} Replay group.
+ */
+ol.VectorTile.prototype.getReplayGroup = function(layer, key) {
+  return this.replayGroups_[ol.getUid(layer) + ',' + key];
 };
 
 
@@ -76292,22 +79316,43 @@ ol.VectorTile.prototype.load = function() {
  * Handler for successful tile load.
  * @param {Array.<ol.Feature>} features The loaded features.
  * @param {ol.proj.Projection} dataProjection Data projection.
+ * @param {ol.Extent} extent Extent.
  */
-ol.VectorTile.prototype.onLoad_ = function(features, dataProjection) {
+ol.VectorTile.prototype.onLoad = function(features, dataProjection, extent) {
   this.setProjection(dataProjection);
   this.setFeatures(features);
+  this.setExtent(extent);
 };
 
 
 /**
  * Handler for tile load errors.
  */
-ol.VectorTile.prototype.onError_ = function() {
+ol.VectorTile.prototype.onError = function() {
   this.setState(ol.TileState.ERROR);
 };
 
 
 /**
+ * Function for use in an {@link ol.source.VectorTile}'s `tileLoadFunction`.
+ * Sets the extent of the vector tile. This is only required for tiles in
+ * projections with `tile-pixels` as units. The extent should be set to
+ * `[0, 0, tilePixelSize, tilePixelSize]`, where `tilePixelSize` is calculated
+ * by multiplying the tile size with the tile pixel ratio. For sources using
+ * {@link ol.format.MVT} as feature format, the
+ * {@link ol.format.MVT#getLastExtent} method will return the correct extent.
+ * The default is `[0, 0, 4096, 4096]`.
+ * @param {ol.Extent} extent The extent.
+ * @api
+ */
+ol.VectorTile.prototype.setExtent = function(extent) {
+  this.extent_ = extent;
+};
+
+
+/**
+ * Function for use in an {@link ol.source.VectorTile}'s `tileLoadFunction`.
+ * Sets the features for the tile.
  * @param {Array.<ol.Feature>} features Features.
  * @api
  */
@@ -76318,7 +79363,9 @@ ol.VectorTile.prototype.setFeatures = function(features) {
 
 
 /**
- * Set the projection of the features that were added with {@link #setFeatures}.
+ * Function for use in an {@link ol.source.VectorTile}'s `tileLoadFunction`.
+ * Sets the projection of the features that were added with
+ * {@link ol.VectorTile#setFeatures}.
  * @param {ol.proj.Projection} projection Feature projection.
  * @api
  */
@@ -76328,11 +79375,12 @@ ol.VectorTile.prototype.setProjection = function(projection) {
 
 
 /**
- * @param {ol.TileState} tileState Tile state.
+ * @param {ol.layer.Layer} layer Layer.
+ * @param {string} key Key.
+ * @param {ol.render.ReplayGroup} replayGroup Replay group.
  */
-ol.VectorTile.prototype.setState = function(tileState) {
-  this.state = tileState;
-  this.changed();
+ol.VectorTile.prototype.setReplayGroup = function(layer, key, replayGroup) {
+  this.replayGroups_[ol.getUid(layer) + ',' + key] = replayGroup;
 };
 
 
@@ -76347,25 +79395,20 @@ ol.VectorTile.prototype.setLoader = function(loader) {
 
 
 /**
- * Sets the loader for a tile.
- * @param {ol.VectorTile} tile Vector tile.
- * @param {string} url URL.
+ * @const
+ * @type {ol.Extent}
  */
-ol.VectorTile.defaultLoadFunction = function(tile, url) {
-  var loader = ol.featureloader.loadFeaturesXhr(
-      url, tile.getFormat(), tile.onLoad_.bind(tile), tile.onError_.bind(tile));
-
-  tile.setLoader(loader);
-};
+ol.VectorTile.DEFAULT_EXTENT = [0, 0, 4096, 4096];
 
 goog.provide('ol.source.VectorTile');
 
 goog.require('ol');
 goog.require('ol.TileState');
+goog.require('ol.VectorImageTile');
 goog.require('ol.VectorTile');
-goog.require('ol.events');
-goog.require('ol.events.EventType');
+goog.require('ol.proj');
 goog.require('ol.size');
+goog.require('ol.tilegrid');
 goog.require('ol.source.UrlTile');
 
 
@@ -76386,20 +79429,29 @@ goog.require('ol.source.UrlTile');
  * @api
  */
 ol.source.VectorTile = function(options) {
+  var projection = options.projection || 'EPSG:3857';
+
+  var extent = options.extent || ol.tilegrid.extentFromProjection(projection);
+
+  var tileGrid = options.tileGrid || ol.tilegrid.createXYZ({
+    extent: extent,
+    maxZoom: options.maxZoom || 22,
+    minZoom: options.minZoom,
+    tileSize: options.tileSize || 512
+  });
 
   ol.source.UrlTile.call(this, {
     attributions: options.attributions,
     cacheSize: options.cacheSize !== undefined ? options.cacheSize : 128,
-    extent: options.extent,
+    extent: extent,
     logo: options.logo,
     opaque: false,
-    projection: options.projection,
+    projection: projection,
     state: options.state,
-    tileGrid: options.tileGrid,
+    tileGrid: tileGrid,
     tileLoadFunction: options.tileLoadFunction ?
-        options.tileLoadFunction : ol.VectorTile.defaultLoadFunction,
+      options.tileLoadFunction : ol.VectorImageTile.defaultLoadFunction,
     tileUrlFunction: options.tileUrlFunction,
-    tilePixelRatio: options.tilePixelRatio,
     url: options.url,
     urls: options.urls,
     wrapX: options.wrapX === undefined ? true : options.wrapX
@@ -76413,6 +79465,12 @@ ol.source.VectorTile = function(options) {
 
   /**
    * @private
+   * @type {Object.<string,ol.VectorTile>}
+   */
+  this.sourceTiles_ = {};
+
+  /**
+   * @private
    * @type {boolean}
    */
   this.overlaps_ = options.overlaps == undefined ? true : options.overlaps;
@@ -76423,6 +79481,16 @@ ol.source.VectorTile = function(options) {
    *        ol.format.Feature, ol.TileLoadFunctionType)}
    */
   this.tileClass = options.tileClass ? options.tileClass : ol.VectorTile;
+
+  /**
+   * @private
+   * @type {Object.<string,ol.tilegrid.TileGrid>}
+   */
+  this.tileGrids_ = {};
+
+  if (!this.tileGrid) {
+    this.tileGrid = this.getTileGridForProjection(ol.proj.get(options.projection || 'EPSG:3857'));
+  }
 
 };
 ol.inherits(ol.source.VectorTile, ol.source.UrlTile);
@@ -76448,14 +79516,15 @@ ol.source.VectorTile.prototype.getTile = function(z, x, y, pixelRatio, projectio
     var urlTileCoord = this.getTileCoordForTileUrlFunction(
         tileCoord, projection);
     var tileUrl = urlTileCoord ?
-        this.tileUrlFunction(urlTileCoord, pixelRatio, projection) : undefined;
-    var tile = new this.tileClass(
+      this.tileUrlFunction(urlTileCoord, pixelRatio, projection) : undefined;
+    var tile = new ol.VectorImageTile(
         tileCoord,
         tileUrl !== undefined ? ol.TileState.IDLE : ol.TileState.EMPTY,
         tileUrl !== undefined ? tileUrl : '',
-        this.format_, this.tileLoadFunction);
-    ol.events.listen(tile, ol.events.EventType.CHANGE,
-        this.handleTileChange, this);
+        this.format_, this.tileLoadFunction, urlTileCoord, this.tileUrlFunction,
+        this.tileGrid, this.getTileGridForProjection(projection),
+        this.sourceTiles_, pixelRatio, projection, this.tileClass,
+        this.handleTileChange.bind(this));
 
     this.tileCache.set(tileCoordKey, tile);
     return tile;
@@ -76466,10 +79535,25 @@ ol.source.VectorTile.prototype.getTile = function(z, x, y, pixelRatio, projectio
 /**
  * @inheritDoc
  */
-ol.source.VectorTile.prototype.getTilePixelRatio = function(opt_pixelRatio) {
-  return opt_pixelRatio == undefined ?
-      ol.source.UrlTile.prototype.getTilePixelRatio.call(this, opt_pixelRatio) :
-      opt_pixelRatio;
+ol.source.VectorTile.prototype.getTileGridForProjection = function(projection) {
+  var code = projection.getCode();
+  var tileGrid = this.tileGrids_[code];
+  if (!tileGrid) {
+    // A tile grid that matches the tile size of the source tile grid is more
+    // likely to have 1:1 relationships between source tiles and rendered tiles.
+    var sourceTileGrid = this.tileGrid;
+    tileGrid = this.tileGrids_[code] = ol.tilegrid.createForProjection(projection, undefined,
+        sourceTileGrid ? sourceTileGrid.getTileSize(sourceTileGrid.getMinZoom()) : undefined);
+  }
+  return tileGrid;
+};
+
+
+/**
+ * @inheritDoc
+ */
+ol.source.VectorTile.prototype.getTilePixelRatio = function(pixelRatio) {
+  return pixelRatio;
 };
 
 
@@ -76477,7 +79561,7 @@ ol.source.VectorTile.prototype.getTilePixelRatio = function(opt_pixelRatio) {
  * @inheritDoc
  */
 ol.source.VectorTile.prototype.getTilePixelSize = function(z, pixelRatio, projection) {
-  var tileSize = ol.size.toSize(this.tileGrid.getTileSize(z));
+  var tileSize = ol.size.toSize(this.getTileGridForProjection(projection).getTileSize(z));
   return [Math.round(tileSize[0] * pixelRatio), Math.round(tileSize[1] * pixelRatio)];
 };
 
@@ -76516,7 +79600,7 @@ ol.tilegrid.WMTS = function(options) {
    * @type {!Array.<string>}
    */
   this.matrixIds_ = options.matrixIds;
-  // FIXME: should the matrixIds become optionnal?
+  // FIXME: should the matrixIds become optional?
 
   ol.tilegrid.TileGrid.call(this, {
     extent: options.extent,
@@ -76563,7 +79647,7 @@ ol.tilegrid.WMTS.prototype.getMatrixIds = function() {
  * @api
  */
 ol.tilegrid.WMTS.createFromCapabilitiesMatrixSet = function(matrixSet, opt_extent,
- opt_matrixLimits) {
+    opt_matrixLimits) {
 
   /** @type {!Array.<number>} */
   var resolutions = [];
@@ -76624,7 +79708,7 @@ ol.tilegrid.WMTS.createFromCapabilitiesMatrixSet = function(matrixSet, opt_exten
       }
       resolutions.push(resolution);
       tileSizes.push(tileWidth == tileHeight ?
-          tileWidth : [tileWidth, tileHeight]);
+        tileWidth : [tileWidth, tileHeight]);
       // top-left origin, so height is negative
       sizes.push([elt['MatrixWidth'], -elt['MatrixHeight']]);
     }
@@ -76716,8 +79800,8 @@ ol.source.WMTS = function(options) {
    * @type {ol.source.WMTSRequestEncoding}
    */
   this.requestEncoding_ = options.requestEncoding !== undefined ?
-      /** @type {ol.source.WMTSRequestEncoding} */ (options.requestEncoding) :
-      ol.source.WMTSRequestEncoding.KVP;
+    /** @type {ol.source.WMTSRequestEncoding} */ (options.requestEncoding) :
+    ol.source.WMTSRequestEncoding.KVP;
 
   var requestEncoding = this.requestEncoding_;
 
@@ -76755,45 +79839,45 @@ ol.source.WMTS = function(options) {
     // special template params
 
     template = (requestEncoding == ol.source.WMTSRequestEncoding.KVP) ?
-        ol.uri.appendParams(template, context) :
-        template.replace(/\{(\w+?)\}/g, function(m, p) {
-          return (p.toLowerCase() in context) ? context[p.toLowerCase()] : m;
-        });
+      ol.uri.appendParams(template, context) :
+      template.replace(/\{(\w+?)\}/g, function(m, p) {
+        return (p.toLowerCase() in context) ? context[p.toLowerCase()] : m;
+      });
 
     return (
-        /**
-         * @param {ol.TileCoord} tileCoord Tile coordinate.
-         * @param {number} pixelRatio Pixel ratio.
-         * @param {ol.proj.Projection} projection Projection.
-         * @return {string|undefined} Tile URL.
-         */
-        function(tileCoord, pixelRatio, projection) {
-          if (!tileCoord) {
-            return undefined;
+      /**
+       * @param {ol.TileCoord} tileCoord Tile coordinate.
+       * @param {number} pixelRatio Pixel ratio.
+       * @param {ol.proj.Projection} projection Projection.
+       * @return {string|undefined} Tile URL.
+       */
+      function(tileCoord, pixelRatio, projection) {
+        if (!tileCoord) {
+          return undefined;
+        } else {
+          var localContext = {
+            'TileMatrix': tileGrid.getMatrixId(tileCoord[0]),
+            'TileCol': tileCoord[1],
+            'TileRow': -tileCoord[2] - 1
+          };
+          ol.obj.assign(localContext, dimensions);
+          var url = template;
+          if (requestEncoding == ol.source.WMTSRequestEncoding.KVP) {
+            url = ol.uri.appendParams(url, localContext);
           } else {
-            var localContext = {
-              'TileMatrix': tileGrid.getMatrixId(tileCoord[0]),
-              'TileCol': tileCoord[1],
-              'TileRow': -tileCoord[2] - 1
-            };
-            ol.obj.assign(localContext, dimensions);
-            var url = template;
-            if (requestEncoding == ol.source.WMTSRequestEncoding.KVP) {
-              url = ol.uri.appendParams(url, localContext);
-            } else {
-              url = url.replace(/\{(\w+?)\}/g, function(m, p) {
-                return localContext[p];
-              });
-            }
-            return url;
+            url = url.replace(/\{(\w+?)\}/g, function(m, p) {
+              return localContext[p];
+            });
           }
-        });
+          return url;
+        }
+      });
   }
 
   var tileUrlFunction = (urls && urls.length > 0) ?
-      ol.TileUrlFunction.createFromTileUrlFunctions(
-          urls.map(createFromWMTSTemplate)) :
-      ol.TileUrlFunction.nullTileUrlFunction;
+    ol.TileUrlFunction.createFromTileUrlFunctions(
+        urls.map(createFromWMTSTemplate)) :
+    ol.TileUrlFunction.nullTileUrlFunction;
 
   ol.source.TileImage.call(this, {
     attributions: options.attributions,
@@ -76934,7 +80018,8 @@ ol.source.WMTS.prototype.updateDimensions = function(dimensions) {
  *  - style - {string} The name of the style
  *  - format - {string} Image format for the layer. Default is the first
  *       format returned in the GetCapabilities response.
- * @return {olx.source.WMTSOptions} WMTS source options object.
+ *  - crossOrigin - {string|null|undefined} Cross origin. Default is `undefined`.
+ * @return {?olx.source.WMTSOptions} WMTS source options object or `null` if the layer was not found.
  * @api
  */
 ol.source.WMTS.optionsFromCapabilities = function(wmtsCap, config) {
@@ -76942,6 +80027,9 @@ ol.source.WMTS.optionsFromCapabilities = function(wmtsCap, config) {
   var l = ol.array.find(layers, function(elt, index, array) {
     return elt['Identifier'] == config['layer'];
   });
+  if (l === null) {
+    return null;
+  }
   var tileMatrixSets = wmtsCap['Contents']['TileMatrixSet'];
   var idx, matrixSet, matrixLimits;
   if (l['TileMatrixSetLink'].length > 1) {
@@ -76973,9 +80061,9 @@ ol.source.WMTS.optionsFromCapabilities = function(wmtsCap, config) {
     idx = 0;
   }
   matrixSet = /** @type {string} */
-      (l['TileMatrixSetLink'][idx]['TileMatrixSet']);
+    (l['TileMatrixSetLink'][idx]['TileMatrixSet']);
   matrixLimits = /** @type {Array.<Object>} */
-      (l['TileMatrixSetLink'][idx]['TileMatrixSetLimits']);
+    (l['TileMatrixSetLink'][idx]['TileMatrixSetLimits']);
 
   var format = /** @type {string} */ (l['Format'][0]);
   if ('format' in config) {
@@ -77086,7 +80174,8 @@ ol.source.WMTS.optionsFromCapabilities = function(wmtsCap, config) {
     tileGrid: tileGrid,
     style: style,
     dimensions: dimensions,
-    wrapX: wrapX
+    wrapX: wrapX,
+    crossOrigin: config['crossOrigin']
   };
 };
 
@@ -77118,8 +80207,8 @@ ol.source.Zoomify = function(opt_options) {
 
   var size = options.size;
   var tierSizeCalculation = options.tierSizeCalculation !== undefined ?
-      options.tierSizeCalculation :
-      ol.source.Zoomify.TierSizeCalculation_.DEFAULT;
+    options.tierSizeCalculation :
+    ol.source.Zoomify.TierSizeCalculation_.DEFAULT;
 
   var imageWidth = size[0];
   var imageHeight = size[1];
@@ -77296,407 +80385,6 @@ ol.source.Zoomify.TierSizeCalculation_ = {
   TRUNCATED: 'truncated'
 };
 
-goog.provide('ol.style.Atlas');
-
-goog.require('ol.dom');
-
-
-/**
- * This class facilitates the creation of image atlases.
- *
- * Images added to an atlas will be rendered onto a single
- * atlas canvas. The distribution of images on the canvas is
- * managed with the bin packing algorithm described in:
- * http://www.blackpawn.com/texts/lightmaps/
- *
- * @constructor
- * @struct
- * @param {number} size The size in pixels of the sprite image.
- * @param {number} space The space in pixels between images.
- *    Because texture coordinates are float values, the edges of
- *    images might not be completely correct (in a way that the
- *    edges overlap when being rendered). To avoid this we add a
- *    padding around each image.
- */
-ol.style.Atlas = function(size, space) {
-
-  /**
-   * @private
-   * @type {number}
-   */
-  this.space_ = space;
-
-  /**
-   * @private
-   * @type {Array.<ol.AtlasBlock>}
-   */
-  this.emptyBlocks_ = [{x: 0, y: 0, width: size, height: size}];
-
-  /**
-   * @private
-   * @type {Object.<string, ol.AtlasInfo>}
-   */
-  this.entries_ = {};
-
-  /**
-   * @private
-   * @type {CanvasRenderingContext2D}
-   */
-  this.context_ = ol.dom.createCanvasContext2D(size, size);
-
-  /**
-   * @private
-   * @type {HTMLCanvasElement}
-   */
-  this.canvas_ = this.context_.canvas;
-};
-
-
-/**
- * @param {string} id The identifier of the entry to check.
- * @return {?ol.AtlasInfo} The atlas info.
- */
-ol.style.Atlas.prototype.get = function(id) {
-  return this.entries_[id] || null;
-};
-
-
-/**
- * @param {string} id The identifier of the entry to add.
- * @param {number} width The width.
- * @param {number} height The height.
- * @param {function(CanvasRenderingContext2D, number, number)} renderCallback
- *    Called to render the new image onto an atlas image.
- * @param {Object=} opt_this Value to use as `this` when executing
- *    `renderCallback`.
- * @return {?ol.AtlasInfo} The position and atlas image for the entry.
- */
-ol.style.Atlas.prototype.add = function(id, width, height, renderCallback, opt_this) {
-  var block, i, ii;
-  for (i = 0, ii = this.emptyBlocks_.length; i < ii; ++i) {
-    block = this.emptyBlocks_[i];
-    if (block.width >= width + this.space_ &&
-        block.height >= height + this.space_) {
-      // we found a block that is big enough for our entry
-      var entry = {
-        offsetX: block.x + this.space_,
-        offsetY: block.y + this.space_,
-        image: this.canvas_
-      };
-      this.entries_[id] = entry;
-
-      // render the image on the atlas image
-      renderCallback.call(opt_this, this.context_,
-          block.x + this.space_, block.y + this.space_);
-
-      // split the block after the insertion, either horizontally or vertically
-      this.split_(i, block, width + this.space_, height + this.space_);
-
-      return entry;
-    }
-  }
-
-  // there is no space for the new entry in this atlas
-  return null;
-};
-
-
-/**
- * @private
- * @param {number} index The index of the block.
- * @param {ol.AtlasBlock} block The block to split.
- * @param {number} width The width of the entry to insert.
- * @param {number} height The height of the entry to insert.
- */
-ol.style.Atlas.prototype.split_ = function(index, block, width, height) {
-  var deltaWidth = block.width - width;
-  var deltaHeight = block.height - height;
-
-  /** @type {ol.AtlasBlock} */
-  var newBlock1;
-  /** @type {ol.AtlasBlock} */
-  var newBlock2;
-
-  if (deltaWidth > deltaHeight) {
-    // split vertically
-    // block right of the inserted entry
-    newBlock1 = {
-      x: block.x + width,
-      y: block.y,
-      width: block.width - width,
-      height: block.height
-    };
-
-    // block below the inserted entry
-    newBlock2 = {
-      x: block.x,
-      y: block.y + height,
-      width: width,
-      height: block.height - height
-    };
-    this.updateBlocks_(index, newBlock1, newBlock2);
-  } else {
-    // split horizontally
-    // block right of the inserted entry
-    newBlock1 = {
-      x: block.x + width,
-      y: block.y,
-      width: block.width - width,
-      height: height
-    };
-
-    // block below the inserted entry
-    newBlock2 = {
-      x: block.x,
-      y: block.y + height,
-      width: block.width,
-      height: block.height - height
-    };
-    this.updateBlocks_(index, newBlock1, newBlock2);
-  }
-};
-
-
-/**
- * Remove the old block and insert new blocks at the same array position.
- * The new blocks are inserted at the same position, so that splitted
- * blocks (that are potentially smaller) are filled first.
- * @private
- * @param {number} index The index of the block to remove.
- * @param {ol.AtlasBlock} newBlock1 The 1st block to add.
- * @param {ol.AtlasBlock} newBlock2 The 2nd block to add.
- */
-ol.style.Atlas.prototype.updateBlocks_ = function(index, newBlock1, newBlock2) {
-  var args = [index, 1];
-  if (newBlock1.width > 0 && newBlock1.height > 0) {
-    args.push(newBlock1);
-  }
-  if (newBlock2.width > 0 && newBlock2.height > 0) {
-    args.push(newBlock2);
-  }
-  this.emptyBlocks_.splice.apply(this.emptyBlocks_, args);
-};
-
-goog.provide('ol.style.AtlasManager');
-
-goog.require('ol');
-goog.require('ol.style.Atlas');
-
-
-/**
- * Manages the creation of image atlases.
- *
- * Images added to this manager will be inserted into an atlas, which
- * will be used for rendering.
- * The `size` given in the constructor is the size for the first
- * atlas. After that, when new atlases are created, they will have
- * twice the size as the latest atlas (until `maxSize` is reached).
- *
- * If an application uses many images or very large images, it is recommended
- * to set a higher `size` value to avoid the creation of too many atlases.
- *
- * @constructor
- * @struct
- * @api
- * @param {olx.style.AtlasManagerOptions=} opt_options Options.
- */
-ol.style.AtlasManager = function(opt_options) {
-
-  var options = opt_options || {};
-
-  /**
-   * The size in pixels of the latest atlas image.
-   * @private
-   * @type {number}
-   */
-  this.currentSize_ = options.initialSize !== undefined ?
-      options.initialSize : ol.INITIAL_ATLAS_SIZE;
-
-  /**
-   * The maximum size in pixels of atlas images.
-   * @private
-   * @type {number}
-   */
-  this.maxSize_ = options.maxSize !== undefined ?
-      options.maxSize : ol.MAX_ATLAS_SIZE != -1 ?
-          ol.MAX_ATLAS_SIZE : ol.WEBGL_MAX_TEXTURE_SIZE !== undefined ?
-              ol.WEBGL_MAX_TEXTURE_SIZE : 2048;
-
-  /**
-   * The size in pixels between images.
-   * @private
-   * @type {number}
-   */
-  this.space_ = options.space !== undefined ? options.space : 1;
-
-  /**
-   * @private
-   * @type {Array.<ol.style.Atlas>}
-   */
-  this.atlases_ = [new ol.style.Atlas(this.currentSize_, this.space_)];
-
-  /**
-   * The size in pixels of the latest atlas image for hit-detection images.
-   * @private
-   * @type {number}
-   */
-  this.currentHitSize_ = this.currentSize_;
-
-  /**
-   * @private
-   * @type {Array.<ol.style.Atlas>}
-   */
-  this.hitAtlases_ = [new ol.style.Atlas(this.currentHitSize_, this.space_)];
-};
-
-
-/**
- * @param {string} id The identifier of the entry to check.
- * @return {?ol.AtlasManagerInfo} The position and atlas image for the
- *    entry, or `null` if the entry is not part of the atlas manager.
- */
-ol.style.AtlasManager.prototype.getInfo = function(id) {
-  /** @type {?ol.AtlasInfo} */
-  var info = this.getInfo_(this.atlases_, id);
-
-  if (!info) {
-    return null;
-  }
-  var hitInfo = /** @type {ol.AtlasInfo} */ (this.getInfo_(this.hitAtlases_, id));
-
-  return this.mergeInfos_(info, hitInfo);
-};
-
-
-/**
- * @private
- * @param {Array.<ol.style.Atlas>} atlases The atlases to search.
- * @param {string} id The identifier of the entry to check.
- * @return {?ol.AtlasInfo} The position and atlas image for the entry,
- *    or `null` if the entry is not part of the atlases.
- */
-ol.style.AtlasManager.prototype.getInfo_ = function(atlases, id) {
-  var atlas, info, i, ii;
-  for (i = 0, ii = atlases.length; i < ii; ++i) {
-    atlas = atlases[i];
-    info = atlas.get(id);
-    if (info) {
-      return info;
-    }
-  }
-  return null;
-};
-
-
-/**
- * @private
- * @param {ol.AtlasInfo} info The info for the real image.
- * @param {ol.AtlasInfo} hitInfo The info for the hit-detection
- *    image.
- * @return {?ol.AtlasManagerInfo} The position and atlas image for the
- *    entry, or `null` if the entry is not part of the atlases.
- */
-ol.style.AtlasManager.prototype.mergeInfos_ = function(info, hitInfo) {
-  return /** @type {ol.AtlasManagerInfo} */ ({
-    offsetX: info.offsetX,
-    offsetY: info.offsetY,
-    image: info.image,
-    hitImage: hitInfo.image
-  });
-};
-
-
-/**
- * Add an image to the atlas manager.
- *
- * If an entry for the given id already exists, the entry will
- * be overridden (but the space on the atlas graphic will not be freed).
- *
- * If `renderHitCallback` is provided, the image (or the hit-detection version
- * of the image) will be rendered into a separate hit-detection atlas image.
- *
- * @param {string} id The identifier of the entry to add.
- * @param {number} width The width.
- * @param {number} height The height.
- * @param {function(CanvasRenderingContext2D, number, number)} renderCallback
- *    Called to render the new image onto an atlas image.
- * @param {function(CanvasRenderingContext2D, number, number)=}
- *    opt_renderHitCallback Called to render a hit-detection image onto a hit
- *    detection atlas image.
- * @param {Object=} opt_this Value to use as `this` when executing
- *    `renderCallback` and `renderHitCallback`.
- * @return {?ol.AtlasManagerInfo}  The position and atlas image for the
- *    entry, or `null` if the image is too big.
- */
-ol.style.AtlasManager.prototype.add = function(id, width, height,
-        renderCallback, opt_renderHitCallback, opt_this) {
-  if (width + this.space_ > this.maxSize_ ||
-      height + this.space_ > this.maxSize_) {
-    return null;
-  }
-
-  /** @type {?ol.AtlasInfo} */
-  var info = this.add_(false,
-      id, width, height, renderCallback, opt_this);
-  if (!info) {
-    return null;
-  }
-
-  // even if no hit-detection entry is requested, we insert a fake entry into
-  // the hit-detection atlas, to make sure that the offset is the same for
-  // the original image and the hit-detection image.
-  var renderHitCallback = opt_renderHitCallback !== undefined ?
-      opt_renderHitCallback : ol.nullFunction;
-
-  var hitInfo = /** @type {ol.AtlasInfo} */ (this.add_(true,
-      id, width, height, renderHitCallback, opt_this));
-
-  return this.mergeInfos_(info, hitInfo);
-};
-
-
-/**
- * @private
- * @param {boolean} isHitAtlas If the hit-detection atlases are used.
- * @param {string} id The identifier of the entry to add.
- * @param {number} width The width.
- * @param {number} height The height.
- * @param {function(CanvasRenderingContext2D, number, number)} renderCallback
- *    Called to render the new image onto an atlas image.
- * @param {Object=} opt_this Value to use as `this` when executing
- *    `renderCallback` and `renderHitCallback`.
- * @return {?ol.AtlasInfo}  The position and atlas image for the entry,
- *    or `null` if the image is too big.
- */
-ol.style.AtlasManager.prototype.add_ = function(isHitAtlas, id, width, height,
-        renderCallback, opt_this) {
-  var atlases = (isHitAtlas) ? this.hitAtlases_ : this.atlases_;
-  var atlas, info, i, ii;
-  for (i = 0, ii = atlases.length; i < ii; ++i) {
-    atlas = atlases[i];
-    info = atlas.add(id, width, height, renderCallback, opt_this);
-    if (info) {
-      return info;
-    } else if (!info && i === ii - 1) {
-      // the entry could not be added to one of the existing atlases,
-      // create a new atlas that is twice as big and try to add to this one.
-      var size;
-      if (isHitAtlas) {
-        size = Math.min(this.currentHitSize_ * 2, this.maxSize_);
-        this.currentHitSize_ = size;
-      } else {
-        size = Math.min(this.currentSize_ * 2, this.maxSize_);
-        this.currentSize_ = size;
-      }
-      atlas = new ol.style.Atlas(size, this.space_);
-      atlases.push(atlas);
-      // run the loop another time
-      ++ii;
-    }
-  }
-  return null;
-};
-
 // Copyright 2009 The Closure Library Authors.
 // All Rights Reserved.
 //
@@ -77812,6 +80500,7 @@ goog.require('ol.format.filter.And');
 goog.require('ol.format.filter.Bbox');
 goog.require('ol.format.filter.Comparison');
 goog.require('ol.format.filter.ComparisonBinary');
+goog.require('ol.format.filter.During');
 goog.require('ol.format.filter.EqualTo');
 goog.require('ol.format.filter.Filter');
 goog.require('ol.format.filter.GreaterThan');
@@ -78160,6 +80849,11 @@ goog.exportSymbol(
     OPENLAYERS);
 
 goog.exportSymbol(
+    'ol.extent.getArea',
+    ol.extent.getArea,
+    OPENLAYERS);
+
+goog.exportSymbol(
     'ol.extent.getBottomLeft',
     ol.extent.getBottomLeft,
     OPENLAYERS);
@@ -78478,6 +81172,11 @@ goog.exportProperty(
     ol.Map.prototype,
     'forEachFeatureAtPixel',
     ol.Map.prototype.forEachFeatureAtPixel);
+
+goog.exportProperty(
+    ol.Map.prototype,
+    'getFeaturesAtPixel',
+    ol.Map.prototype.getFeaturesAtPixel);
 
 goog.exportProperty(
     ol.Map.prototype,
@@ -78906,6 +81605,21 @@ goog.exportProperty(
 
 goog.exportProperty(
     ol.VectorTile.prototype,
+    'getFeatures',
+    ol.VectorTile.prototype.getFeatures);
+
+goog.exportProperty(
+    ol.VectorTile.prototype,
+    'getProjection',
+    ol.VectorTile.prototype.getProjection);
+
+goog.exportProperty(
+    ol.VectorTile.prototype,
+    'setExtent',
+    ol.VectorTile.prototype.setExtent);
+
+goog.exportProperty(
+    ol.VectorTile.prototype,
     'setFeatures',
     ol.VectorTile.prototype.setFeatures);
 
@@ -78928,6 +81642,21 @@ goog.exportProperty(
     ol.View.prototype,
     'animate',
     ol.View.prototype.animate);
+
+goog.exportProperty(
+    ol.View.prototype,
+    'getAnimating',
+    ol.View.prototype.getAnimating);
+
+goog.exportProperty(
+    ol.View.prototype,
+    'getInteracting',
+    ol.View.prototype.getInteracting);
+
+goog.exportProperty(
+    ol.View.prototype,
+    'cancelAnimations',
+    ol.View.prototype.cancelAnimations);
 
 goog.exportProperty(
     ol.View.prototype,
@@ -78966,6 +81695,26 @@ goog.exportProperty(
 
 goog.exportProperty(
     ol.View.prototype,
+    'getMaxZoom',
+    ol.View.prototype.getMaxZoom);
+
+goog.exportProperty(
+    ol.View.prototype,
+    'setMaxZoom',
+    ol.View.prototype.setMaxZoom);
+
+goog.exportProperty(
+    ol.View.prototype,
+    'getMinZoom',
+    ol.View.prototype.getMinZoom);
+
+goog.exportProperty(
+    ol.View.prototype,
+    'setMinZoom',
+    ol.View.prototype.setMinZoom);
+
+goog.exportProperty(
+    ol.View.prototype,
     'getProjection',
     ol.View.prototype.getProjection);
 
@@ -78981,6 +81730,11 @@ goog.exportProperty(
 
 goog.exportProperty(
     ol.View.prototype,
+    'getResolutionForExtent',
+    ol.View.prototype.getResolutionForExtent);
+
+goog.exportProperty(
+    ol.View.prototype,
     'getRotation',
     ol.View.prototype.getRotation);
 
@@ -78988,6 +81742,16 @@ goog.exportProperty(
     ol.View.prototype,
     'getZoom',
     ol.View.prototype.getZoom);
+
+goog.exportProperty(
+    ol.View.prototype,
+    'getZoomForResolution',
+    ol.View.prototype.getZoomForResolution);
+
+goog.exportProperty(
+    ol.View.prototype,
+    'getResolutionForZoom',
+    ol.View.prototype.getResolutionForZoom);
 
 goog.exportProperty(
     ol.View.prototype,
@@ -79396,6 +82160,16 @@ goog.exportProperty(
 
 goog.exportProperty(
     ol.style.Style.prototype,
+    'getRenderer',
+    ol.style.Style.prototype.getRenderer);
+
+goog.exportProperty(
+    ol.style.Style.prototype,
+    'setRenderer',
+    ol.style.Style.prototype.setRenderer);
+
+goog.exportProperty(
+    ol.style.Style.prototype,
     'getGeometry',
     ol.style.Style.prototype.getGeometry);
 
@@ -79618,6 +82392,11 @@ goog.exportSymbol(
     'ol.source.Cluster',
     ol.source.Cluster,
     OPENLAYERS);
+
+goog.exportProperty(
+    ol.source.Cluster.prototype,
+    'getDistance',
+    ol.source.Cluster.prototype.getDistance);
 
 goog.exportProperty(
     ol.source.Cluster.prototype,
@@ -80166,6 +82945,11 @@ goog.exportProperty(
 
 goog.exportProperty(
     ol.render.Feature.prototype,
+    'getId',
+    ol.render.Feature.prototype.getId);
+
+goog.exportProperty(
+    ol.render.Feature.prototype,
     'getGeometry',
     ol.render.Feature.prototype.getGeometry);
 
@@ -80509,6 +83293,11 @@ goog.exportProperty(
     'setUseInterimTilesOnError',
     ol.layer.VectorTile.prototype.setUseInterimTilesOnError);
 
+goog.exportProperty(
+    ol.layer.VectorTile.prototype,
+    'getSource',
+    ol.layer.VectorTile.prototype.getSource);
+
 goog.exportSymbol(
     'ol.interaction.DoubleClickZoom',
     ol.interaction.DoubleClickZoom,
@@ -80641,8 +83430,8 @@ goog.exportProperty(
 
 goog.exportProperty(
     ol.interaction.Extent.Event.prototype,
-    'extent_',
-    ol.interaction.Extent.Event.prototype.extent_);
+    'extent',
+    ol.interaction.Extent.Event.prototype.extent);
 
 goog.exportSymbol(
     'ol.interaction.Interaction',
@@ -81470,6 +84259,11 @@ goog.exportSymbol(
     OPENLAYERS);
 
 goog.exportSymbol(
+    'ol.format.filter.during',
+    ol.format.filter.during,
+    OPENLAYERS);
+
+goog.exportSymbol(
     'ol.format.GeoJSON',
     ol.format.GeoJSON,
     OPENLAYERS);
@@ -81676,6 +84470,11 @@ goog.exportSymbol(
 
 goog.exportProperty(
     ol.format.MVT.prototype,
+    'getLastExtent',
+    ol.format.MVT.prototype.getLastExtent);
+
+goog.exportProperty(
+    ol.format.MVT.prototype,
     'readFeatures',
     ol.format.MVT.prototype.readFeatures);
 
@@ -81789,6 +84588,11 @@ goog.exportProperty(
     'readFeatureCollectionMetadata',
     ol.format.WFS.prototype.readFeatureCollectionMetadata);
 
+goog.exportSymbol(
+    'ol.format.WFS.writeFilter',
+    ol.format.WFS.writeFilter,
+    OPENLAYERS);
+
 goog.exportProperty(
     ol.format.WFS.prototype,
     'writeGetFeature',
@@ -81887,6 +84691,11 @@ goog.exportSymbol(
 goog.exportSymbol(
     'ol.format.filter.ComparisonBinary',
     ol.format.filter.ComparisonBinary,
+    OPENLAYERS);
+
+goog.exportSymbol(
+    'ol.format.filter.During',
+    ol.format.filter.During,
     OPENLAYERS);
 
 goog.exportSymbol(
@@ -82763,6 +85572,16 @@ goog.exportProperty(
     ol.Overlay.prototype,
     'un',
     ol.Overlay.prototype.un);
+
+goog.exportProperty(
+    ol.VectorImageTile.prototype,
+    'getTileCoord',
+    ol.VectorImageTile.prototype.getTileCoord);
+
+goog.exportProperty(
+    ol.VectorImageTile.prototype,
+    'load',
+    ol.VectorImageTile.prototype.load);
 
 goog.exportProperty(
     ol.VectorTile.prototype,
@@ -87421,11 +90240,6 @@ goog.exportProperty(
 
 goog.exportProperty(
     ol.layer.VectorTile.prototype,
-    'getSource',
-    ol.layer.VectorTile.prototype.getSource);
-
-goog.exportProperty(
-    ol.layer.VectorTile.prototype,
     'getStyle',
     ol.layer.VectorTile.prototype.getStyle);
 
@@ -91073,15 +93887,15 @@ goog.exportProperty(
     ol.control.ZoomToExtent.prototype,
     'un',
     ol.control.ZoomToExtent.prototype.un);
-ol.VERSION = 'v4.0.1';
+ol.VERSION = 'v4.3.1';
 OPENLAYERS.ol = ol;
 
   return OPENLAYERS.ol;
 }));
 
-!function(a,b){"object"==typeof exports&&"undefined"!=typeof module?module.exports=b():"function"==typeof define&&define.amd?define(b):a.proj4=b()}(this,function(){"use strict";function a(a,b){if(a[b])return a[b];for(var c,d,e=Object.keys(a),f=b.toLowerCase().replace(Ob,""),g=-1;++g<e.length;)if(c=e[g],d=c.toLowerCase().replace(Ob,""),d===f)return a[c]}function b(a){if("string"!=typeof a)throw new Error("not a string");this.text=a.trim(),this.level=0,this.place=0,this.root=null,this.stack=[],this.currentObject=null,this.state=Qb}function c(a){var c=new b(a);return c.output()}function d(a,b,c){Array.isArray(b)&&(c.unshift(b),b=null);var d=b?{}:a,f=c.reduce(function(a,b){return e(b,a),a},d);b&&(a[b]=f)}function e(a,b){if(!Array.isArray(a))return void(b[a]=!0);var c=a.shift();if("PARAMETER"===c&&(c=a.shift()),1===a.length)return Array.isArray(a[0])?(b[c]={},void e(a[0],b[c])):void(b[c]=a[0]);if(!a.length)return void(b[c]=!0);if("TOWGS84"===c)return void(b[c]=a);Array.isArray(c)||(b[c]={});var f;switch(c){case"UNIT":case"PRIMEM":case"VERT_DATUM":return b[c]={name:a[0].toLowerCase(),convert:a[1]},void(3===a.length&&e(a[2],b[c]));case"SPHEROID":case"ELLIPSOID":return b[c]={name:a[0],a:a[1],rf:a[2]},void(4===a.length&&e(a[3],b[c]));case"PROJECTEDCRS":case"PROJCRS":case"GEOGCS":case"GEOCCS":case"PROJCS":case"LOCAL_CS":case"GEODCRS":case"GEODETICCRS":case"GEODETICDATUM":case"EDATUM":case"ENGINEERINGDATUM":case"VERT_CS":case"VERTCRS":case"VERTICALCRS":case"COMPD_CS":case"COMPOUNDCRS":case"ENGINEERINGCRS":case"ENGCRS":case"FITTED_CS":case"LOCAL_DATUM":case"DATUM":return a[0]=["name",a[0]],void d(b,c,a);default:for(f=-1;++f<a.length;)if(!Array.isArray(a[f]))return e(a,b[c]);return d(b,c,a)}}function f(a,b){var c=b[0],d=b[1];!(c in a)&&d in a&&(a[c]=a[d],3===b.length&&(a[c]=b[2](a[c])))}function g(a){return a*_b}function h(a){function b(b){var c=a.to_meter||1;return b*c}"GEOGCS"===a.type?a.projName="longlat":"LOCAL_CS"===a.type?(a.projName="identity",a.local=!0):"object"==typeof a.PROJECTION?a.projName=Object.keys(a.PROJECTION)[0]:a.projName=a.PROJECTION,a.UNIT&&(a.units=a.UNIT.name.toLowerCase(),"metre"===a.units&&(a.units="meter"),a.UNIT.convert&&("GEOGCS"===a.type?a.DATUM&&a.DATUM.SPHEROID&&(a.to_meter=a.UNIT.convert*a.DATUM.SPHEROID.a):(a.to_meter=a.UNIT.convert,10)));var c=a.GEOGCS;"GEOGCS"===a.type&&(c=a),c&&(c.DATUM?a.datumCode=c.DATUM.name.toLowerCase():a.datumCode=c.name.toLowerCase(),"d_"===a.datumCode.slice(0,2)&&(a.datumCode=a.datumCode.slice(2)),"new_zealand_geodetic_datum_1949"!==a.datumCode&&"new_zealand_1949"!==a.datumCode||(a.datumCode="nzgd49"),"wgs_1984"===a.datumCode&&("Mercator_Auxiliary_Sphere"===a.PROJECTION&&(a.sphere=!0),a.datumCode="wgs84"),"_ferro"===a.datumCode.slice(-6)&&(a.datumCode=a.datumCode.slice(0,-6)),"_jakarta"===a.datumCode.slice(-8)&&(a.datumCode=a.datumCode.slice(0,-8)),~a.datumCode.indexOf("belge")&&(a.datumCode="rnb72"),c.DATUM&&c.DATUM.SPHEROID&&(a.ellps=c.DATUM.SPHEROID.name.replace("_19","").replace(/[Cc]larke\_18/,"clrk"),"international"===a.ellps.toLowerCase().slice(0,13)&&(a.ellps="intl"),a.a=c.DATUM.SPHEROID.a,a.rf=parseFloat(c.DATUM.SPHEROID.rf,10)),~a.datumCode.indexOf("osgb_1936")&&(a.datumCode="osgb36")),a.b&&!isFinite(a.b)&&(a.b=a.a);var d=function(b){return f(a,b)},e=[["standard_parallel_1","Standard_Parallel_1"],["standard_parallel_2","Standard_Parallel_2"],["false_easting","False_Easting"],["false_northing","False_Northing"],["central_meridian","Central_Meridian"],["latitude_of_origin","Latitude_Of_Origin"],["latitude_of_origin","Central_Parallel"],["scale_factor","Scale_Factor"],["k0","scale_factor"],["latitude_of_center","Latitude_of_center"],["lat0","latitude_of_center",g],["longitude_of_center","Longitude_Of_Center"],["longc","longitude_of_center",g],["x0","false_easting",b],["y0","false_northing",b],["long0","central_meridian",g],["lat0","latitude_of_origin",g],["lat0","standard_parallel_1",g],["lat1","standard_parallel_1",g],["lat2","standard_parallel_2",g],["alpha","azimuth",g],["srsCode","name"]];e.forEach(d),a.long0||!a.longc||"Albers_Conic_Equal_Area"!==a.projName&&"Lambert_Azimuthal_Equal_Area"!==a.projName||(a.long0=a.longc),a.lat_ts||!a.lat1||"Stereographic_South_Pole"!==a.projName&&"Polar Stereographic (variant B)"!==a.projName||(a.lat0=g(a.lat1>0?90:-90),a.lat_ts=a.lat1)}function i(a){var b=this;if(2===arguments.length){var c=arguments[1];"string"==typeof c?"+"===c.charAt(0)?i[a]=Pb(arguments[1]):i[a]=ac(arguments[1]):i[a]=c}else if(1===arguments.length){if(Array.isArray(a))return a.map(function(a){Array.isArray(a)?i.apply(b,a):i(a)});if("string"==typeof a){if(a in i)return i[a]}else"EPSG"in a?i["EPSG:"+a.EPSG]=a:"ESRI"in a?i["ESRI:"+a.ESRI]=a:"IAU2000"in a?i["IAU2000:"+a.IAU2000]=a:console.log(a);return}}function j(a){return"string"==typeof a}function k(a){return a in i}function l(a){return bc.some(function(b){return a.indexOf(b)>-1})}function m(a){return"+"===a[0]}function n(a){return j(a)?k(a)?i[a]:l(a)?ac(a):m(a)?Pb(a):void 0:a}function o(){var a=this.b/this.a;this.es=1-a*a,"x0"in this||(this.x0=0),"y0"in this||(this.y0=0),this.e=Math.sqrt(this.es),this.lat_ts?this.sphere?this.k0=Math.cos(this.lat_ts):this.k0=dc(this.e,Math.sin(this.lat_ts),Math.cos(this.lat_ts)):this.k0||(this.k?this.k0=this.k:this.k0=1)}function p(a){var b=a.x,c=a.y;if(c*Ib>90&&c*Ib<-90&&b*Ib>180&&b*Ib<-180)return null;var d,e;if(Math.abs(Math.abs(c)-Cb)<=Gb)return null;if(this.sphere)d=this.x0+this.a*this.k0*fc(b-this.long0),e=this.y0+this.a*this.k0*Math.log(Math.tan(Jb+.5*c));else{var f=Math.sin(c),g=gc(this.e,c,f);d=this.x0+this.a*this.k0*fc(b-this.long0),e=this.y0-this.a*this.k0*Math.log(g)}return a.x=d,a.y=e,a}function q(a){var b,c,d=a.x-this.x0,e=a.y-this.y0;if(this.sphere)c=Cb-2*Math.atan(Math.exp(-e/(this.a*this.k0)));else{var f=Math.exp(-e/(this.a*this.k0));if(c=hc(this.e,f),c===-9999)return null}return b=fc(this.long0+d/(this.a*this.k0)),a.x=b,a.y=c,a}function r(){}function s(a){return a}function t(a,b){var c=oc.length;return a.names?(oc[c]=a,a.names.forEach(function(a){nc[a.toLowerCase()]=c}),this):(console.log(b),!0)}function u(a){if(!a)return!1;var b=a.toLowerCase();return"undefined"!=typeof nc[b]&&oc[nc[b]]?oc[nc[b]]:void 0}function v(){mc.forEach(t)}function w(a,b,c,d){var e=a*a,f=b*b,g=(e-f)/e,h=0;d?(a*=1-g*(Db+g*(Eb+g*Fb)),e=a*a,g=0):h=Math.sqrt(g);var i=(e-f)/f;return{es:g,e:h,ep2:i}}function x(b,c,d,e,f){if(!b){var g=a(qc,e);g||(g=rc),b=g.a,c=g.b,d=g.rf}return d&&!c&&(c=(1-1/d)*b),(0===d||Math.abs(b-c)<Gb)&&(f=!0,c=b),{a:b,b:c,rf:d,sphere:f}}function y(a,b,c,d,e,f){var g={};return void 0===a||"none"===a?g.datum_type=Ab:g.datum_type=zb,b&&(g.datum_params=b.map(parseFloat),0===g.datum_params[0]&&0===g.datum_params[1]&&0===g.datum_params[2]||(g.datum_type=xb),g.datum_params.length>3&&(0===g.datum_params[3]&&0===g.datum_params[4]&&0===g.datum_params[5]&&0===g.datum_params[6]||(g.datum_type=yb,g.datum_params[3]*=Bb,g.datum_params[4]*=Bb,g.datum_params[5]*=Bb,g.datum_params[6]=g.datum_params[6]/1e6+1))),g.a=c,g.b=d,g.es=e,g.ep2=f,g}function z(b,c){if(!(this instanceof z))return new z(b);c=c||function(a){if(a)throw a};var d=n(b);if("object"!=typeof d)return void c(b);var e=z.projections.get(d.projName);if(!e)return void c(b);if(d.datumCode&&"none"!==d.datumCode){var f=a(sc,d.datumCode);f&&(d.datum_params=f.towgs84?f.towgs84.split(","):null,d.ellps=f.ellipse,d.datumName=f.datumName?f.datumName:d.datumCode)}d.k0=d.k0||1,d.axis=d.axis||"enu",d.ellps=d.ellps||"wgs84";var g=x(d.a,d.b,d.rf,d.ellps,d.sphere),h=w(g.a,g.b,g.rf,d.R_A),i=d.datum||y(d.datumCode,d.datum_params,g.a,g.b,h.es,h.ep2);cc(this,d),cc(this,e),this.a=g.a,this.b=g.b,this.rf=g.rf,this.sphere=g.sphere,this.es=h.es,this.e=h.e,this.ep2=h.ep2,this.datum=i,this.init(),c(null,this)}function A(a,b){return a.datum_type===b.datum_type&&(!(a.a!==b.a||Math.abs(a.es-b.es)>5e-11)&&(a.datum_type===xb?a.datum_params[0]===b.datum_params[0]&&a.datum_params[1]===b.datum_params[1]&&a.datum_params[2]===b.datum_params[2]:a.datum_type!==yb||a.datum_params[0]===b.datum_params[0]&&a.datum_params[1]===b.datum_params[1]&&a.datum_params[2]===b.datum_params[2]&&a.datum_params[3]===b.datum_params[3]&&a.datum_params[4]===b.datum_params[4]&&a.datum_params[5]===b.datum_params[5]&&a.datum_params[6]===b.datum_params[6]))}function B(a,b,c){var d,e,f,g,h=a.x,i=a.y,j=a.z?a.z:0;if(i<-Cb&&i>-1.001*Cb)i=-Cb;else if(i>Cb&&i<1.001*Cb)i=Cb;else if(i<-Cb||i>Cb)return null;return h>Math.PI&&(h-=2*Math.PI),e=Math.sin(i),g=Math.cos(i),f=e*e,d=c/Math.sqrt(1-b*f),{x:(d+j)*g*Math.cos(h),y:(d+j)*g*Math.sin(h),z:(d*(1-b)+j)*e}}function C(a,b,c,d){var e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u=1e-12,v=u*u,w=30,x=a.x,y=a.y,z=a.z?a.z:0;if(e=Math.sqrt(x*x+y*y),f=Math.sqrt(x*x+y*y+z*z),e/c<u){if(r=0,f/c<u)return s=Cb,t=-d,{x:a.x,y:a.y,z:a.z}}else r=Math.atan2(y,x);g=z/f,h=e/f,i=1/Math.sqrt(1-b*(2-b)*h*h),l=h*(1-b)*i,m=g*i,q=0;do q++,k=c/Math.sqrt(1-b*m*m),t=e*l+z*m-k*(1-b*m*m),j=b*k/(k+t),i=1/Math.sqrt(1-j*(2-j)*h*h),n=h*(1-j)*i,o=g*i,p=o*l-n*m,l=n,m=o;while(p*p>v&&q<w);return s=Math.atan(o/Math.abs(n)),{x:r,y:s,z:t}}function D(a,b,c){if(b===xb)return{x:a.x+c[0],y:a.y+c[1],z:a.z+c[2]};if(b===yb){var d=c[0],e=c[1],f=c[2],g=c[3],h=c[4],i=c[5],j=c[6];return{x:j*(a.x-i*a.y+h*a.z)+d,y:j*(i*a.x+a.y-g*a.z)+e,z:j*(-h*a.x+g*a.y+a.z)+f}}}function E(a,b,c){if(b===xb)return{x:a.x-c[0],y:a.y-c[1],z:a.z-c[2]};if(b===yb){var d=c[0],e=c[1],f=c[2],g=c[3],h=c[4],i=c[5],j=c[6],k=(a.x-d)/j,l=(a.y-e)/j,m=(a.z-f)/j;return{x:k+i*l-h*m,y:-i*k+l+g*m,z:h*k-g*l+m}}}function F(a){return a===xb||a===yb}function G(a,b){return(a.datum.datum_type===xb||a.datum.datum_type===yb)&&"WGS84"!==b.datumCode||(b.datum.datum_type===xb||b.datum.datum_type===yb)&&"WGS84"!==a.datumCode}function H(a,b,c){var d;return Array.isArray(c)&&(c=vc(c)),a.datum&&b.datum&&G(a,b)&&(d=new z("WGS84"),c=H(a,d,c),a=d),"enu"!==a.axis&&(c=uc(a,!1,c)),"longlat"===a.projName?c={x:c.x*Hb,y:c.y*Hb}:(a.to_meter&&(c={x:c.x*a.to_meter,y:c.y*a.to_meter}),c=a.inverse(c)),a.from_greenwich&&(c.x+=a.from_greenwich),c=tc(a.datum,b.datum,c),b.from_greenwich&&(c={x:c.x-b.from_greenwich,y:c.y}),"longlat"===b.projName?c={x:c.x*Ib,y:c.y*Ib}:(c=b.forward(c),b.to_meter&&(c={x:c.x/b.to_meter,y:c.y/b.to_meter})),"enu"!==b.axis?uc(b,!0,c):c}function I(a,b,c){var d;return Array.isArray(c)?(d=H(a,b,c),3===c.length?[d.x,d.y,d.z]:[d.x,d.y]):H(a,b,c)}function J(a){return a instanceof z?a:a.oProj?a.oProj:z(a)}function K(a,b,c){a=J(a);var d,e=!1;return"undefined"==typeof b?(b=a,a=wc,e=!0):("undefined"!=typeof b.x||Array.isArray(b))&&(c=b,b=a,a=wc,e=!0),b=J(b),c?I(a,b,c):(d={forward:function(c){return I(a,b,c)},inverse:function(c){return I(b,a,c)}},e&&(d.oProj=b),d)}function L(a,b){return b=b||5,T(Q({lat:a[1],lon:a[0]}),b)}function M(a){var b=R(X(a.toUpperCase()));return b.lat&&b.lon?[b.lon,b.lat,b.lon,b.lat]:[b.left,b.bottom,b.right,b.top]}function N(a){var b=R(X(a.toUpperCase()));return b.lat&&b.lon?[b.lon,b.lat]:[(b.left+b.right)/2,(b.top+b.bottom)/2]}function O(a){return a*(Math.PI/180)}function P(a){return 180*(a/Math.PI)}function Q(a){var b,c,d,e,f,g,h,i,j,k=a.lat,l=a.lon,m=6378137,n=.00669438,o=.9996,p=O(k),q=O(l);j=Math.floor((l+180)/6)+1,180===l&&(j=60),k>=56&&k<64&&l>=3&&l<12&&(j=32),k>=72&&k<84&&(l>=0&&l<9?j=31:l>=9&&l<21?j=33:l>=21&&l<33?j=35:l>=33&&l<42&&(j=37)),b=6*(j-1)-180+3,i=O(b),c=n/(1-n),d=m/Math.sqrt(1-n*Math.sin(p)*Math.sin(p)),e=Math.tan(p)*Math.tan(p),f=c*Math.cos(p)*Math.cos(p),g=Math.cos(p)*(q-i),h=m*((1-n/4-3*n*n/64-5*n*n*n/256)*p-(3*n/8+3*n*n/32+45*n*n*n/1024)*Math.sin(2*p)+(15*n*n/256+45*n*n*n/1024)*Math.sin(4*p)-35*n*n*n/3072*Math.sin(6*p));var r=o*d*(g+(1-e+f)*g*g*g/6+(5-18*e+e*e+72*f-58*c)*g*g*g*g*g/120)+5e5,s=o*(h+d*Math.tan(p)*(g*g/2+(5-e+9*f+4*f*f)*g*g*g*g/24+(61-58*e+e*e+600*f-330*c)*g*g*g*g*g*g/720));return k<0&&(s+=1e7),{northing:Math.round(s),easting:Math.round(r),zoneNumber:j,zoneLetter:S(k)}}function R(a){var b=a.northing,c=a.easting,d=a.zoneLetter,e=a.zoneNumber;if(e<0||e>60)return null;var f,g,h,i,j,k,l,m,n,o,p=.9996,q=6378137,r=.00669438,s=(1-Math.sqrt(1-r))/(1+Math.sqrt(1-r)),t=c-5e5,u=b;d<"N"&&(u-=1e7),m=6*(e-1)-180+3,f=r/(1-r),l=u/p,n=l/(q*(1-r/4-3*r*r/64-5*r*r*r/256)),o=n+(3*s/2-27*s*s*s/32)*Math.sin(2*n)+(21*s*s/16-55*s*s*s*s/32)*Math.sin(4*n)+151*s*s*s/96*Math.sin(6*n),g=q/Math.sqrt(1-r*Math.sin(o)*Math.sin(o)),h=Math.tan(o)*Math.tan(o),i=f*Math.cos(o)*Math.cos(o),j=q*(1-r)/Math.pow(1-r*Math.sin(o)*Math.sin(o),1.5),k=t/(g*p);var v=o-g*Math.tan(o)/j*(k*k/2-(5+3*h+10*i-4*i*i-9*f)*k*k*k*k/24+(61+90*h+298*i+45*h*h-252*f-3*i*i)*k*k*k*k*k*k/720);v=P(v);var w=(k-(1+2*h+i)*k*k*k/6+(5-2*i+28*h-3*i*i+8*f+24*h*h)*k*k*k*k*k/120)/Math.cos(o);w=m+P(w);var x;if(a.accuracy){var y=R({northing:a.northing+a.accuracy,easting:a.easting+a.accuracy,zoneLetter:a.zoneLetter,zoneNumber:a.zoneNumber});x={top:y.lat,right:y.lon,bottom:v,left:w}}else x={lat:v,lon:w};return x}function S(a){var b="Z";return 84>=a&&a>=72?b="X":72>a&&a>=64?b="W":64>a&&a>=56?b="V":56>a&&a>=48?b="U":48>a&&a>=40?b="T":40>a&&a>=32?b="S":32>a&&a>=24?b="R":24>a&&a>=16?b="Q":16>a&&a>=8?b="P":8>a&&a>=0?b="N":0>a&&a>=-8?b="M":-8>a&&a>=-16?b="L":-16>a&&a>=-24?b="K":-24>a&&a>=-32?b="J":-32>a&&a>=-40?b="H":-40>a&&a>=-48?b="G":-48>a&&a>=-56?b="F":-56>a&&a>=-64?b="E":-64>a&&a>=-72?b="D":-72>a&&a>=-80&&(b="C"),b}function T(a,b){var c="00000"+a.easting,d="00000"+a.northing;return a.zoneNumber+a.zoneLetter+U(a.easting,a.northing,a.zoneNumber)+c.substr(c.length-5,b)+d.substr(d.length-5,b)}function U(a,b,c){var d=V(c),e=Math.floor(a/1e5),f=Math.floor(b/1e5)%20;return W(e,f,d)}function V(a){var b=a%xc;return 0===b&&(b=xc),b}function W(a,b,c){var d=c-1,e=yc.charCodeAt(d),f=zc.charCodeAt(d),g=e+a-1,h=f+b,i=!1;g>Ec&&(g=g-Ec+Ac-1,i=!0),(g===Bc||e<Bc&&g>Bc||(g>Bc||e<Bc)&&i)&&g++,(g===Cc||e<Cc&&g>Cc||(g>Cc||e<Cc)&&i)&&(g++,g===Bc&&g++),g>Ec&&(g=g-Ec+Ac-1),h>Dc?(h=h-Dc+Ac-1,i=!0):i=!1,(h===Bc||f<Bc&&h>Bc||(h>Bc||f<Bc)&&i)&&h++,(h===Cc||f<Cc&&h>Cc||(h>Cc||f<Cc)&&i)&&(h++,h===Bc&&h++),h>Dc&&(h=h-Dc+Ac-1);var j=String.fromCharCode(g)+String.fromCharCode(h);return j}function X(a){if(a&&0===a.length)throw"MGRSPoint coverting from nothing";for(var b,c=a.length,d=null,e="",f=0;!/[A-Z]/.test(b=a.charAt(f));){if(f>=2)throw"MGRSPoint bad conversion from: "+a;e+=b,f++}var g=parseInt(e,10);if(0===f||f+3>c)throw"MGRSPoint bad conversion from: "+a;var h=a.charAt(f++);if(h<="A"||"B"===h||"Y"===h||h>="Z"||"I"===h||"O"===h)throw"MGRSPoint zone letter "+h+" not handled: "+a;d=a.substring(f,f+=2);for(var i=V(g),j=Y(d.charAt(0),i),k=Z(d.charAt(1),i);k<$(h);)k+=2e6;var l=c-f;if(l%2!==0)throw"MGRSPoint has to have an even number \nof digits after the zone letter and two 100km letters - front \nhalf for easting meters, second half for \nnorthing meters"+a;var m,n,o,p,q,r=l/2,s=0,t=0;return r>0&&(m=1e5/Math.pow(10,r),n=a.substring(f,f+r),s=parseFloat(n)*m,o=a.substring(f+r),t=parseFloat(o)*m),p=s+j,q=t+k,{easting:p,northing:q,zoneLetter:h,zoneNumber:g,accuracy:m}}function Y(a,b){for(var c=yc.charCodeAt(b-1),d=1e5,e=!1;c!==a.charCodeAt(0);){if(c++,c===Bc&&c++,c===Cc&&c++,c>Ec){if(e)throw"Bad character: "+a;c=Ac,e=!0}d+=1e5}return d}function Z(a,b){if(a>"V")throw"MGRSPoint given invalid Northing "+a;for(var c=zc.charCodeAt(b-1),d=0,e=!1;c!==a.charCodeAt(0);){if(c++,c===Bc&&c++,c===Cc&&c++,c>Dc){if(e)throw"Bad character: "+a;c=Ac,e=!0}d+=1e5}return d}function $(a){var b;switch(a){case"C":b=11e5;break;case"D":b=2e6;break;case"E":b=28e5;break;case"F":b=37e5;break;case"G":b=46e5;break;case"H":b=55e5;break;case"J":b=64e5;break;case"K":b=73e5;break;case"L":b=82e5;break;case"M":b=91e5;break;case"N":b=0;break;case"P":b=8e5;break;case"Q":b=17e5;break;case"R":b=26e5;break;case"S":b=35e5;break;case"T":b=44e5;break;case"U":b=53e5;break;case"V":b=62e5;break;case"W":b=7e6;break;case"X":b=79e5;break;default:b=-1}if(b>=0)return b;throw"Invalid zone letter: "+a}function Point(a,b,c){if(!(this instanceof Point))return new Point(a,b,c);if(Array.isArray(a))this.x=a[0],this.y=a[1],this.z=a[2]||0;else if("object"==typeof a)this.x=a.x,this.y=a.y,this.z=a.z||0;else if("string"==typeof a&&"undefined"==typeof b){var d=a.split(",");this.x=parseFloat(d[0],10),this.y=parseFloat(d[1],10),this.z=parseFloat(d[2],10)||0}else this.x=a,this.y=b,this.z=c||0;console.warn("proj4.Point will be removed in version 3, use proj4.toPoint")}function _(){this.x0=void 0!==this.x0?this.x0:0,this.y0=void 0!==this.y0?this.y0:0,this.long0=void 0!==this.long0?this.long0:0,this.lat0=void 0!==this.lat0?this.lat0:0,this.es&&(this.en=Tc(this.es),this.ml0=Uc(this.lat0,Math.sin(this.lat0),Math.cos(this.lat0),this.en))}function aa(a){var b,c,d,e=a.x,f=a.y,g=fc(e-this.long0),h=Math.sin(f),i=Math.cos(f);if(this.es){var j=i*g,k=Math.pow(j,2),l=this.ep2*Math.pow(i,2),m=Math.pow(l,2),n=Math.abs(i)>Gb?Math.tan(f):0,o=Math.pow(n,2),p=Math.pow(o,2);b=1-this.es*Math.pow(h,2),j/=Math.sqrt(b);var q=Uc(f,h,i,this.en);c=this.a*(this.k0*j*(1+k/6*(1-o+l+k/20*(5-18*o+p+14*l-58*o*l+k/42*(61+179*p-p*o-479*o)))))+this.x0,d=this.a*(this.k0*(q-this.ml0+h*g*j/2*(1+k/12*(5-o+9*l+4*m+k/30*(61+p-58*o+270*l-330*o*l+k/56*(1385+543*p-p*o-3111*o))))))+this.y0}else{var r=i*Math.sin(g);if(Math.abs(Math.abs(r)-1)<Gb)return 93;if(c=.5*this.a*this.k0*Math.log((1+r)/(1-r))+this.x0,d=i*Math.cos(g)/Math.sqrt(1-Math.pow(r,2)),r=Math.abs(d),r>=1){if(r-1>Gb)return 93;d=0}else d=Math.acos(d);f<0&&(d=-d),d=this.a*this.k0*(d-this.lat0)+this.y0}return a.x=c,a.y=d,a}function ba(a){var b,c,d,e,f=(a.x-this.x0)*(1/this.a),g=(a.y-this.y0)*(1/this.a);if(this.es)if(b=this.ml0+g/this.k0,c=Wc(b,this.es,this.en),Math.abs(c)<Cb){var h=Math.sin(c),i=Math.cos(c),j=Math.abs(i)>Gb?Math.tan(c):0,k=this.ep2*Math.pow(i,2),l=Math.pow(k,2),m=Math.pow(j,2),n=Math.pow(m,2);b=1-this.es*Math.pow(h,2);var o=f*Math.sqrt(b)/this.k0,p=Math.pow(o,2);b*=j,d=c-b*p/(1-this.es)*.5*(1-p/12*(5+3*m-9*k*m+k-4*l-p/30*(61+90*m-252*k*m+45*n+46*k-p/56*(1385+3633*m+4095*n+1574*n*m)))),e=fc(this.long0+o*(1-p/6*(1+2*m+k-p/20*(5+28*m+24*n+8*k*m+6*k-p/42*(61+662*m+1320*n+720*n*m))))/i)}else d=Cb*ec(g),e=0;else{var q=Math.exp(f/this.k0),r=.5*(q-1/q),s=this.lat0+g/this.k0,t=Math.cos(s);b=Math.sqrt((1-Math.pow(t,2))/(1+Math.pow(r,2))),d=Math.asin(b),g<0&&(d=-d),e=0===r&&0===t?0:fc(Math.atan2(r,t)+this.long0)}return a.x=e,a.y=d,a}function ca(){if(void 0===this.es||this.es<=0)throw new Error("incorrect elliptical usage");this.x0=void 0!==this.x0?this.x0:0,this.y0=void 0!==this.y0?this.y0:0,this.long0=void 0!==this.long0?this.long0:0,this.lat0=void 0!==this.lat0?this.lat0:0,this.cgb=[],this.cbg=[],this.utg=[],this.gtu=[];var a=this.es/(1+Math.sqrt(1-this.es)),b=a/(2-a),c=b;this.cgb[0]=b*(2+b*(-2/3+b*(-2+b*(116/45+b*(26/45+b*(-2854/675)))))),this.cbg[0]=b*(-2+b*(2/3+b*(4/3+b*(-82/45+b*(32/45+b*(4642/4725)))))),c*=b,this.cgb[1]=c*(7/3+b*(-1.6+b*(-227/45+b*(2704/315+b*(2323/945))))),this.cbg[1]=c*(5/3+b*(-16/15+b*(-13/9+b*(904/315+b*(-1522/945))))),c*=b,this.cgb[2]=c*(56/15+b*(-136/35+b*(-1262/105+b*(73814/2835)))),this.cbg[2]=c*(-26/15+b*(34/21+b*(1.6+b*(-12686/2835)))),c*=b,this.cgb[3]=c*(4279/630+b*(-332/35+b*(-399572/14175))),this.cbg[3]=c*(1237/630+b*(-2.4+b*(-24832/14175))),c*=b,this.cgb[4]=c*(4174/315+b*(-144838/6237)),this.cbg[4]=c*(-734/315+b*(109598/31185)),c*=b,this.cgb[5]=c*(601676/22275),this.cbg[5]=c*(444337/155925),c=Math.pow(b,2),this.Qn=this.k0/(1+b)*(1+c*(.25+c*(1/64+c/256))),this.utg[0]=b*(-.5+b*(2/3+b*(-37/96+b*(1/360+b*(81/512+b*(-96199/604800)))))),this.gtu[0]=b*(.5+b*(-2/3+b*(5/16+b*(41/180+b*(-127/288+b*(7891/37800)))))),this.utg[1]=c*(-1/48+b*(-1/15+b*(437/1440+b*(-46/105+b*(1118711/3870720))))),this.gtu[1]=c*(13/48+b*(-.6+b*(557/1440+b*(281/630+b*(-1983433/1935360))))),c*=b,this.utg[2]=c*(-17/480+b*(37/840+b*(209/4480+b*(-5569/90720)))),this.gtu[2]=c*(61/240+b*(-103/140+b*(15061/26880+b*(167603/181440)))),c*=b,this.utg[3]=c*(-4397/161280+b*(11/504+b*(830251/7257600))),this.gtu[3]=c*(49561/161280+b*(-179/168+b*(6601661/7257600))),c*=b,this.utg[4]=c*(-4583/161280+b*(108847/3991680)),this.gtu[4]=c*(34729/80640+b*(-3418889/1995840)),c*=b,this.utg[5]=c*-.03233083094085698,this.gtu[5]=.6650675310896665*c;var d=bd(this.cbg,this.lat0);this.Zb=-this.Qn*(d+cd(this.gtu,2*d))}function da(a){var b=fc(a.x-this.long0),c=a.y;c=bd(this.cbg,c);var d=Math.sin(c),e=Math.cos(c),f=Math.sin(b),g=Math.cos(b);c=Math.atan2(d,g*e),b=Math.atan2(f*e,$c(d,e*g)),b=ad(Math.tan(b));var h=ed(this.gtu,2*c,2*b);c+=h[0],b+=h[1];var i,j;return Math.abs(b)<=2.623395162778?(i=this.a*(this.Qn*b)+this.x0,j=this.a*(this.Qn*c+this.Zb)+this.y0):(i=1/0,j=1/0),a.x=i,a.y=j,a}function ea(a){var b=(a.x-this.x0)*(1/this.a),c=(a.y-this.y0)*(1/this.a);c=(c-this.Zb)/this.Qn,b/=this.Qn;var d,e;if(Math.abs(b)<=2.623395162778){var f=ed(this.utg,2*c,2*b);c+=f[0],b+=f[1],b=Math.atan(Zc(b));var g=Math.sin(c),h=Math.cos(c),i=Math.sin(b),j=Math.cos(b);c=Math.atan2(g*j,$c(i,j*h)),b=Math.atan2(i,j*h),d=fc(b+this.long0),e=bd(this.cgb,c)}else d=1/0,e=1/0;return a.x=d,a.y=e,a}function fa(){var a=hd(this.zone,this.long0);if(void 0===a)throw new Error("unknown utm zone");this.lat0=0,this.long0=(6*Math.abs(a)-183)*Hb,this.x0=5e5,this.y0=this.utmSouth?1e7:0,this.k0=.9996,gd.init.apply(this),this.forward=gd.forward,this.inverse=gd.inverse}function ga(){var a=Math.sin(this.lat0),b=Math.cos(this.lat0);b*=b,this.rc=Math.sqrt(1-this.es)/(1-this.es*a*a),this.C=Math.sqrt(1+this.es*b*b/(1-this.es)),this.phic0=Math.asin(a/this.C),this.ratexp=.5*this.C*this.e,this.K=Math.tan(.5*this.phic0+Jb)/(Math.pow(Math.tan(.5*this.lat0+Jb),this.C)*ld(this.e*a,this.ratexp))}function ha(a){var b=a.x,c=a.y;return a.y=2*Math.atan(this.K*Math.pow(Math.tan(.5*c+Jb),this.C)*ld(this.e*Math.sin(c),this.ratexp))-Cb,a.x=this.C*b,a}function ia(a){for(var b=1e-14,c=a.x/this.C,d=a.y,e=Math.pow(Math.tan(.5*d+Jb)/this.K,1/this.C),f=md;f>0&&(d=2*Math.atan(e*ld(this.e*Math.sin(a.y),-.5*this.e))-Cb,!(Math.abs(d-a.y)<b));--f)a.y=d;return f?(a.x=c,a.y=d,a):null}function ja(){od.init.apply(this),this.rc&&(this.sinc0=Math.sin(this.phic0),this.cosc0=Math.cos(this.phic0),this.R2=2*this.rc,this.title||(this.title="Oblique Stereographic Alternative"))}function ka(a){var b,c,d,e;return a.x=fc(a.x-this.long0),od.forward.apply(this,[a]),b=Math.sin(a.y),c=Math.cos(a.y),d=Math.cos(a.x),e=this.k0*this.R2/(1+this.sinc0*b+this.cosc0*c*d),a.x=e*c*Math.sin(a.x),a.y=e*(this.cosc0*b-this.sinc0*c*d),a.x=this.a*a.x+this.x0,a.y=this.a*a.y+this.y0,a}function la(a){var b,c,d,e,f;if(a.x=(a.x-this.x0)/this.a,a.y=(a.y-this.y0)/this.a,a.x/=this.k0,a.y/=this.k0,f=Math.sqrt(a.x*a.x+a.y*a.y)){var g=2*Math.atan2(f,this.R2);b=Math.sin(g),c=Math.cos(g),e=Math.asin(c*this.sinc0+a.y*b*this.cosc0/f),d=Math.atan2(a.x*b,f*this.cosc0*c-a.y*this.sinc0*b)}else e=this.phic0,d=0;return a.x=d,a.y=e,od.inverse.apply(this,[a]),a.x=fc(a.x+this.long0),a}function ma(a,b,c){return b*=c,Math.tan(.5*(Cb+a))*Math.pow((1-b)/(1+b),.5*c)}function na(){this.coslat0=Math.cos(this.lat0),this.sinlat0=Math.sin(this.lat0),this.sphere?1===this.k0&&!isNaN(this.lat_ts)&&Math.abs(this.coslat0)<=Gb&&(this.k0=.5*(1+ec(this.lat0)*Math.sin(this.lat_ts))):(Math.abs(this.coslat0)<=Gb&&(this.lat0>0?this.con=1:this.con=-1),this.cons=Math.sqrt(Math.pow(1+this.e,1+this.e)*Math.pow(1-this.e,1-this.e)),1===this.k0&&!isNaN(this.lat_ts)&&Math.abs(this.coslat0)<=Gb&&(this.k0=.5*this.cons*dc(this.e,Math.sin(this.lat_ts),Math.cos(this.lat_ts))/gc(this.e,this.con*this.lat_ts,this.con*Math.sin(this.lat_ts))),this.ms1=dc(this.e,this.sinlat0,this.coslat0),this.X0=2*Math.atan(this.ssfn_(this.lat0,this.sinlat0,this.e))-Cb,this.cosX0=Math.cos(this.X0),this.sinX0=Math.sin(this.X0))}function oa(a){var b,c,d,e,f,g,h=a.x,i=a.y,j=Math.sin(i),k=Math.cos(i),l=fc(h-this.long0);return Math.abs(Math.abs(h-this.long0)-Math.PI)<=Gb&&Math.abs(i+this.lat0)<=Gb?(a.x=NaN,a.y=NaN,a):this.sphere?(b=2*this.k0/(1+this.sinlat0*j+this.coslat0*k*Math.cos(l)),a.x=this.a*b*k*Math.sin(l)+this.x0,a.y=this.a*b*(this.coslat0*j-this.sinlat0*k*Math.cos(l))+this.y0,a):(c=2*Math.atan(this.ssfn_(i,j,this.e))-Cb,e=Math.cos(c),d=Math.sin(c),Math.abs(this.coslat0)<=Gb?(f=gc(this.e,i*this.con,this.con*j),g=2*this.a*this.k0*f/this.cons,a.x=this.x0+g*Math.sin(h-this.long0),a.y=this.y0-this.con*g*Math.cos(h-this.long0),a):(Math.abs(this.sinlat0)<Gb?(b=2*this.a*this.k0/(1+e*Math.cos(l)),a.y=b*d):(b=2*this.a*this.k0*this.ms1/(this.cosX0*(1+this.sinX0*d+this.cosX0*e*Math.cos(l))),a.y=b*(this.cosX0*d-this.sinX0*e*Math.cos(l))+this.y0),a.x=b*e*Math.sin(l)+this.x0,a))}function pa(a){a.x-=this.x0,a.y-=this.y0;var b,c,d,e,f,g=Math.sqrt(a.x*a.x+a.y*a.y);if(this.sphere){var h=2*Math.atan(g/(.5*this.a*this.k0));return b=this.long0,c=this.lat0,g<=Gb?(a.x=b,a.y=c,a):(c=Math.asin(Math.cos(h)*this.sinlat0+a.y*Math.sin(h)*this.coslat0/g),b=fc(Math.abs(this.coslat0)<Gb?this.lat0>0?this.long0+Math.atan2(a.x,-1*a.y):this.long0+Math.atan2(a.x,a.y):this.long0+Math.atan2(a.x*Math.sin(h),g*this.coslat0*Math.cos(h)-a.y*this.sinlat0*Math.sin(h))),a.x=b,a.y=c,a)}if(Math.abs(this.coslat0)<=Gb){if(g<=Gb)return c=this.lat0,b=this.long0,a.x=b,a.y=c,a;a.x*=this.con,a.y*=this.con,d=g*this.cons/(2*this.a*this.k0),c=this.con*hc(this.e,d),b=this.con*fc(this.con*this.long0+Math.atan2(a.x,-1*a.y))}else e=2*Math.atan(g*this.cosX0/(2*this.a*this.k0*this.ms1)),b=this.long0,g<=Gb?f=this.X0:(f=Math.asin(Math.cos(e)*this.sinX0+a.y*Math.sin(e)*this.cosX0/g),b=fc(this.long0+Math.atan2(a.x*Math.sin(e),g*this.cosX0*Math.cos(e)-a.y*this.sinX0*Math.sin(e)))),c=-1*hc(this.e,Math.tan(.5*(Cb+f)));return a.x=b,a.y=c,a}function qa(){var a=this.lat0;this.lambda0=this.long0;var b=Math.sin(a),c=this.a,d=this.rf,e=1/d,f=2*e-Math.pow(e,2),g=this.e=Math.sqrt(f);this.R=this.k0*c*Math.sqrt(1-f)/(1-f*Math.pow(b,2)),this.alpha=Math.sqrt(1+f/(1-f)*Math.pow(Math.cos(a),4)),this.b0=Math.asin(b/this.alpha);var h=Math.log(Math.tan(Math.PI/4+this.b0/2)),i=Math.log(Math.tan(Math.PI/4+a/2)),j=Math.log((1+g*b)/(1-g*b));this.K=h-this.alpha*i+this.alpha*g/2*j}function ra(a){var b=Math.log(Math.tan(Math.PI/4-a.y/2)),c=this.e/2*Math.log((1+this.e*Math.sin(a.y))/(1-this.e*Math.sin(a.y))),d=-this.alpha*(b+c)+this.K,e=2*(Math.atan(Math.exp(d))-Math.PI/4),f=this.alpha*(a.x-this.lambda0),g=Math.atan(Math.sin(f)/(Math.sin(this.b0)*Math.tan(e)+Math.cos(this.b0)*Math.cos(f))),h=Math.asin(Math.cos(this.b0)*Math.sin(e)-Math.sin(this.b0)*Math.cos(e)*Math.cos(f));return a.y=this.R/2*Math.log((1+Math.sin(h))/(1-Math.sin(h)))+this.y0,a.x=this.R*g+this.x0,a}function sa(a){for(var b=a.x-this.x0,c=a.y-this.y0,d=b/this.R,e=2*(Math.atan(Math.exp(c/this.R))-Math.PI/4),f=Math.asin(Math.cos(this.b0)*Math.sin(e)+Math.sin(this.b0)*Math.cos(e)*Math.cos(d)),g=Math.atan(Math.sin(d)/(Math.cos(this.b0)*Math.cos(d)-Math.sin(this.b0)*Math.tan(e))),h=this.lambda0+g/this.alpha,i=0,j=f,k=-1e3,l=0;Math.abs(j-k)>1e-7;){if(++l>20)return;i=1/this.alpha*(Math.log(Math.tan(Math.PI/4+f/2))-this.K)+this.e*Math.log(Math.tan(Math.PI/4+Math.asin(this.e*Math.sin(j))/2)),k=j,j=2*Math.atan(Math.exp(i))-Math.PI/2}return a.x=h,a.y=j,a}function ta(){this.no_off=this.no_off||!1,this.no_rot=this.no_rot||!1,isNaN(this.k0)&&(this.k0=1);var a=Math.sin(this.lat0),b=Math.cos(this.lat0),c=this.e*a;this.bl=Math.sqrt(1+this.es/(1-this.es)*Math.pow(b,4)),this.al=this.a*this.bl*this.k0*Math.sqrt(1-this.es)/(1-c*c);var d=gc(this.e,this.lat0,a),e=this.bl/b*Math.sqrt((1-this.es)/(1-c*c));e*e<1&&(e=1);var f,g;if(isNaN(this.longc)){var h=gc(this.e,this.lat1,Math.sin(this.lat1)),i=gc(this.e,this.lat2,Math.sin(this.lat2));this.lat0>=0?this.el=(e+Math.sqrt(e*e-1))*Math.pow(d,this.bl):this.el=(e-Math.sqrt(e*e-1))*Math.pow(d,this.bl);var j=Math.pow(h,this.bl),k=Math.pow(i,this.bl);f=this.el/j,g=.5*(f-1/f);var l=(this.el*this.el-k*j)/(this.el*this.el+k*j),m=(k-j)/(k+j),n=fc(this.long1-this.long2);this.long0=.5*(this.long1+this.long2)-Math.atan(l*Math.tan(.5*this.bl*n)/m)/this.bl,this.long0=fc(this.long0);var o=fc(this.long1-this.long0);this.gamma0=Math.atan(Math.sin(this.bl*o)/g),this.alpha=Math.asin(e*Math.sin(this.gamma0))}else f=this.lat0>=0?e+Math.sqrt(e*e-1):e-Math.sqrt(e*e-1),this.el=f*Math.pow(d,this.bl),g=.5*(f-1/f),this.gamma0=Math.asin(Math.sin(this.alpha)/e),this.long0=this.longc-Math.asin(g*Math.tan(this.gamma0))/this.bl;this.no_off?this.uc=0:this.lat0>=0?this.uc=this.al/this.bl*Math.atan2(Math.sqrt(e*e-1),Math.cos(this.alpha)):this.uc=-1*this.al/this.bl*Math.atan2(Math.sqrt(e*e-1),Math.cos(this.alpha))}function ua(a){var b,c,d,e=a.x,f=a.y,g=fc(e-this.long0);if(Math.abs(Math.abs(f)-Cb)<=Gb)d=f>0?-1:1,c=this.al/this.bl*Math.log(Math.tan(Jb+d*this.gamma0*.5)),b=-1*d*Cb*this.al/this.bl;else{var h=gc(this.e,f,Math.sin(f)),i=this.el/Math.pow(h,this.bl),j=.5*(i-1/i),k=.5*(i+1/i),l=Math.sin(this.bl*g),m=(j*Math.sin(this.gamma0)-l*Math.cos(this.gamma0))/k;c=Math.abs(Math.abs(m)-1)<=Gb?Number.POSITIVE_INFINITY:.5*this.al*Math.log((1-m)/(1+m))/this.bl,b=Math.abs(Math.cos(this.bl*g))<=Gb?this.al*this.bl*g:this.al*Math.atan2(j*Math.cos(this.gamma0)+l*Math.sin(this.gamma0),Math.cos(this.bl*g))/this.bl}return this.no_rot?(a.x=this.x0+b,a.y=this.y0+c):(b-=this.uc,a.x=this.x0+c*Math.cos(this.alpha)+b*Math.sin(this.alpha),a.y=this.y0+b*Math.cos(this.alpha)-c*Math.sin(this.alpha)),a}function va(a){var b,c;this.no_rot?(c=a.y-this.y0,b=a.x-this.x0):(c=(a.x-this.x0)*Math.cos(this.alpha)-(a.y-this.y0)*Math.sin(this.alpha),b=(a.y-this.y0)*Math.cos(this.alpha)+(a.x-this.x0)*Math.sin(this.alpha),b+=this.uc);var d=Math.exp(-1*this.bl*c/this.al),e=.5*(d-1/d),f=.5*(d+1/d),g=Math.sin(this.bl*b/this.al),h=(g*Math.cos(this.gamma0)+e*Math.sin(this.gamma0))/f,i=Math.pow(this.el/Math.sqrt((1+h)/(1-h)),1/this.bl);return Math.abs(h-1)<Gb?(a.x=this.long0,a.y=Cb):Math.abs(h+1)<Gb?(a.x=this.long0,a.y=-1*Cb):(a.y=hc(this.e,i),a.x=fc(this.long0-Math.atan2(e*Math.cos(this.gamma0)-g*Math.sin(this.gamma0),Math.cos(this.bl*b/this.al))/this.bl)),a}function wa(){if(this.lat2||(this.lat2=this.lat1),this.k0||(this.k0=1),this.x0=this.x0||0,this.y0=this.y0||0,!(Math.abs(this.lat1+this.lat2)<Gb)){var a=this.b/this.a;this.e=Math.sqrt(1-a*a);var b=Math.sin(this.lat1),c=Math.cos(this.lat1),d=dc(this.e,b,c),e=gc(this.e,this.lat1,b),f=Math.sin(this.lat2),g=Math.cos(this.lat2),h=dc(this.e,f,g),i=gc(this.e,this.lat2,f),j=gc(this.e,this.lat0,Math.sin(this.lat0));Math.abs(this.lat1-this.lat2)>Gb?this.ns=Math.log(d/h)/Math.log(e/i):this.ns=b,isNaN(this.ns)&&(this.ns=b),this.f0=d/(this.ns*Math.pow(e,this.ns)),this.rh=this.a*this.f0*Math.pow(j,this.ns),this.title||(this.title="Lambert Conformal Conic")}}function xa(a){var b=a.x,c=a.y;Math.abs(2*Math.abs(c)-Math.PI)<=Gb&&(c=ec(c)*(Cb-2*Gb));var d,e,f=Math.abs(Math.abs(c)-Cb);if(f>Gb)d=gc(this.e,c,Math.sin(c)),e=this.a*this.f0*Math.pow(d,this.ns);else{if(f=c*this.ns,f<=0)return null;e=0}var g=this.ns*fc(b-this.long0);return a.x=this.k0*(e*Math.sin(g))+this.x0,a.y=this.k0*(this.rh-e*Math.cos(g))+this.y0,a}function ya(a){var b,c,d,e,f,g=(a.x-this.x0)/this.k0,h=this.rh-(a.y-this.y0)/this.k0;this.ns>0?(b=Math.sqrt(g*g+h*h),c=1):(b=-Math.sqrt(g*g+h*h),c=-1);var i=0;if(0!==b&&(i=Math.atan2(c*g,c*h)),0!==b||this.ns>0){if(c=1/this.ns,d=Math.pow(b/(this.a*this.f0),c),e=hc(this.e,d),e===-9999)return null}else e=-Cb;return f=fc(i/this.ns+this.long0),a.x=f,a.y=e,a}function za(){this.a=6377397.155,this.es=.006674372230614,this.e=Math.sqrt(this.es),this.lat0||(this.lat0=.863937979737193),this.long0||(this.long0=.4334234309119251),this.k0||(this.k0=.9999),this.s45=.785398163397448,this.s90=2*this.s45,this.fi0=this.lat0,this.e2=this.es,this.e=Math.sqrt(this.e2),this.alfa=Math.sqrt(1+this.e2*Math.pow(Math.cos(this.fi0),4)/(1-this.e2)),this.uq=1.04216856380474,this.u0=Math.asin(Math.sin(this.fi0)/this.alfa),this.g=Math.pow((1+this.e*Math.sin(this.fi0))/(1-this.e*Math.sin(this.fi0)),this.alfa*this.e/2),this.k=Math.tan(this.u0/2+this.s45)/Math.pow(Math.tan(this.fi0/2+this.s45),this.alfa)*this.g,this.k1=this.k0,this.n0=this.a*Math.sqrt(1-this.e2)/(1-this.e2*Math.pow(Math.sin(this.fi0),2)),this.s0=1.37008346281555,this.n=Math.sin(this.s0),this.ro0=this.k1*this.n0/Math.tan(this.s0),this.ad=this.s90-this.uq}function Aa(a){var b,c,d,e,f,g,h,i=a.x,j=a.y,k=fc(i-this.long0);return b=Math.pow((1+this.e*Math.sin(j))/(1-this.e*Math.sin(j)),this.alfa*this.e/2),c=2*(Math.atan(this.k*Math.pow(Math.tan(j/2+this.s45),this.alfa)/b)-this.s45),d=-k*this.alfa,
-e=Math.asin(Math.cos(this.ad)*Math.sin(c)+Math.sin(this.ad)*Math.cos(c)*Math.cos(d)),f=Math.asin(Math.cos(c)*Math.sin(d)/Math.cos(e)),g=this.n*f,h=this.ro0*Math.pow(Math.tan(this.s0/2+this.s45),this.n)/Math.pow(Math.tan(e/2+this.s45),this.n),a.y=h*Math.cos(g)/1,a.x=h*Math.sin(g)/1,this.czech||(a.y*=-1,a.x*=-1),a}function Ba(a){var b,c,d,e,f,g,h,i,j=a.x;a.x=a.y,a.y=j,this.czech||(a.y*=-1,a.x*=-1),g=Math.sqrt(a.x*a.x+a.y*a.y),f=Math.atan2(a.y,a.x),e=f/Math.sin(this.s0),d=2*(Math.atan(Math.pow(this.ro0/g,1/this.n)*Math.tan(this.s0/2+this.s45))-this.s45),b=Math.asin(Math.cos(this.ad)*Math.sin(d)-Math.sin(this.ad)*Math.cos(d)*Math.cos(e)),c=Math.asin(Math.cos(d)*Math.sin(e)/Math.cos(b)),a.x=this.long0-c/this.alfa,h=b,i=0;var k=0;do a.y=2*(Math.atan(Math.pow(this.k,-1/this.alfa)*Math.pow(Math.tan(b/2+this.s45),1/this.alfa)*Math.pow((1+this.e*Math.sin(h))/(1-this.e*Math.sin(h)),this.e/2))-this.s45),Math.abs(h-a.y)<1e-10&&(i=1),h=a.y,k+=1;while(0===i&&k<15);return k>=15?null:a}function Ca(){this.sphere||(this.e0=Cd(this.es),this.e1=Dd(this.es),this.e2=Ed(this.es),this.e3=Fd(this.es),this.ml0=this.a*Bd(this.e0,this.e1,this.e2,this.e3,this.lat0))}function Da(a){var b,c,d=a.x,e=a.y;if(d=fc(d-this.long0),this.sphere)b=this.a*Math.asin(Math.cos(e)*Math.sin(d)),c=this.a*(Math.atan2(Math.tan(e),Math.cos(d))-this.lat0);else{var f=Math.sin(e),g=Math.cos(e),h=Gd(this.a,this.e,f),i=Math.tan(e)*Math.tan(e),j=d*Math.cos(e),k=j*j,l=this.es*g*g/(1-this.es),m=this.a*Bd(this.e0,this.e1,this.e2,this.e3,e);b=h*j*(1-k*i*(1/6-(8-i+8*l)*k/120)),c=m-this.ml0+h*f/g*k*(.5+(5-i+6*l)*k/24)}return a.x=b+this.x0,a.y=c+this.y0,a}function Ea(a){a.x-=this.x0,a.y-=this.y0;var b,c,d=a.x/this.a,e=a.y/this.a;if(this.sphere){var f=e+this.lat0;b=Math.asin(Math.sin(f)*Math.cos(d)),c=Math.atan2(Math.tan(d),Math.cos(f))}else{var g=this.ml0/this.a+e,h=Id(g,this.e0,this.e1,this.e2,this.e3);if(Math.abs(Math.abs(h)-Cb)<=Gb)return a.x=this.long0,a.y=Cb,e<0&&(a.y*=-1),a;var i=Gd(this.a,this.e,Math.sin(h)),j=i*i*i/this.a/this.a*(1-this.es),k=Math.pow(Math.tan(h),2),l=d*this.a/i,m=l*l;b=h-i*Math.tan(h)/j*l*l*(.5-(1+3*k)*l*l/24),c=l*(1-m*(k/3+(1+3*k)*k*m/15))/Math.cos(h)}return a.x=fc(c+this.long0),a.y=Hd(b),a}function Fa(){var a=Math.abs(this.lat0);if(Math.abs(a-Cb)<Gb?this.mode=this.lat0<0?this.S_POLE:this.N_POLE:Math.abs(a)<Gb?this.mode=this.EQUIT:this.mode=this.OBLIQ,this.es>0){var b;switch(this.qp=Ld(this.e,1),this.mmf=.5/(1-this.es),this.apa=Ia(this.es),this.mode){case this.N_POLE:this.dd=1;break;case this.S_POLE:this.dd=1;break;case this.EQUIT:this.rq=Math.sqrt(.5*this.qp),this.dd=1/this.rq,this.xmf=1,this.ymf=.5*this.qp;break;case this.OBLIQ:this.rq=Math.sqrt(.5*this.qp),b=Math.sin(this.lat0),this.sinb1=Ld(this.e,b)/this.qp,this.cosb1=Math.sqrt(1-this.sinb1*this.sinb1),this.dd=Math.cos(this.lat0)/(Math.sqrt(1-this.es*b*b)*this.rq*this.cosb1),this.ymf=(this.xmf=this.rq)/this.dd,this.xmf*=this.dd}}else this.mode===this.OBLIQ&&(this.sinph0=Math.sin(this.lat0),this.cosph0=Math.cos(this.lat0))}function Ga(a){var b,c,d,e,f,g,h,i,j,k,l=a.x,m=a.y;if(l=fc(l-this.long0),this.sphere){if(f=Math.sin(m),k=Math.cos(m),d=Math.cos(l),this.mode===this.OBLIQ||this.mode===this.EQUIT){if(c=this.mode===this.EQUIT?1+k*d:1+this.sinph0*f+this.cosph0*k*d,c<=Gb)return null;c=Math.sqrt(2/c),b=c*k*Math.sin(l),c*=this.mode===this.EQUIT?f:this.cosph0*f-this.sinph0*k*d}else if(this.mode===this.N_POLE||this.mode===this.S_POLE){if(this.mode===this.N_POLE&&(d=-d),Math.abs(m+this.phi0)<Gb)return null;c=Jb-.5*m,c=2*(this.mode===this.S_POLE?Math.cos(c):Math.sin(c)),b=c*Math.sin(l),c*=d}}else{switch(h=0,i=0,j=0,d=Math.cos(l),e=Math.sin(l),f=Math.sin(m),g=Ld(this.e,f),this.mode!==this.OBLIQ&&this.mode!==this.EQUIT||(h=g/this.qp,i=Math.sqrt(1-h*h)),this.mode){case this.OBLIQ:j=1+this.sinb1*h+this.cosb1*i*d;break;case this.EQUIT:j=1+i*d;break;case this.N_POLE:j=Cb+m,g=this.qp-g;break;case this.S_POLE:j=m-Cb,g=this.qp+g}if(Math.abs(j)<Gb)return null;switch(this.mode){case this.OBLIQ:case this.EQUIT:j=Math.sqrt(2/j),c=this.mode===this.OBLIQ?this.ymf*j*(this.cosb1*h-this.sinb1*i*d):(j=Math.sqrt(2/(1+i*d)))*h*this.ymf,b=this.xmf*j*i*e;break;case this.N_POLE:case this.S_POLE:g>=0?(b=(j=Math.sqrt(g))*e,c=d*(this.mode===this.S_POLE?j:-j)):b=c=0}}return a.x=this.a*b+this.x0,a.y=this.a*c+this.y0,a}function Ha(a){a.x-=this.x0,a.y-=this.y0;var b,c,d,e,f,g,h,i=a.x/this.a,j=a.y/this.a;if(this.sphere){var k,l=0,m=0;if(k=Math.sqrt(i*i+j*j),c=.5*k,c>1)return null;switch(c=2*Math.asin(c),this.mode!==this.OBLIQ&&this.mode!==this.EQUIT||(m=Math.sin(c),l=Math.cos(c)),this.mode){case this.EQUIT:c=Math.abs(k)<=Gb?0:Math.asin(j*m/k),i*=m,j=l*k;break;case this.OBLIQ:c=Math.abs(k)<=Gb?this.phi0:Math.asin(l*this.sinph0+j*m*this.cosph0/k),i*=m*this.cosph0,j=(l-Math.sin(c)*this.sinph0)*k;break;case this.N_POLE:j=-j,c=Cb-c;break;case this.S_POLE:c-=Cb}b=0!==j||this.mode!==this.EQUIT&&this.mode!==this.OBLIQ?Math.atan2(i,j):0}else{if(h=0,this.mode===this.OBLIQ||this.mode===this.EQUIT){if(i/=this.dd,j*=this.dd,g=Math.sqrt(i*i+j*j),g<Gb)return a.x=0,a.y=this.phi0,a;e=2*Math.asin(.5*g/this.rq),d=Math.cos(e),i*=e=Math.sin(e),this.mode===this.OBLIQ?(h=d*this.sinb1+j*e*this.cosb1/g,f=this.qp*h,j=g*this.cosb1*d-j*this.sinb1*e):(h=j*e/g,f=this.qp*h,j=g*d)}else if(this.mode===this.N_POLE||this.mode===this.S_POLE){if(this.mode===this.N_POLE&&(j=-j),f=i*i+j*j,!f)return a.x=0,a.y=this.phi0,a;h=1-f/this.qp,this.mode===this.S_POLE&&(h=-h)}b=Math.atan2(i,j),c=Ja(Math.asin(h),this.apa)}return a.x=fc(this.long0+b),a.y=c,a}function Ia(a){var b,c=[];return c[0]=a*Qd,b=a*a,c[0]+=b*Rd,c[1]=b*Td,b*=a,c[0]+=b*Sd,c[1]+=b*Ud,c[2]=b*Vd,c}function Ja(a,b){var c=a+a;return a+b[0]*Math.sin(c)+b[1]*Math.sin(c+c)+b[2]*Math.sin(c+c+c)}function Ka(){Math.abs(this.lat1+this.lat2)<Gb||(this.temp=this.b/this.a,this.es=1-Math.pow(this.temp,2),this.e3=Math.sqrt(this.es),this.sin_po=Math.sin(this.lat1),this.cos_po=Math.cos(this.lat1),this.t1=this.sin_po,this.con=this.sin_po,this.ms1=dc(this.e3,this.sin_po,this.cos_po),this.qs1=Ld(this.e3,this.sin_po,this.cos_po),this.sin_po=Math.sin(this.lat2),this.cos_po=Math.cos(this.lat2),this.t2=this.sin_po,this.ms2=dc(this.e3,this.sin_po,this.cos_po),this.qs2=Ld(this.e3,this.sin_po,this.cos_po),this.sin_po=Math.sin(this.lat0),this.cos_po=Math.cos(this.lat0),this.t3=this.sin_po,this.qs0=Ld(this.e3,this.sin_po,this.cos_po),Math.abs(this.lat1-this.lat2)>Gb?this.ns0=(this.ms1*this.ms1-this.ms2*this.ms2)/(this.qs2-this.qs1):this.ns0=this.con,this.c=this.ms1*this.ms1+this.ns0*this.qs1,this.rh=this.a*Math.sqrt(this.c-this.ns0*this.qs0)/this.ns0)}function La(a){var b=a.x,c=a.y;this.sin_phi=Math.sin(c),this.cos_phi=Math.cos(c);var d=Ld(this.e3,this.sin_phi,this.cos_phi),e=this.a*Math.sqrt(this.c-this.ns0*d)/this.ns0,f=this.ns0*fc(b-this.long0),g=e*Math.sin(f)+this.x0,h=this.rh-e*Math.cos(f)+this.y0;return a.x=g,a.y=h,a}function Ma(a){var b,c,d,e,f,g;return a.x-=this.x0,a.y=this.rh-a.y+this.y0,this.ns0>=0?(b=Math.sqrt(a.x*a.x+a.y*a.y),d=1):(b=-Math.sqrt(a.x*a.x+a.y*a.y),d=-1),e=0,0!==b&&(e=Math.atan2(d*a.x,d*a.y)),d=b*this.ns0/this.a,this.sphere?g=Math.asin((this.c-d*d)/(2*this.ns0)):(c=(this.c-d*d)/this.ns0,g=this.phi1z(this.e3,c)),f=fc(e/this.ns0+this.long0),a.x=f,a.y=g,a}function Na(a,b){var c,d,e,f,g,h=Yd(.5*b);if(a<Gb)return h;for(var i=a*a,j=1;j<=25;j++)if(c=Math.sin(h),d=Math.cos(h),e=a*c,f=1-e*e,g=.5*f*f/d*(b/(1-i)-c/f+.5/a*Math.log((1-e)/(1+e))),h+=g,Math.abs(g)<=1e-7)return h;return null}function Oa(){this.sin_p14=Math.sin(this.lat0),this.cos_p14=Math.cos(this.lat0),this.infinity_dist=1e3*this.a,this.rc=1}function Pa(a){var b,c,d,e,f,g,h,i,j=a.x,k=a.y;return d=fc(j-this.long0),b=Math.sin(k),c=Math.cos(k),e=Math.cos(d),g=this.sin_p14*b+this.cos_p14*c*e,f=1,g>0||Math.abs(g)<=Gb?(h=this.x0+this.a*f*c*Math.sin(d)/g,i=this.y0+this.a*f*(this.cos_p14*b-this.sin_p14*c*e)/g):(h=this.x0+this.infinity_dist*c*Math.sin(d),i=this.y0+this.infinity_dist*(this.cos_p14*b-this.sin_p14*c*e)),a.x=h,a.y=i,a}function Qa(a){var b,c,d,e,f,g;return a.x=(a.x-this.x0)/this.a,a.y=(a.y-this.y0)/this.a,a.x/=this.k0,a.y/=this.k0,(b=Math.sqrt(a.x*a.x+a.y*a.y))?(e=Math.atan2(b,this.rc),c=Math.sin(e),d=Math.cos(e),g=Yd(d*this.sin_p14+a.y*c*this.cos_p14/b),f=Math.atan2(a.x*c,b*this.cos_p14*d-a.y*this.sin_p14*c),f=fc(this.long0+f)):(g=this.phic0,f=0),a.x=f,a.y=g,a}function Ra(){this.sphere||(this.k0=dc(this.e,Math.sin(this.lat_ts),Math.cos(this.lat_ts)))}function Sa(a){var b,c,d=a.x,e=a.y,f=fc(d-this.long0);if(this.sphere)b=this.x0+this.a*f*Math.cos(this.lat_ts),c=this.y0+this.a*Math.sin(e)/Math.cos(this.lat_ts);else{var g=Ld(this.e,Math.sin(e));b=this.x0+this.a*this.k0*f,c=this.y0+this.a*g*.5/this.k0}return a.x=b,a.y=c,a}function Ta(a){a.x-=this.x0,a.y-=this.y0;var b,c;return this.sphere?(b=fc(this.long0+a.x/this.a/Math.cos(this.lat_ts)),c=Math.asin(a.y/this.a*Math.cos(this.lat_ts))):(c=be(this.e,2*a.y*this.k0/this.a),b=fc(this.long0+a.x/(this.a*this.k0))),a.x=b,a.y=c,a}function Ua(){this.x0=this.x0||0,this.y0=this.y0||0,this.lat0=this.lat0||0,this.long0=this.long0||0,this.lat_ts=this.lat_ts||0,this.title=this.title||"Equidistant Cylindrical (Plate Carre)",this.rc=Math.cos(this.lat_ts)}function Va(a){var b=a.x,c=a.y,d=fc(b-this.long0),e=Hd(c-this.lat0);return a.x=this.x0+this.a*d*this.rc,a.y=this.y0+this.a*e,a}function Wa(a){var b=a.x,c=a.y;return a.x=fc(this.long0+(b-this.x0)/(this.a*this.rc)),a.y=Hd(this.lat0+(c-this.y0)/this.a),a}function Xa(){this.temp=this.b/this.a,this.es=1-Math.pow(this.temp,2),this.e=Math.sqrt(this.es),this.e0=Cd(this.es),this.e1=Dd(this.es),this.e2=Ed(this.es),this.e3=Fd(this.es),this.ml0=this.a*Bd(this.e0,this.e1,this.e2,this.e3,this.lat0)}function Ya(a){var b,c,d,e=a.x,f=a.y,g=fc(e-this.long0);if(d=g*Math.sin(f),this.sphere)Math.abs(f)<=Gb?(b=this.a*g,c=-1*this.a*this.lat0):(b=this.a*Math.sin(d)/Math.tan(f),c=this.a*(Hd(f-this.lat0)+(1-Math.cos(d))/Math.tan(f)));else if(Math.abs(f)<=Gb)b=this.a*g,c=-1*this.ml0;else{var h=Gd(this.a,this.e,Math.sin(f))/Math.tan(f);b=h*Math.sin(d),c=this.a*Bd(this.e0,this.e1,this.e2,this.e3,f)-this.ml0+h*(1-Math.cos(d))}return a.x=b+this.x0,a.y=c+this.y0,a}function Za(a){var b,c,d,e,f,g,h,i,j;if(d=a.x-this.x0,e=a.y-this.y0,this.sphere)if(Math.abs(e+this.a*this.lat0)<=Gb)b=fc(d/this.a+this.long0),c=0;else{g=this.lat0+e/this.a,h=d*d/this.a/this.a+g*g,i=g;var k;for(f=ge;f;--f)if(k=Math.tan(i),j=-1*(g*(i*k+1)-i-.5*(i*i+h)*k)/((i-g)/k-1),i+=j,Math.abs(j)<=Gb){c=i;break}b=fc(this.long0+Math.asin(d*Math.tan(i)/this.a)/Math.sin(c))}else if(Math.abs(e+this.ml0)<=Gb)c=0,b=fc(this.long0+d/this.a);else{g=(this.ml0+e)/this.a,h=d*d/this.a/this.a+g*g,i=g;var l,m,n,o,p;for(f=ge;f;--f)if(p=this.e*Math.sin(i),l=Math.sqrt(1-p*p)*Math.tan(i),m=this.a*Bd(this.e0,this.e1,this.e2,this.e3,i),n=this.e0-2*this.e1*Math.cos(2*i)+4*this.e2*Math.cos(4*i)-6*this.e3*Math.cos(6*i),o=m/this.a,j=(g*(l*o+1)-o-.5*l*(o*o+h))/(this.es*Math.sin(2*i)*(o*o+h-2*g*o)/(4*l)+(g-o)*(l*n-2/Math.sin(2*i))-n),i-=j,Math.abs(j)<=Gb){c=i;break}l=Math.sqrt(1-this.es*Math.pow(Math.sin(c),2))*Math.tan(c),b=fc(this.long0+Math.asin(d*l/this.a)/Math.sin(c))}return a.x=b,a.y=c,a}function $a(){this.A=[],this.A[1]=.6399175073,this.A[2]=-.1358797613,this.A[3]=.063294409,this.A[4]=-.02526853,this.A[5]=.0117879,this.A[6]=-.0055161,this.A[7]=.0026906,this.A[8]=-.001333,this.A[9]=67e-5,this.A[10]=-34e-5,this.B_re=[],this.B_im=[],this.B_re[1]=.7557853228,this.B_im[1]=0,this.B_re[2]=.249204646,this.B_im[2]=.003371507,this.B_re[3]=-.001541739,this.B_im[3]=.04105856,this.B_re[4]=-.10162907,this.B_im[4]=.01727609,this.B_re[5]=-.26623489,this.B_im[5]=-.36249218,this.B_re[6]=-.6870983,this.B_im[6]=-1.1651967,this.C_re=[],this.C_im=[],this.C_re[1]=1.3231270439,this.C_im[1]=0,this.C_re[2]=-.577245789,this.C_im[2]=-.007809598,this.C_re[3]=.508307513,this.C_im[3]=-.112208952,this.C_re[4]=-.15094762,this.C_im[4]=.18200602,this.C_re[5]=1.01418179,this.C_im[5]=1.64497696,this.C_re[6]=1.9660549,this.C_im[6]=2.5127645,this.D=[],this.D[1]=1.5627014243,this.D[2]=.5185406398,this.D[3]=-.03333098,this.D[4]=-.1052906,this.D[5]=-.0368594,this.D[6]=.007317,this.D[7]=.0122,this.D[8]=.00394,this.D[9]=-.0013}function _a(a){var b,c=a.x,d=a.y,e=d-this.lat0,f=c-this.long0,g=e/Bb*1e-5,h=f,i=1,j=0;for(b=1;b<=10;b++)i*=g,j+=this.A[b]*i;var k,l,m=j,n=h,o=1,p=0,q=0,r=0;for(b=1;b<=6;b++)k=o*m-p*n,l=p*m+o*n,o=k,p=l,q=q+this.B_re[b]*o-this.B_im[b]*p,r=r+this.B_im[b]*o+this.B_re[b]*p;return a.x=r*this.a+this.x0,a.y=q*this.a+this.y0,a}function ab(a){var b,c,d,e=a.x,f=a.y,g=e-this.x0,h=f-this.y0,i=h/this.a,j=g/this.a,k=1,l=0,m=0,n=0;for(b=1;b<=6;b++)c=k*i-l*j,d=l*i+k*j,k=c,l=d,m=m+this.C_re[b]*k-this.C_im[b]*l,n=n+this.C_im[b]*k+this.C_re[b]*l;for(var o=0;o<this.iterations;o++){var p,q,r=m,s=n,t=i,u=j;for(b=2;b<=6;b++)p=r*m-s*n,q=s*m+r*n,r=p,s=q,t+=(b-1)*(this.B_re[b]*r-this.B_im[b]*s),u+=(b-1)*(this.B_im[b]*r+this.B_re[b]*s);r=1,s=0;var v=this.B_re[1],w=this.B_im[1];for(b=2;b<=6;b++)p=r*m-s*n,q=s*m+r*n,r=p,s=q,v+=b*(this.B_re[b]*r-this.B_im[b]*s),w+=b*(this.B_im[b]*r+this.B_re[b]*s);var x=v*v+w*w;m=(t*v+u*w)/x,n=(u*v-t*w)/x}var y=m,z=n,A=1,B=0;for(b=1;b<=9;b++)A*=y,B+=this.D[b]*A;var C=this.lat0+B*Bb*1e5,D=this.long0+z;return a.x=D,a.y=C,a}function bb(){}function cb(a){var b=a.x,c=a.y,d=fc(b-this.long0),e=this.x0+this.a*d,f=this.y0+this.a*Math.log(Math.tan(Math.PI/4+c/2.5))*1.25;return a.x=e,a.y=f,a}function db(a){a.x-=this.x0,a.y-=this.y0;var b=fc(this.long0+a.x/this.a),c=2.5*(Math.atan(Math.exp(.8*a.y/this.a))-Math.PI/4);return a.x=b,a.y=c,a}function eb(){this.sphere?(this.n=1,this.m=0,this.es=0,this.C_y=Math.sqrt((this.m+1)/this.n),this.C_x=this.C_y/(this.m+1)):this.en=Tc(this.es)}function fb(a){var b,c,d=a.x,e=a.y;if(d=fc(d-this.long0),this.sphere){if(this.m)for(var f=this.n*Math.sin(e),g=ne;g;--g){var h=(this.m*e+Math.sin(e)-f)/(this.m+Math.cos(e));if(e-=h,Math.abs(h)<Gb)break}else e=1!==this.n?Math.asin(this.n*Math.sin(e)):e;b=this.a*this.C_x*d*(this.m+Math.cos(e)),c=this.a*this.C_y*e}else{var i=Math.sin(e),j=Math.cos(e);c=this.a*Uc(e,i,j,this.en),b=this.a*d*j/Math.sqrt(1-this.es*i*i)}return a.x=b,a.y=c,a}function gb(a){var b,c,d,e;return a.x-=this.x0,d=a.x/this.a,a.y-=this.y0,b=a.y/this.a,this.sphere?(b/=this.C_y,d/=this.C_x*(this.m+Math.cos(b)),this.m?b=Yd((this.m*b+Math.sin(b))/this.n):1!==this.n&&(b=Yd(Math.sin(b)/this.n)),d=fc(d+this.long0),b=Hd(b)):(b=Wc(a.y/this.a,this.es,this.en),e=Math.abs(b),e<Cb?(e=Math.sin(b),c=this.long0+a.x*Math.sqrt(1-this.es*e*e)/(this.a*Math.cos(b)),d=fc(c)):e-Gb<Cb&&(d=this.long0)),a.x=d,a.y=b,a}function hb(){}function ib(a){for(var b=a.x,c=a.y,d=fc(b-this.long0),e=c,f=Math.PI*Math.sin(c),g=0;!0;g++){var h=-(e+Math.sin(e)-f)/(1+Math.cos(e));if(e+=h,Math.abs(h)<Gb)break}e/=2,Math.PI/2-Math.abs(c)<Gb&&(d=0);var i=.900316316158*this.a*d*Math.cos(e)+this.x0,j=1.4142135623731*this.a*Math.sin(e)+this.y0;return a.x=i,a.y=j,a}function jb(a){var b,c;a.x-=this.x0,a.y-=this.y0,c=a.y/(1.4142135623731*this.a),Math.abs(c)>.999999999999&&(c=.999999999999),b=Math.asin(c);var d=fc(this.long0+a.x/(.900316316158*this.a*Math.cos(b)));d<-Math.PI&&(d=-Math.PI),d>Math.PI&&(d=Math.PI),c=(2*b+Math.sin(2*b))/Math.PI,Math.abs(c)>1&&(c=1);var e=Math.asin(c);return a.x=d,a.y=e,a}function kb(){Math.abs(this.lat1+this.lat2)<Gb||(this.lat2=this.lat2||this.lat1,this.temp=this.b/this.a,this.es=1-Math.pow(this.temp,2),this.e=Math.sqrt(this.es),this.e0=Cd(this.es),this.e1=Dd(this.es),this.e2=Ed(this.es),this.e3=Fd(this.es),this.sinphi=Math.sin(this.lat1),this.cosphi=Math.cos(this.lat1),this.ms1=dc(this.e,this.sinphi,this.cosphi),this.ml1=Bd(this.e0,this.e1,this.e2,this.e3,this.lat1),Math.abs(this.lat1-this.lat2)<Gb?this.ns=this.sinphi:(this.sinphi=Math.sin(this.lat2),this.cosphi=Math.cos(this.lat2),this.ms2=dc(this.e,this.sinphi,this.cosphi),this.ml2=Bd(this.e0,this.e1,this.e2,this.e3,this.lat2),this.ns=(this.ms1-this.ms2)/(this.ml2-this.ml1)),this.g=this.ml1+this.ms1/this.ns,this.ml0=Bd(this.e0,this.e1,this.e2,this.e3,this.lat0),this.rh=this.a*(this.g-this.ml0))}function lb(a){var b,c=a.x,d=a.y;if(this.sphere)b=this.a*(this.g-d);else{var e=Bd(this.e0,this.e1,this.e2,this.e3,d);b=this.a*(this.g-e)}var f=this.ns*fc(c-this.long0),g=this.x0+b*Math.sin(f),h=this.y0+this.rh-b*Math.cos(f);return a.x=g,a.y=h,a}function mb(a){a.x-=this.x0,a.y=this.rh-a.y+this.y0;var b,c,d,e;this.ns>=0?(c=Math.sqrt(a.x*a.x+a.y*a.y),b=1):(c=-Math.sqrt(a.x*a.x+a.y*a.y),b=-1);var f=0;if(0!==c&&(f=Math.atan2(b*a.x,b*a.y)),this.sphere)return e=fc(this.long0+f/this.ns),d=Hd(this.g-c/this.a),a.x=e,a.y=d,a;var g=this.g-c/this.a;return d=Id(g,this.e0,this.e1,this.e2,this.e3),e=fc(this.long0+f/this.ns),a.x=e,a.y=d,a}function nb(){this.R=this.a}function ob(a){var b,c,d=a.x,e=a.y,f=fc(d-this.long0);Math.abs(e)<=Gb&&(b=this.x0+this.R*f,c=this.y0);var g=Yd(2*Math.abs(e/Math.PI));(Math.abs(f)<=Gb||Math.abs(Math.abs(e)-Cb)<=Gb)&&(b=this.x0,c=e>=0?this.y0+Math.PI*this.R*Math.tan(.5*g):this.y0+Math.PI*this.R*-Math.tan(.5*g));var h=.5*Math.abs(Math.PI/f-f/Math.PI),i=h*h,j=Math.sin(g),k=Math.cos(g),l=k/(j+k-1),m=l*l,n=l*(2/j-1),o=n*n,p=Math.PI*this.R*(h*(l-o)+Math.sqrt(i*(l-o)*(l-o)-(o+i)*(m-o)))/(o+i);f<0&&(p=-p),b=this.x0+p;var q=i+l;return p=Math.PI*this.R*(n*q-h*Math.sqrt((o+i)*(i+1)-q*q))/(o+i),c=e>=0?this.y0+p:this.y0-p,a.x=b,a.y=c,a}function pb(a){var b,c,d,e,f,g,h,i,j,k,l,m,n;return a.x-=this.x0,a.y-=this.y0,l=Math.PI*this.R,d=a.x/l,e=a.y/l,f=d*d+e*e,g=-Math.abs(e)*(1+f),h=g-2*e*e+d*d,i=-2*g+1+2*e*e+f*f,n=e*e/i+(2*h*h*h/i/i/i-9*g*h/i/i)/27,j=(g-h*h/3/i)/i,k=2*Math.sqrt(-j/3),l=3*n/j/k,Math.abs(l)>1&&(l=l>=0?1:-1),m=Math.acos(l)/3,c=a.y>=0?(-k*Math.cos(m+Math.PI/3)-h/3/i)*Math.PI:-(-k*Math.cos(m+Math.PI/3)-h/3/i)*Math.PI,b=Math.abs(d)<Gb?this.long0:fc(this.long0+Math.PI*(f-1+Math.sqrt(1+2*(d*d-e*e)+f*f))/2/d),a.x=b,a.y=c,a}function qb(){this.sin_p12=Math.sin(this.lat0),this.cos_p12=Math.cos(this.lat0)}function rb(a){var b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y=a.x,z=a.y,A=Math.sin(a.y),B=Math.cos(a.y),C=fc(y-this.long0);return this.sphere?Math.abs(this.sin_p12-1)<=Gb?(a.x=this.x0+this.a*(Cb-z)*Math.sin(C),a.y=this.y0-this.a*(Cb-z)*Math.cos(C),a):Math.abs(this.sin_p12+1)<=Gb?(a.x=this.x0+this.a*(Cb+z)*Math.sin(C),a.y=this.y0+this.a*(Cb+z)*Math.cos(C),a):(s=this.sin_p12*A+this.cos_p12*B*Math.cos(C),q=Math.acos(s),r=q/Math.sin(q),a.x=this.x0+this.a*r*B*Math.sin(C),a.y=this.y0+this.a*r*(this.cos_p12*A-this.sin_p12*B*Math.cos(C)),a):(b=Cd(this.es),c=Dd(this.es),d=Ed(this.es),e=Fd(this.es),Math.abs(this.sin_p12-1)<=Gb?(f=this.a*Bd(b,c,d,e,Cb),g=this.a*Bd(b,c,d,e,z),a.x=this.x0+(f-g)*Math.sin(C),a.y=this.y0-(f-g)*Math.cos(C),a):Math.abs(this.sin_p12+1)<=Gb?(f=this.a*Bd(b,c,d,e,Cb),g=this.a*Bd(b,c,d,e,z),a.x=this.x0+(f+g)*Math.sin(C),a.y=this.y0+(f+g)*Math.cos(C),a):(h=A/B,i=Gd(this.a,this.e,this.sin_p12),j=Gd(this.a,this.e,A),k=Math.atan((1-this.es)*h+this.es*i*this.sin_p12/(j*B)),l=Math.atan2(Math.sin(C),this.cos_p12*Math.tan(k)-this.sin_p12*Math.cos(C)),t=0===l?Math.asin(this.cos_p12*Math.sin(k)-this.sin_p12*Math.cos(k)):Math.abs(Math.abs(l)-Math.PI)<=Gb?-Math.asin(this.cos_p12*Math.sin(k)-this.sin_p12*Math.cos(k)):Math.asin(Math.sin(C)*Math.cos(k)/Math.sin(l)),m=this.e*this.sin_p12/Math.sqrt(1-this.es),n=this.e*this.cos_p12*Math.cos(l)/Math.sqrt(1-this.es),o=m*n,p=n*n,u=t*t,v=u*t,w=v*t,x=w*t,q=i*t*(1-u*p*(1-p)/6+v/8*o*(1-2*p)+w/120*(p*(4-7*p)-3*m*m*(1-7*p))-x/48*o),a.x=this.x0+q*Math.sin(l),a.y=this.y0+q*Math.cos(l),a))}function sb(a){a.x-=this.x0,a.y-=this.y0;var b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x;if(this.sphere){if(b=Math.sqrt(a.x*a.x+a.y*a.y),b>2*Cb*this.a)return;return c=b/this.a,d=Math.sin(c),e=Math.cos(c),f=this.long0,Math.abs(b)<=Gb?g=this.lat0:(g=Yd(e*this.sin_p12+a.y*d*this.cos_p12/b),h=Math.abs(this.lat0)-Cb,f=fc(Math.abs(h)<=Gb?this.lat0>=0?this.long0+Math.atan2(a.x,-a.y):this.long0-Math.atan2(-a.x,a.y):this.long0+Math.atan2(a.x*d,b*this.cos_p12*e-a.y*this.sin_p12*d))),a.x=f,a.y=g,a}return i=Cd(this.es),j=Dd(this.es),k=Ed(this.es),l=Fd(this.es),Math.abs(this.sin_p12-1)<=Gb?(m=this.a*Bd(i,j,k,l,Cb),b=Math.sqrt(a.x*a.x+a.y*a.y),n=m-b,g=Id(n/this.a,i,j,k,l),f=fc(this.long0+Math.atan2(a.x,-1*a.y)),a.x=f,a.y=g,a):Math.abs(this.sin_p12+1)<=Gb?(m=this.a*Bd(i,j,k,l,Cb),b=Math.sqrt(a.x*a.x+a.y*a.y),n=b-m,g=Id(n/this.a,i,j,k,l),f=fc(this.long0+Math.atan2(a.x,a.y)),a.x=f,a.y=g,a):(b=Math.sqrt(a.x*a.x+a.y*a.y),q=Math.atan2(a.x,a.y),o=Gd(this.a,this.e,this.sin_p12),r=Math.cos(q),s=this.e*this.cos_p12*r,t=-s*s/(1-this.es),u=3*this.es*(1-t)*this.sin_p12*this.cos_p12*r/(1-this.es),v=b/o,w=v-t*(1+t)*Math.pow(v,3)/6-u*(1+3*t)*Math.pow(v,4)/24,x=1-t*w*w/2-v*w*w*w/6,p=Math.asin(this.sin_p12*Math.cos(w)+this.cos_p12*Math.sin(w)*r),f=fc(this.long0+Math.asin(Math.sin(q)*Math.sin(w)/Math.cos(p))),g=Math.atan((1-this.es*x*this.sin_p12/Math.sin(p))*Math.tan(p)/(1-this.es)),a.x=f,a.y=g,a)}function tb(){this.sin_p14=Math.sin(this.lat0),this.cos_p14=Math.cos(this.lat0)}function ub(a){var b,c,d,e,f,g,h,i,j=a.x,k=a.y;return d=fc(j-this.long0),b=Math.sin(k),c=Math.cos(k),e=Math.cos(d),g=this.sin_p14*b+this.cos_p14*c*e,f=1,(g>0||Math.abs(g)<=Gb)&&(h=this.a*f*c*Math.sin(d),i=this.y0+this.a*f*(this.cos_p14*b-this.sin_p14*c*e)),a.x=h,a.y=i,a}function vb(a){var b,c,d,e,f,g,h;return a.x-=this.x0,a.y-=this.y0,b=Math.sqrt(a.x*a.x+a.y*a.y),c=Yd(b/this.a),d=Math.sin(c),e=Math.cos(c),g=this.long0,Math.abs(b)<=Gb?(h=this.lat0,a.x=g,a.y=h,a):(h=Yd(e*this.sin_p14+a.y*d*this.cos_p14/b),f=Math.abs(this.lat0)-Cb,Math.abs(f)<=Gb?(g=fc(this.lat0>=0?this.long0+Math.atan2(a.x,-a.y):this.long0-Math.atan2(-a.x,a.y)),a.x=g,a.y=h,a):(g=fc(this.long0+Math.atan2(a.x*d,b*this.cos_p14*e-a.y*this.sin_p14*d)),a.x=g,a.y=h,a))}var wb=function(a){a("EPSG:4326","+title=WGS 84 (long/lat) +proj=longlat +ellps=WGS84 +datum=WGS84 +units=degrees"),a("EPSG:4269","+title=NAD83 (long/lat) +proj=longlat +a=6378137.0 +b=6356752.31414036 +ellps=GRS80 +datum=NAD83 +units=degrees"),a("EPSG:3857","+title=WGS 84 / Pseudo-Mercator +proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs"),a.WGS84=a["EPSG:4326"],a["EPSG:3785"]=a["EPSG:3857"],a.GOOGLE=a["EPSG:3857"],a["EPSG:900913"]=a["EPSG:3857"],a["EPSG:102113"]=a["EPSG:3857"]},xb=1,yb=2,zb=4,Ab=5,Bb=484813681109536e-20,Cb=Math.PI/2,Db=.16666666666666666,Eb=.04722222222222222,Fb=.022156084656084655,Gb="undefined"==typeof Number.EPSILON?1e-10:Number.EPSILON,Hb=.017453292519943295,Ib=57.29577951308232,Jb=Math.PI/4,Kb=2*Math.PI,Lb=3.14159265359,Mb={};Mb.greenwich=0,Mb.lisbon=-9.131906111111,Mb.paris=2.337229166667,Mb.bogota=-74.080916666667,Mb.madrid=-3.687938888889,Mb.rome=12.452333333333,Mb.bern=7.439583333333,Mb.jakarta=106.807719444444,Mb.ferro=-17.666666666667,Mb.brussels=4.367975,Mb.stockholm=18.058277777778,Mb.athens=23.7163375,Mb.oslo=10.722916666667;var Nb={ft:{to_meter:.3048},"us-ft":{to_meter:1200/3937}},Ob=/[\s_\-\/\(\)]/g,Pb=function(b){var c,d,e,f={},g=b.split("+").map(function(a){return a.trim()}).filter(function(a){return a}).reduce(function(a,b){var c=b.split("=");return c.push(!0),a[c[0].toLowerCase()]=c[1],a},{}),h={proj:"projName",datum:"datumCode",rf:function(a){f.rf=parseFloat(a)},lat_0:function(a){f.lat0=a*Hb},lat_1:function(a){f.lat1=a*Hb},lat_2:function(a){f.lat2=a*Hb},lat_ts:function(a){f.lat_ts=a*Hb},lon_0:function(a){f.long0=a*Hb},lon_1:function(a){f.long1=a*Hb},lon_2:function(a){f.long2=a*Hb},alpha:function(a){f.alpha=parseFloat(a)*Hb},lonc:function(a){f.longc=a*Hb},x_0:function(a){f.x0=parseFloat(a)},y_0:function(a){f.y0=parseFloat(a)},k_0:function(a){f.k0=parseFloat(a)},k:function(a){f.k0=parseFloat(a)},a:function(a){f.a=parseFloat(a)},b:function(a){f.b=parseFloat(a)},r_a:function(){f.R_A=!0},zone:function(a){f.zone=parseInt(a,10)},south:function(){f.utmSouth=!0},towgs84:function(a){f.datum_params=a.split(",").map(function(a){return parseFloat(a)})},to_meter:function(a){f.to_meter=parseFloat(a)},units:function(b){f.units=b;var c=a(Nb,b);c&&(f.to_meter=c.to_meter)},from_greenwich:function(a){f.from_greenwich=a*Hb},pm:function(b){var c=a(Mb,b);f.from_greenwich=(c?c:parseFloat(b))*Hb},nadgrids:function(a){"@null"===a?f.datumCode="none":f.nadgrids=a},axis:function(a){var b="ewnsud";3===a.length&&b.indexOf(a.substr(0,1))!==-1&&b.indexOf(a.substr(1,1))!==-1&&b.indexOf(a.substr(2,1))!==-1&&(f.axis=a)}};for(c in g)d=g[c],c in h?(e=h[c],"function"==typeof e?e(d):f[e]=d):f[c]=d;return"string"==typeof f.datumCode&&"WGS84"!==f.datumCode&&(f.datumCode=f.datumCode.toLowerCase()),f},Qb=1,Rb=2,Sb=3,Tb=4,Ub=5,Vb=-1,Wb=/\s/,Xb=/[A-Za-z]/,Yb=/[A-Za-z84]/,Zb=/[,\]]/,$b=/[\d\.E\-\+]/;b.prototype.readCharicter=function(){var a=this.text[this.place++];if(this.state!==Tb)for(;Wb.test(a);){if(this.place>=this.text.length)return;a=this.text[this.place++]}switch(this.state){case Qb:return this.neutral(a);case Rb:return this.keyword(a);case Tb:return this.quoted(a);case Ub:return this.afterquote(a);case Sb:return this.number(a);case Vb:return}},b.prototype.afterquote=function(a){if('"'===a)return this.word+='"',void(this.state=Tb);if(Zb.test(a))return this.word=this.word.trim(),void this.afterItem(a);throw new Error("havn't handled \""+a+'" in afterquote yet, index '+this.place)},b.prototype.afterItem=function(a){return","===a?(null!==this.word&&this.currentObject.push(this.word),this.word=null,void(this.state=Qb)):"]"===a?(this.level--,null!==this.word&&(this.currentObject.push(this.word),this.word=null),this.state=Qb,this.currentObject=this.stack.pop(),void(this.currentObject||(this.state=Vb))):void 0},b.prototype.number=function(a){if($b.test(a))return void(this.word+=a);if(Zb.test(a))return this.word=parseFloat(this.word),void this.afterItem(a);throw new Error("havn't handled \""+a+'" in number yet, index '+this.place)},b.prototype.quoted=function(a){return'"'===a?void(this.state=Ub):void(this.word+=a)},b.prototype.keyword=function(a){if(Yb.test(a))return void(this.word+=a);if("["===a){var b=[];return b.push(this.word),this.level++,null===this.root?this.root=b:this.currentObject.push(b),this.stack.push(this.currentObject),this.currentObject=b,void(this.state=Qb)}if(Zb.test(a))return void this.afterItem(a);throw new Error("havn't handled \""+a+'" in keyword yet, index '+this.place)},b.prototype.neutral=function(a){if(Xb.test(a))return this.word=a,void(this.state=Rb);if('"'===a)return this.word="",void(this.state=Tb);if($b.test(a))return this.word=a,void(this.state=Sb);if(Zb.test(a))return void this.afterItem(a);throw new Error("havn't handled \""+a+'" in neutral yet, index '+this.place)},b.prototype.output=function(){for(;this.place<this.text.length;)this.readCharicter();if(this.state===Vb)return this.root;throw new Error('unable to parse string "'+this.text+'". State is '+this.state)};var _b=.017453292519943295,ac=function(a){var b=c(a),d=b.shift(),f=b.shift();b.unshift(["name",f]),b.unshift(["type",d]);var g={};return e(b,g),h(g),g};wb(i);var bc=["PROJECTEDCRS","PROJCRS","GEOGCS","GEOCCS","PROJCS","LOCAL_CS","GEODCRS","GEODETICCRS","GEODETICDATUM","ENGCRS","ENGINEERINGCRS"],cc=function(a,b){a=a||{};var c,d;if(!b)return a;for(d in b)c=b[d],void 0!==c&&(a[d]=c);return a},dc=function(a,b,c){var d=a*b;return c/Math.sqrt(1-d*d)},ec=function(a){return a<0?-1:1},fc=function(a){return Math.abs(a)<=Lb?a:a-ec(a)*Kb},gc=function(a,b,c){var d=a*c,e=.5*a;return d=Math.pow((1-d)/(1+d),e),Math.tan(.5*(Cb-b))/d},hc=function(a,b){for(var c,d,e=.5*a,f=Cb-2*Math.atan(b),g=0;g<=15;g++)if(c=a*Math.sin(f),d=Cb-2*Math.atan(b*Math.pow((1-c)/(1+c),e))-f,f+=d,Math.abs(d)<=1e-10)return f;return-9999},ic=["Mercator","Popular Visualisation Pseudo Mercator","Mercator_1SP","Mercator_Auxiliary_Sphere","merc"],jc={init:o,forward:p,inverse:q,names:ic},kc=["longlat","identity"],lc={init:r,forward:s,inverse:s,names:kc},mc=[jc,lc],nc={},oc=[],pc={start:v,add:t,get:u},qc={};qc.MERIT={a:6378137,rf:298.257,ellipseName:"MERIT 1983"},qc.SGS85={a:6378136,rf:298.257,ellipseName:"Soviet Geodetic System 85"},qc.GRS80={a:6378137,rf:298.257222101,ellipseName:"GRS 1980(IUGG, 1980)"},qc.IAU76={a:6378140,rf:298.257,ellipseName:"IAU 1976"},qc.airy={a:6377563.396,b:6356256.91,ellipseName:"Airy 1830"},qc.APL4={a:6378137,rf:298.25,ellipseName:"Appl. Physics. 1965"},qc.NWL9D={a:6378145,rf:298.25,ellipseName:"Naval Weapons Lab., 1965"},qc.mod_airy={a:6377340.189,b:6356034.446,ellipseName:"Modified Airy"},qc.andrae={a:6377104.43,rf:300,ellipseName:"Andrae 1876 (Den., Iclnd.)"},qc.aust_SA={a:6378160,rf:298.25,ellipseName:"Australian Natl & S. Amer. 1969"},qc.GRS67={a:6378160,rf:298.247167427,ellipseName:"GRS 67(IUGG 1967)"},qc.bessel={a:6377397.155,rf:299.1528128,ellipseName:"Bessel 1841"},qc.bess_nam={a:6377483.865,rf:299.1528128,ellipseName:"Bessel 1841 (Namibia)"},qc.clrk66={a:6378206.4,b:6356583.8,ellipseName:"Clarke 1866"},qc.clrk80={a:6378249.145,rf:293.4663,ellipseName:"Clarke 1880 mod."},qc.clrk58={a:6378293.645208759,rf:294.2606763692654,ellipseName:"Clarke 1858"},qc.CPM={a:6375738.7,rf:334.29,ellipseName:"Comm. des Poids et Mesures 1799"},qc.delmbr={a:6376428,rf:311.5,ellipseName:"Delambre 1810 (Belgium)"},qc.engelis={a:6378136.05,rf:298.2566,ellipseName:"Engelis 1985"},qc.evrst30={a:6377276.345,rf:300.8017,ellipseName:"Everest 1830"},qc.evrst48={a:6377304.063,rf:300.8017,ellipseName:"Everest 1948"},qc.evrst56={a:6377301.243,rf:300.8017,ellipseName:"Everest 1956"},qc.evrst69={a:6377295.664,rf:300.8017,ellipseName:"Everest 1969"},qc.evrstSS={a:6377298.556,rf:300.8017,ellipseName:"Everest (Sabah & Sarawak)"},qc.fschr60={a:6378166,rf:298.3,ellipseName:"Fischer (Mercury Datum) 1960"},qc.fschr60m={a:6378155,rf:298.3,ellipseName:"Fischer 1960"},qc.fschr68={a:6378150,rf:298.3,ellipseName:"Fischer 1968"},qc.helmert={a:6378200,rf:298.3,ellipseName:"Helmert 1906"},qc.hough={a:6378270,rf:297,ellipseName:"Hough"},qc.intl={a:6378388,rf:297,ellipseName:"International 1909 (Hayford)"},qc.kaula={a:6378163,rf:298.24,ellipseName:"Kaula 1961"},qc.lerch={a:6378139,rf:298.257,ellipseName:"Lerch 1979"},qc.mprts={a:6397300,rf:191,ellipseName:"Maupertius 1738"},qc.new_intl={a:6378157.5,b:6356772.2,ellipseName:"New International 1967"},qc.plessis={a:6376523,rf:6355863,ellipseName:"Plessis 1817 (France)"},qc.krass={a:6378245,rf:298.3,ellipseName:"Krassovsky, 1942"},qc.SEasia={a:6378155,b:6356773.3205,ellipseName:"Southeast Asia"},qc.walbeck={a:6376896,b:6355834.8467,ellipseName:"Walbeck"},qc.WGS60={a:6378165,rf:298.3,ellipseName:"WGS 60"},qc.WGS66={a:6378145,rf:298.25,ellipseName:"WGS 66"},qc.WGS7={a:6378135,rf:298.26,ellipseName:"WGS 72"};var rc=qc.WGS84={a:6378137,rf:298.257223563,ellipseName:"WGS 84"};qc.sphere={a:6370997,b:6370997,ellipseName:"Normal Sphere (r=6370997)"};var sc={};sc.wgs84={towgs84:"0,0,0",ellipse:"WGS84",datumName:"WGS84"},sc.ch1903={towgs84:"674.374,15.056,405.346",ellipse:"bessel",datumName:"swiss"},sc.ggrs87={towgs84:"-199.87,74.79,246.62",ellipse:"GRS80",datumName:"Greek_Geodetic_Reference_System_1987"},sc.nad83={towgs84:"0,0,0",ellipse:"GRS80",datumName:"North_American_Datum_1983"},sc.nad27={nadgrids:"@conus,@alaska,@ntv2_0.gsb,@ntv1_can.dat",ellipse:"clrk66",datumName:"North_American_Datum_1927"},sc.potsdam={towgs84:"606.0,23.0,413.0",ellipse:"bessel",datumName:"Potsdam Rauenberg 1950 DHDN"},sc.carthage={towgs84:"-263.0,6.0,431.0",ellipse:"clark80",datumName:"Carthage 1934 Tunisia"},sc.hermannskogel={towgs84:"653.0,-212.0,449.0",ellipse:"bessel",datumName:"Hermannskogel"},sc.ire65={towgs84:"482.530,-130.596,564.557,-1.042,-0.214,-0.631,8.15",ellipse:"mod_airy",datumName:"Ireland 1965"},sc.rassadiran={towgs84:"-133.63,-157.5,-158.62",ellipse:"intl",datumName:"Rassadiran"},sc.nzgd49={towgs84:"59.47,-5.04,187.44,0.47,-0.1,1.024,-4.5993",ellipse:"intl",datumName:"New Zealand Geodetic Datum 1949"},sc.osgb36={towgs84:"446.448,-125.157,542.060,0.1502,0.2470,0.8421,-20.4894",ellipse:"airy",datumName:"Airy 1830"},sc.s_jtsk={towgs84:"589,76,480",ellipse:"bessel",datumName:"S-JTSK (Ferro)"},sc.beduaram={towgs84:"-106,-87,188",ellipse:"clrk80",datumName:"Beduaram"},sc.gunung_segara={towgs84:"-403,684,41",ellipse:"bessel",datumName:"Gunung Segara Jakarta"},sc.rnb72={towgs84:"106.869,-52.2978,103.724,-0.33657,0.456955,-1.84218,1",ellipse:"intl",datumName:"Reseau National Belge 1972"},z.projections=pc,z.projections.start();
-var tc=function(a,b,c){return A(a,b)?c:a.datum_type===Ab||b.datum_type===Ab?c:a.es!==b.es||a.a!==b.a||F(a.datum_type)||F(b.datum_type)?(c=B(c,a.es,a.a),F(a.datum_type)&&(c=D(c,a.datum_type,a.datum_params)),F(b.datum_type)&&(c=E(c,b.datum_type,b.datum_params)),C(c,b.es,b.a,b.b)):c},uc=function(a,b,c){var d,e,f,g=c.x,h=c.y,i=c.z||0,j={};for(f=0;f<3;f++)if(!b||2!==f||void 0!==c.z)switch(0===f?(d=g,e="x"):1===f?(d=h,e="y"):(d=i,e="z"),a.axis[f]){case"e":j[e]=d;break;case"w":j[e]=-d;break;case"n":j[e]=d;break;case"s":j[e]=-d;break;case"u":void 0!==c[e]&&(j.z=d);break;case"d":void 0!==c[e]&&(j.z=-d);break;default:return null}return j},vc=function(a){var b={x:a[0],y:a[1]};return a.length>2&&(b.z=a[2]),a.length>3&&(b.m=a[3]),b},wc=z("WGS84"),xc=6,yc="AJSAJS",zc="AFAFAF",Ac=65,Bc=73,Cc=79,Dc=86,Ec=90,Fc={forward:L,inverse:M,toPoint:N};Point.fromMGRS=function(a){return new Point(N(a))},Point.prototype.toMGRS=function(a){return L([this.x,this.y],a)};var Gc="2.4.3",Hc=1,Ic=.25,Jc=.046875,Kc=.01953125,Lc=.01068115234375,Mc=.75,Nc=.46875,Oc=.013020833333333334,Pc=.007120768229166667,Qc=.3645833333333333,Rc=.005696614583333333,Sc=.3076171875,Tc=function(a){var b=[];b[0]=Hc-a*(Ic+a*(Jc+a*(Kc+a*Lc))),b[1]=a*(Mc-a*(Jc+a*(Kc+a*Lc)));var c=a*a;return b[2]=c*(Nc-a*(Oc+a*Pc)),c*=a,b[3]=c*(Qc-a*Rc),b[4]=c*a*Sc,b},Uc=function(a,b,c,d){return c*=b,b*=b,d[0]*a-c*(d[1]+b*(d[2]+b*(d[3]+b*d[4])))},Vc=20,Wc=function(a,b,c){for(var d=1/(1-b),e=a,f=Vc;f;--f){var g=Math.sin(e),h=1-b*g*g;if(h=(Uc(e,g,Math.cos(e),c)-a)*(h*Math.sqrt(h))*d,e-=h,Math.abs(h)<Gb)return e}return e},Xc=["Transverse_Mercator","Transverse Mercator","tmerc"],Yc={init:_,forward:aa,inverse:ba,names:Xc},Zc=function(a){var b=Math.exp(a);return b=(b-1/b)/2},$c=function(a,b){a=Math.abs(a),b=Math.abs(b);var c=Math.max(a,b),d=Math.min(a,b)/(c?c:1);return c*Math.sqrt(1+Math.pow(d,2))},_c=function(a){var b=1+a,c=b-1;return 0===c?a:a*Math.log(b)/c},ad=function(a){var b=Math.abs(a);return b=_c(b*(1+b/($c(1,b)+1))),a<0?-b:b},bd=function(a,b){for(var c,d=2*Math.cos(2*b),e=a.length-1,f=a[e],g=0;--e>=0;)c=-g+d*f+a[e],g=f,f=c;return b+c*Math.sin(2*b)},cd=function(a,b){for(var c,d=2*Math.cos(b),e=a.length-1,f=a[e],g=0;--e>=0;)c=-g+d*f+a[e],g=f,f=c;return Math.sin(b)*c},dd=function(a){var b=Math.exp(a);return b=(b+1/b)/2},ed=function(a,b,c){for(var d,e,f=Math.sin(b),g=Math.cos(b),h=Zc(c),i=dd(c),j=2*g*i,k=-2*f*h,l=a.length-1,m=a[l],n=0,o=0,p=0;--l>=0;)d=o,e=n,o=m,n=p,m=-d+j*o-k*n+a[l],p=-e+k*o+j*n;return j=f*i,k=g*h,[j*m-k*p,j*p+k*m]},fd=["Extended_Transverse_Mercator","Extended Transverse Mercator","etmerc"],gd={init:ca,forward:da,inverse:ea,names:fd},hd=function(a,b){if(void 0===a){if(a=Math.floor(30*(fc(b)+Math.PI)/Math.PI)+1,a<0)return 0;if(a>60)return 60}return a},id="etmerc",jd=["Universal Transverse Mercator System","utm"],kd={init:fa,names:jd,dependsOn:id},ld=function(a,b){return Math.pow((1-a)/(1+a),b)},md=20,nd=["gauss"],od={init:ga,forward:ha,inverse:ia,names:nd},pd=["Stereographic_North_Pole","Oblique_Stereographic","Polar_Stereographic","sterea","Oblique Stereographic Alternative"],qd={init:ja,forward:ka,inverse:la,names:pd},rd=["stere","Stereographic_South_Pole","Polar Stereographic (variant B)"],sd={init:na,forward:oa,inverse:pa,names:rd,ssfn_:ma},td=["somerc"],ud={init:qa,forward:ra,inverse:sa,names:td},vd=["Hotine_Oblique_Mercator","Hotine Oblique Mercator","Hotine_Oblique_Mercator_Azimuth_Natural_Origin","Hotine_Oblique_Mercator_Azimuth_Center","omerc"],wd={init:ta,forward:ua,inverse:va,names:vd},xd=["Lambert Tangential Conformal Conic Projection","Lambert_Conformal_Conic","Lambert_Conformal_Conic_2SP","lcc"],yd={init:wa,forward:xa,inverse:ya,names:xd},zd=["Krovak","krovak"],Ad={init:za,forward:Aa,inverse:Ba,names:zd},Bd=function(a,b,c,d,e){return a*e-b*Math.sin(2*e)+c*Math.sin(4*e)-d*Math.sin(6*e)},Cd=function(a){return 1-.25*a*(1+a/16*(3+1.25*a))},Dd=function(a){return.375*a*(1+.25*a*(1+.46875*a))},Ed=function(a){return.05859375*a*a*(1+.75*a)},Fd=function(a){return a*a*a*(35/3072)},Gd=function(a,b,c){var d=b*c;return a/Math.sqrt(1-d*d)},Hd=function(a){return Math.abs(a)<Cb?a:a-ec(a)*Math.PI},Id=function(a,b,c,d,e){var f,g;f=a/b;for(var h=0;h<15;h++)if(g=(a-(b*f-c*Math.sin(2*f)+d*Math.sin(4*f)-e*Math.sin(6*f)))/(b-2*c*Math.cos(2*f)+4*d*Math.cos(4*f)-6*e*Math.cos(6*f)),f+=g,Math.abs(g)<=1e-10)return f;return NaN},Jd=["Cassini","Cassini_Soldner","cass"],Kd={init:Ca,forward:Da,inverse:Ea,names:Jd},Ld=function(a,b){var c;return a>1e-7?(c=a*b,(1-a*a)*(b/(1-c*c)-.5/a*Math.log((1-c)/(1+c)))):2*b},Md=1,Nd=2,Od=3,Pd=4,Qd=.3333333333333333,Rd=.17222222222222222,Sd=.10257936507936508,Td=.06388888888888888,Ud=.0664021164021164,Vd=.016415012942191543,Wd=["Lambert Azimuthal Equal Area","Lambert_Azimuthal_Equal_Area","laea"],Xd={init:Fa,forward:Ga,inverse:Ha,names:Wd,S_POLE:Md,N_POLE:Nd,EQUIT:Od,OBLIQ:Pd},Yd=function(a){return Math.abs(a)>1&&(a=a>1?1:-1),Math.asin(a)},Zd=["Albers_Conic_Equal_Area","Albers","aea"],$d={init:Ka,forward:La,inverse:Ma,names:Zd,phi1z:Na},_d=["gnom"],ae={init:Oa,forward:Pa,inverse:Qa,names:_d},be=function(a,b){var c=1-(1-a*a)/(2*a)*Math.log((1-a)/(1+a));if(Math.abs(Math.abs(b)-c)<1e-6)return b<0?-1*Cb:Cb;for(var d,e,f,g,h=Math.asin(.5*b),i=0;i<30;i++)if(e=Math.sin(h),f=Math.cos(h),g=a*e,d=Math.pow(1-g*g,2)/(2*f)*(b/(1-a*a)-e/(1-g*g)+.5/a*Math.log((1-g)/(1+g))),h+=d,Math.abs(d)<=1e-10)return h;return NaN},ce=["cea"],de={init:Ra,forward:Sa,inverse:Ta,names:ce},ee=["Equirectangular","Equidistant_Cylindrical","eqc"],fe={init:Ua,forward:Va,inverse:Wa,names:ee},ge=20,he=["Polyconic","poly"],ie={init:Xa,forward:Ya,inverse:Za,names:he},je=["New_Zealand_Map_Grid","nzmg"],ke={init:$a,forward:_a,inverse:ab,names:je},le=["Miller_Cylindrical","mill"],me={init:bb,forward:cb,inverse:db,names:le},ne=20,oe=["Sinusoidal","sinu"],pe={init:eb,forward:fb,inverse:gb,names:oe},qe=["Mollweide","moll"],re={init:hb,forward:ib,inverse:jb,names:qe},se=["Equidistant_Conic","eqdc"],te={init:kb,forward:lb,inverse:mb,names:se},ue=["Van_der_Grinten_I","VanDerGrinten","vandg"],ve={init:nb,forward:ob,inverse:pb,names:ue},we=["Azimuthal_Equidistant","aeqd"],xe={init:qb,forward:rb,inverse:sb,names:we},ye=["ortho"],ze={init:tb,forward:ub,inverse:vb,names:ye},Ae=function(proj4){proj4.Proj.projections.add(Yc),proj4.Proj.projections.add(gd),proj4.Proj.projections.add(kd),proj4.Proj.projections.add(qd),proj4.Proj.projections.add(sd),proj4.Proj.projections.add(ud),proj4.Proj.projections.add(wd),proj4.Proj.projections.add(yd),proj4.Proj.projections.add(Ad),proj4.Proj.projections.add(Kd),proj4.Proj.projections.add(Xd),proj4.Proj.projections.add($d),proj4.Proj.projections.add(ae),proj4.Proj.projections.add(de),proj4.Proj.projections.add(fe),proj4.Proj.projections.add(ie),proj4.Proj.projections.add(ke),proj4.Proj.projections.add(me),proj4.Proj.projections.add(pe),proj4.Proj.projections.add(re),proj4.Proj.projections.add(te),proj4.Proj.projections.add(ve),proj4.Proj.projections.add(xe),proj4.Proj.projections.add(ze)};return K.defaultDatum="WGS84",K.Proj=z,K.WGS84=new K.Proj("WGS84"),K.Point=Point,K.toPoint=vc,K.defs=i,K.transform=H,K.mgrs=Fc,K.version=Gc,Ae(K),K});
+!function(a,b){"object"==typeof exports&&"undefined"!=typeof module?module.exports=b():"function"==typeof define&&define.amd?define(b):a.proj4=b()}(this,function(){"use strict";function a(a,b){if(a[b])return a[b];for(var c,d,e=Object.keys(a),f=b.toLowerCase().replace(Ub,""),g=-1;++g<e.length;)if(c=e[g],d=c.toLowerCase().replace(Ub,""),d===f)return a[c]}function b(a){if("string"!=typeof a)throw new Error("not a string");this.text=a.trim(),this.level=0,this.place=0,this.root=null,this.stack=[],this.currentObject=null,this.state=Wb}function c(a){var c=new b(a);return c.output()}function d(a,b,c){Array.isArray(b)&&(c.unshift(b),b=null);var d=b?{}:a,f=c.reduce(function(a,b){return e(b,a),a},d);b&&(a[b]=f)}function e(a,b){if(!Array.isArray(a))return void(b[a]=!0);var c=a.shift();if("PARAMETER"===c&&(c=a.shift()),1===a.length)return Array.isArray(a[0])?(b[c]={},void e(a[0],b[c])):void(b[c]=a[0]);if(!a.length)return void(b[c]=!0);if("TOWGS84"===c)return void(b[c]=a);Array.isArray(c)||(b[c]={});var f;switch(c){case"UNIT":case"PRIMEM":case"VERT_DATUM":return b[c]={name:a[0].toLowerCase(),convert:a[1]},void(3===a.length&&e(a[2],b[c]));case"SPHEROID":case"ELLIPSOID":return b[c]={name:a[0],a:a[1],rf:a[2]},void(4===a.length&&e(a[3],b[c]));case"PROJECTEDCRS":case"PROJCRS":case"GEOGCS":case"GEOCCS":case"PROJCS":case"LOCAL_CS":case"GEODCRS":case"GEODETICCRS":case"GEODETICDATUM":case"EDATUM":case"ENGINEERINGDATUM":case"VERT_CS":case"VERTCRS":case"VERTICALCRS":case"COMPD_CS":case"COMPOUNDCRS":case"ENGINEERINGCRS":case"ENGCRS":case"FITTED_CS":case"LOCAL_DATUM":case"DATUM":return a[0]=["name",a[0]],void d(b,c,a);default:for(f=-1;++f<a.length;)if(!Array.isArray(a[f]))return e(a,b[c]);return d(b,c,a)}}function f(a,b){var c=b[0],d=b[1];!(c in a)&&d in a&&(a[c]=a[d],3===b.length&&(a[c]=b[2](a[c])))}function g(a){return a*fc}function h(a){function b(b){var c=a.to_meter||1;return b*c}"GEOGCS"===a.type?a.projName="longlat":"LOCAL_CS"===a.type?(a.projName="identity",a.local=!0):"object"==typeof a.PROJECTION?a.projName=Object.keys(a.PROJECTION)[0]:a.projName=a.PROJECTION,a.UNIT&&(a.units=a.UNIT.name.toLowerCase(),"metre"===a.units&&(a.units="meter"),a.UNIT.convert&&("GEOGCS"===a.type?a.DATUM&&a.DATUM.SPHEROID&&(a.to_meter=a.UNIT.convert*a.DATUM.SPHEROID.a):(a.to_meter=a.UNIT.convert,10)));var c=a.GEOGCS;"GEOGCS"===a.type&&(c=a),c&&(c.DATUM?a.datumCode=c.DATUM.name.toLowerCase():a.datumCode=c.name.toLowerCase(),"d_"===a.datumCode.slice(0,2)&&(a.datumCode=a.datumCode.slice(2)),"new_zealand_geodetic_datum_1949"!==a.datumCode&&"new_zealand_1949"!==a.datumCode||(a.datumCode="nzgd49"),"wgs_1984"===a.datumCode&&("Mercator_Auxiliary_Sphere"===a.PROJECTION&&(a.sphere=!0),a.datumCode="wgs84"),"_ferro"===a.datumCode.slice(-6)&&(a.datumCode=a.datumCode.slice(0,-6)),"_jakarta"===a.datumCode.slice(-8)&&(a.datumCode=a.datumCode.slice(0,-8)),~a.datumCode.indexOf("belge")&&(a.datumCode="rnb72"),c.DATUM&&c.DATUM.SPHEROID&&(a.ellps=c.DATUM.SPHEROID.name.replace("_19","").replace(/[Cc]larke\_18/,"clrk"),"international"===a.ellps.toLowerCase().slice(0,13)&&(a.ellps="intl"),a.a=c.DATUM.SPHEROID.a,a.rf=parseFloat(c.DATUM.SPHEROID.rf,10)),~a.datumCode.indexOf("osgb_1936")&&(a.datumCode="osgb36"),~a.datumCode.indexOf("osni_1952")&&(a.datumCode="osni52"),(~a.datumCode.indexOf("tm65")||~a.datumCode.indexOf("geodetic_datum_of_1965"))&&(a.datumCode="ire65")),a.b&&!isFinite(a.b)&&(a.b=a.a);var d=function(b){return f(a,b)},e=[["standard_parallel_1","Standard_Parallel_1"],["standard_parallel_2","Standard_Parallel_2"],["false_easting","False_Easting"],["false_northing","False_Northing"],["central_meridian","Central_Meridian"],["latitude_of_origin","Latitude_Of_Origin"],["latitude_of_origin","Central_Parallel"],["scale_factor","Scale_Factor"],["k0","scale_factor"],["latitude_of_center","Latitude_of_center"],["lat0","latitude_of_center",g],["longitude_of_center","Longitude_Of_Center"],["longc","longitude_of_center",g],["x0","false_easting",b],["y0","false_northing",b],["long0","central_meridian",g],["lat0","latitude_of_origin",g],["lat0","standard_parallel_1",g],["lat1","standard_parallel_1",g],["lat2","standard_parallel_2",g],["alpha","azimuth",g],["srsCode","name"]];e.forEach(d),a.long0||!a.longc||"Albers_Conic_Equal_Area"!==a.projName&&"Lambert_Azimuthal_Equal_Area"!==a.projName||(a.long0=a.longc),a.lat_ts||!a.lat1||"Stereographic_South_Pole"!==a.projName&&"Polar Stereographic (variant B)"!==a.projName||(a.lat0=g(a.lat1>0?90:-90),a.lat_ts=a.lat1)}function i(a){var b=this;if(2===arguments.length){var c=arguments[1];"string"==typeof c?"+"===c.charAt(0)?i[a]=Vb(arguments[1]):i[a]=gc(arguments[1]):i[a]=c}else if(1===arguments.length){if(Array.isArray(a))return a.map(function(a){Array.isArray(a)?i.apply(b,a):i(a)});if("string"==typeof a){if(a in i)return i[a]}else"EPSG"in a?i["EPSG:"+a.EPSG]=a:"ESRI"in a?i["ESRI:"+a.ESRI]=a:"IAU2000"in a?i["IAU2000:"+a.IAU2000]=a:console.log(a);return}}function j(a){return"string"==typeof a}function k(a){return a in i}function l(a){return hc.some(function(b){return a.indexOf(b)>-1})}function m(a){return"+"===a[0]}function n(a){return j(a)?k(a)?i[a]:l(a)?gc(a):m(a)?Vb(a):void 0:a}function o(){var a=this.b/this.a;this.es=1-a*a,"x0"in this||(this.x0=0),"y0"in this||(this.y0=0),this.e=Math.sqrt(this.es),this.lat_ts?this.sphere?this.k0=Math.cos(this.lat_ts):this.k0=jc(this.e,Math.sin(this.lat_ts),Math.cos(this.lat_ts)):this.k0||(this.k?this.k0=this.k:this.k0=1)}function p(a){var b=a.x,c=a.y;if(c*Ob>90&&-90>c*Ob&&b*Ob>180&&-180>b*Ob)return null;var d,e;if(Math.abs(Math.abs(c)-Ib)<=Mb)return null;if(this.sphere)d=this.x0+this.a*this.k0*lc(b-this.long0),e=this.y0+this.a*this.k0*Math.log(Math.tan(Pb+.5*c));else{var f=Math.sin(c),g=mc(this.e,c,f);d=this.x0+this.a*this.k0*lc(b-this.long0),e=this.y0-this.a*this.k0*Math.log(g)}return a.x=d,a.y=e,a}function q(a){var b,c,d=a.x-this.x0,e=a.y-this.y0;if(this.sphere)c=Ib-2*Math.atan(Math.exp(-e/(this.a*this.k0)));else{var f=Math.exp(-e/(this.a*this.k0));if(c=nc(this.e,f),-9999===c)return null}return b=lc(this.long0+d/(this.a*this.k0)),a.x=b,a.y=c,a}function r(){}function s(a){return a}function t(a,b){var c=uc.length;return a.names?(uc[c]=a,a.names.forEach(function(a){tc[a.toLowerCase()]=c}),this):(console.log(b),!0)}function u(a){if(!a)return!1;var b=a.toLowerCase();return"undefined"!=typeof tc[b]&&uc[tc[b]]?uc[tc[b]]:void 0}function v(){sc.forEach(t)}function w(a,b,c,d){var e=a*a,f=b*b,g=(e-f)/e,h=0;d?(a*=1-g*(Jb+g*(Kb+g*Lb)),e=a*a,g=0):h=Math.sqrt(g);var i=(e-f)/f;return{es:g,e:h,ep2:i}}function x(b,c,d,e,f){if(!b){var g=a(wc,e);g||(g=xc),b=g.a,c=g.b,d=g.rf}return d&&!c&&(c=(1-1/d)*b),(0===d||Math.abs(b-c)<Mb)&&(f=!0,c=b),{a:b,b:c,rf:d,sphere:f}}function y(a,b,c,d,e,f){var g={};return void 0===a||"none"===a?g.datum_type=Gb:g.datum_type=Fb,b&&(g.datum_params=b.map(parseFloat),0===g.datum_params[0]&&0===g.datum_params[1]&&0===g.datum_params[2]||(g.datum_type=Db),g.datum_params.length>3&&(0===g.datum_params[3]&&0===g.datum_params[4]&&0===g.datum_params[5]&&0===g.datum_params[6]||(g.datum_type=Eb,g.datum_params[3]*=Hb,g.datum_params[4]*=Hb,g.datum_params[5]*=Hb,g.datum_params[6]=g.datum_params[6]/1e6+1))),g.a=c,g.b=d,g.es=e,g.ep2=f,g}function z(b,c){if(!(this instanceof z))return new z(b);c=c||function(a){if(a)throw a};var d=n(b);if("object"!=typeof d)return void c(b);var e=z.projections.get(d.projName);if(!e)return void c(b);if(d.datumCode&&"none"!==d.datumCode){var f=a(yc,d.datumCode);f&&(d.datum_params=f.towgs84?f.towgs84.split(","):null,d.ellps=f.ellipse,d.datumName=f.datumName?f.datumName:d.datumCode)}d.k0=d.k0||1,d.axis=d.axis||"enu",d.ellps=d.ellps||"wgs84";var g=x(d.a,d.b,d.rf,d.ellps,d.sphere),h=w(g.a,g.b,g.rf,d.R_A),i=d.datum||y(d.datumCode,d.datum_params,g.a,g.b,h.es,h.ep2);ic(this,d),ic(this,e),this.a=g.a,this.b=g.b,this.rf=g.rf,this.sphere=g.sphere,this.es=h.es,this.e=h.e,this.ep2=h.ep2,this.datum=i,this.init(),c(null,this)}function A(a,b){return a.datum_type!==b.datum_type?!1:a.a!==b.a||Math.abs(a.es-b.es)>5e-11?!1:a.datum_type===Db?a.datum_params[0]===b.datum_params[0]&&a.datum_params[1]===b.datum_params[1]&&a.datum_params[2]===b.datum_params[2]:a.datum_type===Eb?a.datum_params[0]===b.datum_params[0]&&a.datum_params[1]===b.datum_params[1]&&a.datum_params[2]===b.datum_params[2]&&a.datum_params[3]===b.datum_params[3]&&a.datum_params[4]===b.datum_params[4]&&a.datum_params[5]===b.datum_params[5]&&a.datum_params[6]===b.datum_params[6]:!0}function B(a,b,c){var d,e,f,g,h=a.x,i=a.y,j=a.z?a.z:0;if(-Ib>i&&i>-1.001*Ib)i=-Ib;else if(i>Ib&&1.001*Ib>i)i=Ib;else if(-Ib>i||i>Ib)return null;return h>Math.PI&&(h-=2*Math.PI),e=Math.sin(i),g=Math.cos(i),f=e*e,d=c/Math.sqrt(1-b*f),{x:(d+j)*g*Math.cos(h),y:(d+j)*g*Math.sin(h),z:(d*(1-b)+j)*e}}function C(a,b,c,d){var e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u=1e-12,v=u*u,w=30,x=a.x,y=a.y,z=a.z?a.z:0;if(e=Math.sqrt(x*x+y*y),f=Math.sqrt(x*x+y*y+z*z),u>e/c){if(r=0,u>f/c)return s=Ib,t=-d,{x:a.x,y:a.y,z:a.z}}else r=Math.atan2(y,x);g=z/f,h=e/f,i=1/Math.sqrt(1-b*(2-b)*h*h),l=h*(1-b)*i,m=g*i,q=0;do q++,k=c/Math.sqrt(1-b*m*m),t=e*l+z*m-k*(1-b*m*m),j=b*k/(k+t),i=1/Math.sqrt(1-j*(2-j)*h*h),n=h*(1-j)*i,o=g*i,p=o*l-n*m,l=n,m=o;while(p*p>v&&w>q);return s=Math.atan(o/Math.abs(n)),{x:r,y:s,z:t}}function D(a,b,c){if(b===Db)return{x:a.x+c[0],y:a.y+c[1],z:a.z+c[2]};if(b===Eb){var d=c[0],e=c[1],f=c[2],g=c[3],h=c[4],i=c[5],j=c[6];return{x:j*(a.x-i*a.y+h*a.z)+d,y:j*(i*a.x+a.y-g*a.z)+e,z:j*(-h*a.x+g*a.y+a.z)+f}}}function E(a,b,c){if(b===Db)return{x:a.x-c[0],y:a.y-c[1],z:a.z-c[2]};if(b===Eb){var d=c[0],e=c[1],f=c[2],g=c[3],h=c[4],i=c[5],j=c[6],k=(a.x-d)/j,l=(a.y-e)/j,m=(a.z-f)/j;return{x:k+i*l-h*m,y:-i*k+l+g*m,z:h*k-g*l+m}}}function F(a){return a===Db||a===Eb}function G(a){if("function"==typeof Number.isFinite){if(Number.isFinite(a))return;throw new TypeError("coordinates must be finite numbers")}if("number"!=typeof a||a!==a||!isFinite(a))throw new TypeError("coordinates must be finite numbers")}function H(a,b){return(a.datum.datum_type===Db||a.datum.datum_type===Eb)&&"WGS84"!==b.datumCode||(b.datum.datum_type===Db||b.datum.datum_type===Eb)&&"WGS84"!==a.datumCode}function I(a,b,c){var d;return Array.isArray(c)&&(c=Bc(c)),Cc(c),a.datum&&b.datum&&H(a,b)&&(d=new z("WGS84"),c=I(a,d,c),a=d),"enu"!==a.axis&&(c=Ac(a,!1,c)),"longlat"===a.projName?c={x:c.x*Nb,y:c.y*Nb}:(a.to_meter&&(c={x:c.x*a.to_meter,y:c.y*a.to_meter}),c=a.inverse(c)),a.from_greenwich&&(c.x+=a.from_greenwich),c=zc(a.datum,b.datum,c),b.from_greenwich&&(c={x:c.x-b.from_greenwich,y:c.y}),"longlat"===b.projName?c={x:c.x*Ob,y:c.y*Ob}:(c=b.forward(c),b.to_meter&&(c={x:c.x/b.to_meter,y:c.y/b.to_meter})),"enu"!==b.axis?Ac(b,!0,c):c}function J(a,b,c){var d,e,f;return Array.isArray(c)?(d=I(a,b,c),3===c.length?[d.x,d.y,d.z]:[d.x,d.y]):(e=I(a,b,c),f=Object.keys(c),2===f.length?e:(f.forEach(function(a){"x"!==a&&"y"!==a&&(e[a]=c[a])}),e))}function K(a){return a instanceof z?a:a.oProj?a.oProj:z(a)}function L(a,b,c){a=K(a);var d,e=!1;return"undefined"==typeof b?(b=a,a=Dc,e=!0):("undefined"!=typeof b.x||Array.isArray(b))&&(c=b,b=a,a=Dc,e=!0),b=K(b),c?J(a,b,c):(d={forward:function(c){return J(a,b,c)},inverse:function(c){return J(b,a,c)}},e&&(d.oProj=b),d)}function M(a,b){return b=b||5,U(R({lat:a[1],lon:a[0]}),b)}function N(a){var b=S(Y(a.toUpperCase()));return b.lat&&b.lon?[b.lon,b.lat,b.lon,b.lat]:[b.left,b.bottom,b.right,b.top]}function O(a){var b=S(Y(a.toUpperCase()));return b.lat&&b.lon?[b.lon,b.lat]:[(b.left+b.right)/2,(b.top+b.bottom)/2]}function P(a){return a*(Math.PI/180)}function Q(a){return 180*(a/Math.PI)}function R(a){var b,c,d,e,f,g,h,i,j,k=a.lat,l=a.lon,m=6378137,n=.00669438,o=.9996,p=P(k),q=P(l);j=Math.floor((l+180)/6)+1,180===l&&(j=60),k>=56&&64>k&&l>=3&&12>l&&(j=32),k>=72&&84>k&&(l>=0&&9>l?j=31:l>=9&&21>l?j=33:l>=21&&33>l?j=35:l>=33&&42>l&&(j=37)),b=6*(j-1)-180+3,i=P(b),c=n/(1-n),d=m/Math.sqrt(1-n*Math.sin(p)*Math.sin(p)),e=Math.tan(p)*Math.tan(p),f=c*Math.cos(p)*Math.cos(p),g=Math.cos(p)*(q-i),h=m*((1-n/4-3*n*n/64-5*n*n*n/256)*p-(3*n/8+3*n*n/32+45*n*n*n/1024)*Math.sin(2*p)+(15*n*n/256+45*n*n*n/1024)*Math.sin(4*p)-35*n*n*n/3072*Math.sin(6*p));var r=o*d*(g+(1-e+f)*g*g*g/6+(5-18*e+e*e+72*f-58*c)*g*g*g*g*g/120)+5e5,s=o*(h+d*Math.tan(p)*(g*g/2+(5-e+9*f+4*f*f)*g*g*g*g/24+(61-58*e+e*e+600*f-330*c)*g*g*g*g*g*g/720));return 0>k&&(s+=1e7),{northing:Math.round(s),easting:Math.round(r),zoneNumber:j,zoneLetter:T(k)}}function S(a){var b=a.northing,c=a.easting,d=a.zoneLetter,e=a.zoneNumber;if(0>e||e>60)return null;var f,g,h,i,j,k,l,m,n,o,p=.9996,q=6378137,r=.00669438,s=(1-Math.sqrt(1-r))/(1+Math.sqrt(1-r)),t=c-5e5,u=b;"N">d&&(u-=1e7),m=6*(e-1)-180+3,f=r/(1-r),l=u/p,n=l/(q*(1-r/4-3*r*r/64-5*r*r*r/256)),o=n+(3*s/2-27*s*s*s/32)*Math.sin(2*n)+(21*s*s/16-55*s*s*s*s/32)*Math.sin(4*n)+151*s*s*s/96*Math.sin(6*n),g=q/Math.sqrt(1-r*Math.sin(o)*Math.sin(o)),h=Math.tan(o)*Math.tan(o),i=f*Math.cos(o)*Math.cos(o),j=q*(1-r)/Math.pow(1-r*Math.sin(o)*Math.sin(o),1.5),k=t/(g*p);var v=o-g*Math.tan(o)/j*(k*k/2-(5+3*h+10*i-4*i*i-9*f)*k*k*k*k/24+(61+90*h+298*i+45*h*h-252*f-3*i*i)*k*k*k*k*k*k/720);v=Q(v);var w=(k-(1+2*h+i)*k*k*k/6+(5-2*i+28*h-3*i*i+8*f+24*h*h)*k*k*k*k*k/120)/Math.cos(o);w=m+Q(w);var x;if(a.accuracy){var y=S({northing:a.northing+a.accuracy,easting:a.easting+a.accuracy,zoneLetter:a.zoneLetter,zoneNumber:a.zoneNumber});x={top:y.lat,right:y.lon,bottom:v,left:w}}else x={lat:v,lon:w};return x}function T(a){var b="Z";return 84>=a&&a>=72?b="X":72>a&&a>=64?b="W":64>a&&a>=56?b="V":56>a&&a>=48?b="U":48>a&&a>=40?b="T":40>a&&a>=32?b="S":32>a&&a>=24?b="R":24>a&&a>=16?b="Q":16>a&&a>=8?b="P":8>a&&a>=0?b="N":0>a&&a>=-8?b="M":-8>a&&a>=-16?b="L":-16>a&&a>=-24?b="K":-24>a&&a>=-32?b="J":-32>a&&a>=-40?b="H":-40>a&&a>=-48?b="G":-48>a&&a>=-56?b="F":-56>a&&a>=-64?b="E":-64>a&&a>=-72?b="D":-72>a&&a>=-80&&(b="C"),b}function U(a,b){var c="00000"+a.easting,d="00000"+a.northing;return a.zoneNumber+a.zoneLetter+V(a.easting,a.northing,a.zoneNumber)+c.substr(c.length-5,b)+d.substr(d.length-5,b)}function V(a,b,c){var d=W(c),e=Math.floor(a/1e5),f=Math.floor(b/1e5)%20;return X(e,f,d)}function W(a){var b=a%Ec;return 0===b&&(b=Ec),b}function X(a,b,c){var d=c-1,e=Fc.charCodeAt(d),f=Gc.charCodeAt(d),g=e+a-1,h=f+b,i=!1;g>Lc&&(g=g-Lc+Hc-1,i=!0),(g===Ic||Ic>e&&g>Ic||(g>Ic||Ic>e)&&i)&&g++,(g===Jc||Jc>e&&g>Jc||(g>Jc||Jc>e)&&i)&&(g++,g===Ic&&g++),g>Lc&&(g=g-Lc+Hc-1),h>Kc?(h=h-Kc+Hc-1,i=!0):i=!1,(h===Ic||Ic>f&&h>Ic||(h>Ic||Ic>f)&&i)&&h++,(h===Jc||Jc>f&&h>Jc||(h>Jc||Jc>f)&&i)&&(h++,h===Ic&&h++),h>Kc&&(h=h-Kc+Hc-1);var j=String.fromCharCode(g)+String.fromCharCode(h);return j}function Y(a){if(a&&0===a.length)throw"MGRSPoint coverting from nothing";for(var b,c=a.length,d=null,e="",f=0;!/[A-Z]/.test(b=a.charAt(f));){if(f>=2)throw"MGRSPoint bad conversion from: "+a;e+=b,f++}var g=parseInt(e,10);if(0===f||f+3>c)throw"MGRSPoint bad conversion from: "+a;var h=a.charAt(f++);if("A">=h||"B"===h||"Y"===h||h>="Z"||"I"===h||"O"===h)throw"MGRSPoint zone letter "+h+" not handled: "+a;d=a.substring(f,f+=2);for(var i=W(g),j=Z(d.charAt(0),i),k=$(d.charAt(1),i);k<_(h);)k+=2e6;var l=c-f;if(l%2!==0)throw"MGRSPoint has to have an even number \nof digits after the zone letter and two 100km letters - front \nhalf for easting meters, second half for \nnorthing meters"+a;var m,n,o,p,q,r=l/2,s=0,t=0;return r>0&&(m=1e5/Math.pow(10,r),n=a.substring(f,f+r),s=parseFloat(n)*m,o=a.substring(f+r),t=parseFloat(o)*m),p=s+j,q=t+k,{easting:p,northing:q,zoneLetter:h,zoneNumber:g,accuracy:m}}function Z(a,b){for(var c=Fc.charCodeAt(b-1),d=1e5,e=!1;c!==a.charCodeAt(0);){if(c++,c===Ic&&c++,c===Jc&&c++,c>Lc){if(e)throw"Bad character: "+a;c=Hc,e=!0}d+=1e5}return d}function $(a,b){if(a>"V")throw"MGRSPoint given invalid Northing "+a;for(var c=Gc.charCodeAt(b-1),d=0,e=!1;c!==a.charCodeAt(0);){if(c++,c===Ic&&c++,c===Jc&&c++,c>Kc){if(e)throw"Bad character: "+a;c=Hc,e=!0}d+=1e5}return d}function _(a){var b;switch(a){case"C":b=11e5;break;case"D":b=2e6;break;case"E":b=28e5;break;case"F":b=37e5;break;case"G":b=46e5;break;case"H":b=55e5;break;case"J":b=64e5;break;case"K":b=73e5;break;case"L":b=82e5;break;case"M":b=91e5;break;case"N":b=0;break;case"P":b=8e5;break;case"Q":b=17e5;break;case"R":b=26e5;break;case"S":b=35e5;break;case"T":b=44e5;break;case"U":b=53e5;break;case"V":b=62e5;break;case"W":b=7e6;break;case"X":b=79e5;break;default:b=-1}if(b>=0)return b;throw"Invalid zone letter: "+a}function Point(a,b,c){if(!(this instanceof Point))return new Point(a,b,c);if(Array.isArray(a))this.x=a[0],this.y=a[1],this.z=a[2]||0;else if("object"==typeof a)this.x=a.x,this.y=a.y,this.z=a.z||0;else if("string"==typeof a&&"undefined"==typeof b){var d=a.split(",");this.x=parseFloat(d[0],10),this.y=parseFloat(d[1],10),this.z=parseFloat(d[2],10)||0}else this.x=a,this.y=b,this.z=c||0;console.warn("proj4.Point will be removed in version 3, use proj4.toPoint")}function aa(){this.x0=void 0!==this.x0?this.x0:0,this.y0=void 0!==this.y0?this.y0:0,this.long0=void 0!==this.long0?this.long0:0,this.lat0=void 0!==this.lat0?this.lat0:0,this.es&&(this.en=$c(this.es),this.ml0=_c(this.lat0,Math.sin(this.lat0),Math.cos(this.lat0),this.en))}function ba(a){var b,c,d,e=a.x,f=a.y,g=lc(e-this.long0),h=Math.sin(f),i=Math.cos(f);if(this.es){var j=i*g,k=Math.pow(j,2),l=this.ep2*Math.pow(i,2),m=Math.pow(l,2),n=Math.abs(i)>Mb?Math.tan(f):0,o=Math.pow(n,2),p=Math.pow(o,2);b=1-this.es*Math.pow(h,2),j/=Math.sqrt(b);var q=_c(f,h,i,this.en);c=this.a*(this.k0*j*(1+k/6*(1-o+l+k/20*(5-18*o+p+14*l-58*o*l+k/42*(61+179*p-p*o-479*o)))))+this.x0,d=this.a*(this.k0*(q-this.ml0+h*g*j/2*(1+k/12*(5-o+9*l+4*m+k/30*(61+p-58*o+270*l-330*o*l+k/56*(1385+543*p-p*o-3111*o))))))+this.y0}else{var r=i*Math.sin(g);if(Math.abs(Math.abs(r)-1)<Mb)return 93;if(c=.5*this.a*this.k0*Math.log((1+r)/(1-r))+this.x0,d=i*Math.cos(g)/Math.sqrt(1-Math.pow(r,2)),r=Math.abs(d),r>=1){if(r-1>Mb)return 93;d=0}else d=Math.acos(d);0>f&&(d=-d),d=this.a*this.k0*(d-this.lat0)+this.y0}return a.x=c,a.y=d,a}function ca(a){var b,c,d,e,f=(a.x-this.x0)*(1/this.a),g=(a.y-this.y0)*(1/this.a);if(this.es)if(b=this.ml0+g/this.k0,c=bd(b,this.es,this.en),Math.abs(c)<Ib){var h=Math.sin(c),i=Math.cos(c),j=Math.abs(i)>Mb?Math.tan(c):0,k=this.ep2*Math.pow(i,2),l=Math.pow(k,2),m=Math.pow(j,2),n=Math.pow(m,2);b=1-this.es*Math.pow(h,2);var o=f*Math.sqrt(b)/this.k0,p=Math.pow(o,2);b*=j,d=c-b*p/(1-this.es)*.5*(1-p/12*(5+3*m-9*k*m+k-4*l-p/30*(61+90*m-252*k*m+45*n+46*k-p/56*(1385+3633*m+4095*n+1574*n*m)))),e=lc(this.long0+o*(1-p/6*(1+2*m+k-p/20*(5+28*m+24*n+8*k*m+6*k-p/42*(61+662*m+1320*n+720*n*m))))/i)}else d=Ib*kc(g),e=0;else{var q=Math.exp(f/this.k0),r=.5*(q-1/q),s=this.lat0+g/this.k0,t=Math.cos(s);b=Math.sqrt((1-Math.pow(t,2))/(1+Math.pow(r,2))),d=Math.asin(b),0>g&&(d=-d),e=0===r&&0===t?0:lc(Math.atan2(r,t)+this.long0)}return a.x=e,a.y=d,a}function da(){if(void 0===this.es||this.es<=0)throw new Error("incorrect elliptical usage");this.x0=void 0!==this.x0?this.x0:0,this.y0=void 0!==this.y0?this.y0:0,this.long0=void 0!==this.long0?this.long0:0,this.lat0=void 0!==this.lat0?this.lat0:0,this.cgb=[],this.cbg=[],this.utg=[],this.gtu=[];var a=this.es/(1+Math.sqrt(1-this.es)),b=a/(2-a),c=b;this.cgb[0]=b*(2+b*(-2/3+b*(-2+b*(116/45+b*(26/45+b*(-2854/675)))))),this.cbg[0]=b*(-2+b*(2/3+b*(4/3+b*(-82/45+b*(32/45+b*(4642/4725)))))),c*=b,this.cgb[1]=c*(7/3+b*(-1.6+b*(-227/45+b*(2704/315+b*(2323/945))))),this.cbg[1]=c*(5/3+b*(-16/15+b*(-13/9+b*(904/315+b*(-1522/945))))),c*=b,this.cgb[2]=c*(56/15+b*(-136/35+b*(-1262/105+b*(73814/2835)))),this.cbg[2]=c*(-26/15+b*(34/21+b*(1.6+b*(-12686/2835)))),c*=b,this.cgb[3]=c*(4279/630+b*(-332/35+b*(-399572/14175))),this.cbg[3]=c*(1237/630+b*(-2.4+b*(-24832/14175))),c*=b,this.cgb[4]=c*(4174/315+b*(-144838/6237)),this.cbg[4]=c*(-734/315+b*(109598/31185)),c*=b,this.cgb[5]=c*(601676/22275),this.cbg[5]=c*(444337/155925),c=Math.pow(b,2),this.Qn=this.k0/(1+b)*(1+c*(.25+c*(1/64+c/256))),this.utg[0]=b*(-.5+b*(2/3+b*(-37/96+b*(1/360+b*(81/512+b*(-96199/604800)))))),this.gtu[0]=b*(.5+b*(-2/3+b*(5/16+b*(41/180+b*(-127/288+b*(7891/37800)))))),this.utg[1]=c*(-1/48+b*(-1/15+b*(437/1440+b*(-46/105+b*(1118711/3870720))))),this.gtu[1]=c*(13/48+b*(-0.6+b*(557/1440+b*(281/630+b*(-1983433/1935360))))),c*=b,this.utg[2]=c*(-17/480+b*(37/840+b*(209/4480+b*(-5569/90720)))),this.gtu[2]=c*(61/240+b*(-103/140+b*(15061/26880+b*(167603/181440)))),c*=b,this.utg[3]=c*(-4397/161280+b*(11/504+b*(830251/7257600))),this.gtu[3]=c*(49561/161280+b*(-179/168+b*(6601661/7257600))),c*=b,this.utg[4]=c*(-4583/161280+b*(108847/3991680)),this.gtu[4]=c*(34729/80640+b*(-3418889/1995840)),c*=b,this.utg[5]=c*(-20648693/638668800),this.gtu[5]=.6650675310896665*c;var d=id(this.cbg,this.lat0);this.Zb=-this.Qn*(d+jd(this.gtu,2*d))}function ea(a){var b=lc(a.x-this.long0),c=a.y;c=id(this.cbg,c);var d=Math.sin(c),e=Math.cos(c),f=Math.sin(b),g=Math.cos(b);c=Math.atan2(d,g*e),b=Math.atan2(f*e,fd(d,e*g)),b=hd(Math.tan(b));var h=ld(this.gtu,2*c,2*b);c+=h[0],b+=h[1];var i,j;return Math.abs(b)<=2.623395162778?(i=this.a*(this.Qn*b)+this.x0,j=this.a*(this.Qn*c+this.Zb)+this.y0):(i=1/0,j=1/0),a.x=i,a.y=j,a}function fa(a){var b=(a.x-this.x0)*(1/this.a),c=(a.y-this.y0)*(1/this.a);c=(c-this.Zb)/this.Qn,b/=this.Qn;var d,e;if(Math.abs(b)<=2.623395162778){var f=ld(this.utg,2*c,2*b);c+=f[0],b+=f[1],b=Math.atan(ed(b));var g=Math.sin(c),h=Math.cos(c),i=Math.sin(b),j=Math.cos(b);c=Math.atan2(g*j,fd(i,j*h)),b=Math.atan2(i,j*h),d=lc(b+this.long0),e=id(this.cgb,c)}else d=1/0,e=1/0;return a.x=d,a.y=e,a}function ga(){var a=od(this.zone,this.long0);if(void 0===a)throw new Error("unknown utm zone");this.lat0=0,this.long0=(6*Math.abs(a)-183)*Nb,this.x0=5e5,this.y0=this.utmSouth?1e7:0,this.k0=.9996,nd.init.apply(this),this.forward=nd.forward,this.inverse=nd.inverse}function ha(){var a=Math.sin(this.lat0),b=Math.cos(this.lat0);b*=b,this.rc=Math.sqrt(1-this.es)/(1-this.es*a*a),this.C=Math.sqrt(1+this.es*b*b/(1-this.es)),this.phic0=Math.asin(a/this.C),this.ratexp=.5*this.C*this.e,this.K=Math.tan(.5*this.phic0+Pb)/(Math.pow(Math.tan(.5*this.lat0+Pb),this.C)*sd(this.e*a,this.ratexp))}function ia(a){var b=a.x,c=a.y;return a.y=2*Math.atan(this.K*Math.pow(Math.tan(.5*c+Pb),this.C)*sd(this.e*Math.sin(c),this.ratexp))-Ib,a.x=this.C*b,a}function ja(a){for(var b=1e-14,c=a.x/this.C,d=a.y,e=Math.pow(Math.tan(.5*d+Pb)/this.K,1/this.C),f=td;f>0&&(d=2*Math.atan(e*sd(this.e*Math.sin(a.y),-.5*this.e))-Ib,!(Math.abs(d-a.y)<b));--f)a.y=d;return f?(a.x=c,a.y=d,a):null}function ka(){vd.init.apply(this),this.rc&&(this.sinc0=Math.sin(this.phic0),this.cosc0=Math.cos(this.phic0),this.R2=2*this.rc,this.title||(this.title="Oblique Stereographic Alternative"))}function la(a){var b,c,d,e;return a.x=lc(a.x-this.long0),vd.forward.apply(this,[a]),b=Math.sin(a.y),c=Math.cos(a.y),d=Math.cos(a.x),e=this.k0*this.R2/(1+this.sinc0*b+this.cosc0*c*d),a.x=e*c*Math.sin(a.x),a.y=e*(this.cosc0*b-this.sinc0*c*d),a.x=this.a*a.x+this.x0,a.y=this.a*a.y+this.y0,a}function ma(a){var b,c,d,e,f;if(a.x=(a.x-this.x0)/this.a,a.y=(a.y-this.y0)/this.a,a.x/=this.k0,a.y/=this.k0,f=Math.sqrt(a.x*a.x+a.y*a.y)){var g=2*Math.atan2(f,this.R2);b=Math.sin(g),c=Math.cos(g),e=Math.asin(c*this.sinc0+a.y*b*this.cosc0/f),d=Math.atan2(a.x*b,f*this.cosc0*c-a.y*this.sinc0*b)}else e=this.phic0,d=0;return a.x=d,a.y=e,vd.inverse.apply(this,[a]),a.x=lc(a.x+this.long0),a}function na(a,b,c){return b*=c,Math.tan(.5*(Ib+a))*Math.pow((1-b)/(1+b),.5*c)}function oa(){this.coslat0=Math.cos(this.lat0),this.sinlat0=Math.sin(this.lat0),this.sphere?1===this.k0&&!isNaN(this.lat_ts)&&Math.abs(this.coslat0)<=Mb&&(this.k0=.5*(1+kc(this.lat0)*Math.sin(this.lat_ts))):(Math.abs(this.coslat0)<=Mb&&(this.lat0>0?this.con=1:this.con=-1),this.cons=Math.sqrt(Math.pow(1+this.e,1+this.e)*Math.pow(1-this.e,1-this.e)),1===this.k0&&!isNaN(this.lat_ts)&&Math.abs(this.coslat0)<=Mb&&(this.k0=.5*this.cons*jc(this.e,Math.sin(this.lat_ts),Math.cos(this.lat_ts))/mc(this.e,this.con*this.lat_ts,this.con*Math.sin(this.lat_ts))),this.ms1=jc(this.e,this.sinlat0,this.coslat0),this.X0=2*Math.atan(this.ssfn_(this.lat0,this.sinlat0,this.e))-Ib,this.cosX0=Math.cos(this.X0),this.sinX0=Math.sin(this.X0))}function pa(a){var b,c,d,e,f,g,h=a.x,i=a.y,j=Math.sin(i),k=Math.cos(i),l=lc(h-this.long0);return Math.abs(Math.abs(h-this.long0)-Math.PI)<=Mb&&Math.abs(i+this.lat0)<=Mb?(a.x=NaN,a.y=NaN,a):this.sphere?(b=2*this.k0/(1+this.sinlat0*j+this.coslat0*k*Math.cos(l)),a.x=this.a*b*k*Math.sin(l)+this.x0,a.y=this.a*b*(this.coslat0*j-this.sinlat0*k*Math.cos(l))+this.y0,a):(c=2*Math.atan(this.ssfn_(i,j,this.e))-Ib,e=Math.cos(c),d=Math.sin(c),Math.abs(this.coslat0)<=Mb?(f=mc(this.e,i*this.con,this.con*j),g=2*this.a*this.k0*f/this.cons,a.x=this.x0+g*Math.sin(h-this.long0),a.y=this.y0-this.con*g*Math.cos(h-this.long0),a):(Math.abs(this.sinlat0)<Mb?(b=2*this.a*this.k0/(1+e*Math.cos(l)),a.y=b*d):(b=2*this.a*this.k0*this.ms1/(this.cosX0*(1+this.sinX0*d+this.cosX0*e*Math.cos(l))),a.y=b*(this.cosX0*d-this.sinX0*e*Math.cos(l))+this.y0),a.x=b*e*Math.sin(l)+this.x0,a))}function qa(a){a.x-=this.x0,a.y-=this.y0;var b,c,d,e,f,g=Math.sqrt(a.x*a.x+a.y*a.y);if(this.sphere){var h=2*Math.atan(g/(.5*this.a*this.k0));return b=this.long0,c=this.lat0,Mb>=g?(a.x=b,a.y=c,a):(c=Math.asin(Math.cos(h)*this.sinlat0+a.y*Math.sin(h)*this.coslat0/g),b=lc(Math.abs(this.coslat0)<Mb?this.lat0>0?this.long0+Math.atan2(a.x,-1*a.y):this.long0+Math.atan2(a.x,a.y):this.long0+Math.atan2(a.x*Math.sin(h),g*this.coslat0*Math.cos(h)-a.y*this.sinlat0*Math.sin(h))),a.x=b,a.y=c,a)}if(Math.abs(this.coslat0)<=Mb){if(Mb>=g)return c=this.lat0,b=this.long0,a.x=b,a.y=c,a;a.x*=this.con,a.y*=this.con,d=g*this.cons/(2*this.a*this.k0),c=this.con*nc(this.e,d),b=this.con*lc(this.con*this.long0+Math.atan2(a.x,-1*a.y))}else e=2*Math.atan(g*this.cosX0/(2*this.a*this.k0*this.ms1)),b=this.long0,Mb>=g?f=this.X0:(f=Math.asin(Math.cos(e)*this.sinX0+a.y*Math.sin(e)*this.cosX0/g),b=lc(this.long0+Math.atan2(a.x*Math.sin(e),g*this.cosX0*Math.cos(e)-a.y*this.sinX0*Math.sin(e)))),c=-1*nc(this.e,Math.tan(.5*(Ib+f)));return a.x=b,a.y=c,a}function ra(){var a=this.lat0;this.lambda0=this.long0;var b=Math.sin(a),c=this.a,d=this.rf,e=1/d,f=2*e-Math.pow(e,2),g=this.e=Math.sqrt(f);this.R=this.k0*c*Math.sqrt(1-f)/(1-f*Math.pow(b,2)),this.alpha=Math.sqrt(1+f/(1-f)*Math.pow(Math.cos(a),4)),this.b0=Math.asin(b/this.alpha);var h=Math.log(Math.tan(Math.PI/4+this.b0/2)),i=Math.log(Math.tan(Math.PI/4+a/2)),j=Math.log((1+g*b)/(1-g*b));this.K=h-this.alpha*i+this.alpha*g/2*j}function sa(a){var b=Math.log(Math.tan(Math.PI/4-a.y/2)),c=this.e/2*Math.log((1+this.e*Math.sin(a.y))/(1-this.e*Math.sin(a.y))),d=-this.alpha*(b+c)+this.K,e=2*(Math.atan(Math.exp(d))-Math.PI/4),f=this.alpha*(a.x-this.lambda0),g=Math.atan(Math.sin(f)/(Math.sin(this.b0)*Math.tan(e)+Math.cos(this.b0)*Math.cos(f))),h=Math.asin(Math.cos(this.b0)*Math.sin(e)-Math.sin(this.b0)*Math.cos(e)*Math.cos(f));return a.y=this.R/2*Math.log((1+Math.sin(h))/(1-Math.sin(h)))+this.y0,a.x=this.R*g+this.x0,a}function ta(a){for(var b=a.x-this.x0,c=a.y-this.y0,d=b/this.R,e=2*(Math.atan(Math.exp(c/this.R))-Math.PI/4),f=Math.asin(Math.cos(this.b0)*Math.sin(e)+Math.sin(this.b0)*Math.cos(e)*Math.cos(d)),g=Math.atan(Math.sin(d)/(Math.cos(this.b0)*Math.cos(d)-Math.sin(this.b0)*Math.tan(e))),h=this.lambda0+g/this.alpha,i=0,j=f,k=-1e3,l=0;Math.abs(j-k)>1e-7;){if(++l>20)return;i=1/this.alpha*(Math.log(Math.tan(Math.PI/4+f/2))-this.K)+this.e*Math.log(Math.tan(Math.PI/4+Math.asin(this.e*Math.sin(j))/2)),k=j,j=2*Math.atan(Math.exp(i))-Math.PI/2}return a.x=h,a.y=j,a}function ua(){this.no_off=this.no_off||!1,this.no_rot=this.no_rot||!1,isNaN(this.k0)&&(this.k0=1);var a=Math.sin(this.lat0),b=Math.cos(this.lat0),c=this.e*a;this.bl=Math.sqrt(1+this.es/(1-this.es)*Math.pow(b,4)),this.al=this.a*this.bl*this.k0*Math.sqrt(1-this.es)/(1-c*c);var d=mc(this.e,this.lat0,a),e=this.bl/b*Math.sqrt((1-this.es)/(1-c*c));1>e*e&&(e=1);var f,g;if(isNaN(this.longc)){var h=mc(this.e,this.lat1,Math.sin(this.lat1)),i=mc(this.e,this.lat2,Math.sin(this.lat2));this.lat0>=0?this.el=(e+Math.sqrt(e*e-1))*Math.pow(d,this.bl):this.el=(e-Math.sqrt(e*e-1))*Math.pow(d,this.bl);var j=Math.pow(h,this.bl),k=Math.pow(i,this.bl);f=this.el/j,g=.5*(f-1/f);var l=(this.el*this.el-k*j)/(this.el*this.el+k*j),m=(k-j)/(k+j),n=lc(this.long1-this.long2);this.long0=.5*(this.long1+this.long2)-Math.atan(l*Math.tan(.5*this.bl*n)/m)/this.bl,this.long0=lc(this.long0);var o=lc(this.long1-this.long0);this.gamma0=Math.atan(Math.sin(this.bl*o)/g),this.alpha=Math.asin(e*Math.sin(this.gamma0))}else f=this.lat0>=0?e+Math.sqrt(e*e-1):e-Math.sqrt(e*e-1),this.el=f*Math.pow(d,this.bl),g=.5*(f-1/f),this.gamma0=Math.asin(Math.sin(this.alpha)/e),this.long0=this.longc-Math.asin(g*Math.tan(this.gamma0))/this.bl;this.no_off?this.uc=0:this.lat0>=0?this.uc=this.al/this.bl*Math.atan2(Math.sqrt(e*e-1),Math.cos(this.alpha)):this.uc=-1*this.al/this.bl*Math.atan2(Math.sqrt(e*e-1),Math.cos(this.alpha))}function va(a){var b,c,d,e=a.x,f=a.y,g=lc(e-this.long0);if(Math.abs(Math.abs(f)-Ib)<=Mb)d=f>0?-1:1,c=this.al/this.bl*Math.log(Math.tan(Pb+d*this.gamma0*.5)),b=-1*d*Ib*this.al/this.bl;else{var h=mc(this.e,f,Math.sin(f)),i=this.el/Math.pow(h,this.bl),j=.5*(i-1/i),k=.5*(i+1/i),l=Math.sin(this.bl*g),m=(j*Math.sin(this.gamma0)-l*Math.cos(this.gamma0))/k;c=Math.abs(Math.abs(m)-1)<=Mb?Number.POSITIVE_INFINITY:.5*this.al*Math.log((1-m)/(1+m))/this.bl,b=Math.abs(Math.cos(this.bl*g))<=Mb?this.al*this.bl*g:this.al*Math.atan2(j*Math.cos(this.gamma0)+l*Math.sin(this.gamma0),Math.cos(this.bl*g))/this.bl}return this.no_rot?(a.x=this.x0+b,a.y=this.y0+c):(b-=this.uc,a.x=this.x0+c*Math.cos(this.alpha)+b*Math.sin(this.alpha),a.y=this.y0+b*Math.cos(this.alpha)-c*Math.sin(this.alpha)),a}function wa(a){var b,c;this.no_rot?(c=a.y-this.y0,b=a.x-this.x0):(c=(a.x-this.x0)*Math.cos(this.alpha)-(a.y-this.y0)*Math.sin(this.alpha),b=(a.y-this.y0)*Math.cos(this.alpha)+(a.x-this.x0)*Math.sin(this.alpha),b+=this.uc);var d=Math.exp(-1*this.bl*c/this.al),e=.5*(d-1/d),f=.5*(d+1/d),g=Math.sin(this.bl*b/this.al),h=(g*Math.cos(this.gamma0)+e*Math.sin(this.gamma0))/f,i=Math.pow(this.el/Math.sqrt((1+h)/(1-h)),1/this.bl);return Math.abs(h-1)<Mb?(a.x=this.long0,a.y=Ib):Math.abs(h+1)<Mb?(a.x=this.long0,a.y=-1*Ib):(a.y=nc(this.e,i),a.x=lc(this.long0-Math.atan2(e*Math.cos(this.gamma0)-g*Math.sin(this.gamma0),Math.cos(this.bl*b/this.al))/this.bl)),a}function xa(){if(this.lat2||(this.lat2=this.lat1),this.k0||(this.k0=1),this.x0=this.x0||0,this.y0=this.y0||0,!(Math.abs(this.lat1+this.lat2)<Mb)){var a=this.b/this.a;this.e=Math.sqrt(1-a*a);var b=Math.sin(this.lat1),c=Math.cos(this.lat1),d=jc(this.e,b,c),e=mc(this.e,this.lat1,b),f=Math.sin(this.lat2),g=Math.cos(this.lat2),h=jc(this.e,f,g),i=mc(this.e,this.lat2,f),j=mc(this.e,this.lat0,Math.sin(this.lat0));Math.abs(this.lat1-this.lat2)>Mb?this.ns=Math.log(d/h)/Math.log(e/i):this.ns=b,isNaN(this.ns)&&(this.ns=b),this.f0=d/(this.ns*Math.pow(e,this.ns)),this.rh=this.a*this.f0*Math.pow(j,this.ns),this.title||(this.title="Lambert Conformal Conic")}}function ya(a){var b=a.x,c=a.y;Math.abs(2*Math.abs(c)-Math.PI)<=Mb&&(c=kc(c)*(Ib-2*Mb));var d,e,f=Math.abs(Math.abs(c)-Ib);if(f>Mb)d=mc(this.e,c,Math.sin(c)),e=this.a*this.f0*Math.pow(d,this.ns);else{if(f=c*this.ns,0>=f)return null;e=0}var g=this.ns*lc(b-this.long0);return a.x=this.k0*(e*Math.sin(g))+this.x0,a.y=this.k0*(this.rh-e*Math.cos(g))+this.y0,a}function za(a){var b,c,d,e,f,g=(a.x-this.x0)/this.k0,h=this.rh-(a.y-this.y0)/this.k0;this.ns>0?(b=Math.sqrt(g*g+h*h),c=1):(b=-Math.sqrt(g*g+h*h),c=-1);var i=0;if(0!==b&&(i=Math.atan2(c*g,c*h)),0!==b||this.ns>0){if(c=1/this.ns,d=Math.pow(b/(this.a*this.f0),c),e=nc(this.e,d),-9999===e)return null}else e=-Ib;return f=lc(i/this.ns+this.long0),a.x=f,a.y=e,a}function Aa(){this.a=6377397.155,this.es=.006674372230614,this.e=Math.sqrt(this.es),this.lat0||(this.lat0=.863937979737193),this.long0||(this.long0=.4334234309119251),this.k0||(this.k0=.9999),this.s45=.785398163397448,this.s90=2*this.s45,this.fi0=this.lat0,this.e2=this.es,this.e=Math.sqrt(this.e2),this.alfa=Math.sqrt(1+this.e2*Math.pow(Math.cos(this.fi0),4)/(1-this.e2)),this.uq=1.04216856380474,this.u0=Math.asin(Math.sin(this.fi0)/this.alfa),this.g=Math.pow((1+this.e*Math.sin(this.fi0))/(1-this.e*Math.sin(this.fi0)),this.alfa*this.e/2),this.k=Math.tan(this.u0/2+this.s45)/Math.pow(Math.tan(this.fi0/2+this.s45),this.alfa)*this.g,
+this.k1=this.k0,this.n0=this.a*Math.sqrt(1-this.e2)/(1-this.e2*Math.pow(Math.sin(this.fi0),2)),this.s0=1.37008346281555,this.n=Math.sin(this.s0),this.ro0=this.k1*this.n0/Math.tan(this.s0),this.ad=this.s90-this.uq}function Ba(a){var b,c,d,e,f,g,h,i=a.x,j=a.y,k=lc(i-this.long0);return b=Math.pow((1+this.e*Math.sin(j))/(1-this.e*Math.sin(j)),this.alfa*this.e/2),c=2*(Math.atan(this.k*Math.pow(Math.tan(j/2+this.s45),this.alfa)/b)-this.s45),d=-k*this.alfa,e=Math.asin(Math.cos(this.ad)*Math.sin(c)+Math.sin(this.ad)*Math.cos(c)*Math.cos(d)),f=Math.asin(Math.cos(c)*Math.sin(d)/Math.cos(e)),g=this.n*f,h=this.ro0*Math.pow(Math.tan(this.s0/2+this.s45),this.n)/Math.pow(Math.tan(e/2+this.s45),this.n),a.y=h*Math.cos(g)/1,a.x=h*Math.sin(g)/1,this.czech||(a.y*=-1,a.x*=-1),a}function Ca(a){var b,c,d,e,f,g,h,i,j=a.x;a.x=a.y,a.y=j,this.czech||(a.y*=-1,a.x*=-1),g=Math.sqrt(a.x*a.x+a.y*a.y),f=Math.atan2(a.y,a.x),e=f/Math.sin(this.s0),d=2*(Math.atan(Math.pow(this.ro0/g,1/this.n)*Math.tan(this.s0/2+this.s45))-this.s45),b=Math.asin(Math.cos(this.ad)*Math.sin(d)-Math.sin(this.ad)*Math.cos(d)*Math.cos(e)),c=Math.asin(Math.cos(d)*Math.sin(e)/Math.cos(b)),a.x=this.long0-c/this.alfa,h=b,i=0;var k=0;do a.y=2*(Math.atan(Math.pow(this.k,-1/this.alfa)*Math.pow(Math.tan(b/2+this.s45),1/this.alfa)*Math.pow((1+this.e*Math.sin(h))/(1-this.e*Math.sin(h)),this.e/2))-this.s45),Math.abs(h-a.y)<1e-10&&(i=1),h=a.y,k+=1;while(0===i&&15>k);return k>=15?null:a}function Da(){this.sphere||(this.e0=Jd(this.es),this.e1=Kd(this.es),this.e2=Ld(this.es),this.e3=Md(this.es),this.ml0=this.a*Id(this.e0,this.e1,this.e2,this.e3,this.lat0))}function Ea(a){var b,c,d=a.x,e=a.y;if(d=lc(d-this.long0),this.sphere)b=this.a*Math.asin(Math.cos(e)*Math.sin(d)),c=this.a*(Math.atan2(Math.tan(e),Math.cos(d))-this.lat0);else{var f=Math.sin(e),g=Math.cos(e),h=Nd(this.a,this.e,f),i=Math.tan(e)*Math.tan(e),j=d*Math.cos(e),k=j*j,l=this.es*g*g/(1-this.es),m=this.a*Id(this.e0,this.e1,this.e2,this.e3,e);b=h*j*(1-k*i*(1/6-(8-i+8*l)*k/120)),c=m-this.ml0+h*f/g*k*(.5+(5-i+6*l)*k/24)}return a.x=b+this.x0,a.y=c+this.y0,a}function Fa(a){a.x-=this.x0,a.y-=this.y0;var b,c,d=a.x/this.a,e=a.y/this.a;if(this.sphere){var f=e+this.lat0;b=Math.asin(Math.sin(f)*Math.cos(d)),c=Math.atan2(Math.tan(d),Math.cos(f))}else{var g=this.ml0/this.a+e,h=Pd(g,this.e0,this.e1,this.e2,this.e3);if(Math.abs(Math.abs(h)-Ib)<=Mb)return a.x=this.long0,a.y=Ib,0>e&&(a.y*=-1),a;var i=Nd(this.a,this.e,Math.sin(h)),j=i*i*i/this.a/this.a*(1-this.es),k=Math.pow(Math.tan(h),2),l=d*this.a/i,m=l*l;b=h-i*Math.tan(h)/j*l*l*(.5-(1+3*k)*l*l/24),c=l*(1-m*(k/3+(1+3*k)*k*m/15))/Math.cos(h)}return a.x=lc(c+this.long0),a.y=Od(b),a}function Ga(){var a=Math.abs(this.lat0);if(Math.abs(a-Ib)<Mb?this.mode=this.lat0<0?this.S_POLE:this.N_POLE:Math.abs(a)<Mb?this.mode=this.EQUIT:this.mode=this.OBLIQ,this.es>0){var b;switch(this.qp=Sd(this.e,1),this.mmf=.5/(1-this.es),this.apa=Ja(this.es),this.mode){case this.N_POLE:this.dd=1;break;case this.S_POLE:this.dd=1;break;case this.EQUIT:this.rq=Math.sqrt(.5*this.qp),this.dd=1/this.rq,this.xmf=1,this.ymf=.5*this.qp;break;case this.OBLIQ:this.rq=Math.sqrt(.5*this.qp),b=Math.sin(this.lat0),this.sinb1=Sd(this.e,b)/this.qp,this.cosb1=Math.sqrt(1-this.sinb1*this.sinb1),this.dd=Math.cos(this.lat0)/(Math.sqrt(1-this.es*b*b)*this.rq*this.cosb1),this.ymf=(this.xmf=this.rq)/this.dd,this.xmf*=this.dd}}else this.mode===this.OBLIQ&&(this.sinph0=Math.sin(this.lat0),this.cosph0=Math.cos(this.lat0))}function Ha(a){var b,c,d,e,f,g,h,i,j,k,l=a.x,m=a.y;if(l=lc(l-this.long0),this.sphere){if(f=Math.sin(m),k=Math.cos(m),d=Math.cos(l),this.mode===this.OBLIQ||this.mode===this.EQUIT){if(c=this.mode===this.EQUIT?1+k*d:1+this.sinph0*f+this.cosph0*k*d,Mb>=c)return null;c=Math.sqrt(2/c),b=c*k*Math.sin(l),c*=this.mode===this.EQUIT?f:this.cosph0*f-this.sinph0*k*d}else if(this.mode===this.N_POLE||this.mode===this.S_POLE){if(this.mode===this.N_POLE&&(d=-d),Math.abs(m+this.phi0)<Mb)return null;c=Pb-.5*m,c=2*(this.mode===this.S_POLE?Math.cos(c):Math.sin(c)),b=c*Math.sin(l),c*=d}}else{switch(h=0,i=0,j=0,d=Math.cos(l),e=Math.sin(l),f=Math.sin(m),g=Sd(this.e,f),this.mode!==this.OBLIQ&&this.mode!==this.EQUIT||(h=g/this.qp,i=Math.sqrt(1-h*h)),this.mode){case this.OBLIQ:j=1+this.sinb1*h+this.cosb1*i*d;break;case this.EQUIT:j=1+i*d;break;case this.N_POLE:j=Ib+m,g=this.qp-g;break;case this.S_POLE:j=m-Ib,g=this.qp+g}if(Math.abs(j)<Mb)return null;switch(this.mode){case this.OBLIQ:case this.EQUIT:j=Math.sqrt(2/j),c=this.mode===this.OBLIQ?this.ymf*j*(this.cosb1*h-this.sinb1*i*d):(j=Math.sqrt(2/(1+i*d)))*h*this.ymf,b=this.xmf*j*i*e;break;case this.N_POLE:case this.S_POLE:g>=0?(b=(j=Math.sqrt(g))*e,c=d*(this.mode===this.S_POLE?j:-j)):b=c=0}}return a.x=this.a*b+this.x0,a.y=this.a*c+this.y0,a}function Ia(a){a.x-=this.x0,a.y-=this.y0;var b,c,d,e,f,g,h,i=a.x/this.a,j=a.y/this.a;if(this.sphere){var k,l=0,m=0;if(k=Math.sqrt(i*i+j*j),c=.5*k,c>1)return null;switch(c=2*Math.asin(c),this.mode!==this.OBLIQ&&this.mode!==this.EQUIT||(m=Math.sin(c),l=Math.cos(c)),this.mode){case this.EQUIT:c=Math.abs(k)<=Mb?0:Math.asin(j*m/k),i*=m,j=l*k;break;case this.OBLIQ:c=Math.abs(k)<=Mb?this.phi0:Math.asin(l*this.sinph0+j*m*this.cosph0/k),i*=m*this.cosph0,j=(l-Math.sin(c)*this.sinph0)*k;break;case this.N_POLE:j=-j,c=Ib-c;break;case this.S_POLE:c-=Ib}b=0!==j||this.mode!==this.EQUIT&&this.mode!==this.OBLIQ?Math.atan2(i,j):0}else{if(h=0,this.mode===this.OBLIQ||this.mode===this.EQUIT){if(i/=this.dd,j*=this.dd,g=Math.sqrt(i*i+j*j),Mb>g)return a.x=0,a.y=this.phi0,a;e=2*Math.asin(.5*g/this.rq),d=Math.cos(e),i*=e=Math.sin(e),this.mode===this.OBLIQ?(h=d*this.sinb1+j*e*this.cosb1/g,f=this.qp*h,j=g*this.cosb1*d-j*this.sinb1*e):(h=j*e/g,f=this.qp*h,j=g*d)}else if(this.mode===this.N_POLE||this.mode===this.S_POLE){if(this.mode===this.N_POLE&&(j=-j),f=i*i+j*j,!f)return a.x=0,a.y=this.phi0,a;h=1-f/this.qp,this.mode===this.S_POLE&&(h=-h)}b=Math.atan2(i,j),c=Ka(Math.asin(h),this.apa)}return a.x=lc(this.long0+b),a.y=c,a}function Ja(a){var b,c=[];return c[0]=a*Xd,b=a*a,c[0]+=b*Yd,c[1]=b*$d,b*=a,c[0]+=b*Zd,c[1]+=b*_d,c[2]=b*ae,c}function Ka(a,b){var c=a+a;return a+b[0]*Math.sin(c)+b[1]*Math.sin(c+c)+b[2]*Math.sin(c+c+c)}function La(){Math.abs(this.lat1+this.lat2)<Mb||(this.temp=this.b/this.a,this.es=1-Math.pow(this.temp,2),this.e3=Math.sqrt(this.es),this.sin_po=Math.sin(this.lat1),this.cos_po=Math.cos(this.lat1),this.t1=this.sin_po,this.con=this.sin_po,this.ms1=jc(this.e3,this.sin_po,this.cos_po),this.qs1=Sd(this.e3,this.sin_po,this.cos_po),this.sin_po=Math.sin(this.lat2),this.cos_po=Math.cos(this.lat2),this.t2=this.sin_po,this.ms2=jc(this.e3,this.sin_po,this.cos_po),this.qs2=Sd(this.e3,this.sin_po,this.cos_po),this.sin_po=Math.sin(this.lat0),this.cos_po=Math.cos(this.lat0),this.t3=this.sin_po,this.qs0=Sd(this.e3,this.sin_po,this.cos_po),Math.abs(this.lat1-this.lat2)>Mb?this.ns0=(this.ms1*this.ms1-this.ms2*this.ms2)/(this.qs2-this.qs1):this.ns0=this.con,this.c=this.ms1*this.ms1+this.ns0*this.qs1,this.rh=this.a*Math.sqrt(this.c-this.ns0*this.qs0)/this.ns0)}function Ma(a){var b=a.x,c=a.y;this.sin_phi=Math.sin(c),this.cos_phi=Math.cos(c);var d=Sd(this.e3,this.sin_phi,this.cos_phi),e=this.a*Math.sqrt(this.c-this.ns0*d)/this.ns0,f=this.ns0*lc(b-this.long0),g=e*Math.sin(f)+this.x0,h=this.rh-e*Math.cos(f)+this.y0;return a.x=g,a.y=h,a}function Na(a){var b,c,d,e,f,g;return a.x-=this.x0,a.y=this.rh-a.y+this.y0,this.ns0>=0?(b=Math.sqrt(a.x*a.x+a.y*a.y),d=1):(b=-Math.sqrt(a.x*a.x+a.y*a.y),d=-1),e=0,0!==b&&(e=Math.atan2(d*a.x,d*a.y)),d=b*this.ns0/this.a,this.sphere?g=Math.asin((this.c-d*d)/(2*this.ns0)):(c=(this.c-d*d)/this.ns0,g=this.phi1z(this.e3,c)),f=lc(e/this.ns0+this.long0),a.x=f,a.y=g,a}function Oa(a,b){var c,d,e,f,g,h=de(.5*b);if(Mb>a)return h;for(var i=a*a,j=1;25>=j;j++)if(c=Math.sin(h),d=Math.cos(h),e=a*c,f=1-e*e,g=.5*f*f/d*(b/(1-i)-c/f+.5/a*Math.log((1-e)/(1+e))),h+=g,Math.abs(g)<=1e-7)return h;return null}function Pa(){this.sin_p14=Math.sin(this.lat0),this.cos_p14=Math.cos(this.lat0),this.infinity_dist=1e3*this.a,this.rc=1}function Qa(a){var b,c,d,e,f,g,h,i,j=a.x,k=a.y;return d=lc(j-this.long0),b=Math.sin(k),c=Math.cos(k),e=Math.cos(d),g=this.sin_p14*b+this.cos_p14*c*e,f=1,g>0||Math.abs(g)<=Mb?(h=this.x0+this.a*f*c*Math.sin(d)/g,i=this.y0+this.a*f*(this.cos_p14*b-this.sin_p14*c*e)/g):(h=this.x0+this.infinity_dist*c*Math.sin(d),i=this.y0+this.infinity_dist*(this.cos_p14*b-this.sin_p14*c*e)),a.x=h,a.y=i,a}function Ra(a){var b,c,d,e,f,g;return a.x=(a.x-this.x0)/this.a,a.y=(a.y-this.y0)/this.a,a.x/=this.k0,a.y/=this.k0,(b=Math.sqrt(a.x*a.x+a.y*a.y))?(e=Math.atan2(b,this.rc),c=Math.sin(e),d=Math.cos(e),g=de(d*this.sin_p14+a.y*c*this.cos_p14/b),f=Math.atan2(a.x*c,b*this.cos_p14*d-a.y*this.sin_p14*c),f=lc(this.long0+f)):(g=this.phic0,f=0),a.x=f,a.y=g,a}function Sa(){this.sphere||(this.k0=jc(this.e,Math.sin(this.lat_ts),Math.cos(this.lat_ts)))}function Ta(a){var b,c,d=a.x,e=a.y,f=lc(d-this.long0);if(this.sphere)b=this.x0+this.a*f*Math.cos(this.lat_ts),c=this.y0+this.a*Math.sin(e)/Math.cos(this.lat_ts);else{var g=Sd(this.e,Math.sin(e));b=this.x0+this.a*this.k0*f,c=this.y0+this.a*g*.5/this.k0}return a.x=b,a.y=c,a}function Ua(a){a.x-=this.x0,a.y-=this.y0;var b,c;return this.sphere?(b=lc(this.long0+a.x/this.a/Math.cos(this.lat_ts)),c=Math.asin(a.y/this.a*Math.cos(this.lat_ts))):(c=ie(this.e,2*a.y*this.k0/this.a),b=lc(this.long0+a.x/(this.a*this.k0))),a.x=b,a.y=c,a}function Va(){this.x0=this.x0||0,this.y0=this.y0||0,this.lat0=this.lat0||0,this.long0=this.long0||0,this.lat_ts=this.lat_ts||0,this.title=this.title||"Equidistant Cylindrical (Plate Carre)",this.rc=Math.cos(this.lat_ts)}function Wa(a){var b=a.x,c=a.y,d=lc(b-this.long0),e=Od(c-this.lat0);return a.x=this.x0+this.a*d*this.rc,a.y=this.y0+this.a*e,a}function Xa(a){var b=a.x,c=a.y;return a.x=lc(this.long0+(b-this.x0)/(this.a*this.rc)),a.y=Od(this.lat0+(c-this.y0)/this.a),a}function Ya(){this.temp=this.b/this.a,this.es=1-Math.pow(this.temp,2),this.e=Math.sqrt(this.es),this.e0=Jd(this.es),this.e1=Kd(this.es),this.e2=Ld(this.es),this.e3=Md(this.es),this.ml0=this.a*Id(this.e0,this.e1,this.e2,this.e3,this.lat0)}function Za(a){var b,c,d,e=a.x,f=a.y,g=lc(e-this.long0);if(d=g*Math.sin(f),this.sphere)Math.abs(f)<=Mb?(b=this.a*g,c=-1*this.a*this.lat0):(b=this.a*Math.sin(d)/Math.tan(f),c=this.a*(Od(f-this.lat0)+(1-Math.cos(d))/Math.tan(f)));else if(Math.abs(f)<=Mb)b=this.a*g,c=-1*this.ml0;else{var h=Nd(this.a,this.e,Math.sin(f))/Math.tan(f);b=h*Math.sin(d),c=this.a*Id(this.e0,this.e1,this.e2,this.e3,f)-this.ml0+h*(1-Math.cos(d))}return a.x=b+this.x0,a.y=c+this.y0,a}function $a(a){var b,c,d,e,f,g,h,i,j;if(d=a.x-this.x0,e=a.y-this.y0,this.sphere)if(Math.abs(e+this.a*this.lat0)<=Mb)b=lc(d/this.a+this.long0),c=0;else{g=this.lat0+e/this.a,h=d*d/this.a/this.a+g*g,i=g;var k;for(f=ne;f;--f)if(k=Math.tan(i),j=-1*(g*(i*k+1)-i-.5*(i*i+h)*k)/((i-g)/k-1),i+=j,Math.abs(j)<=Mb){c=i;break}b=lc(this.long0+Math.asin(d*Math.tan(i)/this.a)/Math.sin(c))}else if(Math.abs(e+this.ml0)<=Mb)c=0,b=lc(this.long0+d/this.a);else{g=(this.ml0+e)/this.a,h=d*d/this.a/this.a+g*g,i=g;var l,m,n,o,p;for(f=ne;f;--f)if(p=this.e*Math.sin(i),l=Math.sqrt(1-p*p)*Math.tan(i),m=this.a*Id(this.e0,this.e1,this.e2,this.e3,i),n=this.e0-2*this.e1*Math.cos(2*i)+4*this.e2*Math.cos(4*i)-6*this.e3*Math.cos(6*i),o=m/this.a,j=(g*(l*o+1)-o-.5*l*(o*o+h))/(this.es*Math.sin(2*i)*(o*o+h-2*g*o)/(4*l)+(g-o)*(l*n-2/Math.sin(2*i))-n),i-=j,Math.abs(j)<=Mb){c=i;break}l=Math.sqrt(1-this.es*Math.pow(Math.sin(c),2))*Math.tan(c),b=lc(this.long0+Math.asin(d*l/this.a)/Math.sin(c))}return a.x=b,a.y=c,a}function _a(){this.A=[],this.A[1]=.6399175073,this.A[2]=-.1358797613,this.A[3]=.063294409,this.A[4]=-.02526853,this.A[5]=.0117879,this.A[6]=-.0055161,this.A[7]=.0026906,this.A[8]=-.001333,this.A[9]=67e-5,this.A[10]=-34e-5,this.B_re=[],this.B_im=[],this.B_re[1]=.7557853228,this.B_im[1]=0,this.B_re[2]=.249204646,this.B_im[2]=.003371507,this.B_re[3]=-.001541739,this.B_im[3]=.04105856,this.B_re[4]=-.10162907,this.B_im[4]=.01727609,this.B_re[5]=-.26623489,this.B_im[5]=-.36249218,this.B_re[6]=-.6870983,this.B_im[6]=-1.1651967,this.C_re=[],this.C_im=[],this.C_re[1]=1.3231270439,this.C_im[1]=0,this.C_re[2]=-.577245789,this.C_im[2]=-.007809598,this.C_re[3]=.508307513,this.C_im[3]=-.112208952,this.C_re[4]=-.15094762,this.C_im[4]=.18200602,this.C_re[5]=1.01418179,this.C_im[5]=1.64497696,this.C_re[6]=1.9660549,this.C_im[6]=2.5127645,this.D=[],this.D[1]=1.5627014243,this.D[2]=.5185406398,this.D[3]=-.03333098,this.D[4]=-.1052906,this.D[5]=-.0368594,this.D[6]=.007317,this.D[7]=.0122,this.D[8]=.00394,this.D[9]=-.0013}function ab(a){var b,c=a.x,d=a.y,e=d-this.lat0,f=c-this.long0,g=e/Hb*1e-5,h=f,i=1,j=0;for(b=1;10>=b;b++)i*=g,j+=this.A[b]*i;var k,l,m=j,n=h,o=1,p=0,q=0,r=0;for(b=1;6>=b;b++)k=o*m-p*n,l=p*m+o*n,o=k,p=l,q=q+this.B_re[b]*o-this.B_im[b]*p,r=r+this.B_im[b]*o+this.B_re[b]*p;return a.x=r*this.a+this.x0,a.y=q*this.a+this.y0,a}function bb(a){var b,c,d,e=a.x,f=a.y,g=e-this.x0,h=f-this.y0,i=h/this.a,j=g/this.a,k=1,l=0,m=0,n=0;for(b=1;6>=b;b++)c=k*i-l*j,d=l*i+k*j,k=c,l=d,m=m+this.C_re[b]*k-this.C_im[b]*l,n=n+this.C_im[b]*k+this.C_re[b]*l;for(var o=0;o<this.iterations;o++){var p,q,r=m,s=n,t=i,u=j;for(b=2;6>=b;b++)p=r*m-s*n,q=s*m+r*n,r=p,s=q,t+=(b-1)*(this.B_re[b]*r-this.B_im[b]*s),u+=(b-1)*(this.B_im[b]*r+this.B_re[b]*s);r=1,s=0;var v=this.B_re[1],w=this.B_im[1];for(b=2;6>=b;b++)p=r*m-s*n,q=s*m+r*n,r=p,s=q,v+=b*(this.B_re[b]*r-this.B_im[b]*s),w+=b*(this.B_im[b]*r+this.B_re[b]*s);var x=v*v+w*w;m=(t*v+u*w)/x,n=(u*v-t*w)/x}var y=m,z=n,A=1,B=0;for(b=1;9>=b;b++)A*=y,B+=this.D[b]*A;var C=this.lat0+B*Hb*1e5,D=this.long0+z;return a.x=D,a.y=C,a}function cb(){}function db(a){var b=a.x,c=a.y,d=lc(b-this.long0),e=this.x0+this.a*d,f=this.y0+this.a*Math.log(Math.tan(Math.PI/4+c/2.5))*1.25;return a.x=e,a.y=f,a}function eb(a){a.x-=this.x0,a.y-=this.y0;var b=lc(this.long0+a.x/this.a),c=2.5*(Math.atan(Math.exp(.8*a.y/this.a))-Math.PI/4);return a.x=b,a.y=c,a}function fb(){this.sphere?(this.n=1,this.m=0,this.es=0,this.C_y=Math.sqrt((this.m+1)/this.n),this.C_x=this.C_y/(this.m+1)):this.en=$c(this.es)}function gb(a){var b,c,d=a.x,e=a.y;if(d=lc(d-this.long0),this.sphere){if(this.m)for(var f=this.n*Math.sin(e),g=ue;g;--g){var h=(this.m*e+Math.sin(e)-f)/(this.m+Math.cos(e));if(e-=h,Math.abs(h)<Mb)break}else e=1!==this.n?Math.asin(this.n*Math.sin(e)):e;b=this.a*this.C_x*d*(this.m+Math.cos(e)),c=this.a*this.C_y*e}else{var i=Math.sin(e),j=Math.cos(e);c=this.a*_c(e,i,j,this.en),b=this.a*d*j/Math.sqrt(1-this.es*i*i)}return a.x=b,a.y=c,a}function hb(a){var b,c,d,e;return a.x-=this.x0,d=a.x/this.a,a.y-=this.y0,b=a.y/this.a,this.sphere?(b/=this.C_y,d/=this.C_x*(this.m+Math.cos(b)),this.m?b=de((this.m*b+Math.sin(b))/this.n):1!==this.n&&(b=de(Math.sin(b)/this.n)),d=lc(d+this.long0),b=Od(b)):(b=bd(a.y/this.a,this.es,this.en),e=Math.abs(b),Ib>e?(e=Math.sin(b),c=this.long0+a.x*Math.sqrt(1-this.es*e*e)/(this.a*Math.cos(b)),d=lc(c)):Ib>e-Mb&&(d=this.long0)),a.x=d,a.y=b,a}function ib(){}function jb(a){for(var b=a.x,c=a.y,d=lc(b-this.long0),e=c,f=Math.PI*Math.sin(c);;){var g=-(e+Math.sin(e)-f)/(1+Math.cos(e));if(e+=g,Math.abs(g)<Mb)break}e/=2,Math.PI/2-Math.abs(c)<Mb&&(d=0);var h=.900316316158*this.a*d*Math.cos(e)+this.x0,i=1.4142135623731*this.a*Math.sin(e)+this.y0;return a.x=h,a.y=i,a}function kb(a){var b,c;a.x-=this.x0,a.y-=this.y0,c=a.y/(1.4142135623731*this.a),Math.abs(c)>.999999999999&&(c=.999999999999),b=Math.asin(c);var d=lc(this.long0+a.x/(.900316316158*this.a*Math.cos(b)));d<-Math.PI&&(d=-Math.PI),d>Math.PI&&(d=Math.PI),c=(2*b+Math.sin(2*b))/Math.PI,Math.abs(c)>1&&(c=1);var e=Math.asin(c);return a.x=d,a.y=e,a}function lb(){Math.abs(this.lat1+this.lat2)<Mb||(this.lat2=this.lat2||this.lat1,this.temp=this.b/this.a,this.es=1-Math.pow(this.temp,2),this.e=Math.sqrt(this.es),this.e0=Jd(this.es),this.e1=Kd(this.es),this.e2=Ld(this.es),this.e3=Md(this.es),this.sinphi=Math.sin(this.lat1),this.cosphi=Math.cos(this.lat1),this.ms1=jc(this.e,this.sinphi,this.cosphi),this.ml1=Id(this.e0,this.e1,this.e2,this.e3,this.lat1),Math.abs(this.lat1-this.lat2)<Mb?this.ns=this.sinphi:(this.sinphi=Math.sin(this.lat2),this.cosphi=Math.cos(this.lat2),this.ms2=jc(this.e,this.sinphi,this.cosphi),this.ml2=Id(this.e0,this.e1,this.e2,this.e3,this.lat2),this.ns=(this.ms1-this.ms2)/(this.ml2-this.ml1)),this.g=this.ml1+this.ms1/this.ns,this.ml0=Id(this.e0,this.e1,this.e2,this.e3,this.lat0),this.rh=this.a*(this.g-this.ml0))}function mb(a){var b,c=a.x,d=a.y;if(this.sphere)b=this.a*(this.g-d);else{var e=Id(this.e0,this.e1,this.e2,this.e3,d);b=this.a*(this.g-e)}var f=this.ns*lc(c-this.long0),g=this.x0+b*Math.sin(f),h=this.y0+this.rh-b*Math.cos(f);return a.x=g,a.y=h,a}function nb(a){a.x-=this.x0,a.y=this.rh-a.y+this.y0;var b,c,d,e;this.ns>=0?(c=Math.sqrt(a.x*a.x+a.y*a.y),b=1):(c=-Math.sqrt(a.x*a.x+a.y*a.y),b=-1);var f=0;if(0!==c&&(f=Math.atan2(b*a.x,b*a.y)),this.sphere)return e=lc(this.long0+f/this.ns),d=Od(this.g-c/this.a),a.x=e,a.y=d,a;var g=this.g-c/this.a;return d=Pd(g,this.e0,this.e1,this.e2,this.e3),e=lc(this.long0+f/this.ns),a.x=e,a.y=d,a}function ob(){this.R=this.a}function pb(a){var b,c,d=a.x,e=a.y,f=lc(d-this.long0);Math.abs(e)<=Mb&&(b=this.x0+this.R*f,c=this.y0);var g=de(2*Math.abs(e/Math.PI));(Math.abs(f)<=Mb||Math.abs(Math.abs(e)-Ib)<=Mb)&&(b=this.x0,c=e>=0?this.y0+Math.PI*this.R*Math.tan(.5*g):this.y0+Math.PI*this.R*-Math.tan(.5*g));var h=.5*Math.abs(Math.PI/f-f/Math.PI),i=h*h,j=Math.sin(g),k=Math.cos(g),l=k/(j+k-1),m=l*l,n=l*(2/j-1),o=n*n,p=Math.PI*this.R*(h*(l-o)+Math.sqrt(i*(l-o)*(l-o)-(o+i)*(m-o)))/(o+i);0>f&&(p=-p),b=this.x0+p;var q=i+l;return p=Math.PI*this.R*(n*q-h*Math.sqrt((o+i)*(i+1)-q*q))/(o+i),c=e>=0?this.y0+p:this.y0-p,a.x=b,a.y=c,a}function qb(a){var b,c,d,e,f,g,h,i,j,k,l,m,n;return a.x-=this.x0,a.y-=this.y0,l=Math.PI*this.R,d=a.x/l,e=a.y/l,f=d*d+e*e,g=-Math.abs(e)*(1+f),h=g-2*e*e+d*d,i=-2*g+1+2*e*e+f*f,n=e*e/i+(2*h*h*h/i/i/i-9*g*h/i/i)/27,j=(g-h*h/3/i)/i,k=2*Math.sqrt(-j/3),l=3*n/j/k,Math.abs(l)>1&&(l=l>=0?1:-1),m=Math.acos(l)/3,c=a.y>=0?(-k*Math.cos(m+Math.PI/3)-h/3/i)*Math.PI:-(-k*Math.cos(m+Math.PI/3)-h/3/i)*Math.PI,b=Math.abs(d)<Mb?this.long0:lc(this.long0+Math.PI*(f-1+Math.sqrt(1+2*(d*d-e*e)+f*f))/2/d),a.x=b,a.y=c,a}function rb(){this.sin_p12=Math.sin(this.lat0),this.cos_p12=Math.cos(this.lat0)}function sb(a){var b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y=a.x,z=a.y,A=Math.sin(a.y),B=Math.cos(a.y),C=lc(y-this.long0);return this.sphere?Math.abs(this.sin_p12-1)<=Mb?(a.x=this.x0+this.a*(Ib-z)*Math.sin(C),a.y=this.y0-this.a*(Ib-z)*Math.cos(C),a):Math.abs(this.sin_p12+1)<=Mb?(a.x=this.x0+this.a*(Ib+z)*Math.sin(C),a.y=this.y0+this.a*(Ib+z)*Math.cos(C),a):(s=this.sin_p12*A+this.cos_p12*B*Math.cos(C),q=Math.acos(s),r=q/Math.sin(q),a.x=this.x0+this.a*r*B*Math.sin(C),a.y=this.y0+this.a*r*(this.cos_p12*A-this.sin_p12*B*Math.cos(C)),a):(b=Jd(this.es),c=Kd(this.es),d=Ld(this.es),e=Md(this.es),Math.abs(this.sin_p12-1)<=Mb?(f=this.a*Id(b,c,d,e,Ib),g=this.a*Id(b,c,d,e,z),a.x=this.x0+(f-g)*Math.sin(C),a.y=this.y0-(f-g)*Math.cos(C),a):Math.abs(this.sin_p12+1)<=Mb?(f=this.a*Id(b,c,d,e,Ib),g=this.a*Id(b,c,d,e,z),a.x=this.x0+(f+g)*Math.sin(C),a.y=this.y0+(f+g)*Math.cos(C),a):(h=A/B,i=Nd(this.a,this.e,this.sin_p12),j=Nd(this.a,this.e,A),k=Math.atan((1-this.es)*h+this.es*i*this.sin_p12/(j*B)),l=Math.atan2(Math.sin(C),this.cos_p12*Math.tan(k)-this.sin_p12*Math.cos(C)),t=0===l?Math.asin(this.cos_p12*Math.sin(k)-this.sin_p12*Math.cos(k)):Math.abs(Math.abs(l)-Math.PI)<=Mb?-Math.asin(this.cos_p12*Math.sin(k)-this.sin_p12*Math.cos(k)):Math.asin(Math.sin(C)*Math.cos(k)/Math.sin(l)),m=this.e*this.sin_p12/Math.sqrt(1-this.es),n=this.e*this.cos_p12*Math.cos(l)/Math.sqrt(1-this.es),o=m*n,p=n*n,u=t*t,v=u*t,w=v*t,x=w*t,q=i*t*(1-u*p*(1-p)/6+v/8*o*(1-2*p)+w/120*(p*(4-7*p)-3*m*m*(1-7*p))-x/48*o),a.x=this.x0+q*Math.sin(l),a.y=this.y0+q*Math.cos(l),a))}function tb(a){a.x-=this.x0,a.y-=this.y0;var b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x;if(this.sphere){if(b=Math.sqrt(a.x*a.x+a.y*a.y),b>2*Ib*this.a)return;return c=b/this.a,d=Math.sin(c),e=Math.cos(c),f=this.long0,Math.abs(b)<=Mb?g=this.lat0:(g=de(e*this.sin_p12+a.y*d*this.cos_p12/b),h=Math.abs(this.lat0)-Ib,f=lc(Math.abs(h)<=Mb?this.lat0>=0?this.long0+Math.atan2(a.x,-a.y):this.long0-Math.atan2(-a.x,a.y):this.long0+Math.atan2(a.x*d,b*this.cos_p12*e-a.y*this.sin_p12*d))),a.x=f,a.y=g,a}return i=Jd(this.es),j=Kd(this.es),k=Ld(this.es),l=Md(this.es),Math.abs(this.sin_p12-1)<=Mb?(m=this.a*Id(i,j,k,l,Ib),b=Math.sqrt(a.x*a.x+a.y*a.y),n=m-b,g=Pd(n/this.a,i,j,k,l),f=lc(this.long0+Math.atan2(a.x,-1*a.y)),a.x=f,a.y=g,a):Math.abs(this.sin_p12+1)<=Mb?(m=this.a*Id(i,j,k,l,Ib),b=Math.sqrt(a.x*a.x+a.y*a.y),n=b-m,g=Pd(n/this.a,i,j,k,l),f=lc(this.long0+Math.atan2(a.x,a.y)),a.x=f,a.y=g,a):(b=Math.sqrt(a.x*a.x+a.y*a.y),q=Math.atan2(a.x,a.y),o=Nd(this.a,this.e,this.sin_p12),r=Math.cos(q),s=this.e*this.cos_p12*r,t=-s*s/(1-this.es),u=3*this.es*(1-t)*this.sin_p12*this.cos_p12*r/(1-this.es),v=b/o,w=v-t*(1+t)*Math.pow(v,3)/6-u*(1+3*t)*Math.pow(v,4)/24,x=1-t*w*w/2-v*w*w*w/6,p=Math.asin(this.sin_p12*Math.cos(w)+this.cos_p12*Math.sin(w)*r),f=lc(this.long0+Math.asin(Math.sin(q)*Math.sin(w)/Math.cos(p))),g=Math.atan((1-this.es*x*this.sin_p12/Math.sin(p))*Math.tan(p)/(1-this.es)),a.x=f,a.y=g,a)}function ub(){this.sin_p14=Math.sin(this.lat0),this.cos_p14=Math.cos(this.lat0)}function vb(a){var b,c,d,e,f,g,h,i,j=a.x,k=a.y;return d=lc(j-this.long0),b=Math.sin(k),c=Math.cos(k),e=Math.cos(d),g=this.sin_p14*b+this.cos_p14*c*e,f=1,(g>0||Math.abs(g)<=Mb)&&(h=this.a*f*c*Math.sin(d),i=this.y0+this.a*f*(this.cos_p14*b-this.sin_p14*c*e)),a.x=h,a.y=i,a}function wb(a){var b,c,d,e,f,g,h;return a.x-=this.x0,a.y-=this.y0,b=Math.sqrt(a.x*a.x+a.y*a.y),c=de(b/this.a),d=Math.sin(c),e=Math.cos(c),g=this.long0,Math.abs(b)<=Mb?(h=this.lat0,a.x=g,a.y=h,a):(h=de(e*this.sin_p14+a.y*d*this.cos_p14/b),f=Math.abs(this.lat0)-Ib,Math.abs(f)<=Mb?(g=lc(this.lat0>=0?this.long0+Math.atan2(a.x,-a.y):this.long0-Math.atan2(-a.x,a.y)),a.x=g,a.y=h,a):(g=lc(this.long0+Math.atan2(a.x*d,b*this.cos_p14*e-a.y*this.sin_p14*d)),a.x=g,a.y=h,a))}function xb(){this.x0=this.x0||0,this.y0=this.y0||0,this.lat0=this.lat0||0,this.long0=this.long0||0,this.lat_ts=this.lat_ts||0,this.title=this.title||"Quadrilateralized Spherical Cube",this.lat0>=Ib-Pb/2?this.face=He.TOP:this.lat0<=-(Ib-Pb/2)?this.face=He.BOTTOM:Math.abs(this.long0)<=Pb?this.face=He.FRONT:Math.abs(this.long0)<=Ib+Pb?this.face=this.long0>0?He.RIGHT:He.LEFT:this.face=He.BACK,0!==this.es&&(this.one_minus_f=1-(this.a-this.b)/this.a,this.one_minus_f_squared=this.one_minus_f*this.one_minus_f)}function yb(a){var b,c,d,e,f,g,h={x:0,y:0},i={value:0};if(a.x-=this.long0,b=0!==this.es?Math.atan(this.one_minus_f_squared*Math.tan(a.y)):a.y,c=a.x,this.face===He.TOP)e=Ib-b,c>=Pb&&Ib+Pb>=c?(i.value=Ie.AREA_0,d=c-Ib):c>Ib+Pb||-(Ib+Pb)>=c?(i.value=Ie.AREA_1,d=c>0?c-Rb:c+Rb):c>-(Ib+Pb)&&-Pb>=c?(i.value=Ie.AREA_2,d=c+Ib):(i.value=Ie.AREA_3,d=c);else if(this.face===He.BOTTOM)e=Ib+b,c>=Pb&&Ib+Pb>=c?(i.value=Ie.AREA_0,d=-c+Ib):Pb>c&&c>=-Pb?(i.value=Ie.AREA_1,d=-c):-Pb>c&&c>=-(Ib+Pb)?(i.value=Ie.AREA_2,d=-c-Ib):(i.value=Ie.AREA_3,d=c>0?-c+Rb:-c-Rb);else{var j,k,l,m,n,o,p;this.face===He.RIGHT?c=Bb(c,+Ib):this.face===He.BACK?c=Bb(c,+Rb):this.face===He.LEFT&&(c=Bb(c,-Ib)),m=Math.sin(b),n=Math.cos(b),o=Math.sin(c),p=Math.cos(c),j=n*p,k=n*o,l=m,this.face===He.FRONT?(e=Math.acos(j),d=Ab(e,l,k,i)):this.face===He.RIGHT?(e=Math.acos(k),d=Ab(e,l,-j,i)):this.face===He.BACK?(e=Math.acos(-j),d=Ab(e,l,-k,i)):this.face===He.LEFT?(e=Math.acos(-k),d=Ab(e,l,j,i)):(e=d=0,i.value=Ie.AREA_0)}return g=Math.atan(12/Rb*(d+Math.acos(Math.sin(d)*Math.cos(Pb))-Ib)),f=Math.sqrt((1-Math.cos(e))/(Math.cos(g)*Math.cos(g))/(1-Math.cos(Math.atan(1/Math.cos(d))))),i.value===Ie.AREA_1?g+=Ib:i.value===Ie.AREA_2?g+=Rb:i.value===Ie.AREA_3&&(g+=1.5*Rb),h.x=f*Math.cos(g),h.y=f*Math.sin(g),h.x=h.x*this.a+this.x0,h.y=h.y*this.a+this.y0,a.x=h.x,a.y=h.y,a}function zb(a){var b,c,d,e,f,g,h,i,j,k={lam:0,phi:0},l={value:0};if(a.x=(a.x-this.x0)/this.a,a.y=(a.y-this.y0)/this.a,c=Math.atan(Math.sqrt(a.x*a.x+a.y*a.y)),b=Math.atan2(a.y,a.x),a.x>=0&&a.x>=Math.abs(a.y)?l.value=Ie.AREA_0:a.y>=0&&a.y>=Math.abs(a.x)?(l.value=Ie.AREA_1,b-=Ib):a.x<0&&-a.x>=Math.abs(a.y)?(l.value=Ie.AREA_2,b=0>b?b+Rb:b-Rb):(l.value=Ie.AREA_3,b+=Ib),j=Rb/12*Math.tan(b),f=Math.sin(j)/(Math.cos(j)-1/Math.sqrt(2)),g=Math.atan(f),d=Math.cos(b),e=Math.tan(c),h=1-d*d*e*e*(1-Math.cos(Math.atan(1/Math.cos(g)))),-1>h?h=-1:h>1&&(h=1),this.face===He.TOP)i=Math.acos(h),k.phi=Ib-i,l.value===Ie.AREA_0?k.lam=g+Ib:l.value===Ie.AREA_1?k.lam=0>g?g+Rb:g-Rb:l.value===Ie.AREA_2?k.lam=g-Ib:k.lam=g;else if(this.face===He.BOTTOM)i=Math.acos(h),k.phi=i-Ib,l.value===Ie.AREA_0?k.lam=-g+Ib:l.value===Ie.AREA_1?k.lam=-g:l.value===Ie.AREA_2?k.lam=-g-Ib:k.lam=0>g?-g-Rb:-g+Rb;else{var m,n,o;m=h,j=m*m,o=j>=1?0:Math.sqrt(1-j)*Math.sin(g),j+=o*o,n=j>=1?0:Math.sqrt(1-j),l.value===Ie.AREA_1?(j=n,n=-o,o=j):l.value===Ie.AREA_2?(n=-n,o=-o):l.value===Ie.AREA_3&&(j=n,n=o,o=-j),this.face===He.RIGHT?(j=m,m=-n,n=j):this.face===He.BACK?(m=-m,n=-n):this.face===He.LEFT&&(j=m,m=n,n=-j),k.phi=Math.acos(-o)-Ib,k.lam=Math.atan2(n,m),this.face===He.RIGHT?k.lam=Bb(k.lam,-Ib):this.face===He.BACK?k.lam=Bb(k.lam,-Rb):this.face===He.LEFT&&(k.lam=Bb(k.lam,+Ib))}if(0!==this.es){var p,q,r;p=k.phi<0?1:0,q=Math.tan(k.phi),r=this.b/Math.sqrt(q*q+this.one_minus_f_squared),k.phi=Math.atan(Math.sqrt(this.a*this.a-r*r)/(this.one_minus_f*r)),p&&(k.phi=-k.phi)}return k.lam+=this.long0,a.x=k.lam,a.y=k.phi,a}function Ab(a,b,c,d){var e;return Mb>a?(d.value=Ie.AREA_0,e=0):(e=Math.atan2(b,c),Math.abs(e)<=Pb?d.value=Ie.AREA_0:e>Pb&&Ib+Pb>=e?(d.value=Ie.AREA_1,e-=Ib):e>Ib+Pb||-(Ib+Pb)>=e?(d.value=Ie.AREA_2,e=e>=0?e-Rb:e+Rb):(d.value=Ie.AREA_3,e+=Ib)),e}function Bb(a,b){var c=a+b;return-Rb>c?c+=Qb:c>+Rb&&(c-=Qb),c}var Cb=function(a){a("EPSG:4326","+title=WGS 84 (long/lat) +proj=longlat +ellps=WGS84 +datum=WGS84 +units=degrees"),a("EPSG:4269","+title=NAD83 (long/lat) +proj=longlat +a=6378137.0 +b=6356752.31414036 +ellps=GRS80 +datum=NAD83 +units=degrees"),a("EPSG:3857","+title=WGS 84 / Pseudo-Mercator +proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs"),a.WGS84=a["EPSG:4326"],a["EPSG:3785"]=a["EPSG:3857"],a.GOOGLE=a["EPSG:3857"],a["EPSG:900913"]=a["EPSG:3857"],a["EPSG:102113"]=a["EPSG:3857"]},Db=1,Eb=2,Fb=4,Gb=5,Hb=484813681109536e-20,Ib=Math.PI/2,Jb=.16666666666666666,Kb=.04722222222222222,Lb=.022156084656084655,Mb=1e-10,Nb=.017453292519943295,Ob=57.29577951308232,Pb=Math.PI/4,Qb=2*Math.PI,Rb=3.14159265359,Sb={};Sb.greenwich=0,Sb.lisbon=-9.131906111111,Sb.paris=2.337229166667,Sb.bogota=-74.080916666667,Sb.madrid=-3.687938888889,Sb.rome=12.452333333333,Sb.bern=7.439583333333,Sb.jakarta=106.807719444444,Sb.ferro=-17.666666666667,Sb.brussels=4.367975,Sb.stockholm=18.058277777778,Sb.athens=23.7163375,Sb.oslo=10.722916666667;var Tb={ft:{to_meter:.3048},"us-ft":{to_meter:1200/3937}},Ub=/[\s_\-\/\(\)]/g,Vb=function(b){var c,d,e,f={},g=b.split("+").map(function(a){return a.trim()}).filter(function(a){return a}).reduce(function(a,b){var c=b.split("=");return c.push(!0),a[c[0].toLowerCase()]=c[1],a},{}),h={proj:"projName",datum:"datumCode",rf:function(a){f.rf=parseFloat(a)},lat_0:function(a){f.lat0=a*Nb},lat_1:function(a){f.lat1=a*Nb},lat_2:function(a){f.lat2=a*Nb},lat_ts:function(a){f.lat_ts=a*Nb},lon_0:function(a){f.long0=a*Nb},lon_1:function(a){f.long1=a*Nb},lon_2:function(a){f.long2=a*Nb},alpha:function(a){f.alpha=parseFloat(a)*Nb},lonc:function(a){f.longc=a*Nb},x_0:function(a){f.x0=parseFloat(a)},y_0:function(a){f.y0=parseFloat(a)},k_0:function(a){f.k0=parseFloat(a)},k:function(a){f.k0=parseFloat(a)},a:function(a){f.a=parseFloat(a)},b:function(a){f.b=parseFloat(a)},r_a:function(){f.R_A=!0},zone:function(a){f.zone=parseInt(a,10)},south:function(){f.utmSouth=!0},towgs84:function(a){f.datum_params=a.split(",").map(function(a){return parseFloat(a)})},to_meter:function(a){f.to_meter=parseFloat(a)},units:function(b){f.units=b;var c=a(Tb,b);c&&(f.to_meter=c.to_meter)},from_greenwich:function(a){f.from_greenwich=a*Nb},pm:function(b){var c=a(Sb,b);f.from_greenwich=(c?c:parseFloat(b))*Nb},nadgrids:function(a){"@null"===a?f.datumCode="none":f.nadgrids=a},axis:function(a){var b="ewnsud";3===a.length&&-1!==b.indexOf(a.substr(0,1))&&-1!==b.indexOf(a.substr(1,1))&&-1!==b.indexOf(a.substr(2,1))&&(f.axis=a)}};for(c in g)d=g[c],c in h?(e=h[c],"function"==typeof e?e(d):f[e]=d):f[c]=d;return"string"==typeof f.datumCode&&"WGS84"!==f.datumCode&&(f.datumCode=f.datumCode.toLowerCase()),f},Wb=1,Xb=2,Yb=3,Zb=4,$b=5,_b=-1,ac=/\s/,bc=/[A-Za-z]/,cc=/[A-Za-z84]/,dc=/[,\]]/,ec=/[\d\.E\-\+]/;b.prototype.readCharicter=function(){var a=this.text[this.place++];if(this.state!==Zb)for(;ac.test(a);){if(this.place>=this.text.length)return;a=this.text[this.place++]}switch(this.state){case Wb:return this.neutral(a);case Xb:return this.keyword(a);case Zb:return this.quoted(a);case $b:return this.afterquote(a);case Yb:return this.number(a);case _b:return}},b.prototype.afterquote=function(a){if('"'===a)return this.word+='"',void(this.state=Zb);if(dc.test(a))return this.word=this.word.trim(),void this.afterItem(a);throw new Error("havn't handled \""+a+'" in afterquote yet, index '+this.place)},b.prototype.afterItem=function(a){return","===a?(null!==this.word&&this.currentObject.push(this.word),this.word=null,void(this.state=Wb)):"]"===a?(this.level--,null!==this.word&&(this.currentObject.push(this.word),this.word=null),this.state=Wb,this.currentObject=this.stack.pop(),void(this.currentObject||(this.state=_b))):void 0},b.prototype.number=function(a){if(ec.test(a))return void(this.word+=a);if(dc.test(a))return this.word=parseFloat(this.word),void this.afterItem(a);throw new Error("havn't handled \""+a+'" in number yet, index '+this.place)},b.prototype.quoted=function(a){return'"'===a?void(this.state=$b):void(this.word+=a)},b.prototype.keyword=function(a){if(cc.test(a))return void(this.word+=a);if("["===a){var b=[];return b.push(this.word),this.level++,null===this.root?this.root=b:this.currentObject.push(b),this.stack.push(this.currentObject),this.currentObject=b,void(this.state=Wb)}if(dc.test(a))return void this.afterItem(a);throw new Error("havn't handled \""+a+'" in keyword yet, index '+this.place)},b.prototype.neutral=function(a){if(bc.test(a))return this.word=a,void(this.state=Xb);if('"'===a)return this.word="",void(this.state=Zb);if(ec.test(a))return this.word=a,void(this.state=Yb);if(dc.test(a))return void this.afterItem(a);throw new Error("havn't handled \""+a+'" in neutral yet, index '+this.place)},b.prototype.output=function(){for(;this.place<this.text.length;)this.readCharicter();if(this.state===_b)return this.root;throw new Error('unable to parse string "'+this.text+'". State is '+this.state)};var fc=.017453292519943295,gc=function(a){var b=c(a),d=b.shift(),f=b.shift();b.unshift(["name",f]),b.unshift(["type",d]);var g={};return e(b,g),h(g),g};Cb(i);var hc=["PROJECTEDCRS","PROJCRS","GEOGCS","GEOCCS","PROJCS","LOCAL_CS","GEODCRS","GEODETICCRS","GEODETICDATUM","ENGCRS","ENGINEERINGCRS"],ic=function(a,b){a=a||{};var c,d;if(!b)return a;for(d in b)c=b[d],void 0!==c&&(a[d]=c);return a},jc=function(a,b,c){var d=a*b;return c/Math.sqrt(1-d*d)},kc=function(a){return 0>a?-1:1},lc=function(a){return Math.abs(a)<=Rb?a:a-kc(a)*Qb},mc=function(a,b,c){var d=a*c,e=.5*a;return d=Math.pow((1-d)/(1+d),e),Math.tan(.5*(Ib-b))/d},nc=function(a,b){for(var c,d,e=.5*a,f=Ib-2*Math.atan(b),g=0;15>=g;g++)if(c=a*Math.sin(f),d=Ib-2*Math.atan(b*Math.pow((1-c)/(1+c),e))-f,f+=d,Math.abs(d)<=1e-10)return f;return-9999},oc=["Mercator","Popular Visualisation Pseudo Mercator","Mercator_1SP","Mercator_Auxiliary_Sphere","merc"],pc={init:o,forward:p,inverse:q,names:oc},qc=["longlat","identity"],rc={init:r,forward:s,inverse:s,names:qc},sc=[pc,rc],tc={},uc=[],vc={start:v,add:t,get:u},wc={};wc.MERIT={a:6378137,rf:298.257,ellipseName:"MERIT 1983"},wc.SGS85={a:6378136,rf:298.257,ellipseName:"Soviet Geodetic System 85"},wc.GRS80={a:6378137,rf:298.257222101,ellipseName:"GRS 1980(IUGG, 1980)"},wc.IAU76={a:6378140,rf:298.257,ellipseName:"IAU 1976"},wc.airy={a:6377563.396,b:6356256.91,ellipseName:"Airy 1830"
+},wc.APL4={a:6378137,rf:298.25,ellipseName:"Appl. Physics. 1965"},wc.NWL9D={a:6378145,rf:298.25,ellipseName:"Naval Weapons Lab., 1965"},wc.mod_airy={a:6377340.189,b:6356034.446,ellipseName:"Modified Airy"},wc.andrae={a:6377104.43,rf:300,ellipseName:"Andrae 1876 (Den., Iclnd.)"},wc.aust_SA={a:6378160,rf:298.25,ellipseName:"Australian Natl & S. Amer. 1969"},wc.GRS67={a:6378160,rf:298.247167427,ellipseName:"GRS 67(IUGG 1967)"},wc.bessel={a:6377397.155,rf:299.1528128,ellipseName:"Bessel 1841"},wc.bess_nam={a:6377483.865,rf:299.1528128,ellipseName:"Bessel 1841 (Namibia)"},wc.clrk66={a:6378206.4,b:6356583.8,ellipseName:"Clarke 1866"},wc.clrk80={a:6378249.145,rf:293.4663,ellipseName:"Clarke 1880 mod."},wc.clrk58={a:6378293.645208759,rf:294.2606763692654,ellipseName:"Clarke 1858"},wc.CPM={a:6375738.7,rf:334.29,ellipseName:"Comm. des Poids et Mesures 1799"},wc.delmbr={a:6376428,rf:311.5,ellipseName:"Delambre 1810 (Belgium)"},wc.engelis={a:6378136.05,rf:298.2566,ellipseName:"Engelis 1985"},wc.evrst30={a:6377276.345,rf:300.8017,ellipseName:"Everest 1830"},wc.evrst48={a:6377304.063,rf:300.8017,ellipseName:"Everest 1948"},wc.evrst56={a:6377301.243,rf:300.8017,ellipseName:"Everest 1956"},wc.evrst69={a:6377295.664,rf:300.8017,ellipseName:"Everest 1969"},wc.evrstSS={a:6377298.556,rf:300.8017,ellipseName:"Everest (Sabah & Sarawak)"},wc.fschr60={a:6378166,rf:298.3,ellipseName:"Fischer (Mercury Datum) 1960"},wc.fschr60m={a:6378155,rf:298.3,ellipseName:"Fischer 1960"},wc.fschr68={a:6378150,rf:298.3,ellipseName:"Fischer 1968"},wc.helmert={a:6378200,rf:298.3,ellipseName:"Helmert 1906"},wc.hough={a:6378270,rf:297,ellipseName:"Hough"},wc.intl={a:6378388,rf:297,ellipseName:"International 1909 (Hayford)"},wc.kaula={a:6378163,rf:298.24,ellipseName:"Kaula 1961"},wc.lerch={a:6378139,rf:298.257,ellipseName:"Lerch 1979"},wc.mprts={a:6397300,rf:191,ellipseName:"Maupertius 1738"},wc.new_intl={a:6378157.5,b:6356772.2,ellipseName:"New International 1967"},wc.plessis={a:6376523,rf:6355863,ellipseName:"Plessis 1817 (France)"},wc.krass={a:6378245,rf:298.3,ellipseName:"Krassovsky, 1942"},wc.SEasia={a:6378155,b:6356773.3205,ellipseName:"Southeast Asia"},wc.walbeck={a:6376896,b:6355834.8467,ellipseName:"Walbeck"},wc.WGS60={a:6378165,rf:298.3,ellipseName:"WGS 60"},wc.WGS66={a:6378145,rf:298.25,ellipseName:"WGS 66"},wc.WGS7={a:6378135,rf:298.26,ellipseName:"WGS 72"};var xc=wc.WGS84={a:6378137,rf:298.257223563,ellipseName:"WGS 84"};wc.sphere={a:6370997,b:6370997,ellipseName:"Normal Sphere (r=6370997)"};var yc={};yc.wgs84={towgs84:"0,0,0",ellipse:"WGS84",datumName:"WGS84"},yc.ch1903={towgs84:"674.374,15.056,405.346",ellipse:"bessel",datumName:"swiss"},yc.ggrs87={towgs84:"-199.87,74.79,246.62",ellipse:"GRS80",datumName:"Greek_Geodetic_Reference_System_1987"},yc.nad83={towgs84:"0,0,0",ellipse:"GRS80",datumName:"North_American_Datum_1983"},yc.nad27={nadgrids:"@conus,@alaska,@ntv2_0.gsb,@ntv1_can.dat",ellipse:"clrk66",datumName:"North_American_Datum_1927"},yc.potsdam={towgs84:"606.0,23.0,413.0",ellipse:"bessel",datumName:"Potsdam Rauenberg 1950 DHDN"},yc.carthage={towgs84:"-263.0,6.0,431.0",ellipse:"clark80",datumName:"Carthage 1934 Tunisia"},yc.hermannskogel={towgs84:"653.0,-212.0,449.0",ellipse:"bessel",datumName:"Hermannskogel"},yc.osni52={towgs84:"482.530,-130.596,564.557,-1.042,-0.214,-0.631,8.15",ellipse:"airy",datumName:"Irish National"},yc.ire65={towgs84:"482.530,-130.596,564.557,-1.042,-0.214,-0.631,8.15",ellipse:"mod_airy",datumName:"Ireland 1965"},yc.rassadiran={towgs84:"-133.63,-157.5,-158.62",ellipse:"intl",datumName:"Rassadiran"},yc.nzgd49={towgs84:"59.47,-5.04,187.44,0.47,-0.1,1.024,-4.5993",ellipse:"intl",datumName:"New Zealand Geodetic Datum 1949"},yc.osgb36={towgs84:"446.448,-125.157,542.060,0.1502,0.2470,0.8421,-20.4894",ellipse:"airy",datumName:"Airy 1830"},yc.s_jtsk={towgs84:"589,76,480",ellipse:"bessel",datumName:"S-JTSK (Ferro)"},yc.beduaram={towgs84:"-106,-87,188",ellipse:"clrk80",datumName:"Beduaram"},yc.gunung_segara={towgs84:"-403,684,41",ellipse:"bessel",datumName:"Gunung Segara Jakarta"},yc.rnb72={towgs84:"106.869,-52.2978,103.724,-0.33657,0.456955,-1.84218,1",ellipse:"intl",datumName:"Reseau National Belge 1972"},z.projections=vc,z.projections.start();var zc=function(a,b,c){return A(a,b)?c:a.datum_type===Gb||b.datum_type===Gb?c:a.es!==b.es||a.a!==b.a||F(a.datum_type)||F(b.datum_type)?(c=B(c,a.es,a.a),F(a.datum_type)&&(c=D(c,a.datum_type,a.datum_params)),F(b.datum_type)&&(c=E(c,b.datum_type,b.datum_params)),C(c,b.es,b.a,b.b)):c},Ac=function(a,b,c){var d,e,f,g=c.x,h=c.y,i=c.z||0,j={};for(f=0;3>f;f++)if(!b||2!==f||void 0!==c.z)switch(0===f?(d=g,e="x"):1===f?(d=h,e="y"):(d=i,e="z"),a.axis[f]){case"e":j[e]=d;break;case"w":j[e]=-d;break;case"n":j[e]=d;break;case"s":j[e]=-d;break;case"u":void 0!==c[e]&&(j.z=d);break;case"d":void 0!==c[e]&&(j.z=-d);break;default:return null}return j},Bc=function(a){var b={x:a[0],y:a[1]};return a.length>2&&(b.z=a[2]),a.length>3&&(b.m=a[3]),b},Cc=function(a){G(a.x),G(a.y)},Dc=z("WGS84"),Ec=6,Fc="AJSAJS",Gc="AFAFAF",Hc=65,Ic=73,Jc=79,Kc=86,Lc=90,Mc={forward:M,inverse:N,toPoint:O};Point.fromMGRS=function(a){return new Point(O(a))},Point.prototype.toMGRS=function(a){return M([this.x,this.y],a)};var Nc="2.4.4",Oc=1,Pc=.25,Qc=.046875,Rc=.01953125,Sc=.01068115234375,Tc=.75,Uc=.46875,Vc=.013020833333333334,Wc=.007120768229166667,Xc=.3645833333333333,Yc=.005696614583333333,Zc=.3076171875,$c=function(a){var b=[];b[0]=Oc-a*(Pc+a*(Qc+a*(Rc+a*Sc))),b[1]=a*(Tc-a*(Qc+a*(Rc+a*Sc)));var c=a*a;return b[2]=c*(Uc-a*(Vc+a*Wc)),c*=a,b[3]=c*(Xc-a*Yc),b[4]=c*a*Zc,b},_c=function(a,b,c,d){return c*=b,b*=b,d[0]*a-c*(d[1]+b*(d[2]+b*(d[3]+b*d[4])))},ad=20,bd=function(a,b,c){for(var d=1/(1-b),e=a,f=ad;f;--f){var g=Math.sin(e),h=1-b*g*g;if(h=(_c(e,g,Math.cos(e),c)-a)*(h*Math.sqrt(h))*d,e-=h,Math.abs(h)<Mb)return e}return e},cd=["Transverse_Mercator","Transverse Mercator","tmerc"],dd={init:aa,forward:ba,inverse:ca,names:cd},ed=function(a){var b=Math.exp(a);return b=(b-1/b)/2},fd=function(a,b){a=Math.abs(a),b=Math.abs(b);var c=Math.max(a,b),d=Math.min(a,b)/(c?c:1);return c*Math.sqrt(1+Math.pow(d,2))},gd=function(a){var b=1+a,c=b-1;return 0===c?a:a*Math.log(b)/c},hd=function(a){var b=Math.abs(a);return b=gd(b*(1+b/(fd(1,b)+1))),0>a?-b:b},id=function(a,b){for(var c,d=2*Math.cos(2*b),e=a.length-1,f=a[e],g=0;--e>=0;)c=-g+d*f+a[e],g=f,f=c;return b+c*Math.sin(2*b)},jd=function(a,b){for(var c,d=2*Math.cos(b),e=a.length-1,f=a[e],g=0;--e>=0;)c=-g+d*f+a[e],g=f,f=c;return Math.sin(b)*c},kd=function(a){var b=Math.exp(a);return b=(b+1/b)/2},ld=function(a,b,c){for(var d,e,f=Math.sin(b),g=Math.cos(b),h=ed(c),i=kd(c),j=2*g*i,k=-2*f*h,l=a.length-1,m=a[l],n=0,o=0,p=0;--l>=0;)d=o,e=n,o=m,n=p,m=-d+j*o-k*n+a[l],p=-e+k*o+j*n;return j=f*i,k=g*h,[j*m-k*p,j*p+k*m]},md=["Extended_Transverse_Mercator","Extended Transverse Mercator","etmerc"],nd={init:da,forward:ea,inverse:fa,names:md},od=function(a,b){if(void 0===a){if(a=Math.floor(30*(lc(b)+Math.PI)/Math.PI)+1,0>a)return 0;if(a>60)return 60}return a},pd="etmerc",qd=["Universal Transverse Mercator System","utm"],rd={init:ga,names:qd,dependsOn:pd},sd=function(a,b){return Math.pow((1-a)/(1+a),b)},td=20,ud=["gauss"],vd={init:ha,forward:ia,inverse:ja,names:ud},wd=["Stereographic_North_Pole","Oblique_Stereographic","Polar_Stereographic","sterea","Oblique Stereographic Alternative"],xd={init:ka,forward:la,inverse:ma,names:wd},yd=["stere","Stereographic_South_Pole","Polar Stereographic (variant B)"],zd={init:oa,forward:pa,inverse:qa,names:yd,ssfn_:na},Ad=["somerc"],Bd={init:ra,forward:sa,inverse:ta,names:Ad},Cd=["Hotine_Oblique_Mercator","Hotine Oblique Mercator","Hotine_Oblique_Mercator_Azimuth_Natural_Origin","Hotine_Oblique_Mercator_Azimuth_Center","omerc"],Dd={init:ua,forward:va,inverse:wa,names:Cd},Ed=["Lambert Tangential Conformal Conic Projection","Lambert_Conformal_Conic","Lambert_Conformal_Conic_2SP","lcc"],Fd={init:xa,forward:ya,inverse:za,names:Ed},Gd=["Krovak","krovak"],Hd={init:Aa,forward:Ba,inverse:Ca,names:Gd},Id=function(a,b,c,d,e){return a*e-b*Math.sin(2*e)+c*Math.sin(4*e)-d*Math.sin(6*e)},Jd=function(a){return 1-.25*a*(1+a/16*(3+1.25*a))},Kd=function(a){return.375*a*(1+.25*a*(1+.46875*a))},Ld=function(a){return.05859375*a*a*(1+.75*a)},Md=function(a){return a*a*a*(35/3072)},Nd=function(a,b,c){var d=b*c;return a/Math.sqrt(1-d*d)},Od=function(a){return Math.abs(a)<Ib?a:a-kc(a)*Math.PI},Pd=function(a,b,c,d,e){var f,g;f=a/b;for(var h=0;15>h;h++)if(g=(a-(b*f-c*Math.sin(2*f)+d*Math.sin(4*f)-e*Math.sin(6*f)))/(b-2*c*Math.cos(2*f)+4*d*Math.cos(4*f)-6*e*Math.cos(6*f)),f+=g,Math.abs(g)<=1e-10)return f;return NaN},Qd=["Cassini","Cassini_Soldner","cass"],Rd={init:Da,forward:Ea,inverse:Fa,names:Qd},Sd=function(a,b){var c;return a>1e-7?(c=a*b,(1-a*a)*(b/(1-c*c)-.5/a*Math.log((1-c)/(1+c)))):2*b},Td=1,Ud=2,Vd=3,Wd=4,Xd=.3333333333333333,Yd=.17222222222222222,Zd=.10257936507936508,$d=.06388888888888888,_d=.0664021164021164,ae=.016415012942191543,be=["Lambert Azimuthal Equal Area","Lambert_Azimuthal_Equal_Area","laea"],ce={init:Ga,forward:Ha,inverse:Ia,names:be,S_POLE:Td,N_POLE:Ud,EQUIT:Vd,OBLIQ:Wd},de=function(a){return Math.abs(a)>1&&(a=a>1?1:-1),Math.asin(a)},ee=["Albers_Conic_Equal_Area","Albers","aea"],fe={init:La,forward:Ma,inverse:Na,names:ee,phi1z:Oa},ge=["gnom"],he={init:Pa,forward:Qa,inverse:Ra,names:ge},ie=function(a,b){var c=1-(1-a*a)/(2*a)*Math.log((1-a)/(1+a));if(Math.abs(Math.abs(b)-c)<1e-6)return 0>b?-1*Ib:Ib;for(var d,e,f,g,h=Math.asin(.5*b),i=0;30>i;i++)if(e=Math.sin(h),f=Math.cos(h),g=a*e,d=Math.pow(1-g*g,2)/(2*f)*(b/(1-a*a)-e/(1-g*g)+.5/a*Math.log((1-g)/(1+g))),h+=d,Math.abs(d)<=1e-10)return h;return NaN},je=["cea"],ke={init:Sa,forward:Ta,inverse:Ua,names:je},le=["Equirectangular","Equidistant_Cylindrical","eqc"],me={init:Va,forward:Wa,inverse:Xa,names:le},ne=20,oe=["Polyconic","poly"],pe={init:Ya,forward:Za,inverse:$a,names:oe},qe=["New_Zealand_Map_Grid","nzmg"],re={init:_a,forward:ab,inverse:bb,names:qe},se=["Miller_Cylindrical","mill"],te={init:cb,forward:db,inverse:eb,names:se},ue=20,ve=["Sinusoidal","sinu"],we={init:fb,forward:gb,inverse:hb,names:ve},xe=["Mollweide","moll"],ye={init:ib,forward:jb,inverse:kb,names:xe},ze=["Equidistant_Conic","eqdc"],Ae={init:lb,forward:mb,inverse:nb,names:ze},Be=["Van_der_Grinten_I","VanDerGrinten","vandg"],Ce={init:ob,forward:pb,inverse:qb,names:Be},De=["Azimuthal_Equidistant","aeqd"],Ee={init:rb,forward:sb,inverse:tb,names:De},Fe=["ortho"],Ge={init:ub,forward:vb,inverse:wb,names:Fe},He={FRONT:1,RIGHT:2,BACK:3,LEFT:4,TOP:5,BOTTOM:6},Ie={AREA_0:1,AREA_1:2,AREA_2:3,AREA_3:4},Je=["Quadrilateralized Spherical Cube","Quadrilateralized_Spherical_Cube","qsc"],Ke={init:xb,forward:yb,inverse:zb,names:Je},Le=function(proj4){proj4.Proj.projections.add(dd),proj4.Proj.projections.add(nd),proj4.Proj.projections.add(rd),proj4.Proj.projections.add(xd),proj4.Proj.projections.add(zd),proj4.Proj.projections.add(Bd),proj4.Proj.projections.add(Dd),proj4.Proj.projections.add(Fd),proj4.Proj.projections.add(Hd),proj4.Proj.projections.add(Rd),proj4.Proj.projections.add(ce),proj4.Proj.projections.add(fe),proj4.Proj.projections.add(he),proj4.Proj.projections.add(ke),proj4.Proj.projections.add(me),proj4.Proj.projections.add(pe),proj4.Proj.projections.add(re),proj4.Proj.projections.add(te),proj4.Proj.projections.add(we),proj4.Proj.projections.add(ye),proj4.Proj.projections.add(Ae),proj4.Proj.projections.add(Ce),proj4.Proj.projections.add(Ee),proj4.Proj.projections.add(Ge),proj4.Proj.projections.add(Ke)};return L.defaultDatum="WGS84",L.Proj=z,L.WGS84=new L.Proj("WGS84"),L.Point=Point,L.toPoint=Bc,L.defs=i,L.transform=I,L.mgrs=Mc,L.version=Nc,Le(L),L});
 /*
     JavaScript autoComplete v1.0.3
     Copyright (c) 2014 Simon Steinberger / Pixabay
@@ -91676,7 +94490,6 @@ var Geomerk = (function (e) {
                     doubleClickZoom: false,
                     mouseWheelZoom: _mapParam.type == 'basic' ? false : true
                 }),
-                moveTolerance: 20,
                 layers: e.Map.addMapLayers(layerProperties),
                 loadTilesWhileAnimating: true,
                 loadTilesWhileInteracting: true,
@@ -91846,7 +94659,7 @@ var Geomerk = (function (e) {
                 //console.log('pcode:'+ l.projection_code);
                 //console.log('format:' + l.main_format);
 
-                var layer;
+                var layer = null;
                 //var styleObj = $.grep(props.styles.$values, function (n) { //i
                 //    return (n.vectorstyleid == l.stylefield);
                 //});
@@ -91942,7 +94755,7 @@ var Geomerk = (function (e) {
                                 maxResolution: main_max_level,
                                 extent: layerextent,
                                 inToc: true
-                                })
+                            });
 
 
                         }
@@ -91993,78 +94806,77 @@ var Geomerk = (function (e) {
                         });
                         break;
 
-                        //    case 3: //WFS
-                        //        //cql filter definition
-                        //        //replace %%variablen from layer properties
-                        //        var filter = l.cqlfilter ? _decryptCqlFilter(l.cqlfilter) + ' AND ' : '';
-                        //        var isDateFiltered = false;
-                        //        //_dateFilter = '';
-                        //        if (filter) {
-                        //            if (l.cqlfilter.indexOf('%%datefilter') >= 0) {
-                        //                isDateFiltered = true;
-                        //            }
-                        //        }
-                        //        var serverType = l.maplayertypeid == 3 ? 'eagle' : 'klip';
-                        //        var urlTemplate = Geomerk.urlGeoserver() + l.workspace + '/ows?service=WFS&' +
-                        //            'token=' + Geomerk.loginDetails.Organisation.Token + '&server=' + serverType +
-                        //            '&version=1.1.0&request=GetFeature&typename=' + l.name + '&' +
-                        //            'outputFormat=application/json&srsname=EPSG:' + l.srid + '&' +
-                        //            'CQL_FILTER=' + filter;
+                            //case 3: //WFS
+                            //    //cql filter definition
+                            //    //replace %%variablen from layer properties
+                            //    var filter = l.cqlfilter ? _decryptCqlFilter(l.cqlfilter) + ' AND ' : '';
+                            //    var isDateFiltered = false;
+                            //    //_dateFilter = '';
+                            //    if (filter) {
+                            //        if (l.cqlfilter.indexOf('%%datefilter') >= 0) {
+                            //            isDateFiltered = true;
+                            //        }
+                            //    }
+                            //    var serverType = l.maplayertypeid == 3 ? 'eagle' : 'klip';
+                            //    var urlTemplate = Geomerk.urlGeoserver() + l.workspace + '/ows?service=WFS&' +
+                            //        'token=' + Geomerk.loginDetails.Organisation.Token + '&server=' + serverType +
+                            //        '&version=1.1.0&request=GetFeature&typename=' + l.name + '&' +
+                            //        'outputFormat=application/json&srsname=EPSG:' + l.srid + '&' +
+                            //        'CQL_FILTER=' + filter;
 
-                        //        layer = new ol.layer.Vector({
-                        //            id: l.maplayerid,
-                        //            name: l.namejs,
-                        //            group: groupName[0].value,
-                        //            label: l.label,
-                        //            source: new ol.source.Vector({
-                        //                format: new ol.format.GeoJSON({
-                        //                    defaultDataProjection: 'EPSG:' + l.srid
-                        //                }),
-                        //                url: function (extent) {
-                        //                    var url = urlTemplate + 'bbox(' + l.fieldgeom + ',' + extent.join(',') + ')';
+                            //    layer = new ol.layer.Vector({
+                            //        id: l.maplayerid,
+                            //        name: l.namejs,
+                            //        group: l.layergroup,
+                            //        label: l.label,
+                            //        source: new ol.source.Vector({
+                            //            format: new ol.format.GeoJSON({
+                            //                defaultDataProjection: 'EPSG:' + l.srid
+                            //            }),
+                            //            url: function (extent) {
+                            //                var url = urlTemplate + 'bbox(' + l.fieldgeom + ',' + extent.join(',') + ')';
 
-                        //                    return url.replace('%%datefilter', _dateFilter);
-                        //                },
-                        //                strategy: ol.loadingstrategy.bbox
-                        //            }),
-                        //            visible: l.visible,
-                        //            selectable: l.selectable,
-                        //            inToc: l.toc,
-                        //            isBase: l.base,
-                        //            dateFilter: isDateFiltered,
-                        //            minResolution: l.minlevel,
-                        //            maxResolution: l.maxlevel,
-                        //            extent: layerextent,
-                        //            styleid: l.vectorstyleid,
-                        //            style: style
-                        //        });
-                        //        break;
-                        //    case 4: //KMLFILE
-                        //        break;
-                        //    case 5: //JSONFILE
-                        //        layer = new ol.layer.Vector({
-                        //            id: l.maplayerid,
-                        //            name: l.namejs,
-                        //            group: groupName[0].value,
-                        //            label: l.label,
-                        //            source: new ol.source.Vector(),
-                        //            visible: l.visible,
-                        //            selectable: l.selectable,
-                        //            inToc: l.toc,
-                        //            isBase: l.base,
-                        //            styleid: l.vectorstyleid,
-                        //            style: style,
-                        //            minResolution: l.minlevel,
-                        //            maxResolution: l.maxlevel,
-                        //            extent: layerextent
-                        //        });
-                        //        break;
+                            //                return url.replace('%%datefilter', _dateFilter);
+                            //            },
+                            //            strategy: ol.loadingstrategy.bbox
+                            //        }),
+                            //        visible: l.visible,
+                            //        selectable: l.selectable,
+                            //        inToc: l.toc,
+                            //        isBase: l.base,
+                            //        dateFilter: isDateFiltered,
+                            //        minResolution: l.minlevel,
+                            //        maxResolution: l.maxlevel,
+                            //        extent: layerextent,
+                            //        styleid: l.vectorstyleid
+
+                            //    });
+                            //    break;
+                            //case 4: //KMLFILE
+                            //    break;
+                            //case 5: //JSONFILE
+                            //    layer = new ol.layer.Vector({
+                            //        id: l.maplayerid,
+                            //        name: l.namejs,
+                            //        group: groupName[0].value,
+                            //        label: l.label,
+                            //        source: new ol.source.Vector(),
+                            //        visible: l.visible,
+                            //        selectable: l.selectable,
+                            //        inToc: l.toc,
+                            //        isBase: l.base,
+                            //        styleid: l.vectorstyleid,
+                            //        minResolution: l.minlevel,
+                            //        maxResolution: l.maxlevel,
+                            //        extent: layerextent
+                            //    });
+                            //    break;
 
                 }
-                if (layer) {
+                if (layer != null && layer) {
                     mapLayers.push(layer);
                 }
-                //}
+
             };
             //mapLayers.push(_layers.vGeolocate);
             //mapLayers.push(_layers.vDraw);
@@ -92207,7 +95019,7 @@ var Geomerk = (function (e) {
                 }
             _olmap.addLayer(vector);
         },
-        geometryToWkt(geometry)
+        geometryToWkt: function(geometry)
         {
             var format = new ol.format.WKT();
             return format.writeGeometry(geometry);
@@ -92556,6 +95368,7 @@ var Geomerk = (function (e) {
             var xhr = new XMLHttpRequest();
             xhr.open('GET', param.url, true);
             xhr.responseType = 'json';
+            xhr.json= true;
             xhr.setRequestHeader("Authorization", 'Bearer ' + accessToken);
             xhr.setRequestHeader("Accept", 'application/json');
 
@@ -92563,7 +95376,13 @@ var Geomerk = (function (e) {
             xhr.onload = function () {
                 var status = xhr.status;
                 if (status == 200) {
-                    param.callback(xhr.response);
+                    var response = xhr.response;
+                    if (response.$id) {
+                        param.callback(response);
+                    } else
+                    {
+                        param.callback(JSON.parse(response));
+                    }
 
                 } else {
                     alert('failed');
@@ -92636,14 +95455,3 @@ var Geomerk = (function (e) {
     };
     return e;
 })(Geomerk);
-
-//Deze token moet worden opgehaald met onze Api.
-        var accessToken = "q6APA7725jJTnTHPjzUhZYSlEMVcVl2d3MZbRDrgLSkkfg9MmqtDBOURRaMWqwjccdxqaAwu4nbD__-GYB0pMF6S3RAz660MQJ4--yUlYBeK3evrcR2BelvJfPB_VMuWmqs9D-XedSH8DxzbybBKSGcRV6Nqg_pEVVZEU88jcJlKdo_fXRKNBdbgmesf1ytYB9BuCvBlnFTdHw5jLeT2_E2FqM8xQwqmzLcd1UrFFdCXoMn9C8zJRNAk7nJE-LQntyXKzX-9-REz29Ym2IakZf71-PzYC3up2r5cgDnv_2uEdOB-H9-jiZk6hxWIdZImbjwN9YLpHmKyyU_DNaNmO4aUUx8XB86s-PD_xs0up_MFrXnQeVTb-Rwb78G7sj9mDvIXufSueRoTBzhcwpfEn7wJY841lhEDVznXzB-8h1rF6L8ZZu0bgACtIUW33RwFu4JuPUWNRU3UyAGCrdqNlX-UOeRKNC4Ra70zd_mvP1ZtFN1rkDazxR6TOxOJiJFGe0eiDf6-3DKkERNBFigvcUr2BWw1J8v6YY1ISNiNVyZdT-Ftxvlz3KxifRQ81Cv-";
-        localStorage.setItem('token', accessToken);
-        var p = {
-            div: 'testmap',  //Naam van de div in de html
-            type: 'full',
-            mapControls: [
-                Geomerk.Map.interactions.fullScreen
-            ]
-        };

@@ -82,4 +82,5 @@
     <string name="saved_upvote">savedUpvote</string>
     <string name="sharedPreference_upvote">upvotes</string>
     <string name="alreadyUpvoted">You already upvoted this service request!</string>
+    <string name="activityMapsDialog_tv_assureLocation">Do you want the use this chosen location?</string>
 </resources>

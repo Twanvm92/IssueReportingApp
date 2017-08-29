@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+
+    <!-- Stylesheet nodig voor de map div-->
+    <script src="scripts/javascript.js"></script>
+    <link rel="stylesheet" href="css/stylesheet.css">
+    <!--<link rel="stylesheet" href="http://rawgit.com/webgeodatavore/ol3-extras-demos/master/french-geoapi-autocomplete/auto-complete.css">-->
+
+    <script>
+
+
+        var accessToken = "q6APA7725jJTnTHPjzUhZYSlEMVcVl2d3MZbRDrgLSkkfg9MmqtDBOURRaMWqwjccdxqaAwu4nbD__-GYB0pMF6S3RAz660MQJ4--yUlYBeK3evrcR2BelvJfPB_VMuWmqs9D-XedSH8DxzbybBKSGcRV6Nqg_pEVVZEU88jcJlKdo_fXRKNBdbgmesf1ytYB9BuCvBlnFTdHw5jLeT2_E2FqM8xQwqmzLcd1UrFFdCXoMn9C8zJRNAk7nJE-LQntyXKzX-9-REz29Ym2IakZf71-PzYC3up2r5cgDnv_2uEdOB-H9-jiZk6hxWIdZImbjwN9YLpHmKyyU_DNaNmO4aUUx8XB86s-PD_xs0up_MFrXnQeVTb-Rwb78G7sj9mDvIXufSueRoTBzhcwpfEn7wJY841lhEDVznXzB-8h1rF6L8ZZu0bgACtIUW33RwFu4JuPUWNRU3UyAGCrdqNlX-UOeRKNC4Ra70zd_mvP1ZtFN1rkDazxR6TOxOJiJFGe0eiDf6-3DKkERNBFigvcUr2BWw1J8v6YY1ISNiNVyZdT-Ftxvlz3KxifRQ81Cv-";
+        localStorage.setItem('token', accessToken);
+        var p = {
+            div: 'testmap',
+            type: 'full',
+            mapControls: [
+                Geomerk.Map.interactions.fullScreen
+            ]
+        };
+
+    </script>
+
+
+    <!--Style om de size van de div te manupuleren-->
+    <style>
+        html, body, .full {
+            height: 100%;
+        }
+
+        .full {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .map {
+            flex-grow: 1;
+        }
+    </style>
+    <title>Geomerk Openmap</title>
+</head>
+<body onload="Geomerk.Map.initMap(p);">
+<div class="full">
+    <div class="form">
+        <form onsubmit="return false;" style="border-top: 1px solid #eee;border-bottom:1px solid #eee;background:#fafafa;margin:0;padding:20px 10px;text-align:center">
+            <input id="places-search" autofocus type="text" name="q" placeholder="Zoek adres ..." style="width:100%;max-width:600px;outline:0">
+        </form>
+    </div>
+    <div id="testmap" class="map"></div>
+</div>
+<script type="text/javascript">
+
+        Geomerk.Map.setLoadedCallback(loaded);
+
+        var drawing = false;
+
+        Geomerk.Map.setMoveEndCallback(moveEnd);
+        function featureClick(feature,layer) {
+            var object = feature.getProperties();
+            console.log(object);
+        };
+
+
+        function loaded() {
+            Geomerk.Map.initSearchRD('places-search');
+            var map = Geomerk.Map.getMap();
+
+            Geomerk.Map.drawGeo('Point', callbackGeom);
+
+            map.addOverlay(overlay);
+            map.on('click', function (evt) {
+                var coordinate = evt.coordinate;
+
+
+                var feature = map.forEachFeatureAtPixel(evt.pixel,
+                    function (feature) {
+                        if (feature.values_.request_id != null) {
+                            content.innerHTML = '<p>You clicked</p>';
+                            overlay.setPosition(coordinate);
+                            console.log(feature.values_.request_id);
+                        }
+                    });
+
+
+            });
+        }
+
+        function moveEnd(data) {
+            var jsonPositionData = JSON.stringify(data);
+
+        };
+
+        function callbackGeom(data) {
+
+            var coords = data.flatCoordinates;
+            var lonlat = Geomerk.Map.convertRDtoLonLat(coords[0], coords[1]);
+            var jsonDataPointClicked = JSON.stringify(lonlat);
+
+            Android.getMarkedLocation(jsonDataPointClicked);
+            console.log(jsonDataPointClicked);
+        }
+    </script>
+</body>
+</html>

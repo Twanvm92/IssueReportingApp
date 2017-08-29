@@ -379,13 +379,10 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                     if (data.hasExtra("long")) {
                         double lng = data.getDoubleExtra("long", 1);
                         double lat = data.getDoubleExtra("lat", 1);
-                        zoom = data.getFloatExtra("zoom", 16.0f);
-                        mapLocation = new LatLng(lat, lng);
-                        location = mapLocation;
+                        location = new LatLng(lat, lng);
 
-                        Log.e("long: ", "" + mapLocation.longitude);
-                        Log.e("lat: ", "" + mapLocation.latitude);
-                        marker = true;
+                        Log.e("long: ", "" + location.longitude);
+                        Log.e("lat: ", "" + location.latitude);
                         locatieButton.setText(getResources().getString(R.string.locatieWijzigen));
                     }
 
@@ -597,8 +594,8 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
         // has been provided by the user
         boolean longAssigned = false;
         lon = 0.0;
-        if (mapLocation != null) {
-            lon = mapLocation.longitude;
+        if (location != null) {
+            lon = location.longitude;
             pLon = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(lon));
             longAssigned = true;
         } else {
@@ -617,8 +614,8 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
         // has been provided by the user
         boolean latAssigned = false;
         lat = 0.0;
-        if (mapLocation != null) {
-            lat = mapLocation.latitude;
+        if (location != null) {
+            lat = location.latitude;
             pLat = RequestBody.create(MediaType.parse("text/plain"), String.valueOf(lat));
             latAssigned = true;
         } else {
@@ -789,11 +786,6 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
         if (location != null) {
             intent.putExtra("long", location.longitude);
             intent.putExtra("lat", location.latitude);
-            intent.putExtra("zoom", zoom);
-        }
-
-        if (marker) {
-            intent.putExtra("marker", "true");
         }
         return intent;
     }

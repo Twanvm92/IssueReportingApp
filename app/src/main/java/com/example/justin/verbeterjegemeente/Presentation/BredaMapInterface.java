@@ -14,11 +14,17 @@ import org.json.JSONObject;
  * Created by twanv on 16-8-2017.
  */
 
+// TODO: 27-8-2017 add javadoc
 public class BredaMapInterface {
     private OnCameraChangedListener cameraListener;
+    private OnMarkedLocationListener locationListener;
 
     public BredaMapInterface(OnCameraChangedListener cameraListener) {
         this.cameraListener = cameraListener;
+    }
+
+    public BredaMapInterface(OnMarkedLocationListener locationListener) {
+        this.locationListener = locationListener;
     }
 
     @JavascriptInterface
@@ -38,12 +44,33 @@ public class BredaMapInterface {
     }
 
     @JavascriptInterface
-    public void getMarkedLocation(JSONObject LatLong) {
+    public void getMarkedLocation(String latLong) {
+        Log.i("JavascriptInterface: ", latLong);
 
+        LatLng latLng = parseJsonCoordsToLatLng(latLong);
+
+        locationListener.onMarkedLocation(latLng);
     }
 
+    // TODO: 27-8-2017 add javadoc
+    private LatLng parseJsonCoordsToLatLng(String json) {
+        int indexOfComma = json.indexOf(",");
+        int lenghtOfString = json.length();
+        String lng = json.substring(1,indexOfComma);
+        String lat = json.substring(indexOfComma + 1, lenghtOfString - 1);
+        double dLng = Double.parseDouble(lng);
+        double dLat = Double.parseDouble(lat);
+        return new LatLng(dLat, dLng);
+    }
+
+    // TODO: 27-8-2017 add javadoc
     interface OnCameraChangedListener {
         void onListenToCameraChanged(LatLng CameraCoordinates);
+    }
+
+    // TODO: 27-8-2017 add javadoc
+    interface OnMarkedLocationListener {
+        void onMarkedLocation(LatLng userChosenLocation);
     }
 
 }

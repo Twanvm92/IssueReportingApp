@@ -1,51 +1,40 @@
-<RelativeLayout
+<android.support.design.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <android.support.design.widget.FloatingActionButton
-        android:id="@+id/activityMaps_fbtn_maps_Savebtn"
+        android:id="@+id/activityMain_Fbtn_gps"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
-        android:layout_marginBottom="12dp"
-        android:layout_marginEnd="18dp"
-        android:layout_marginRight="18dp"
+        android:layout_gravity="bottom|end"
+        android:layout_marginBottom="20dp"
+        android:layout_marginRight="20dp"
         android:clickable="true"
-        app:backgroundTint="#008040"
+        app:backgroundTint="@color/mooiGroen"
         app:fabSize="normal"
-        app:srcCompat="@drawable/checkgreenmark" />
+        app:srcCompat="@drawable/ic_gps_fixed_white_48dp" />
 
-    <android.support.design.widget.CoordinatorLayout
-
+    <WebView
+        android:id="@+id/mapsActivity_wv_kaartBreda"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true">
 
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/activityMain_Fbtn_gps"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end|bottom"
-            android:layout_marginBottom="72dp"
-            android:layout_marginRight="29dp"
-            android:clickable="true"
-            app:backgroundTint="#6fda7f"
-            app:fabSize="mini"
-            app:srcCompat="@drawable/ic_gps_fixed_white_48dp" />
 
-        <fragment xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:map="http://schemas.android.com/apk/res-auto"
-            xmlns:tools="http://schemas.android.com/tools"
-            android:id="@+id/activityMaps_map_MapFragment"
-            android:name="com.google.android.gms.maps.SupportMapFragment"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            tools:context="com.example.justin.verbeterjegemeente.MapsActivity" />
+    </WebView>
+    <ProgressBar
+        android:id="@+id/mapsActivity_pb_webviewProgressbar"
+        style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Inverse"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"/>
 
-    </android.support.design.widget.CoordinatorLayout>
 
-</RelativeLayout>
+</android.support.design.widget.CoordinatorLayout>
 

@@ -1,10 +1,12 @@
 package com.example.justin.verbeterjegemeente.Presentation;
 
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 
 import com.example.justin.verbeterjegemeente.domain.Coordinates;
+import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
 
@@ -18,9 +20,11 @@ import org.json.JSONObject;
 public class BredaMapInterface {
     private OnCameraChangedListener cameraListener;
     private OnMarkedLocationListener locationListener;
+    private Context context;
 
-    public BredaMapInterface(OnCameraChangedListener cameraListener) {
+    public BredaMapInterface(OnCameraChangedListener cameraListener, Context context) {
         this.cameraListener = cameraListener;
+        this.context = context;
     }
 
     public BredaMapInterface(OnMarkedLocationListener locationListener) {
@@ -28,8 +32,15 @@ public class BredaMapInterface {
     }
 
     @JavascriptInterface
-    public void goToDetailedMelding(JSONObject ServiceRequest) {
+    public void goToDetailedMelding(String serviceRequest) {
+        /*Gson gson = new Gson();
+        ServiceRequest sr = gson.fromJson(serviceRequest, ServiceRequest.class);
 
+        Intent i = new Intent(context, DetailedMeldingActivity.class);
+        i.putExtra("serviceRequest", sr);
+        context.startActivity(i);*/
+
+        Log.i("JavascriptInterface: ", serviceRequest);
     }
 
     @JavascriptInterface

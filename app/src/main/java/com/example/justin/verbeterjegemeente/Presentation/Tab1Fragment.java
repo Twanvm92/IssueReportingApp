@@ -101,7 +101,7 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
 
         client = ServiceGenerator.createService(ServiceClient.class);
 
-        buildGoogleApiClient();
+//        buildGoogleApiClient();
         createLocationRequest();
     }
 
@@ -166,7 +166,7 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
         //setup map settings
         wbMap.setVerticalScrollBarEnabled(false);
         wbMap.setHorizontalScrollBarEnabled(false);
-        wbMap.addJavascriptInterface(new BredaMapInterface(this), "Android");
+        wbMap.addJavascriptInterface(new BredaMapInterface(this, getContext()), "Android");
         wbMap.getSettings().setJavaScriptEnabled(true);
         wbMap.getSettings().setAllowFileAccessFromFileURLs(true);
         wbMap.getSettings().setAllowUniversalAccessFromFileURLs(true);
@@ -186,8 +186,13 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
+
+                // make sure gps fuctions are only being loaded when map is fully loaded
+                buildGoogleApiClient();
+
                 progress.setVisibility(View.GONE);
                 wbMap.setVisibility(View.VISIBLE);
+                Log.i("Tab1Fragment: ", "kaart is geladen");
             }
 
             public boolean onConsoleMessage(ConsoleMessage cm) {

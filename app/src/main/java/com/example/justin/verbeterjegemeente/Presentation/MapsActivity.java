@@ -103,7 +103,7 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
 
         setUpMap();
 
-        buildGoogleApiClient();
+//        buildGoogleApiClient();
         createLocationRequest();
 
         FloatingActionButton gpsButton = (FloatingActionButton) findViewById(R.id.activityMain_Fbtn_gps);
@@ -145,6 +145,9 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
+                // make sure gps fuctions are only being loaded when map is fully loaded
+                buildGoogleApiClient();
+
                 progress.setVisibility(View.GONE);
                 wbMap.setVisibility(View.VISIBLE);
 

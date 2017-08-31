@@ -109,6 +109,10 @@ public class FollowingActivity extends AppCompatActivity implements RequestManag
         NotificationManager notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
         notificationManager.cancel(Constants.NOTIFICATION_ID);
 
+        // make sure that listview is updated when user comes back to this screen.
+        meldingAdapter = new ServiceRequestAdapter(getApplicationContext(), srListFinal);
+        meldingListView.setAdapter(meldingAdapter);
+        meldingAdapter.notifyDataSetChanged();
 
     }
 

@@ -109,7 +109,6 @@
 <div id="popup" class="ol-popup">
     <a href="#" id="popup-closer" class="ol-popup-closer"></a>
     <div id="popup-content">
-
     </div>
 </div>
 <script type="text/javascript">
@@ -153,15 +152,18 @@
             Geomerk.Map.initSearchRD('places-search');
 
             var map = Geomerk.Map.getMap();
+            var geojsonFormat = new ol.format.GeoJSON();
             map.addOverlay(overlay);
             map.on('click', function (evt) {
                 var coordinate = evt.coordinate;
                 var feature = map.forEachFeatureAtPixel(evt.pixel,
                     function (feature) {
 
-                            content.innerHTML = '<p>You clicked</p>';
+
+
+                            content.innerHTML = "<p>" + feature.values_.description + "</p>";
                             overlay.setPosition(coordinate);
-                            console.log(feature.values_.serviceRequestId);
+                            console.log(feature.values_.description);
 
                     });
             });

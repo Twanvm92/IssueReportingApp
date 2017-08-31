@@ -53,8 +53,8 @@ public class UpdateService extends Service {
             this.context = mContext.get();
             // Setting a sleep time for the th
             // read, 10 minutes
-            LONG_SLEEP_TIME = 600000;
-//            LONG_SLEEP_TIME = 200000;
+//            LONG_SLEEP_TIME = 600000;
+            LONG_SLEEP_TIME = 100000;
 
             // TODO: 11-8-2017 remove after testing notification update
         }
@@ -98,7 +98,7 @@ public class UpdateService extends Service {
 
                 // If the timestamp from the server is different than that from the database
                 // a notification is made en pushed to the user.
-                if (apiDateTime != null && !apiDateTime.equals(localdbDateTime)) {
+                if (!apiDateTime.equals(localdbDateTime)) {
                     Log.i("UpdateService", "changed date time = " + apiDateTime);
 
                     String nTitle = context.getResources().getString(R.string.app_name);

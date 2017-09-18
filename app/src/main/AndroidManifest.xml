@@ -38,7 +38,8 @@
         <activity
             android:name=".Presentation.MapsActivity"
             android:label="@string/title_activity_maps"
-            android:configChanges="keyboardHidden|orientation|screenSize"/>
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:theme="@style/AppTheme.NoActionBar"/>
 
         <uses-library android:name="com.google.android.maps" />
 

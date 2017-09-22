@@ -20,6 +20,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.ConsoleMessage;
@@ -73,7 +74,7 @@ import static com.example.justin.verbeterjegemeente.Constants.STATUS_OPEN;
 // TODO: 8-8-2017 commented some code for google map
 public class Tab1Fragment extends Fragment implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        com.google.android.gms.location.LocationListener, GoogleMap.OnCameraIdleListener,
+        com.google.android.gms.location.LocationListener,
         RequestManager.OnServiceRequestsReady, BredaMapInterface.OnCameraChangedListener {
     public GoogleMap mMap;
     private Location currentLocation;
@@ -202,6 +203,7 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
                 return true;
             }
         });
+
 
         StringBuilder buf = new StringBuilder();
         InputStream json= null;
@@ -435,54 +437,6 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
         }
     }
 
-    /**
-     * Als de map bewogen wordt de nieuwe locatie meegeven aan de listener
-     */
-    @Override
-    public void onCameraIdle() {
-        //get Current radius selected by user in MainActivity
-        Log.i("Current radius: ", currentRadius);
-
-        // TODO: 16-8-2017 commented because not using map yet
-//        LatLng center = mMap.getCameraPosition().target;
-//        String camLat = Double.toString(center.latitude);
-//        String camLng = Double.toString(center.longitude);
-//
-//        if (Double.compare(center.latitude, Constants.DEFAULT_LAT) != 0 ||
-//                Double.compare(center.longitude, Constants.DEFAULT_LONG) != 0) {
-//
-//            currentLatLng = new LatLng(center.latitude, center.longitude);
-//        }
-
-        String camLat = Double.toString(currentLatLng.latitude);
-        String camLng = Double.toString(currentLatLng.longitude);
-
-
-        Log.i("Camera positie: ", "is veranderd");
-
-        // generate a timestamp of 2 weeks ago to get closed requests not more than 2 weeks old.
-        String updateDatetime = TimeStampGenerator.genOlderTimestamp();
-
-        // from here all the API requests will be handled
-        RequestManager reqManager = new RequestManager(getActivity());
-        // set callback for data passing
-        reqManager.setOnServiceReqReadyCallb(this);
-
-        Log.i("servCodeq: ", "" + servCodeQ);
-
-        if (servCodeQ != null && !servCodeQ.equals("")) {
-            // launch Retrofit callback and retrieve services asynchronously
-            reqManager.getServiceRequests(camLat, camLng, STATUS_OPEN, currentRadius, servCodeQ);
-            // also request closed service request with an earliest update_datetime included.
-            reqManager.getClosedServiceRequests(camLat, camLng, STATUS_OPEN, currentRadius, servCodeQ, updateDatetime);
-        } else {
-            // launch Retrofit callback and retrieve services asynchronously
-            reqManager.getServiceRequests(camLat, camLng, STATUS_OPEN, currentRadius);
-            // also request closed service request with an earliest update_datetime included.
-            reqManager.getClosedServiceRequests(camLat, camLng, STATUS_OPEN, currentRadius, updateDatetime);
-        }
-
-    }
 
     /**
      * This method will update the radius and service codes connected to the category
@@ -540,6 +494,7 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
         // clear all markers on the map before adding new markers
         mMap.clear();
 
+
         // loop through all the service requests and add their description
         // to a new marker on the Google map
         if (!srList.isEmpty()) {
@@ -572,9 +527,6 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
         // ActivityMain will then pass the requests to Tab2Fragment
         sRequestCallback.onServiceRequestsReady(serviceRequests);
 
-        // make sure to remove all previously loaded service requests on the map
-        wbMap.loadUrl("javascript:Geomerk.Map.removeFeatures();");
-
         if (!serviceRequests.isEmpty()) {
             for (ServiceRequest sr : serviceRequests) {
 
@@ -587,6 +539,7 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
                 wbMap.loadUrl("javascript:Geomerk.Map.addPngLonLat(" + lng + ", " + lat + "," +
                         " 0.5, 46, 'http://openlayers.org/en/v3.7.0/examples/data/icon.png'," +
                         serviceRequestJson + ")");
+                Log.i("Tab1Fragment: ", "Service request added to map" );
             }
         }
     }
@@ -650,6 +603,17 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
 
     @Override
     public void onListenToCameraChanged(LatLng cameraCoordinates) {
+        // javascript functions can only be fired on UI thread.
+        // create new runnable to fire javascript function on UI thread
+        wbMap.post(new Runnable() {
+            @Override
+            public void run() {
+                // make sure to remove all previously loaded service requests on the map
+                wbMap.loadUrl("javascript:Geomerk.Map.removeFeatures();");
+                Log.i("Tab1Fragment: ", "Service Requests have been removed from map");
+            }
+        });
+
         testGettingServiceRequestsOnCameraChange(cameraCoordinates);
     }
 

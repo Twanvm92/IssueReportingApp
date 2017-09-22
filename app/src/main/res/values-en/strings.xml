@@ -73,7 +73,7 @@
     <string name="eFineLocationPermissionExplain">Without this permission the app is unable to determine your location. You will not be pointed to your location on the map. Are you sure you want to deny this permission?</string>
     <string name="eRetry">RE-TRY</string>
     <string name="eImSure">I\'M SURE</string>
-    <string name="app_name">Meld Probleem-Weg Probleem</string>
+    <string name="app_name">Breda</string>
     <string name="detailedStatus">Detailed status</string>
     <string name="activityDetailedMelding_bt_upvoten">Give priority</string>
     <string name="activityDetailedMelding_bt_follow">Follow</string>

@@ -35,6 +35,7 @@ import retrofit2.Response;
 
 public class Tab2Fragment extends Fragment  {
 
+    private static final String TAG = "Tab2Fragment";
     private ArrayAdapter serviceRequestAdapter;
     private ArrayList<ServiceRequest> serviceList;
     private ServiceRequest serviceRequest;

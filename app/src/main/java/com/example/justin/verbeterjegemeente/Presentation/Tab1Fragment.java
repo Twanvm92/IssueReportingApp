@@ -76,15 +76,15 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
         GoogleApiClient.OnConnectionFailedListener,
         com.google.android.gms.location.LocationListener,
         RequestManager.OnServiceRequestsReady, BredaMapInterface.OnCameraChangedListener {
+
+    private static final String TAG = "Tab1Fragment";
     public GoogleMap mMap;
-    private Location currentLocation;
     public LatLng currentLatLng;
     public GoogleApiClient mApiClient;
     ServiceClient client;
     private ServiceRequestsReadyListener sRequestCallback;
     private String currentRadius;
     private String servCodeQ;
-    public float zoomLevel;
     private LocationRequest mLocationRequest;
     private WebView wbMap;
     private ProgressBar progress;
@@ -102,7 +102,6 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
 
         client = ServiceGenerator.createService(ServiceClient.class);
 
-//        buildGoogleApiClient();
         createLocationRequest();
     }
 
@@ -545,6 +544,7 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
     }
 
     // TODO: 24-8-2017 add javadoc
+    // TODO: 24-9-2017 No special markers for Closed Service Requests yet
     public void testGettingServiceRequestsOnCameraChange(LatLng cameraCoordinates) {
         //get Current radius selected by user in MainActivity
         Log.i("Current radius: ", currentRadius);
@@ -599,6 +599,14 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
         String lng = String.valueOf(currentLatLng.longitude);
 
         wbMap.loadUrl("javascript:Geomerk.Map.zoomToLonLat(" + lng + "," + lat + ",16)");
+    }
+
+    /**
+     *
+     * @return the current latitude and longitude of the camera on the map.
+     */
+    public LatLng getCurrentLatLng() {
+        return currentLatLng;
     }
 
     @Override

@@ -43,6 +43,7 @@ import retrofit2.Response;
 
 public class FollowingActivity extends AppCompatActivity implements RequestManager.OnServiceRequestsReady {
 
+    private static final String TAG = "MainActivity";
     ListView meldingListView;
     private ArrayAdapter meldingAdapter;
     private ArrayList<ServiceRequest> srListFinal = new ArrayList<>();

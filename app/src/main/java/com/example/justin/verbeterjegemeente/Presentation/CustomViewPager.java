@@ -20,12 +20,12 @@ public class CustomViewPager extends android.support.v4.view.ViewPager{
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        return enabled ? super.onTouchEvent(event) : false;
+        return enabled && super.onTouchEvent(event);
     }
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
-        return enabled ? super.onInterceptTouchEvent(event) : false;
+        return enabled && super.onInterceptTouchEvent(event);
     }
 
     public void setPagingEnabled(boolean enabled) {

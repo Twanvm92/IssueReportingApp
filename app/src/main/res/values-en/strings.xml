@@ -2,7 +2,6 @@
     <string name="locatie">Location</string>
     <string name="locatieTab2">Location:</string>
     <string name="locatieWijzigen">Change location</string>
-    <string name="locatieKiezen">Choose location</string>
     <string name="beschrijving">Description</string>
     <string name="beschrijving2">Description of the notification:</string>
     <string name="beschrijvingHint">Describe your problem</string>
@@ -83,4 +82,5 @@
     <string name="sharedPreference_upvote">upvotes</string>
     <string name="alreadyUpvoted">You already upvoted this service request!</string>
     <string name="activityMapsDialog_tv_assureLocation">Do you want the use this chosen location?</string>
+    <string name="activityMaps_tv_selectLocationHelp">Select a location by tapping the map</string>
 </resources>

@@ -58,7 +58,6 @@ public class MainActivity extends AppCompatActivity implements
     private Spinner catagorySpinner;
     private String servCodeQ;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,7 +74,6 @@ public class MainActivity extends AppCompatActivity implements
         reqManager.setOnServicesReadyCallb(this);
         // launch Retrofit callback and retrieve services asynchronously
         reqManager.getServices();
-
         // Set up the custom ViewPager with the sections adapter.
         CustomViewPager mViewPager = (CustomViewPager) findViewById(R.id.container);
         // make sure swiping between tabs is not allowed.
@@ -93,9 +91,7 @@ public class MainActivity extends AppCompatActivity implements
         final FabSpeedDial fabSpeedDial = (FabSpeedDial) findViewById(R.id.activityMain_Fbtn_speeddial);
         fabSpeedDial.setMenuListener(new SimpleMenuListenerAdapter() {
             @Override
-
             public boolean onMenuItemSelected(MenuItem menuItem) {
-
 
                 switch (menuItem.getItemId()) {
                     case R.id.activityMain_item_filters:
@@ -131,11 +127,11 @@ public class MainActivity extends AppCompatActivity implements
                             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                                 // show progress in a Textview
                                 tvRadiusD.setText(String.format("%s%s", String.valueOf(progress), getString(R.string.radiusMeters)));
-
                             }
 
                             @Override
                             public void onStartTrackingTouch(SeekBar seekBar) {
+                                // not being sued
                             }
 
                             @Override
@@ -145,10 +141,8 @@ public class MainActivity extends AppCompatActivity implements
                                 prefs.edit().putInt(getString(R.string.activityMain_saved_radius), sbRadius.getProgress()).apply();
 
                                 rValue = sbRadius.getProgress();
-
                             }
                         });
-
 
                         catagorySpinner = (Spinner) mView.findViewById(R.id.filterdialog_sp_categorieen);
                         catagoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -194,18 +188,22 @@ public class MainActivity extends AppCompatActivity implements
                             dialog.setCanceledOnTouchOutside(false);
                         }
 
-
-
                         break;
                     case R.id.activityMain_item_report:
                         Intent in = new Intent(getApplicationContext(),
-                                com.example.justin.verbeterjegemeente.Presentation.MeldingActivity.class);
+                                com.example.justin.verbeterjegemeente.Presentation.MapsActivity.class);
+
+                        LatLng currentLatLongOnMap = currentLatLongOfCameraOnMap();
+                        if (currentLatLongOnMap != null) {
+                            in.putExtra("long", currentLatLongOnMap.longitude);
+                            in.putExtra("lat", currentLatLongOnMap.latitude);
+                        }
+
                         startActivity(in);
                         break;
                     case R.id.activityMain_item_gps:
                         tabFragment.promptLocationSettings();
                 }
-
                 return true;
             }
         });
@@ -213,11 +211,10 @@ public class MainActivity extends AppCompatActivity implements
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
 
-
         mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
+                // not being used
             }
 
             @Override
@@ -239,20 +236,14 @@ public class MainActivity extends AppCompatActivity implements
                         fabSpeedDial.hide();
                         break;
                 }
-
             }
-
             @Override
             public void onPageScrollStateChanged(int state) {
 
             }
         });
-
-
         tabLayout.getTabAt(0).setIcon(R.drawable.mapicon);
         tabLayout.getTabAt(1).setIcon(R.drawable.listicon);
-
-
     }
 
     @Override
@@ -446,6 +437,23 @@ public class MainActivity extends AppCompatActivity implements
             tab1Fragment.updateRadiusCat(value, servCodeQ);
         }
 
+    }
+
+    public LatLng currentLatLongOfCameraOnMap() {
+        Tab1Fragment tab1Fragment = null;
+
+        if (getSupportFragmentManager().getFragments() != null) {
+            tab1Fragment = (Tab1Fragment)
+                    getSupportFragmentManager().getFragments().get(0);
+        }
+
+        LatLng currentLatLongOnMap = null;
+        if (tab1Fragment != null) {
+
+            // update the radius and category selected in the Tab1Fragment
+            currentLatLongOnMap = tab1Fragment.getCurrentLatLng();
+        }
+        return currentLatLongOnMap;
     }
 
     @Override

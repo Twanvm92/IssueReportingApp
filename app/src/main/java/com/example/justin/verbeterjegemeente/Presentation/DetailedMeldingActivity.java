@@ -32,6 +32,7 @@ public class DetailedMeldingActivity extends FragmentActivity {
     // Hold a reference to the current animator,
     // so that it can be canceled mid-way.
     private Animator mCurrentAnimator;
+    private static final String TAG = "DetailedMeldingActivity";
     private String origin;
     private TextView numbOfUpvoted;
     private ImageButton imageSmall;

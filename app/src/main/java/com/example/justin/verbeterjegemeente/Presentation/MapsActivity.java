@@ -74,8 +74,9 @@ import static com.example.justin.verbeterjegemeente.Constants.REQUEST_CHECK_SETT
  */
 public class MapsActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, BredaMapInterface.OnMarkedLocationListener,
-        com.google.android.gms.location.LocationListener {
+        com.google.android.gms.location.LocationListener, BredaMapInterface.OnPageFullyLoadedListener {
 
+    private static final String TAG = "MapsActivity";
     private WebView wbMap;
     private GoogleApiClient mApiClient;
     private LatLng currentLatLng;
@@ -92,9 +93,10 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         setContentView(R.layout.activity_maps);
 
         Intent in = getIntent();
-        if (in.hasExtra("long")) {
+        if (in.hasExtra("long") && in.hasExtra("lat")) {
             double lon = in.getDoubleExtra("long", 1);
             double lat = in.getDoubleExtra("lat", 1);
+            Log.i("MapsActivity: ", "current latlong: " + lat + ", " + lon);
             currentLatLng = new LatLng(lat, lon);
         }
 
@@ -103,7 +105,6 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
 
         setUpMap();
 
-//        buildGoogleApiClient();
         createLocationRequest();
 
         FloatingActionButton gpsButton = (FloatingActionButton) findViewById(R.id.activityMain_Fbtn_gps);
@@ -113,6 +114,8 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
                 promptLocationSettings();
             }
         });
+
+
     }
 
 
@@ -125,7 +128,7 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         //setup map settings
         wbMap.setVerticalScrollBarEnabled(false);
         wbMap.setHorizontalScrollBarEnabled(false);
-        wbMap.addJavascriptInterface(new BredaMapInterface(this), "Android");
+        wbMap.addJavascriptInterface(new BredaMapInterface(this, this), "Android");
         wbMap.getSettings().setJavaScriptEnabled(true);
         wbMap.getSettings().setAllowFileAccessFromFileURLs(true);
         wbMap.getSettings().setAllowUniversalAccessFromFileURLs(true);
@@ -151,27 +154,15 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
                 progress.setVisibility(View.GONE);
                 wbMap.setVisibility(View.VISIBLE);
 
-                // if the user wants to change a already chosen location,
-                // zoom to last chosen location
-                if (currentLatLng != null) {
-                    zoomToLocation(currentLatLng);
-                }
-            }
-
-            public boolean onConsoleMessage(ConsoleMessage cm) {
-                Log.d("Console: ", cm.message() + " -- From line "
-                        + cm.lineNumber() + " of "
-                        + cm.sourceId() );
-                return true;
             }
         });
 
         StringBuilder buf = new StringBuilder();
-        InputStream json= null;
+        InputStream json;
         try {
             json = this.getAssets().open("html/bredaKaartMapActivity");
 
-            BufferedReader in= null;
+            BufferedReader in;
 
             in = new BufferedReader(new InputStreamReader(json, "UTF-8"));
             String str;
@@ -216,6 +207,7 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
     public void onConnected(@Nullable Bundle bundle) {
         // only prompt location settings if this is the first time the user
         // wants to select a location for this service request.
+        // TODO: 24-9-2017 Check why this is
         if (currentLatLng == null) {
             promptLocationSettings();
         }
@@ -229,19 +221,6 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         // gets managed by api client automatically
-    }
-
-    /**
-     * Shows default location on the map if location of user could not be found.
-     */
-    public void getDefaultLocation() {
-        // see what current location is
-        Log.d("Tab1Fragment: ", "default location is choosen");
-        // TODO: 8-8-2017 googlemap commented
-//        currentLatLng = new LatLng(DEFAULT_LAT, DEFAULT_LONG);
-
-        LatLng locationCoords = new LatLng(DEFAULT_LAT, DEFAULT_LONG);;
-        zoomToLocation(locationCoords);
     }
 
     /**
@@ -388,10 +367,6 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
                                 }
                             }).setIcon(android.R.drawable.ic_dialog_alert).show();
 
-//                    if (currentLatLng == null){
-//                    getDefaultLocation();
-//                    }
-
                 }
                 Log.i("onActivityResult", "Gps aanvraag afgewezen");
         }
@@ -403,20 +378,13 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         String lng = String.valueOf(currentLatLng.longitude);
 
         wbMap.loadUrl("javascript:Geomerk.Map.zoomToLonLat(" + lng + "," + lat + ",16)");
+        Log.i("MapsActivity: ", "Zoomed to a new location");
     }
 
     /**
      * Ervoor zorgen dat teruggaan door middel van back press de marker alsnog meegegeven wordt
      */
     public void onBackPressed() {
-        /*Intent i = new Intent();
-        if (marker != null) {
-            LatLng markerPosition = marker.getPosition();
-            i.putExtra("long", markerPosition.longitude); //post longitude
-            i.putExtra("lat", markerPosition.latitude); //post latitude
-        }
-        i.putExtra("zoom", mMap.getCameraPosition().zoom);
-        setResult(RESULT_OK, i); //set result and return*/
         finish();
     }
 
@@ -435,14 +403,23 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         mBuilder.setPositiveButton(getString(R.string.eImSure), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                Intent i = new Intent();
+//                Intent i = new Intent();
+//
+//                i.putExtra("long", userChosenLocation.longitude); //post longitude
+//                i.putExtra("lat", userChosenLocation.latitude); //post latitude
+//
+//
+//                setResult(RESULT_OK, i); //set result and return
+//                finish();
 
-                i.putExtra("long", userChosenLocation.longitude); //post longitude
-                i.putExtra("lat", userChosenLocation.latitude); //post latitude
+                Intent in = new Intent(getApplicationContext(),
+                        com.example.justin.verbeterjegemeente.Presentation.MeldingActivity.class);
 
+                in.putExtra("long", userChosenLocation.longitude); //post longitude
+                in.putExtra("lat", userChosenLocation.latitude); //post latitude
 
-                setResult(RESULT_OK, i); //set result and return
-                finish();
+                startActivity(in);
+
             }
         });
         mBuilder.setNegativeButton(getString(R.string.eRetry), new DialogInterface.OnClickListener() {
@@ -467,10 +444,20 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
 
         final AlertDialog dialog = mBuilder.create();
         dialog.show();
-
-                Log.i("MapsActivity: ", "" + userChosenLocation.latitude + ", " + userChosenLocation.longitude);
+        Log.i("MapsActivity: ", "" + userChosenLocation.latitude + ", " + userChosenLocation.longitude);
     }
 
 
-
+    @Override
+    public void onPageFullyLoaded() {
+        Log.i("MapsActivity: ", "javainterface called");
+        if (currentLatLng != null) {
+            wbMap.post(new Runnable() {
+                @Override
+                public void run() {
+                    zoomToLocation(currentLatLng);
+                }
+            });
+        }
+    }
 }

@@ -15,7 +15,6 @@
     <string name="locatie">Locatie</string>
     <string name="locatieTab2">Locatie:</string>
     <string name="locatieWijzigen">Locatie wijzigen</string>
-    <string name="locatieKiezen">Locatie kiezen</string>
     <string name="beschrijving">Beschrijving</string>
     <string name="beschrijving2">Beschrijving van de melding:</string>
     <string name="beschrijvingHint">Beschrijf uw probleem</string>
@@ -93,5 +92,6 @@
     <string name="sharedPreference_upvote">upvotes</string>
     <string name="alreadyUpvoted">Je hebt deze melding al een keer geüpvotet!</string>
     <string name="activityMapsDialog_tv_assureLocation">Wil je deze gekozen locatie gebruiken?</string>
+    <string name="activityMaps_tv_selectLocationHelp">Selecteer een locatie door op de kaart te klikken</string>
 
 </resources>

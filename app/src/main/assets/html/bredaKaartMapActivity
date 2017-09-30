@@ -100,6 +100,12 @@
             Android.getMarkedLocation(jsonDataPointClicked);
             console.log(jsonDataPointClicked);
         }
+
+         document.onreadystatechange = function () {
+          if (document.readyState === "complete") {
+            Android.pageIsReady();
+          }
+        }
     </script>
 </body>
 </html>

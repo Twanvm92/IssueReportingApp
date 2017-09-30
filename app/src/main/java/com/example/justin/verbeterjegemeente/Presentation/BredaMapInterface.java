@@ -2,6 +2,7 @@ package com.example.justin.verbeterjegemeente.Presentation;
 
 import android.content.Context;
 import android.content.Intent;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 
@@ -20,6 +21,7 @@ import org.json.JSONObject;
 public class BredaMapInterface {
     private OnCameraChangedListener cameraListener;
     private OnMarkedLocationListener locationListener;
+    private OnPageFullyLoadedListener pageFullyLoadedListener;
     private Context context;
 
     public BredaMapInterface(OnCameraChangedListener cameraListener, Context context) {
@@ -27,8 +29,9 @@ public class BredaMapInterface {
         this.context = context;
     }
 
-    public BredaMapInterface(OnMarkedLocationListener locationListener) {
+    public BredaMapInterface(OnMarkedLocationListener locationListener, OnPageFullyLoadedListener pageFullyLoadedListener) {
         this.locationListener = locationListener;
+        this.pageFullyLoadedListener = pageFullyLoadedListener;
     }
 
     @JavascriptInterface
@@ -45,7 +48,6 @@ public class BredaMapInterface {
 
     @JavascriptInterface
     public void onCameraChanged(String latLong) {
-        //// TODO: 24-8-2017  Parse JSON object to LatLng
         Gson gson = new Gson();
         Coordinates coordinates = gson.fromJson(latLong, Coordinates.class);
         LatLng latLng = new LatLng(coordinates.getLat(), coordinates.getLon());
@@ -62,6 +64,12 @@ public class BredaMapInterface {
 
         locationListener.onMarkedLocation(latLng);
     }
+
+    @JavascriptInterface
+    public void pageIsReady() {
+        pageFullyLoadedListener.onPageFullyLoaded();
+    }
+
 
     // TODO: 27-8-2017 add javadoc
     private LatLng parseJsonCoordsToLatLng(String json) {
@@ -82,6 +90,10 @@ public class BredaMapInterface {
     // TODO: 27-8-2017 add javadoc
     interface OnMarkedLocationListener {
         void onMarkedLocation(LatLng userChosenLocation);
+    }
+
+    interface OnPageFullyLoadedListener {
+        void onPageFullyLoaded();
     }
 
 }

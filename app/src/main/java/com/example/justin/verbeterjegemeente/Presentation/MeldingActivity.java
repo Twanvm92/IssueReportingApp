@@ -67,6 +67,7 @@ import okhttp3.RequestBody;
 public class MeldingActivity extends AppCompatActivity implements RequestManager.OnServicesReady,
         RequestManager.OnServiceRequestsReady, RequestManager.OnServiceRequestPosted {
 
+    private static final String TAG = "MeldingActivity";
     private Spinner subCatagorySpinner;
     private Spinner catagorySpinner;
     private ArrayList<String> catagoryList;
@@ -82,7 +83,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
     ArrayAdapter<String> subCategoryAdapter;
     private android.app.AlertDialog.Builder builder;
     private String imagePath = null;
-    private LatLng location, mapLocation;
+    private LatLng location;
     private CheckBox onthoudCheckbox;
     private String sc;
     private String selectedItem;
@@ -90,13 +91,22 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
         pJurisdictionID, pLon, pLat;
     MultipartBody.Part imgBody;
     private Double lon, lat;
-    private Float zoom;
-    private String[] attribute = {};
-    private boolean marker;
+
+    public MeldingActivity() {
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Intent in = getIntent();
+        if (in.hasExtra("long") && in.hasExtra("lat")) {
+            double lon = in.getDoubleExtra("long", 1);
+            double lat = in.getDoubleExtra("lat", 1);
+
+            Log.i("MeldingActivity: ", "current latlong: " + lat + ", " + lon);
+            location = new LatLng(lat, lon);
+        }
 
         setContentView(R.layout.activity_melding);
         fotoButton = (Button) findViewById(R.id.activityMelding_btn_fotoButton);
@@ -381,9 +391,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
                         double lat = data.getDoubleExtra("lat", 1);
                         location = new LatLng(lat, lng);
 
-                        Log.e("long: ", "" + location.longitude);
-                        Log.e("lat: ", "" + location.latitude);
-                        locatieButton.setText(getResources().getString(R.string.locatieWijzigen));
+                        Log.i(TAG, "" + location.latitude + ", " + location.longitude);
                     }
 
                 }

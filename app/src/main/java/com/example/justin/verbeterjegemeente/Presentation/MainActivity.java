@@ -33,6 +33,7 @@ import com.example.justin.verbeterjegemeente.Constants;
 import com.example.justin.verbeterjegemeente.Database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.UpdateService;
+import com.example.justin.verbeterjegemeente.domain.Coordinates;
 import com.example.justin.verbeterjegemeente.domain.Service;
 import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
 import com.google.android.gms.maps.model.LatLng;
@@ -193,10 +194,11 @@ public class MainActivity extends AppCompatActivity implements
                         Intent in = new Intent(getApplicationContext(),
                                 com.example.justin.verbeterjegemeente.Presentation.MapsActivity.class);
 
-                        LatLng currentLatLongOnMap = currentLatLongOfCameraOnMap();
-                        if (currentLatLongOnMap != null) {
-                            in.putExtra("long", currentLatLongOnMap.longitude);
-                            in.putExtra("lat", currentLatLongOnMap.latitude);
+                        Coordinates currentCoordinatesOnMap = currentLatLongAndZoomOfCameraOnMap();
+                        if (currentCoordinatesOnMap != null) {
+                            in.putExtra("long", currentCoordinatesOnMap.getLon());
+                            in.putExtra("lat", currentCoordinatesOnMap.getLat());
+                            in.putExtra("zoom", currentCoordinatesOnMap.getZoom());
                         }
 
                         startActivity(in);
@@ -439,7 +441,7 @@ public class MainActivity extends AppCompatActivity implements
 
     }
 
-    public LatLng currentLatLongOfCameraOnMap() {
+    public Coordinates currentLatLongAndZoomOfCameraOnMap() {
         Tab1Fragment tab1Fragment = null;
 
         if (getSupportFragmentManager().getFragments() != null) {
@@ -447,13 +449,13 @@ public class MainActivity extends AppCompatActivity implements
                     getSupportFragmentManager().getFragments().get(0);
         }
 
-        LatLng currentLatLongOnMap = null;
+        Coordinates currentCoordinates = null;
         if (tab1Fragment != null) {
 
             // update the radius and category selected in the Tab1Fragment
-            currentLatLongOnMap = tab1Fragment.getCurrentLatLng();
+            currentCoordinates = tab1Fragment.getCurrentCoordinates();
         }
-        return currentLatLongOnMap;
+        return currentCoordinates;
     }
 
     @Override

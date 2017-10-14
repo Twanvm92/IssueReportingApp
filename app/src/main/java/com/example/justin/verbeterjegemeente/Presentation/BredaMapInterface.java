@@ -23,6 +23,7 @@ public class BredaMapInterface {
     private OnMarkedLocationListener locationListener;
     private OnPageFullyLoadedListener pageFullyLoadedListener;
     private Context context;
+    private final String TAG = "BredaMapInterface: ";
 
     public BredaMapInterface(OnCameraChangedListener cameraListener, Context context) {
         this.cameraListener = cameraListener;
@@ -46,13 +47,15 @@ public class BredaMapInterface {
         Log.i("JavascriptInterface: ", serviceRequest);
     }
 
+    // added Zoom data to position object in _onMoveEnd in js libary !!
     @JavascriptInterface
     public void onCameraChanged(String latLong) {
         Gson gson = new Gson();
         Coordinates coordinates = gson.fromJson(latLong, Coordinates.class);
-        LatLng latLng = new LatLng(coordinates.getLat(), coordinates.getLon());
 
-        cameraListener.onListenToCameraChanged(latLng);
+        Log.i(TAG, "zoomlevel: " + coordinates.getZoom());
+
+        cameraListener.onListenToCameraChanged(coordinates);
 
     }
 
@@ -60,9 +63,9 @@ public class BredaMapInterface {
     public void getMarkedLocation(String latLong) {
         Log.i("JavascriptInterface: ", latLong);
 
-        LatLng latLng = parseJsonCoordsToLatLng(latLong);
+//        LatLng latLng = parseJsonCoordsToLatLng(latLong);
 
-        locationListener.onMarkedLocation(latLng);
+//        locationListener.onMarkedLocation(latLng);
     }
 
     @JavascriptInterface
@@ -84,7 +87,7 @@ public class BredaMapInterface {
 
     // TODO: 27-8-2017 add javadoc
     interface OnCameraChangedListener {
-        void onListenToCameraChanged(LatLng CameraCoordinates);
+        void onListenToCameraChanged(Coordinates CameraCoordinates);
     }
 
     // TODO: 27-8-2017 add javadoc

@@ -20,6 +20,18 @@ public class Coordinates {
     @SerializedName("lon")
     @Expose
     private Double lon;
+    @SerializedName("zoom")
+    @Expose
+    private Double zoom;
+
+    public Coordinates() {
+    }
+
+    public Coordinates(Double lat, Double lon, Double zoom) {
+        this.lat = lat;
+        this.lon = lon;
+        this.zoom = zoom;
+    }
 
     public Double getRxX() {
         return rxX;
@@ -51,5 +63,17 @@ public class Coordinates {
 
     public void setLon(Double lon) {
         this.lon = lon;
+    }
+
+    public Double getZoom() {
+        return zoom;
+    }
+
+    public void setZoom(Double zoom) {
+        this.zoom = zoom;
+    }
+
+    public static boolean isZero(double value) {
+        return value >= 0.0 && value <= 0.01;
     }
 }

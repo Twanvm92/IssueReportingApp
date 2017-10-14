@@ -94201,7 +94201,7 @@ var Geomerk = (function (e) {
      * Geomerk.map extension
      * collection of map properties and functions
      */
-    var _loadedCallback;
+    var _loadedCallback, _mapLoaded, _WfsLoaded, _WmsLoaded;
     var _featureClick, _onClickTouch, _onMoveEnd, _moveEndCallback;
     var _olmap;
     var _dateFilter;
@@ -94422,6 +94422,17 @@ var Geomerk = (function (e) {
         setLoadedCallback: function (callback) {
             _loadedCallback = callback;
         },
+        setMapLoadedCallback: function (callback)
+        {
+            _mapLoaded = callback;
+        },
+        setWfsLoadedCallback: function (callback)
+        {
+            _WfsLoaded = callback;
+        },
+        setWMSLoadedCallback: function (callback) {
+            _WmsLoaded = callback;
+        },
         setMoveEndCallback: function(callback){
             _moveEndCallback = callback;
 
@@ -94540,9 +94551,13 @@ var Geomerk = (function (e) {
 
             });
 
+            // added Zoom data toposition object in _onMoveEnd in js libary
             _onMoveEnd = _olmap.on('moveend', function (e) {
                 var latlon = Geomerk.Map.convertRDtoLonLat(e.frameState.focus[0], e.frameState.focus[1]);
-                var position = { rx_x: e.frameState.focus[0], rx_y: e.frameState.focus[1], lat: latlon[1], lon: latlon[0] }
+                var zoom = _olmap.getView().getZoom();
+                var position = { rx_x: e.frameState.focus[0], rx_y: e.frameState.focus[1], lat: latlon[1], lon: latlon[0], zoom: zoom }
+
+
 
 
                 _moveEndCallback(position);
@@ -94568,7 +94583,9 @@ var Geomerk = (function (e) {
 
             });
 
-
+            _olmap.once('postrender', function (event) {
+                _mapLoaded('maploaded', 'all');
+            });
 
             _olmap.on('pointermove', function (e) {
                 if (e.dragging) {
@@ -94710,15 +94727,33 @@ var Geomerk = (function (e) {
                         }
                         //apply cql filter
                         if (l.cqlfilter) wmsSourceParams.params.CQL_FILTER = l.cqlfilter;//_decryptCqlFilter(l.cqlfilter)
-                        var layer_sourcewms = null;
+                       // var layer_sourcewms = null;
                         if (wmsSourceParams.LAYERS.indexOf("bgt") == -1) {
-                            layer_sourcewms = new ol.source.TileWMS({
+                            var layer_sourcewms = new ol.source.TileWMS({
                                 url: l.main_url,
                                 params: wmsSourceParams,
                                 attributions: [new ol.Attribution({
                                     html: l.layer_attributions
                                 })]
                             });
+
+                            layer_sourcewms.on('tileloadstart', function () {
+                                if (_WmsLoaded != null) {
+                                    _WmsLoaded(wmsSourceParams.LAYERS, 'tileloadstart');
+                                }
+                            });
+
+                            layer_sourcewms.on('tileloadend', function () {
+                                if (_WmsLoaded != null) {
+                                    _WmsLoaded(wmsSourceParams.LAYERS, 'tileloadend');
+                                }
+                            });
+                            layer_sourcewms.on('tileloaderror', function () {
+                                if (_WmsLoaded != null) {
+                                    _WmsLoaded(wmsSourceParams.LAYERS, 'tileloaderror');
+                                }
+                            });
+
                             layer = new ol.layer.Tile({
                                 layerId: l.id,
                                 title: l.name,
@@ -94735,7 +94770,7 @@ var Geomerk = (function (e) {
 
                         } else
                         {
-                            layer_sourcewms = new ol.source.ImageWMS({
+                            var layer_sourcewms = new ol.source.ImageWMS({
                                 ratio: 1,
                                 url: l.main_url,
                                 params: wmsSourceParams,
@@ -94743,6 +94778,25 @@ var Geomerk = (function (e) {
                                     html: l.layer_attributions
                                 })]
                             });
+
+
+                             layer_sourcewms.on('tileloadstart', function () {
+                                if (_WmsLoaded != null) {
+                                    _WmsLoaded(wmsSourceParams.LAYERS, 'tileloadstart');
+                                }
+                            });
+
+                            layer_sourcewms.on('tileloadend', function () {
+                                if (_WmsLoaded != null) {
+                                    _WmsLoaded(wmsSourceParams.LAYERS, 'tileloadend');
+                                }
+                            });
+                            layer_sourcewms.on('tileloaderror', function () {
+                                if (_WmsLoaded != null) {
+                                    _WmsLoaded(wmsSourceParams.LAYERS, 'tileloaderror');
+                                }
+                            });
+
 
                             layer = new ol.layer.Image({
                                 layerId: l.id,
@@ -94776,7 +94830,7 @@ var Geomerk = (function (e) {
                             // generate resolutions and matrixIds arrays for this WMTS
                             matrixIds[z] = 'EPSG:28992:' + z;
                         };
-                        var layer_sourcewfs = new ol.source.WMTS({
+                        var layer_sourceWms = new ol.source.WMTS({
                             url: l.main_url,
                             layer: l.main_layers,
                             matrixSet: l.projection_code,
@@ -94791,11 +94845,29 @@ var Geomerk = (function (e) {
                                 matrixIds: matrixIds
                             })
                         });
+
+                        layer_sourceWms.on('tileloadstart', function () {
+                            if (_WmsLoaded != null) {
+                                _WmsLoaded(wmsSourceParams.LAYERS, 'WmsLoaded');
+                            }
+                        });
+
+                        layer_sourceWms.on('tileloadend', function () {
+                            if (_WmsLoaded != null) {
+                                _WmsLoaded(wmsSourceParams.LAYERS, 'WmsLoaded');
+                            }
+                        });
+                        layer_sourceWms.on('tileloaderror', function () {
+                            if (_WmsLoaded != null) {
+                                _WmsLoaded(wmsSourceParams.LAYERS, 'WmsLoaded');
+                            }
+                        });
+
                         layer = new ol.layer.Tile({
                             layerId: l.id,
                             title: l.name,
                             layergroup: l.layergroup,
-                            source: layer_sourcewfs,
+                            source: layer_sourceWms,
                             zIndex: l.z_index,
                             visible: l.visible_on_start,
                             opacity: l.layer_opacity,
@@ -94874,6 +94946,7 @@ var Geomerk = (function (e) {
 
                 }
                 if (layer != null && layer) {
+
                     mapLayers.push(layer);
                 }
 
@@ -94912,11 +94985,22 @@ var Geomerk = (function (e) {
 
 
                 if (_vectorLayer == null) {
-                    _vectorLayer = new ol.layer.Vector({
-                        source: new ol.source.Vector({
-                            features: [feature]
-                        })
+                    var vectorSource = new ol.source.Vector({
+                        features: [feature]
                     });
+
+                    vectorSource.on('addfeature', function () {
+                        if (_WfsLoaded != null) {
+                            _WfsLoaded('VectorAdded', 'VectorAddedObjects');
+                        }
+                    });
+
+
+                    _vectorLayer = new ol.layer.Vector({
+                        source: vectorSource
+                    });
+
+
                     _olmap.addLayer(_vectorLayer);
                 } else {
                     var vectorSource = _vectorLayer.getSource();

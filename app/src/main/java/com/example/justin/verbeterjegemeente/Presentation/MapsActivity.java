@@ -8,6 +8,7 @@ import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.location.Location;
+import android.nfc.Tag;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -30,6 +31,7 @@ import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.Constants;
 import com.example.justin.verbeterjegemeente.R;
+import com.example.justin.verbeterjegemeente.domain.Coordinates;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.CommonStatusCodes;
@@ -76,12 +78,12 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         GoogleApiClient.OnConnectionFailedListener, BredaMapInterface.OnMarkedLocationListener,
         com.google.android.gms.location.LocationListener, BredaMapInterface.OnPageFullyLoadedListener {
 
-    private static final String TAG = "MapsActivity";
+    private static final String TAG = "MapsActivity: ";
     private WebView wbMap;
     private GoogleApiClient mApiClient;
-    private LatLng currentLatLng;
     private ProgressBar progress;
     private LocationRequest mLocationRequest;
+    private Coordinates currentCoordinates;
 
     /**
      * Savebutton geeft de LatLng mee aan MeldingActivity
@@ -92,12 +94,14 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
+        currentCoordinates = new Coordinates();
         Intent in = getIntent();
-        if (in.hasExtra("long") && in.hasExtra("lat")) {
+        if (in.hasExtra("long") && in.hasExtra("lat") && in.hasExtra("zoom")) {
             double lon = in.getDoubleExtra("long", 1);
             double lat = in.getDoubleExtra("lat", 1);
-            Log.i("MapsActivity: ", "current latlong: " + lat + ", " + lon);
-            currentLatLng = new LatLng(lat, lon);
+            double zoom = in.getDoubleExtra("zoom", 1);
+            Log.i(TAG, "current latlong: " + lat + ", " + lon + ", current zoom: " + zoom);
+            currentCoordinates = new Coordinates(lat, lon, zoom);
         }
 
         wbMap = (WebView) findViewById(R.id.mapsActivity_wv_kaartBreda);
@@ -108,12 +112,7 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         createLocationRequest();
 
         FloatingActionButton gpsButton = (FloatingActionButton) findViewById(R.id.activityMain_Fbtn_gps);
-        gpsButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                promptLocationSettings();
-            }
-        });
+        gpsButton.setOnClickListener(v -> promptLocationSettings());
 
 
     }
@@ -208,7 +207,7 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         // only prompt location settings if this is the first time the user
         // wants to select a location for this service request.
         // TODO: 24-9-2017 Check why this is
-        if (currentLatLng == null) {
+        if (Coordinates.isZero(currentCoordinates.getLat())) {
             promptLocationSettings();
         }
     }
@@ -238,11 +237,11 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
                 // something went wrong. Try to get a location update.
                 LocationServices.FusedLocationApi.requestLocationUpdates(mApiClient, mLocationRequest, this);
             } else { // location was successfully retrieved
-//                currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
-                Log.d("Tab1Fragment: ", location.toString());
+                Log.d(TAG, location.toString());
 
-                LatLng locationCoords = new LatLng(location.getLatitude(), location.getLongitude());
-                zoomToLocation(locationCoords);
+                currentCoordinates.setLon(location.getLongitude());
+                currentCoordinates.setLat(location.getLatitude());
+                zoomToLocation();
             }
         } else {
             // request the user for permission.
@@ -262,36 +261,28 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
 
         SettingsClient client = LocationServices.getSettingsClient(this);
         Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
-        task.addOnSuccessListener(this, new OnSuccessListener<LocationSettingsResponse>() {
-            @Override
-            public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
-                getLastLocation();
-            }
-        });
+        task.addOnSuccessListener(this, locationSettingsResponse -> getLastLocation());
 
-        task.addOnFailureListener(this, new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                int statusCode = ((ApiException) e).getStatusCode();
-                switch (statusCode) {
-                    case CommonStatusCodes.RESOLUTION_REQUIRED:
-                        // Location settings are not satisfied, but this can be fixed
-                        // by showing the user a dialoggg.
-                        try {
-                            // Show the dialoggg by calling startResolutionForResult(),
-                            // and check the result in onActivityResult().
-                            ResolvableApiException resolvable = (ResolvableApiException) e;
-                            resolvable.startResolutionForResult(MapsActivity.this,
-                                    REQUEST_CHECK_SETTINGS);
-                        } catch (IntentSender.SendIntentException sendEx) {
-                            // Ignore the error.
-                        }
-                        break;
-                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                        // Location settings are not satisfied. However, we have no way
-                        // to fix the settings so we won't show the dialoggg.
-                        break;
-                }
+        task.addOnFailureListener(this, e -> {
+            int statusCode = ((ApiException) e).getStatusCode();
+            switch (statusCode) {
+                case CommonStatusCodes.RESOLUTION_REQUIRED:
+                    // Location settings are not satisfied, but this can be fixed
+                    // by showing the user a dialoggg.
+                    try {
+                        // Show the dialoggg by calling startResolutionForResult(),
+                        // and check the result in onActivityResult().
+                        ResolvableApiException resolvable = (ResolvableApiException) e;
+                        resolvable.startResolutionForResult(MapsActivity.this,
+                                REQUEST_CHECK_SETTINGS);
+                    } catch (IntentSender.SendIntentException sendEx) {
+                        // Ignore the error.
+                    }
+                    break;
+                case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                    // Location settings are not satisfied. However, we have no way
+                    // to fix the settings so we won't show the dialoggg.
+                    break;
             }
         });
     }
@@ -300,10 +291,12 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
     public void onLocationChanged(Location location) { // gets called when there is a location update from google play services
         // after updated location is available, make sure that location services does not keep updating locations
         LocationServices.FusedLocationApi.removeLocationUpdates(mApiClient, this);
-        Log.d("Tab1Fragment: ", "updated location: " + location.toString());
-        LatLng locationCoords = new LatLng(location.getLatitude(), location.getLongitude());
+        Log.d(TAG, "updated location: " + location.toString());
 
-        zoomToLocation(locationCoords);
+        currentCoordinates.setLon(location.getLongitude());
+        currentCoordinates.setLat(location.getLatitude());
+
+        zoomToLocation();
     }
 
     @Override
@@ -322,24 +315,19 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
                                 .setMessage(getResources().getText(R.string.eFineLocationPermissionExplain))
                                 .setCancelable(false)
                                 .setPositiveButton(getResources().getText(R.string.eImSure),
-                                        new DialogInterface.OnClickListener() {
-                                            public void onClick(DialogInterface dialog, int id) {
-                                                /*// user decided not to give permission
-                                                if (currentLatLng == null) {
-                                                    getDefaultLocation(); // use default location instead of users' location
-                                                }*/
-                                            }
+                                        (dialog, id) -> {
+                                            /*// user decided not to give permission
+                                            if (currentLatLng == null) {
+                                                getDefaultLocation(); // use default location instead of users' location
+                                            }*/
                                         })
-                                .setNegativeButton(getResources().getText(R.string.eRetry), new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        // user wants to try again
-                                        promptLocationSettings();
-                                    }
+                                .setNegativeButton(getResources().getText(R.string.eRetry), (dialog, which) -> {
+                                    // user wants to try again
+                                    promptLocationSettings();
                                 })
                                 .show();
                     } else { // user has not declined permission before
-                        Log.i("onRequestPermResult", "Geen toestemming gekregen, eerste keer dat map geladen wordt default lat/long gepakt");
+                        Log.i(TAG, "Geen toestemming gekregen, eerste keer dat map geladen wordt default lat/long gepakt");
 //                        if (currentLatLng == null) {
 //                        getDefaultLocation();
 //                        }
@@ -361,24 +349,25 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
                     new AlertDialog.Builder(this)
                             .setTitle(getString(R.string.eFindLocationTitle))
                             .setMessage(getString(R.string.eFindLocation))
-                            .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
+                            .setPositiveButton(android.R.string.ok, (dialog, which) -> {
 
-                                }
                             }).setIcon(android.R.drawable.ic_dialog_alert).show();
 
                 }
-                Log.i("onActivityResult", "Gps aanvraag afgewezen");
+                Log.i(TAG, "Gps aanvraag afgewezen");
         }
     }
 
     // TODO: 24-8-2017 add javadoc
-    public void zoomToLocation(LatLng currentLatLng){
-        String lat = String.valueOf(currentLatLng.latitude);
-        String lng = String.valueOf(currentLatLng.longitude);
+    public void zoomToLocation(){
+        if (!Coordinates.isZero(currentCoordinates.getLat())) {
+            String lat = String.valueOf(currentCoordinates.getLat());
+            String lng = String.valueOf(currentCoordinates.getLon());
+            String zoom = String.valueOf(currentCoordinates.getZoom());
 
-        wbMap.loadUrl("javascript:Geomerk.Map.zoomToLonLat(" + lng + "," + lat + ",16)");
-        Log.i("MapsActivity: ", "Zoomed to a new location");
+            wbMap.loadUrl("javascript:Geomerk.Map.zoomToLonLat(" + lng + "," + lat + "," + zoom + ")");
+            Log.i(TAG, "Zoomed to a new location");
+        }
     }
 
     /**
@@ -400,9 +389,7 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         tvLocation.setText("" + userChosenLocation.latitude + ", " + userChosenLocation.longitude);
 
         mBuilder.setTitle(getString(R.string.activityMain_item_gps));
-        mBuilder.setPositiveButton(getString(R.string.eImSure), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
+        mBuilder.setPositiveButton(getString(R.string.eImSure), (dialog, which) -> {
 //                Intent i = new Intent();
 //
 //                i.putExtra("long", userChosenLocation.longitude); //post longitude
@@ -412,52 +399,29 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
 //                setResult(RESULT_OK, i); //set result and return
 //                finish();
 
-                Intent in = new Intent(getApplicationContext(),
-                        com.example.justin.verbeterjegemeente.Presentation.MeldingActivity.class);
+            Intent in = new Intent(getApplicationContext(),
+                    MeldingActivity.class);
 
-                in.putExtra("long", userChosenLocation.longitude); //post longitude
-                in.putExtra("lat", userChosenLocation.latitude); //post latitude
+            in.putExtra("long", userChosenLocation.longitude); //post longitude
+            in.putExtra("lat", userChosenLocation.latitude); //post latitude
 
-                startActivity(in);
+            startActivity(in);
 
-            }
         });
-        mBuilder.setNegativeButton(getString(R.string.eRetry), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
+        mBuilder.setNegativeButton(getString(R.string.eRetry), (dialog, which) -> dialog.dismiss());
 
-        mBuilder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-                wbMap.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        wbMap.loadUrl("javascript:Geomerk.Map.drawGeo('Point', callbackGeom);");
-                    }
-                });
-
-            }
-        });
+        mBuilder.setOnDismissListener(dialog -> wbMap.post(() -> wbMap.loadUrl("javascript:Geomerk.Map.drawGeo('Point', callbackGeom);")));
 
         final AlertDialog dialog = mBuilder.create();
         dialog.show();
-        Log.i("MapsActivity: ", "" + userChosenLocation.latitude + ", " + userChosenLocation.longitude);
+        Log.i(TAG, "" + userChosenLocation.latitude + ", " + userChosenLocation.longitude);
     }
 
 
     @Override
     public void onPageFullyLoaded() {
-        Log.i("MapsActivity: ", "javainterface called");
-        if (currentLatLng != null) {
-            wbMap.post(new Runnable() {
-                @Override
-                public void run() {
-                    zoomToLocation(currentLatLng);
-                }
-            });
-        }
+        Log.i(TAG, "javainterface called");
+        wbMap.post(() -> zoomToLocation());
+
     }
 }

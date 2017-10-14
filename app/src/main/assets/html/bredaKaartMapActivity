@@ -53,6 +53,13 @@
 
         Geomerk.Map.setLoadedCallback(loaded);
 
+        Geomerk.Map.setMapLoadedCallback(mapLoaded);
+
+        function mapLoaded(layer, description) {
+            console.log('mapLoaded'+layer + ':' + description);
+            Android.pageIsReady();
+        }
+
         var drawing = false;
 
         Geomerk.Map.setMoveEndCallback(moveEnd);
@@ -93,6 +100,7 @@
 
         function callbackGeom(data) {
 
+            var map = Geomerk.Map.getMap();
             var coords = data.flatCoordinates;
             var lonlat = Geomerk.Map.convertRDtoLonLat(coords[0], coords[1]);
             var jsonDataPointClicked = JSON.stringify(lonlat);
@@ -109,3 +117,6 @@
     </script>
 </body>
 </html>
+
+<!--var jsonDataPointClicked = {longlat: lonlat, zoom: zoom}
+            var zoom = map.getView().getZoom();-->

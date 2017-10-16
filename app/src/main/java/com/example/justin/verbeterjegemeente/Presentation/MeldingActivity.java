@@ -32,21 +32,17 @@ import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.API.RequestManager;
 import com.example.justin.verbeterjegemeente.Adapters.MeldingDialogAdapter;
-import com.example.justin.verbeterjegemeente.Business.ServiceManager;
-import com.example.justin.verbeterjegemeente.Constants;
+import com.example.justin.verbeterjegemeente.app.Constants;
 import com.example.justin.verbeterjegemeente.Database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.R;
-import com.example.justin.verbeterjegemeente.domain.PostServiceRequestResponse;
-import com.example.justin.verbeterjegemeente.domain.Service;
-import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
-import com.example.justin.verbeterjegemeente.domain.User;
+import com.example.justin.verbeterjegemeente.model.PostServiceRequestResponse;
+import com.example.justin.verbeterjegemeente.model.Service;
+import com.example.justin.verbeterjegemeente.model.ServiceRequest;
+import com.example.justin.verbeterjegemeente.model.User;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -855,7 +851,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
     public void servicesReady(List<Service> services) {
         serviceList = services;
         // update the catagoryList with main categories generated from the service list
-        catagoryList = ServiceManager.genMainCategories(services, catagoryList);
+        catagoryList = Service.genMainCategories(services, catagoryList);
 
         // let the adapter know that data has changed
         catagoryAdapter.notifyDataSetChanged();

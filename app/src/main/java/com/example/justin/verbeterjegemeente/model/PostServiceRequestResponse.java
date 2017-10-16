@@ -1,4 +1,4 @@
-package com.example.justin.verbeterjegemeente.domain;
+package com.example.justin.verbeterjegemeente.model;
 
 import com.google.gson.annotations.SerializedName;
 

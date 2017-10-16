@@ -1,4 +1,4 @@
-package com.example.justin.verbeterjegemeente.Business;
+package com.example.justin.verbeterjegemeente.app;
 
 import android.content.Context;
 import android.graphics.Bitmap;

@@ -1,36 +1,21 @@
 package com.example.justin.verbeterjegemeente.Presentation;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
 
-import com.example.justin.verbeterjegemeente.API.ConnectionChecker;
-import com.example.justin.verbeterjegemeente.API.ServiceClient;
-import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.Adapters.ServiceRequestAdapter;
-import com.example.justin.verbeterjegemeente.Constants;
 import com.example.justin.verbeterjegemeente.R;
-import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
-import com.google.android.gms.maps.model.LatLng;
+import com.example.justin.verbeterjegemeente.model.ServiceRequest;
 
-import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 
 public class Tab2Fragment extends Fragment  {

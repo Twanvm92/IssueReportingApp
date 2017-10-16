@@ -1,4 +1,4 @@
-package com.example.justin.verbeterjegemeente;
+package com.example.justin.verbeterjegemeente.app;
 
 /**
  * This class holds constants used by 1 or more classes, activities or fragments
@@ -7,6 +7,7 @@ package com.example.justin.verbeterjegemeente;
 public class Constants {
 
     // API finals
+    public static final String BASE_URL = "http://37.34.59.50/breda/CitySDK/";
     public static final String LANG_EN = "en";
     public static final String LANG_NL = "nl";
     //    public static final String TEST_BASE_URL = "http://dev.hel.fi/open311-test/v1/";
@@ -29,12 +30,7 @@ public class Constants {
     public static final String PERMISSION = "PERMISSION";
 
     // location
-    public final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
     public static final int LOCATIE_KIEZEN = 3;
-//    public static final double DEFAULT_LAT = 51.57191501488476;
-    public static final double DEFAULT_LAT = 51.603473;
-//    public static final double DEFAULT_LONG = 4.768322892487049;
-    public static final double DEFAULT_LONG = 4.780844;
     public static final int REQUEST_CHECK_SETTINGS = 0x1;
 
     // back button

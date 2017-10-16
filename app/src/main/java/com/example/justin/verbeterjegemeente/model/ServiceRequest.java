@@ -1,9 +1,13 @@
-package com.example.justin.verbeterjegemeente.domain;
+package com.example.justin.verbeterjegemeente.model;
 
+import android.util.Log;
+
+import com.example.justin.verbeterjegemeente.network.ServiceClient;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -12,7 +16,7 @@ import java.util.List;
  * by a gson converter in the <code>Retrofit</code> class
  *
  * @author Twan van Maastricht
- * @see com.example.justin.verbeterjegemeente.API.ServiceClient#getNearbyServiceRequests(String, String, String, String)
+ * @see ServiceClient#getNearbyServiceRequests(String, String, String, String)
  * @see retrofit2.Retrofit
  */
 public class ServiceRequest implements Serializable {
@@ -55,6 +59,21 @@ public class ServiceRequest implements Serializable {
     @SerializedName("upvotes")
     @Expose
     private int upvotes;
+
+    public static String genServiceRequestIDQ(ArrayList<ServiceRequest> srList) {
+        StringBuilder sb = new StringBuilder();
+        String delim = "";
+
+        if (srList != null) {
+            for (ServiceRequest s : srList) {
+                sb.append(delim).append(s.getServiceRequestId());
+                delim = ",";
+            }
+        }
+
+        Log.e("srIDQ: ", sb.toString());
+        return sb.toString();
+    }
 
     public String getServiceRequestId() {
         return serviceRequestId;

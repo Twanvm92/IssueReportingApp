@@ -1,4 +1,4 @@
-package com.example.justin.verbeterjegemeente.domain;
+package com.example.justin.verbeterjegemeente.model;
 
 /**
  * Created by twanv on 24-8-2017.

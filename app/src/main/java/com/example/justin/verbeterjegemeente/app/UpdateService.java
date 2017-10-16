@@ -1,4 +1,4 @@
-package com.example.justin.verbeterjegemeente;
+package com.example.justin.verbeterjegemeente.app;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -17,15 +17,13 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.API.RequestManager;
-import com.example.justin.verbeterjegemeente.Business.ServiceManager;
 import com.example.justin.verbeterjegemeente.Database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.Presentation.FollowingActivity;
-import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
+import com.example.justin.verbeterjegemeente.R;
+import com.example.justin.verbeterjegemeente.model.ServiceRequest;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.function.Predicate;
 
 /**
  * This class is a Service that runs in the background even if the app is closed.
@@ -65,7 +63,7 @@ public class UpdateService extends Service {
             databaseList = db.getReports();
             db.close();
 
-            String sRequestIDQ = ServiceManager.genServiceRequestIDQ(databaseList);
+            String sRequestIDQ = ServiceRequest.genServiceRequestIDQ(databaseList);
             RequestManager requestManager = new RequestManager(context);
             requestManager.setOnServiceReqReadyCallb(this);
             requestManager.getServiceRequestsByID(sRequestIDQ);

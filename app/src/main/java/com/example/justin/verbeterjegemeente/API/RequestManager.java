@@ -4,11 +4,13 @@ import android.content.Context;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.example.justin.verbeterjegemeente.Constants;
+import com.example.justin.verbeterjegemeente.app.Constants;
 import com.example.justin.verbeterjegemeente.R;
-import com.example.justin.verbeterjegemeente.domain.PostServiceRequestResponse;
-import com.example.justin.verbeterjegemeente.domain.Service;
-import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
+import com.example.justin.verbeterjegemeente.model.PostServiceRequestResponse;
+import com.example.justin.verbeterjegemeente.model.Service;
+import com.example.justin.verbeterjegemeente.model.ServiceRequest;
+import com.example.justin.verbeterjegemeente.network.ConnectionChecker;
+import com.example.justin.verbeterjegemeente.network.ServiceClient;
 
 import org.json.JSONException;
 import org.json.JSONObject;

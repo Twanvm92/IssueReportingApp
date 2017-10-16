@@ -28,15 +28,13 @@ import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.API.RequestManager;
 import com.example.justin.verbeterjegemeente.Adapters.SectionsPageAdapter;
-import com.example.justin.verbeterjegemeente.Business.ServiceManager;
-import com.example.justin.verbeterjegemeente.Constants;
+import com.example.justin.verbeterjegemeente.app.Constants;
 import com.example.justin.verbeterjegemeente.Database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.R;
-import com.example.justin.verbeterjegemeente.UpdateService;
-import com.example.justin.verbeterjegemeente.domain.Coordinates;
-import com.example.justin.verbeterjegemeente.domain.Service;
-import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
-import com.google.android.gms.maps.model.LatLng;
+import com.example.justin.verbeterjegemeente.app.UpdateService;
+import com.example.justin.verbeterjegemeente.model.Coordinates;
+import com.example.justin.verbeterjegemeente.model.Service;
+import com.example.justin.verbeterjegemeente.model.ServiceRequest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -163,7 +161,7 @@ public class MainActivity extends AppCompatActivity implements
                                 // currently active.
                                 // remove serviceCode if user selects no filter
                                 if (!currCatag.equalsIgnoreCase(getString(R.string.geenFilter))){
-                                    servCodeQ = ServiceManager.genServiceCodeQ(serviceList, currCatag);
+                                    servCodeQ = Service.genServiceCodeQ(serviceList, currCatag);
                                     SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
                                     prefs.edit().putString(getString(R.string.activityMain_saved_servcodeQ), servCodeQ).apply();
                                 } else {
@@ -462,7 +460,7 @@ public class MainActivity extends AppCompatActivity implements
     public void servicesReady(List<Service> services) {
         serviceList = services;
         // update the catagoryList with main categories generated from the service list
-        catagoryList = ServiceManager.genMainCategories(services, catagoryList);
+        catagoryList = Service.genMainCategories(services, catagoryList);
 
         // let the adapter know that data has changed
         catagoryAdapter.notifyDataSetChanged();

@@ -1,7 +1,6 @@
 package com.example.justin.verbeterjegemeente.Presentation;
 
 import android.app.NotificationManager;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -10,24 +9,16 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.Toast;
 
-import com.example.justin.verbeterjegemeente.API.ConnectionChecker;
 import com.example.justin.verbeterjegemeente.API.RequestManager;
-import com.example.justin.verbeterjegemeente.API.ServiceClient;
-import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.Adapters.ServiceRequestAdapter;
-import com.example.justin.verbeterjegemeente.Business.ServiceManager;
-import com.example.justin.verbeterjegemeente.Constants;
+import com.example.justin.verbeterjegemeente.app.Constants;
 import com.example.justin.verbeterjegemeente.Database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.R;
-import com.example.justin.verbeterjegemeente.UpdateService;
-import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
+import com.example.justin.verbeterjegemeente.app.UpdateService;
+import com.example.justin.verbeterjegemeente.model.ServiceRequest;
 
-import java.io.IOException;
-import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -36,10 +27,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Locale;
-import java.util.function.Predicate;
-
-import retrofit2.Call;
-import retrofit2.Response;
 
 public class FollowingActivity extends AppCompatActivity implements RequestManager.OnServiceRequestsReady {
 
@@ -85,7 +72,7 @@ public class FollowingActivity extends AppCompatActivity implements RequestManag
         }
         db.close();
 
-        String sRequestIDQ = ServiceManager.genServiceRequestIDQ(idList);
+        String sRequestIDQ = ServiceRequest.genServiceRequestIDQ(idList);
         RequestManager requestManager = new RequestManager(this);
         requestManager.setOnServiceReqReadyCallb(this);
         requestManager.getServiceRequestsByID(sRequestIDQ);

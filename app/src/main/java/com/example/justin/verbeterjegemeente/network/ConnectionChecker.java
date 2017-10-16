@@ -1,4 +1,4 @@
-package com.example.justin.verbeterjegemeente.API;
+package com.example.justin.verbeterjegemeente.network;
 
 import java.io.IOException;
 

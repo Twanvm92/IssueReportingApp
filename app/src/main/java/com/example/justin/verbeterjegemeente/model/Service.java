@@ -1,19 +1,32 @@
-package com.example.justin.verbeterjegemeente.Business;
+package com.example.justin.verbeterjegemeente.model;
 
 import android.util.Log;
 
-import com.example.justin.verbeterjegemeente.domain.Service;
-import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
+import com.example.justin.verbeterjegemeente.network.ServiceClient;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This class is responsible for getting information out of services
- * and doing something with that information.
+ * <code>Service</code> is a class that gets created after a get request for services has been send
+ * to an open311 interface. The JSON that gets caught in the response is converted to a <code>Service</code> class
+ * by a gson converter in the <code>Retrofit</code> class
+ *
+ * @author Twan van Maastricht
+ * @see ServiceClient#getServices(String)
+ * @see retrofit2.Retrofit
  */
 
-public class ServiceManager {
+public class Service {
+
+    private String service_code;
+    private String service_name;
+    private String description;
+    private boolean metadeta;
+    private String type;
+    private String keywords;
+    private String group;
+
     /**
      * Loops through every <code>Service</code> and finds unique group names
      * which are our main categories. These unique group names are then
@@ -22,6 +35,7 @@ public class ServiceManager {
      * @param serviceL     list filled with services that is looped through.
      * @param catagoryList list filled with the categories filtered out of the services.
      * @return a list of main categories.
+     *
      * @see Service
      */
     public static ArrayList<String> genMainCategories(List<Service> serviceL, ArrayList<String> catagoryList) {
@@ -71,18 +85,31 @@ public class ServiceManager {
         return sb.toString();
     }
 
-    public static String genServiceRequestIDQ(ArrayList<ServiceRequest> srList) {
-        StringBuilder sb = new StringBuilder();
-        String delim = "";
+    public String getService_code() {
+        return service_code;
+    }
 
-        if (srList != null) {
-            for (ServiceRequest s : srList) {
-                sb.append(delim).append(s.getServiceRequestId());
-                delim = ",";
-            }
-        }
+    public String getService_name() {
+        return service_name;
+    }
 
-        Log.e("srIDQ: ", sb.toString());
-        return sb.toString();
+    public String getDescription() {
+        return description;
+    }
+
+    public boolean isMetadeta() {
+        return metadeta;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getKeywords() {
+        return keywords;
+    }
+
+    public String getGroup() {
+        return group;
     }
 }

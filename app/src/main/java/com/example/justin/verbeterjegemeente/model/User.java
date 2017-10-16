@@ -1,4 +1,4 @@
-package com.example.justin.verbeterjegemeente.domain;
+package com.example.justin.verbeterjegemeente.model;
 
 public class User {
     private String firstName, lastName, email;

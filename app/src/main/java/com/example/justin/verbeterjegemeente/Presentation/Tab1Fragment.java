@@ -4,7 +4,6 @@ package com.example.justin.verbeterjegemeente.Presentation;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
@@ -20,7 +19,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.ConsoleMessage;
@@ -31,14 +29,14 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.API.RequestManager;
-import com.example.justin.verbeterjegemeente.API.ServiceClient;
+import com.example.justin.verbeterjegemeente.network.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
-import com.example.justin.verbeterjegemeente.Business.BitmapGenerator;
-import com.example.justin.verbeterjegemeente.Business.TimeStampGenerator;
-import com.example.justin.verbeterjegemeente.Constants;
+import com.example.justin.verbeterjegemeente.app.BitmapGenerator;
+import com.example.justin.verbeterjegemeente.app.TimeStampGenerator;
+import com.example.justin.verbeterjegemeente.app.Constants;
 import com.example.justin.verbeterjegemeente.R;
-import com.example.justin.verbeterjegemeente.domain.Coordinates;
-import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
+import com.example.justin.verbeterjegemeente.model.Coordinates;
+import com.example.justin.verbeterjegemeente.model.ServiceRequest;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.CommonStatusCodes;
@@ -59,18 +57,14 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.gson.Gson;
 
-import org.json.JSONObject;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
-import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LAT;
-import static com.example.justin.verbeterjegemeente.Constants.DEFAULT_LONG;
-import static com.example.justin.verbeterjegemeente.Constants.REQUEST_CHECK_SETTINGS;
-import static com.example.justin.verbeterjegemeente.Constants.STATUS_OPEN;
+import static com.example.justin.verbeterjegemeente.app.Constants.REQUEST_CHECK_SETTINGS;
+import static com.example.justin.verbeterjegemeente.app.Constants.STATUS_OPEN;
 
 // TODO: 8-8-2017 commented some code for google map
 public class Tab1Fragment extends Fragment implements GoogleApiClient.ConnectionCallbacks,

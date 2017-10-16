@@ -1,17 +1,12 @@
 package com.example.justin.verbeterjegemeente.Presentation;
 
 import android.content.Context;
-import android.content.Intent;
-import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 
-import com.example.justin.verbeterjegemeente.domain.Coordinates;
-import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
+import com.example.justin.verbeterjegemeente.model.Coordinates;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
-
-import org.json.JSONObject;
 
 /**
  * Created by twanv on 16-8-2017.

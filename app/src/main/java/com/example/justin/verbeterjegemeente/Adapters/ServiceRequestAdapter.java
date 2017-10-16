@@ -9,20 +9,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.API.RequestManager;
 import com.example.justin.verbeterjegemeente.Database.DatabaseHandler;
-import com.example.justin.verbeterjegemeente.Presentation.DetailedMeldingActivity;
 import com.example.justin.verbeterjegemeente.R;
-import com.example.justin.verbeterjegemeente.UpdateService;
-import com.example.justin.verbeterjegemeente.domain.ServiceRequest;
+import com.example.justin.verbeterjegemeente.app.UpdateService;
+import com.example.justin.verbeterjegemeente.model.ServiceRequest;
 import com.like.LikeButton;
 import com.like.OnLikeListener;
-
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 

@@ -27,9 +27,8 @@
         </activity>
         <activity
             android:name=".Presentation.MainActivity"
-            android:theme="@style/AppTheme.Main"
-            android:configChanges="keyboardHidden|orientation|screenSize"></activity>
-
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:theme="@style/AppTheme.Main" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
@@ -37,38 +36,29 @@
 
         <activity
             android:name=".Presentation.MapsActivity"
-            android:label="@string/title_activity_maps"
             android:configChanges="keyboardHidden|orientation|screenSize"
-            android:theme="@style/AppTheme.NoActionBar"/>
+            android:label="@string/title_activity_maps"
+            android:theme="@style/AppTheme.NoActionBar" />
 
         <uses-library android:name="com.google.android.maps" />
 
-
-
-        <activity android:name=".Presentation.FollowingActivity"
-
-            android:theme="@style/AppTheme.NoActionBar"></activity>
-
-
-        
-
-        <activity android:name=".Presentation.MeldingActivity"
-            android:theme="@style/AppTheme.Meldingscherm"
+        <activity
+            android:name=".Presentation.FollowingActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".Presentation.MeldingActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
-
-            ></activity>
-
-
-
-
-
-        <activity android:name=".Presentation.DetailedMeldingActivity"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
-
+            android:theme="@style/AppTheme.Meldingscherm" />
+        <activity
+            android:name=".Presentation.DetailedMeldingActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
 
         <service android:name=".app.UpdateService" />
 
-
+        <activity
+            android:name=".Presentation.Stepper.StepperActivity"
+            android:label="@string/title_activity_stepper"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

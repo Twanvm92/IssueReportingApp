@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
+import com.example.justin.verbeterjegemeente.Presentation.Stepper.StepperActivity;
 import com.example.justin.verbeterjegemeente.R;
 
 import java.util.Locale;
@@ -38,7 +39,7 @@ public class SplashScreen extends AppCompatActivity {
                  start your app main activity**/
                 loadLocale();
 
-                Intent mainIntent = new Intent().setClass(SplashScreen.this, MainActivity.class);
+                Intent mainIntent = new Intent().setClass(SplashScreen.this, StepperActivity.class);
                 startActivity(mainIntent);
                 // Close this activity
                 finish();

@@ -10,11 +10,17 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.justin.verbeterjegemeente.R;
+import com.example.justin.verbeterjegemeente.app.ServiceRequestApplication;
 import com.stepstone.stepper.Step;
 import com.stepstone.stepper.VerificationError;
 
+import javax.inject.Inject;
 
-public class StepCatagoryFragment extends Fragment implements Step {
+
+public class StepCatagoryFragment extends Fragment implements Step, StepCatagoryView {
+    @Inject
+    StepCatagoryPresenter presenter;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_step_catagory, container, false);
@@ -22,6 +28,12 @@ public class StepCatagoryFragment extends Fragment implements Step {
         //initialize your UI
 
         return v;
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        ((ServiceRequestApplication)context).getAppComponent().inject(this);
     }
 
     @Override
@@ -38,5 +50,30 @@ public class StepCatagoryFragment extends Fragment implements Step {
     @Override
     public void onError(@NonNull VerificationError error) {
         //handle error inside of the fragment, e.g. show error on EditText
+    }
+
+    @Override
+    public void showLoading() {
+
+    }
+
+    @Override
+    public void hideLoading() {
+
+    }
+
+    @Override
+    public void showErrorMessage() {
+
+    }
+
+    @Override
+    public void showMainCatagories() {
+
+    }
+
+    @Override
+    public void showSubCatagories() {
+
     }
 }

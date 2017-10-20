@@ -12,7 +12,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 /**
- * Deze klasse dient als splashscreen van de app de gebruiker zal eerst dit laadscherm zien voordat hij de app echt kan gebruiken.
+ * Will show a splashscreen when starting the app. After a set amount of time the user will be send to the starting activity.
  *
  * @author Justin Kannekens
  */

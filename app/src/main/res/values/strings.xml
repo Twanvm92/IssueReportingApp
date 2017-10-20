@@ -93,5 +93,9 @@
     <string name="alreadyUpvoted">Je hebt deze melding al een keer geüpvotet!</string>
     <string name="activityMapsDialog_tv_assureLocation">Wil je deze gekozen locatie gebruiken?</string>
     <string name="activityMaps_tv_selectLocationHelp">Selecteer een locatie door op de kaart te klikken</string>
+    <string name="title_activity_stepper">StepperActivity</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>

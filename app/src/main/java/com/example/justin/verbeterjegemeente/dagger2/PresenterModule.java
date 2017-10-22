@@ -3,6 +3,7 @@ package com.example.justin.verbeterjegemeente.dagger2;
 import android.content.Context;
 
 import com.example.justin.verbeterjegemeente.Presentation.Stepper.StepCatagory.StepCatagoryPresenter;
+import com.example.justin.verbeterjegemeente.network.ServiceClient;
 
 import javax.inject.Singleton;
 
@@ -18,7 +19,7 @@ public class PresenterModule {
 
     @Singleton
     @Provides
-    StepCatagoryPresenter provideStepCatagoryPresenter(Context context) {
-        return new StepCatagoryPresenter(context);
+    StepCatagoryPresenter provideStepCatagoryPresenter(Context context, ServiceClient serviceClient) {
+        return new StepCatagoryPresenter(context, serviceClient);
     }
 }

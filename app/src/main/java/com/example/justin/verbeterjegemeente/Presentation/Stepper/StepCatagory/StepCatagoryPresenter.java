@@ -17,8 +17,9 @@ public class StepCatagoryPresenter implements IStepCatagoryPresenter {
     @Inject
     ServiceClient api;
 
-    public StepCatagoryPresenter(Context context) {
-        ((ServiceRequestApplication)context).getAppComponent().inject(this);
+    public StepCatagoryPresenter(Context context, ServiceClient api) {
+//        ServiceRequestApplication.getAppComponent(context).inject(this);
+        this.api = api;
     }
 
     @Override

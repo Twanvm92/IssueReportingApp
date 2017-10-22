@@ -94532,11 +94532,6 @@ var Geomerk = (function (e) {
             });
             var intialLocation = [112604,400507];
             Geomerk.Map.interactions.zoomToCenter(intialLocation, 14);
-            _olmap.on('change:size', function () {//evt
-                setTimeout(function () {
-                    Geomerk.Map.updateMapSize();
-                }, 200)
-            });
 
             _onClick = _olmap.on('singleclick', function (e) {
                 if (_olmap.getTargetElement().style.cursor == 'pointer') {
@@ -94551,13 +94546,9 @@ var Geomerk = (function (e) {
 
             });
 
-            // added Zoom data toposition object in _onMoveEnd in js libary
             _onMoveEnd = _olmap.on('moveend', function (e) {
                 var latlon = Geomerk.Map.convertRDtoLonLat(e.frameState.focus[0], e.frameState.focus[1]);
-                var zoom = _olmap.getView().getZoom();
-                var position = { rx_x: e.frameState.focus[0], rx_y: e.frameState.focus[1], lat: latlon[1], lon: latlon[0], zoom: zoom }
-
-
+                var position = { rx_x: e.frameState.focus[0], rx_y: e.frameState.focus[1], lat: latlon[1], lon: latlon[0] }
 
 
                 _moveEndCallback(position);

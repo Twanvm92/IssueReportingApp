@@ -1,13 +1,42 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="com.example.justin.verbeterjegemeente.Presentation.Stepper.StepCatagory.StepCatagoryFragment">
+    android:layout_height="wrap_content"
+    tools:context="com.example.justin.verbeterjegemeente.Presentation.Stepper.StepCatagory.StepCatagoryFragment"
+    android:orientation="vertical">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <View
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="Hello step Catagory" />
+        android:layout_height="1dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:background="#DDDDDD" />
 
-</FrameLayout>
+    <com.roughike.swipeselector.SwipeSelector
+        android:id="@+id/mainCatagorySelector"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+         />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:background="#DDDDDD" />
+
+    <com.roughike.swipeselector.SwipeSelector
+        android:id="@+id/subCatagorySelector"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        />
+
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:background="#DDDDDD" />
+
+</LinearLayout>

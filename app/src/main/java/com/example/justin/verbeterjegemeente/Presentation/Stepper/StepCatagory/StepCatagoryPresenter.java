@@ -15,7 +15,7 @@ import javax.inject.Inject;
 public class StepCatagoryPresenter implements IStepCatagoryPresenter {
     private StepCatagoryView view;
     @Inject
-    private ServiceClient api;
+    ServiceClient api;
 
     public StepCatagoryPresenter(Context context) {
         ((ServiceRequestApplication)context).getAppComponent().inject(this);

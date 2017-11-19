@@ -29,7 +29,7 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.API.RequestManager;
-import com.example.justin.verbeterjegemeente.network.ServiceClient;
+import com.example.justin.verbeterjegemeente.data.network.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.app.BitmapGenerator;
 import com.example.justin.verbeterjegemeente.app.TimeStampGenerator;

@@ -2,7 +2,7 @@ package com.example.justin.verbeterjegemeente.model;
 
 import android.util.Log;
 
-import com.example.justin.verbeterjegemeente.network.ServiceClient;
+import com.example.justin.verbeterjegemeente.data.network.ServiceClient;
 
 import java.util.ArrayList;
 import java.util.List;

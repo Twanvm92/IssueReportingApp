@@ -14,7 +14,7 @@ import android.widget.ListView;
 import com.example.justin.verbeterjegemeente.API.RequestManager;
 import com.example.justin.verbeterjegemeente.Adapters.ServiceRequestAdapter;
 import com.example.justin.verbeterjegemeente.app.Constants;
-import com.example.justin.verbeterjegemeente.Database.DatabaseHandler;
+import com.example.justin.verbeterjegemeente.data.database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.app.UpdateService;
 import com.example.justin.verbeterjegemeente.model.ServiceRequest;

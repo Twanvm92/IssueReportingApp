@@ -1,4 +1,4 @@
-package com.example.justin.verbeterjegemeente.network;
+package com.example.justin.verbeterjegemeente.data.network;
 
 import com.example.justin.verbeterjegemeente.model.PostServiceRequestResponse;
 import com.example.justin.verbeterjegemeente.model.Service;

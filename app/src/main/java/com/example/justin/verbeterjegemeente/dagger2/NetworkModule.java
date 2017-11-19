@@ -1,7 +1,7 @@
 package com.example.justin.verbeterjegemeente.dagger2;
 
 import com.example.justin.verbeterjegemeente.app.Constants;
-import com.example.justin.verbeterjegemeente.network.ServiceClient;
+import com.example.justin.verbeterjegemeente.data.network.ServiceClient;
 
 import javax.inject.Named;
 import javax.inject.Singleton;

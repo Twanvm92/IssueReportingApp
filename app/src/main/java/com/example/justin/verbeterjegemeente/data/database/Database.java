@@ -1,4 +1,4 @@
-package com.example.justin.verbeterjegemeente.Database;
+package com.example.justin.verbeterjegemeente.data.database;
 import android.arch.persistence.room.RoomDatabase;
 
 

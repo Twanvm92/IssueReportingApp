@@ -2,7 +2,7 @@ package com.example.justin.verbeterjegemeente.model;
 
 import android.util.Log;
 
-import com.example.justin.verbeterjegemeente.network.ServiceClient;
+import com.example.justin.verbeterjegemeente.data.network.ServiceClient;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 

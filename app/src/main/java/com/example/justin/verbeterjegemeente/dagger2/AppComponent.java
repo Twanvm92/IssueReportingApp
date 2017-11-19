@@ -1,5 +1,7 @@
 package com.example.justin.verbeterjegemeente.dagger2;
 
+import com.example.justin.verbeterjegemeente.Presentation.Stepper.StepCatagory.StepCatagoryFragment;
+
 import javax.inject.Singleton;
 
 import dagger.Component;
@@ -9,7 +11,8 @@ import dagger.Component;
  */
 
 @Singleton
-@Component(modules = {AppModule.class})
+@Component(modules = {AppModule.class, NetworkModule.class})
 public interface AppComponent {
+    void inject(StepCatagoryFragment target);
 
 }

@@ -27,9 +27,9 @@
     <string name="onthoudGegevens">Remember my personal data</string>
 
     <string name="hoofdcategorieTab2">Main category:</string>
-    <string name="kiesProblemen">Choose from list of issues</string>
+    <string name="kiesProblemen">Choose a main  catagory</string>
     <string name="subcategorieTab2">Subcategory:</string>
-    <string name="kiesSubProblemen">Choose from list of sub issues</string>
+    <string name="kiesSubProblemen">Choose a sub catagory</string>
     <string name="update">I do NOT want to be updated by email</string>
     <string name="laatsteupdateTab2">Latest update:</string>
 
@@ -83,4 +83,5 @@
     <string name="alreadyUpvoted">You already upvoted this service request!</string>
     <string name="activityMapsDialog_tv_assureLocation">Do you want the use this chosen location?</string>
     <string name="activityMaps_tv_selectLocationHelp">Select a location by tapping the map</string>
+    <string name="nietGeselecteerdeCategorie">Start by swiping left</string>
 </resources>

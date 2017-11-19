@@ -40,9 +40,9 @@
     <string name="onthoudGegevens">Onthoud mijn persoonlijke gegevens</string>
 
     <string name="hoofdcategorieTab2">Hoofdcategorie:</string>
-    <string name="kiesProblemen">Kies uit lijst van problemen</string>
+    <string name="kiesProblemen">Kies een hoofdcategorie</string>
     <string name="subcategorieTab2">Sub categorie:</string>
-    <string name="kiesSubProblemen">Kies uit lijst van sub categorieën</string>
+    <string name="kiesSubProblemen">Kies een subcategorie</string>
     <string name="update">Houd mij NIET op de hoogte via email</string>
     <string name="laatsteupdateTab2">Laatste update:</string>
 
@@ -97,5 +97,6 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="nietGeselecteerdeCategorie">Start door naar links te swipen</string>
 
 </resources>

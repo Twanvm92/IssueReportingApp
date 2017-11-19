@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <layout xmlns:android="http://schemas.android.com/apk/res/android">
     <android.support.constraint.ConstraintLayout xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:android="http://schemas.android.com/apk/res/android"
@@ -49,3 +50,47 @@
 
     </android.support.constraint.ConstraintLayout>
 </layout>
+=======
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:context="com.example.justin.verbeterjegemeente.Presentation.Stepper.StepCatagory.StepCatagoryFragment"
+    android:orientation="vertical">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:background="#DDDDDD" />
+
+    <com.roughike.swipeselector.SwipeSelector
+        android:id="@+id/mainCatagorySelector"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+         />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:background="#DDDDDD" />
+
+    <com.roughike.swipeselector.SwipeSelector
+        android:id="@+id/subCatagorySelector"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        />
+
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:background="#DDDDDD" />
+
+</LinearLayout>
+>>>>>>> 858f878de889c3faff32682a7cebb103f124d00e

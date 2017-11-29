@@ -13,7 +13,7 @@ import android.widget.ListView;
 
 import com.example.justin.verbeterjegemeente.Adapters.ServiceRequestAdapter;
 import com.example.justin.verbeterjegemeente.R;
-import com.example.justin.verbeterjegemeente.model.ServiceRequest;
+import com.example.justin.verbeterjegemeente.service.model.ServiceRequest;
 
 import java.util.ArrayList;
 

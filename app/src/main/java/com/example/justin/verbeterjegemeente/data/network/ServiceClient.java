@@ -1,8 +1,8 @@
 package com.example.justin.verbeterjegemeente.data.network;
 
-import com.example.justin.verbeterjegemeente.model.PostServiceRequestResponse;
-import com.example.justin.verbeterjegemeente.model.Service;
-import com.example.justin.verbeterjegemeente.model.ServiceRequest;
+import com.example.justin.verbeterjegemeente.service.model.PostServiceRequestResponse;
+import com.example.justin.verbeterjegemeente.service.model.Service;
+import com.example.justin.verbeterjegemeente.service.model.ServiceRequest;
 
 import java.util.ArrayList;
 import java.util.List;

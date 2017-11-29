@@ -20,7 +20,7 @@ import com.example.justin.verbeterjegemeente.API.RequestManager;
 import com.example.justin.verbeterjegemeente.data.database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.Presentation.FollowingActivity;
 import com.example.justin.verbeterjegemeente.R;
-import com.example.justin.verbeterjegemeente.model.ServiceRequest;
+import com.example.justin.verbeterjegemeente.service.model.ServiceRequest;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;

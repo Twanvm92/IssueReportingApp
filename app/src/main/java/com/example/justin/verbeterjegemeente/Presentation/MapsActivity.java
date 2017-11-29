@@ -25,7 +25,7 @@ import android.widget.TextView;
 
 import com.example.justin.verbeterjegemeente.app.Constants;
 import com.example.justin.verbeterjegemeente.R;
-import com.example.justin.verbeterjegemeente.model.Coordinates;
+import com.example.justin.verbeterjegemeente.service.model.Coordinates;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.CommonStatusCodes;

@@ -17,7 +17,7 @@ import com.example.justin.verbeterjegemeente.app.Constants;
 import com.example.justin.verbeterjegemeente.data.database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.app.UpdateService;
-import com.example.justin.verbeterjegemeente.model.ServiceRequest;
+import com.example.justin.verbeterjegemeente.service.model.ServiceRequest;
 
 import java.text.DateFormat;
 import java.text.ParseException;

@@ -10,7 +10,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.justin.verbeterjegemeente.R;
-import com.example.justin.verbeterjegemeente.model.ServiceRequest;
+import com.example.justin.verbeterjegemeente.service.model.ServiceRequest;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;

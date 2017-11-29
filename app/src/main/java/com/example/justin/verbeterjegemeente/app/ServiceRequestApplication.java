@@ -1,37 +1,57 @@
 package com.example.justin.verbeterjegemeente.app;
+import android.app.Activity;
 import android.app.Application;
-import android.content.Context;
 
-import com.example.justin.verbeterjegemeente.dagger2.AppComponent;
-import com.example.justin.verbeterjegemeente.dagger2.AppModule;
+import com.example.justin.verbeterjegemeente.dagger2.AppInjector;
 import com.example.justin.verbeterjegemeente.dagger2.DaggerAppComponent;
-import com.example.justin.verbeterjegemeente.dagger2.NetworkModule;
-import com.example.justin.verbeterjegemeente.dagger2.PresenterModule;
+
+
+import javax.inject.Inject;
+
+import dagger.android.AndroidInjector;
+import dagger.android.DispatchingAndroidInjector;
+import dagger.android.HasActivityInjector;
 
 /**
  * Created by twanv on 16-10-2017.
  */
 
-public class ServiceRequestApplication extends Application {
+public class ServiceRequestApplication extends Application implements HasActivityInjector {
 
-    private AppComponent appComponent;
+    @Inject
+    DispatchingAndroidInjector<Activity> dispatchingAndroidInjector;
 
-    public static AppComponent getAppComponent(Context context) {
+//    private AppComponent appComponent;
 
-        return ((ServiceRequestApplication) context.getApplicationContext()).appComponent;
-    }
+//    public static AppComponent getAppComponent(Context context) {
+//
+//        return ((ServiceRequestApplication) context.getApplicationContext()).appComponent;
+//    }
 
-    protected AppComponent initDagger(ServiceRequestApplication application) {
-        return DaggerAppComponent.builder()
-                .appModule(new AppModule(application))
-                .networkModule(new NetworkModule())
-                .presenterModule(new PresenterModule())
-                .build();
-    }
+//    protected AppComponent initDagger(ServiceRequestApplication application) {
+//        return DaggerAppComponent.builder()
+//                .appModule(new AppModule(application))
+//                .networkModule(new NetworkModule())
+//                .presenterModule(new PresenterModule())
+//                .build();
+//    }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        appComponent = initDagger(this);
+
+        AppInjector.init(this);
+
+//        DaggerAppComponent
+//                .builder()
+//                .application(this)
+//                .build()
+//                .inject(this);
+//        appComponent = initDagger(this);
+    }
+
+    @Override
+    public AndroidInjector<Activity> activityInjector() {
+        return dispatchingAndroidInjector;
     }
 }

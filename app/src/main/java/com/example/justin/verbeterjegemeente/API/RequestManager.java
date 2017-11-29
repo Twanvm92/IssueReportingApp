@@ -6,9 +6,9 @@ import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.app.Constants;
 import com.example.justin.verbeterjegemeente.R;
-import com.example.justin.verbeterjegemeente.model.PostServiceRequestResponse;
-import com.example.justin.verbeterjegemeente.model.Service;
-import com.example.justin.verbeterjegemeente.model.ServiceRequest;
+import com.example.justin.verbeterjegemeente.service.model.PostServiceRequestResponse;
+import com.example.justin.verbeterjegemeente.service.model.Service;
+import com.example.justin.verbeterjegemeente.service.model.ServiceRequest;
 import com.example.justin.verbeterjegemeente.data.network.ConnectionChecker;
 import com.example.justin.verbeterjegemeente.data.network.ServiceClient;
 

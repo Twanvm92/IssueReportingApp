@@ -10,10 +10,13 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.justin.verbeterjegemeente.R;
+import com.example.justin.verbeterjegemeente.dagger2.Injectable;
 import com.stepstone.stepper.Step;
 import com.stepstone.stepper.VerificationError;
 
-public class StepCreateServiceRequestFragment extends Fragment implements Step{
+import dagger.android.support.AndroidSupportInjection;
+
+public class StepCreateServiceRequestFragment extends Fragment implements Step, Injectable{
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_step_create_service_request, container, false);
@@ -21,6 +24,11 @@ public class StepCreateServiceRequestFragment extends Fragment implements Step{
         //initialize your UI
 
         return v;
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
     }
 
     @Override

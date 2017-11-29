@@ -1,4 +1,4 @@
-package com.example.justin.verbeterjegemeente.model;
+package com.example.justin.verbeterjegemeente.service.model;
 
 public class User {
     private String firstName, lastName, email;

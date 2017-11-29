@@ -35,10 +35,10 @@ import com.example.justin.verbeterjegemeente.Adapters.MeldingDialogAdapter;
 import com.example.justin.verbeterjegemeente.app.Constants;
 import com.example.justin.verbeterjegemeente.data.database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.R;
-import com.example.justin.verbeterjegemeente.model.PostServiceRequestResponse;
-import com.example.justin.verbeterjegemeente.model.Service;
-import com.example.justin.verbeterjegemeente.model.ServiceRequest;
-import com.example.justin.verbeterjegemeente.model.User;
+import com.example.justin.verbeterjegemeente.service.model.PostServiceRequestResponse;
+import com.example.justin.verbeterjegemeente.service.model.Service;
+import com.example.justin.verbeterjegemeente.service.model.ServiceRequest;
+import com.example.justin.verbeterjegemeente.service.model.User;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.io.ByteArrayOutputStream;
@@ -851,7 +851,7 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
     public void servicesReady(List<Service> services) {
         serviceList = services;
         // update the catagoryList with main categories generated from the service list
-        catagoryList = Service.genMainCategories(services, catagoryList);
+//        catagoryList = Service.genMainCategories(services, catagoryList);
 
         // let the adapter know that data has changed
         catagoryAdapter.notifyDataSetChanged();

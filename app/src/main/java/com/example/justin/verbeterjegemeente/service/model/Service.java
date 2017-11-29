@@ -1,7 +1,8 @@
-package com.example.justin.verbeterjegemeente.model;
+package com.example.justin.verbeterjegemeente.service.model;
 
 import android.util.Log;
 
+import com.example.justin.verbeterjegemeente.app.utils.StringWithTag;
 import com.example.justin.verbeterjegemeente.data.network.ServiceClient;
 
 import java.util.ArrayList;
@@ -33,13 +34,13 @@ public class Service {
      * put into a new ArrayList.
      *
      * @param serviceL     list filled with services that is looped through.
-     * @param catagoryList list filled with the categories filtered out of the services.
      * @return a list of main categories.
      *
      * @see Service
      */
-    public static ArrayList<String> genMainCategories(List<Service> serviceL, ArrayList<String> catagoryList) {
+    public static List<StringWithTag> genMainCategories(List<Service> serviceL) {
 
+        List<StringWithTag> catagoryList = new ArrayList<>();
         int x = 1; // set iterable separately for categoryList
         for (int i = 0; i < serviceL.size(); i++) {
             Log.e("group + code: ", serviceL.get(i).getService_code());
@@ -47,11 +48,12 @@ public class Service {
             if (catagoryList.size() > 1) { // do something if list already has 1 or more categories
                 // do something if previous category is not the same as new category in servicelist
                 if (!catagoryList.get(x).equals(serviceL.get(i).getGroup())) {
-                    catagoryList.add(serviceL.get(i).getGroup()); // add new category
+//                    catagoryList.add(serviceL.get(i).getGroup());
+                    catagoryList.add(new StringWithTag(serviceL.get(i).getGroup(), serviceL.get(i).getService_code())); // add new category
                     x++; // only up this iterable if new category is added
                 }
             } else {
-                catagoryList.add(serviceL.get(i).getGroup());
+                catagoryList.add(new StringWithTag(serviceL.get(i).getGroup(), serviceL.get(i).getService_code()));
                 Log.e("service groups: ", serviceL.get(i).getGroup());
             }
         }

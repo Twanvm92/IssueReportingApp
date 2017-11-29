@@ -32,9 +32,9 @@ import com.example.justin.verbeterjegemeente.app.Constants;
 import com.example.justin.verbeterjegemeente.data.database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.app.UpdateService;
-import com.example.justin.verbeterjegemeente.model.Coordinates;
-import com.example.justin.verbeterjegemeente.model.Service;
-import com.example.justin.verbeterjegemeente.model.ServiceRequest;
+import com.example.justin.verbeterjegemeente.service.model.Coordinates;
+import com.example.justin.verbeterjegemeente.service.model.Service;
+import com.example.justin.verbeterjegemeente.service.model.ServiceRequest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -460,7 +460,7 @@ public class MainActivity extends AppCompatActivity implements
     public void servicesReady(List<Service> services) {
         serviceList = services;
         // update the catagoryList with main categories generated from the service list
-        catagoryList = Service.genMainCategories(services, catagoryList);
+//        catagoryList = Service.genMainCategories(services);
 
         // let the adapter know that data has changed
         catagoryAdapter.notifyDataSetChanged();

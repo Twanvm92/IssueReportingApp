@@ -7,9 +7,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import com.example.justin.verbeterjegemeente.model.ServiceRequest;
+import com.example.justin.verbeterjegemeente.service.model.ServiceRequest;
 
-import com.example.justin.verbeterjegemeente.model.User;
+import com.example.justin.verbeterjegemeente.service.model.User;
 
 import java.util.ArrayList;
 

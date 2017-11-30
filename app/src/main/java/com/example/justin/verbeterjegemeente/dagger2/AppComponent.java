@@ -2,7 +2,6 @@ package com.example.justin.verbeterjegemeente.dagger2;
 
 import android.app.Application;
 
-import com.example.justin.verbeterjegemeente.Presentation.Stepper.StepCatagory.StepCatagoryFragment;
 import com.example.justin.verbeterjegemeente.app.ServiceRequestApplication;
 
 import javax.inject.Singleton;

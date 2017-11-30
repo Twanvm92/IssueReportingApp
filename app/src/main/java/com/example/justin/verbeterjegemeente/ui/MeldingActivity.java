@@ -1,4 +1,4 @@
-package com.example.justin.verbeterjegemeente.Presentation;
+package com.example.justin.verbeterjegemeente.ui;
 
 import android.Manifest;
 import android.app.Dialog;
@@ -31,7 +31,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.API.RequestManager;
-import com.example.justin.verbeterjegemeente.Adapters.MeldingDialogAdapter;
+import com.example.justin.verbeterjegemeente.ui.adapters.MeldingDialogAdapter;
 import com.example.justin.verbeterjegemeente.app.Constants;
 import com.example.justin.verbeterjegemeente.data.database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.R;

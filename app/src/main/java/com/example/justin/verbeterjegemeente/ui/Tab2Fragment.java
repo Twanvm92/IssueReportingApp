@@ -1,4 +1,4 @@
-package com.example.justin.verbeterjegemeente.Presentation;
+package com.example.justin.verbeterjegemeente.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -11,7 +11,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-import com.example.justin.verbeterjegemeente.Adapters.ServiceRequestAdapter;
+import com.example.justin.verbeterjegemeente.ui.adapters.ServiceRequestAdapter;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.service.model.ServiceRequest;
 

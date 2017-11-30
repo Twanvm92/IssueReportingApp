@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="com.example.justin.verbeterjegemeente.Presentation.MainActivity">
+    tools:context="com.example.justin.verbeterjegemeente.ui.MainActivity">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/appbar"
@@ -32,13 +32,13 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <com.example.justin.verbeterjegemeente.Presentation.CustomViewPager
+    <com.example.justin.verbeterjegemeente.ui.CustomViewPager
         android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" >
 
-    </com.example.justin.verbeterjegemeente.Presentation.CustomViewPager>
+    </com.example.justin.verbeterjegemeente.ui.CustomViewPager>
     <io.github.yavski.fabspeeddial.FabSpeedDial
         android:id="@+id/activityMain_Fbtn_speeddial"
         android:layout_width="wrap_content"

@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.example.justin.verbeterjegemeente.Presentation.FollowingActivity">
+    tools:context="com.example.justin.verbeterjegemeente.ui.FollowingActivity">
 
     <Button
         android:id="@+id/activityFollowing_btn_terugBTN_ID"

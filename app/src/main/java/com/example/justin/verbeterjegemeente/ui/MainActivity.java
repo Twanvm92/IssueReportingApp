@@ -1,4 +1,4 @@
-package com.example.justin.verbeterjegemeente.Presentation;
+package com.example.justin.verbeterjegemeente.ui;
 
 
 import android.app.Activity;
@@ -27,7 +27,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.API.RequestManager;
-import com.example.justin.verbeterjegemeente.Adapters.SectionsPageAdapter;
+import com.example.justin.verbeterjegemeente.ui.adapters.SectionsPageAdapter;
 import com.example.justin.verbeterjegemeente.app.Constants;
 import com.example.justin.verbeterjegemeente.data.database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.R;
@@ -190,7 +190,7 @@ public class MainActivity extends AppCompatActivity implements
                         break;
                     case R.id.activityMain_item_report:
                         Intent in = new Intent(getApplicationContext(),
-                                com.example.justin.verbeterjegemeente.Presentation.MapsActivity.class);
+                                com.example.justin.verbeterjegemeente.ui.MapsActivity.class);
 
                         Coordinates currentCoordinatesOnMap = currentLatLongAndZoomOfCameraOnMap();
                         if (currentCoordinatesOnMap != null) {

@@ -1,6 +1,6 @@
 package com.example.justin.verbeterjegemeente.dagger2;
 
-import com.example.justin.verbeterjegemeente.Presentation.Stepper.StepCatagory.StepCatagoryFragment;
+import com.example.justin.verbeterjegemeente.ui.Stepper.StepCatagory.StepCatagoryFragment;
 
 import dagger.Module;
 import dagger.android.ContributesAndroidInjector;

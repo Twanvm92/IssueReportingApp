@@ -38,9 +38,9 @@ public class Service {
      *
      * @see Service
      */
-    public static List<StringWithTag> genMainCategories(List<Service> serviceL) {
+    public static List<String> genMainCategories(List<Service> serviceL) {
 
-        List<StringWithTag> catagoryList = new ArrayList<>();
+        List<String> catagoryList = new ArrayList<>();
         int x = 1; // set iterable separately for categoryList
         for (int i = 0; i < serviceL.size(); i++) {
             Log.e("group + code: ", serviceL.get(i).getService_code());
@@ -49,11 +49,11 @@ public class Service {
                 // do something if previous category is not the same as new category in servicelist
                 if (!catagoryList.get(x).equals(serviceL.get(i).getGroup())) {
 //                    catagoryList.add(serviceL.get(i).getGroup());
-                    catagoryList.add(new StringWithTag(serviceL.get(i).getGroup(), serviceL.get(i).getService_code())); // add new category
+                    catagoryList.add(serviceL.get(i).getGroup()); // add new category
                     x++; // only up this iterable if new category is added
                 }
             } else {
-                catagoryList.add(new StringWithTag(serviceL.get(i).getGroup(), serviceL.get(i).getService_code()));
+                catagoryList.add(serviceL.get(i).getGroup());
                 Log.e("service groups: ", serviceL.get(i).getGroup());
             }
         }

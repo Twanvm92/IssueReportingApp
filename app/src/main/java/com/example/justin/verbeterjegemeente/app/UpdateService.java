@@ -18,7 +18,7 @@ import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.API.RequestManager;
 import com.example.justin.verbeterjegemeente.data.database.DatabaseHandler;
-import com.example.justin.verbeterjegemeente.Presentation.FollowingActivity;
+import com.example.justin.verbeterjegemeente.ui.FollowingActivity;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.service.model.ServiceRequest;
 

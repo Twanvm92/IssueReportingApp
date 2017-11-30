@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="com.example.justin.verbeterjegemeente.Presentation.Stepper.StepperActivity"
+    tools:context="com.example.justin.verbeterjegemeente.ui.Stepper.StepperActivity"
     tools:showIn="@layout/activity_stepper">
 
 </android.support.constraint.ConstraintLayout>

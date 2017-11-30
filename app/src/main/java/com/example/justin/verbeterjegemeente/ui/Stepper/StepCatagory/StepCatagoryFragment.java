@@ -1,10 +1,10 @@
-package com.example.justin.verbeterjegemeente.Presentation.Stepper.StepCatagory;
+package com.example.justin.verbeterjegemeente.ui.Stepper.StepCatagory;
 
-import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.databinding.DataBindingUtil;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -15,7 +15,10 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
+import android.widget.TextView;
+
 import com.example.justin.verbeterjegemeente.R;
+import com.example.justin.verbeterjegemeente.ui.callbacks.OnMainCatagorySelectedCallback;
 import com.example.justin.verbeterjegemeente.app.utils.StringWithTag;
 import com.example.justin.verbeterjegemeente.dagger2.Injectable;
 import com.example.justin.verbeterjegemeente.databinding.FragmentStepCatagoryBinding;
@@ -30,7 +33,6 @@ import java.util.List;
 import javax.inject.Inject;
 
 import butterknife.BindView;
-import butterknife.ButterKnife;
 
 
 public class StepCatagoryFragment extends Fragment implements Step, Injectable {
@@ -45,6 +47,8 @@ public class StepCatagoryFragment extends Fragment implements Step, Injectable {
     @Inject
     ViewModelProvider.Factory viewModelFactory;
 
+    private ServiceListViewModel viewModel;
+
     ArrayAdapter<StringWithTag> catagoryAdapter;
     ArrayAdapter<String> subCategoryAdapter;
     private List<String> catagoryList;
@@ -58,27 +62,56 @@ public class StepCatagoryFragment extends Fragment implements Step, Injectable {
 
         mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_step_catagory, container, false);
 
+        mBinding.setOnMainCatagorySelectedCallback(mainCatagorySelectedCallback);
+
+        mBinding.StepCatagoryFragmentSpMainCatagory.setAdapter(new ArrayAdapter<StringWithTag>(getActivity(),
+                R.layout.spinner_item) {
+            @Override
+            //pakt de positions van elements in catagoryList en disabled the element dat postion null staat zodat we het kunnen gebruiken als een hint.
+            public boolean isEnabled(int position) {
+                if (position == 0) {
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        });
+
+        mBinding.StepCatagoryFragmentSpSubCatagory.setAdapter(new ArrayAdapter<StringWithTag>(getActivity(),
+                R.layout.spinner_item) {
+            @Override
+            //pakt de positions van elements in catagoryList en disabled the element dat postion null staat zodat we het kunnen gebruiken als een hint.
+            public boolean isEnabled(int position) {
+                if (position == 0) {
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        });
+
 
         //initialize your UI
 //        setupCategorySpinner();
 //        setupSubCategorySpinner();
 
-        mBinding.StepCatagoryFragmentSpMainCatagory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-//                fillSubCategorySpinner(parent);
-                // reset the selected sub catagory to the default one everytime
-                // a new catagory is selected
-//                if (position != 0) {
-//                    subCatagorySpinner.setSelection(0);
-//                }
-            }
+//        mBinding.StepCatagoryFragmentSpMainCatagory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+//            @Override
+//            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+////                fillSubCategorySpinner(parent);
+//                // reset the selected sub catagory to the default one everytime
+//                // a new catagory is selected
+////                if (position != 0) {
+////                    subCatagorySpinner.setSelection(0);
+////                }
+//            }
+//
+//            @Override
+//            public void onNothingSelected(AdapterView<?> parent) {
+//                // something is always selected...also by default
+//            }
+//        });
 
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                // something is always selected...also by default
-            }
-        });
 
         return mBinding.getRoot();
     }
@@ -87,7 +120,7 @@ public class StepCatagoryFragment extends Fragment implements Step, Injectable {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        final ServiceListViewModel viewModel = ViewModelProviders.of(this,
+        viewModel = ViewModelProviders.of(this,
                 viewModelFactory).get(ServiceListViewModel.class);
 
         observeViewModel(viewModel);
@@ -194,26 +227,14 @@ public class StepCatagoryFragment extends Fragment implements Step, Injectable {
         subCatagorySpinner.setAdapter(subCategoryAdapter);
     }
 
-    /**
-     * Fill the previously setup sub category spinner with sub categories that match the
-     * main category's group name.
-     * @param parent
-     */
-    public void fillSubCategorySpinner(AdapterView<?> parent) {
-        if (subCategoryList.size() > 1) { // check if list has more than just the default string
-            subCategoryList.clear(); // clear ist before filling it again
-            subCategoryList.add(getResources().getString(R.string.kiesSubProblemen));
-        }
 
-        for (Service s : serviceList) {
-            // check if selected main category is same as main category of service object
-            if (parent.getSelectedItem().toString().equals(s.getGroup())) {
-                subCategoryList.add(s.getService_name()); // add sub category to list
-            }
-        }
-        subCategoryAdapter.notifyDataSetChanged();
+    private final OnMainCatagorySelectedCallback mainCatagorySelectedCallback = new OnMainCatagorySelectedCallback() {
+        @Override
+        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+            viewModel.fillSubCategorySpinner(parent);
 
-    }
+        }
+    };
 
 
 }

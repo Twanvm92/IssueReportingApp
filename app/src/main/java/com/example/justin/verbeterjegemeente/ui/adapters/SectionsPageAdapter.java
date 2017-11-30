@@ -1,4 +1,4 @@
-package com.example.justin.verbeterjegemeente.Adapters;
+package com.example.justin.verbeterjegemeente.ui.adapters;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;

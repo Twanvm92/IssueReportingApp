@@ -1,7 +1,6 @@
-package com.example.justin.verbeterjegemeente.Presentation.Stepper.StepCreateServiceRequest;
+package com.example.justin.verbeterjegemeente.ui.Stepper.StepCreateServiceRequest;
 
 import android.content.Context;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -13,8 +12,6 @@ import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.dagger2.Injectable;
 import com.stepstone.stepper.Step;
 import com.stepstone.stepper.VerificationError;
-
-import dagger.android.support.AndroidSupportInjection;
 
 public class StepCreateServiceRequestFragment extends Fragment implements Step, Injectable{
     @Override

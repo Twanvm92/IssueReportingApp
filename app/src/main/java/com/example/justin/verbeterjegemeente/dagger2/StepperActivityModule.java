@@ -1,6 +1,6 @@
 package com.example.justin.verbeterjegemeente.dagger2;
 
-import com.example.justin.verbeterjegemeente.Presentation.Stepper.StepperActivity;
+import com.example.justin.verbeterjegemeente.ui.Stepper.StepperActivity;
 
 import dagger.Module;
 import dagger.android.ContributesAndroidInjector;

@@ -19,7 +19,7 @@
         android:theme="@style/AppTheme"
         android:name=".app.ServiceRequestApplication">
         <activity
-            android:name=".Presentation.SplashScreen"
+            android:name=".ui.SplashScreen"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -28,7 +28,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".Presentation.MainActivity"
+            android:name=".ui.MainActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:theme="@style/AppTheme.Main" />
 
@@ -38,7 +38,7 @@
             />
 
         <activity
-            android:name=".Presentation.MapsActivity"
+            android:name=".ui.MapsActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/title_activity_maps"
             android:theme="@style/AppTheme.NoActionBar" />
@@ -46,20 +46,20 @@
         <uses-library android:name="com.google.android.maps" />
 
         <activity
-            android:name=".Presentation.FollowingActivity"
+            android:name=".ui.FollowingActivity"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
-            android:name=".Presentation.MeldingActivity"
+            android:name=".ui.MeldingActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:theme="@style/AppTheme.Meldingscherm" />
         <activity
-            android:name=".Presentation.DetailedMeldingActivity"
+            android:name=".ui.DetailedMeldingActivity"
             android:theme="@style/AppTheme.NoActionBar" />
 
         <service android:name=".app.UpdateService" />
 
         <activity
-            android:name=".Presentation.Stepper.StepperActivity"
+            android:name=".ui.Stepper.StepperActivity"
             android:label="@string/title_activity_stepper"
             android:theme="@style/AppTheme.NoActionBar"/>
     </application>

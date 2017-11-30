@@ -1,11 +1,11 @@
-package com.example.justin.verbeterjegemeente.Presentation;
+package com.example.justin.verbeterjegemeente.ui;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
-import com.example.justin.verbeterjegemeente.Presentation.Stepper.StepperActivity;
+import com.example.justin.verbeterjegemeente.ui.Stepper.StepperActivity;
 import com.example.justin.verbeterjegemeente.R;
 
 import java.util.Locale;

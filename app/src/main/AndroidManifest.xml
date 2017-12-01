@@ -61,7 +61,7 @@
         <activity
             android:name=".ui.Stepper.StepperActivity"
             android:label="@string/title_activity_stepper"
-            android:theme="@style/AppTheme.NoActionBar"/>
+            android:theme="@style/AppTheme.Stepper"/>
     </application>
 
 </manifest>

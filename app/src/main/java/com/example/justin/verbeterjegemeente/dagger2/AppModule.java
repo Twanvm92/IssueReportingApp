@@ -28,16 +28,6 @@ public class AppModule {
 
     private static final String NAME_BASE_URL = "BREDA_API";
 
-//    public AppModule(Application application) {
-//        this.application = application;
-//    }
-
-//    @Provides
-//    @Singleton
-//    public Context provideContext() {
-//        return application;
-//    }
-
     @Provides
     Context provideContext(ServiceRequestApplication application) {
         return application.getApplicationContext();

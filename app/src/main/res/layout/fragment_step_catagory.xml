@@ -17,14 +17,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_marginTop="50dp">
+        >
 
         <TextView
             android:id="@+id/fragmentStepCatagory_tv_mainCatagory"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="5dp"
-            android:text="@string/hoofdcategorieTab2" />
+            android:text="@string/hoofdcategorieTab2"
+            android:layout_marginTop="50dp"
+            android:layout_marginBottom="5dp"/>
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -65,6 +67,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="5dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="5dp"
             android:text="@string/subcategorieTab2" />
 
         <RelativeLayout

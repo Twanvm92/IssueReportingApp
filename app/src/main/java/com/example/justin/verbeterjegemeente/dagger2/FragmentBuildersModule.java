@@ -1,6 +1,8 @@
 package com.example.justin.verbeterjegemeente.dagger2;
 
 import com.example.justin.verbeterjegemeente.ui.Stepper.StepCatagory.StepCatagoryFragment;
+import com.example.justin.verbeterjegemeente.ui.Stepper.StepCreateServiceRequest.StepCreateServiceRequestFragment;
+import com.example.justin.verbeterjegemeente.ui.Stepper.StepLocation.StepLocationFragment;
 
 import dagger.Module;
 import dagger.android.ContributesAndroidInjector;
@@ -12,6 +14,12 @@ import dagger.android.ContributesAndroidInjector;
 @Module
 public abstract class FragmentBuildersModule {
     @ContributesAndroidInjector
-    abstract StepCatagoryFragment contributeProjectFragment();
+    abstract StepCatagoryFragment stepCatagoryFragment();
+
+    @ContributesAndroidInjector
+    abstract StepCreateServiceRequestFragment stepCreateServiceRequestFragment();
+
+    @ContributesAndroidInjector
+    abstract StepLocationFragment stepLocationFragment();
 
 }

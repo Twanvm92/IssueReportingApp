@@ -13,9 +13,12 @@ import android.arch.persistence.room.Query;
 public interface ServiceDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void bulkInsert(ServiceEntry... weather);
+    void bulkInsert(ServiceEntry... serviceEntries);
 
     @Query("SELECT * FROM service")
     ServiceEntry getAllServices();
+
+    @Query("DELETE FROM service")
+    void deleteAllServices();
 
 }

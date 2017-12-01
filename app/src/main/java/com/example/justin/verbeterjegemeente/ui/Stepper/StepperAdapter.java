@@ -6,6 +6,7 @@ import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentManager;
 
+import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.ui.Stepper.StepCatagory.StepCatagoryFragment;
 import com.example.justin.verbeterjegemeente.ui.Stepper.StepCreateServiceRequest.StepCreateServiceRequestFragment;
 import com.example.justin.verbeterjegemeente.ui.Stepper.StepLocation.StepLocationFragment;
@@ -45,9 +46,24 @@ public class StepperAdapter extends AbstractFragmentStepAdapter {
     @NonNull
     @Override
     public StepViewModel getViewModel(@IntRange(from = 0) int position) {
+        StepViewModel.Builder builder = new StepViewModel.Builder(context);
+        switch (position) {
+            case 0:
+                String catagory = context.getResources().getString(R.string.catagory);
+                builder.setTitle(catagory);
+                break;
+            case 1:
+                String location = context.getResources().getString(R.string.activityMain_item_gps);
+                builder.setTitle(location);
+                break;
+            case 2:
+                String request = context.getResources().getString(R.string.request);
+                builder.setTitle(request);
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported position: " + position);
+        }
+        return builder.create();
         //Override this method to set Step title for the Tabs, not necessary for other stepper types
-        return new StepViewModel.Builder(context)
-                .setTitle("yello") //can be a CharSequence instead
-                .create();
     }
 }

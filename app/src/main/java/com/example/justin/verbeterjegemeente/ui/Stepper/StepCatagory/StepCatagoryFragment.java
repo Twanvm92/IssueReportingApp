@@ -36,12 +36,6 @@ import butterknife.BindView;
 
 
 public class StepCatagoryFragment extends Fragment implements Step, Injectable {
-    @BindView(R.id.StepCatagoryFragment_sp_MainCatagory)
-    Spinner mainCatagorySpinner;
-
-    @BindView(R.id.StepCatagoryFragment_sp_SubCatagory)
-    Spinner subCatagorySpinner;
-
     private FragmentStepCatagoryBinding mBinding;
 
     @Inject
@@ -97,8 +91,6 @@ public class StepCatagoryFragment extends Fragment implements Step, Injectable {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-
     }
 
     @Override
@@ -121,6 +113,8 @@ public class StepCatagoryFragment extends Fragment implements Step, Injectable {
     public void onError(@NonNull VerificationError error) {
         //handle error inside of the fragment, e.g. show error on EditText
     }
+
+
 
     private final OnMainCatagorySelectedCallback mainCatagorySelectedCallback = new OnMainCatagorySelectedCallback() {
         @Override

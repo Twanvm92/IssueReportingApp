@@ -10,7 +10,10 @@
     <color name="colorBackground2">#616161</color>
     <color name="colorBackgroundUnread">#909090</color>
     <color name="mooiGroen">#FF6FDA7F</color>
+    <color name="green500">#4CAF50</color>
     <color name="white">#ffffff</color>
+    <color name="lightwhite">#F5F5F5</color>
+    <color name="gray">#EEEEEE</color>
     <color name="black">#000000</color>
     <color name="grijs">#ECF0F1</color>
     <color name="colorUnreadServiceRequest">#99ff99</color>

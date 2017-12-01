@@ -49,11 +49,6 @@ public class StepCatagoryFragment extends Fragment implements Step, Injectable {
 
     private ServiceListViewModel viewModel;
 
-    ArrayAdapter<StringWithTag> catagoryAdapter;
-    ArrayAdapter<String> subCategoryAdapter;
-    private List<String> catagoryList;
-    private ArrayList<String> subCategoryList;
-    private List<Service> serviceList = new ArrayList<>();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -63,55 +58,6 @@ public class StepCatagoryFragment extends Fragment implements Step, Injectable {
         mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_step_catagory, container, false);
 
         mBinding.setOnMainCatagorySelectedCallback(mainCatagorySelectedCallback);
-
-        mBinding.StepCatagoryFragmentSpMainCatagory.setAdapter(new ArrayAdapter<StringWithTag>(getActivity(),
-                R.layout.spinner_item) {
-            @Override
-            //pakt de positions van elements in catagoryList en disabled the element dat postion null staat zodat we het kunnen gebruiken als een hint.
-            public boolean isEnabled(int position) {
-                if (position == 0) {
-                    return false;
-                } else {
-                    return true;
-                }
-            }
-        });
-
-        mBinding.StepCatagoryFragmentSpSubCatagory.setAdapter(new ArrayAdapter<StringWithTag>(getActivity(),
-                R.layout.spinner_item) {
-            @Override
-            //pakt de positions van elements in catagoryList en disabled the element dat postion null staat zodat we het kunnen gebruiken als een hint.
-            public boolean isEnabled(int position) {
-                if (position == 0) {
-                    return false;
-                } else {
-                    return true;
-                }
-            }
-        });
-
-
-        //initialize your UI
-//        setupCategorySpinner();
-//        setupSubCategorySpinner();
-
-//        mBinding.StepCatagoryFragmentSpMainCatagory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-//            @Override
-//            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-////                fillSubCategorySpinner(parent);
-//                // reset the selected sub catagory to the default one everytime
-//                // a new catagory is selected
-////                if (position != 0) {
-////                    subCatagorySpinner.setSelection(0);
-////                }
-//            }
-//
-//            @Override
-//            public void onNothingSelected(AdapterView<?> parent) {
-//                // something is always selected...also by default
-//            }
-//        });
-
 
         return mBinding.getRoot();
     }
@@ -136,7 +82,6 @@ public class StepCatagoryFragment extends Fragment implements Step, Injectable {
         // Update the list when the data changes
         viewModel.getServiceListObservable().observe(this, services -> {
             if (services != null) {
-                serviceList = services;
 
                 viewModel.setMainCatagories(services);
 
@@ -176,57 +121,6 @@ public class StepCatagoryFragment extends Fragment implements Step, Injectable {
     public void onError(@NonNull VerificationError error) {
         //handle error inside of the fragment, e.g. show error on EditText
     }
-
-    /**
-     * Setup a spinner that will hold the main categories taken from the services provided
-     * by an open311 Interface.
-     */
-    public void setupCategorySpinner() {
-//        // create an arraylist that will contain different categories fetched from an open311 interface
-//        catagoryList = new ArrayList<String>();
-//        // add a default item for the spinner
-//        catagoryList.add(getResources().getString(R.string.kiesProblemen));
-//        catagoryAdapter = new ArrayAdapter<StringWithTag>(getActivity(),
-//                android.R.layout.simple_spinner_item) {
-//            @Override
-//            //pakt de positions van elements in catagoryList en disabled the element dat postion null staat zodat we het kunnen gebruiken als een hint.
-//            public boolean isEnabled(int position) {
-//                if (position == 0) {
-//                    return false;
-//                } else {
-//                    return true;
-//                }
-//            }
-//        };
-//        catagoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-//        mainCatagorySpinner.setAdapter(catagoryAdapter);
-    }
-
-    /**
-     * Setup a spinner that will hold the sub categories taken from the services provided
-     * by an open311 Interface.
-     */
-    public void setupSubCategorySpinner() {
-        // create an arraylist that will contain different sub categories fetched from an open311 interface
-        subCategoryList = new ArrayList<String>();
-        // add a default item for the spinner
-        subCategoryList.add(getResources().getString(R.string.kiesSubProblemen));
-        subCategoryAdapter = new ArrayAdapter<String>(getActivity(),
-                android.R.layout.simple_spinner_item, subCategoryList) {
-            @Override
-            //pakt de positions van elements in subCatagoryList en disabled the element dat postion null staat zodat we het kunnen gebruiken als een hint.
-            public boolean isEnabled(int position) {
-                if (position == 0) {
-                    return false;
-                } else {
-                    return true;
-                }
-            }
-        };
-        subCategoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        subCatagorySpinner.setAdapter(subCategoryAdapter);
-    }
-
 
     private final OnMainCatagorySelectedCallback mainCatagorySelectedCallback = new OnMainCatagorySelectedCallback() {
         @Override

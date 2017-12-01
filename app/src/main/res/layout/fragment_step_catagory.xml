@@ -11,75 +11,20 @@
             type="com.example.justin.verbeterjegemeente.viewModel.ServiceListViewModel"/>
     </data>
 
-    <!--<android.support.constraint.ConstraintLayout-->
-        <!--android:layout_width="fill_parent"-->
-        <!--android:layout_height="wrap_content">-->
-
-
-            <!--&lt;!&ndash; TODO: Update blank fragment layout &ndash;&gt;-->
-
-
-        <!--<Spinner-->
-            <!--android:id="@+id/StepCatagoryFragment_sp_SubCatagory"-->
-            <!--style="@style/AppTheme"-->
-            <!--android:layout_width="0dp"-->
-            <!--android:layout_height="30dp"-->
-            <!--android:layout_centerVertical="true"-->
-            <!--android:layout_gravity="center"-->
-            <!--android:layout_marginEnd="8dp"-->
-            <!--android:layout_marginStart="8dp"-->
-            <!--android:layout_marginTop="32dp"-->
-            <!--android:gravity="center"-->
-            <!--android:paddingBottom="15dp"-->
-            <!--android:paddingTop="15dp"-->
-            <!--android:spinnerMode="dropdown"-->
-            <!--android:textSize="20sp"-->
-            <!--app:layout_constraintEnd_toEndOf="parent"-->
-            <!--app:layout_constraintStart_toStartOf="parent"-->
-            <!--app:layout_constraintTop_toBottomOf="@+id/StepCatagoryFragment_sp_MainCatagory"-->
-            <!--android:entries="@{viewModel.subCatagories}"-->
-
-            <!--/>-->
-
-        <!--<Spinner-->
-            <!--android:id="@+id/StepCatagoryFragment_sp_MainCatagory"-->
-            <!--style="@style/AppTheme"-->
-            <!--android:layout_width="0dp"-->
-            <!--android:layout_height="30dp"-->
-            <!--android:layout_centerVertical="true"-->
-            <!--android:layout_gravity="center"-->
-            <!--android:layout_marginEnd="8dp"-->
-            <!--android:layout_marginStart="8dp"-->
-            <!--android:layout_marginTop="150dp"-->
-            <!--android:gravity="center"-->
-            <!--android:paddingBottom="15dp"-->
-            <!--android:paddingTop="15dp"-->
-            <!--android:spinnerMode="dropdown"-->
-            <!--android:textSize="20sp"-->
-            <!--app:layout_constraintEnd_toEndOf="parent"-->
-            <!--app:layout_constraintStart_toStartOf="parent"-->
-            <!--app:layout_constraintTop_toTopOf="parent"-->
-            <!--android:onItemSelected="@{(p, v, pos, id) -> onMainCatagorySelectedCallback.onItemSelected(p, v, pos, id)}"-->
-            <!--android:entries="@{viewModel.mainCatagories}"-->
-            <!--/>-->
-
-
-
-    <!--</android.support.constraint.ConstraintLayout>-->
-
     <LinearLayout
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical" >
+        android:orientation="vertical"
+        android:layout_marginTop="50dp">
 
         <TextView
-            android:id="@+id/textView6"
+            android:id="@+id/fragmentStepCatagory_tv_mainCatagory"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="5dp"
-            android:text="TextView" />
+            android:text="@string/hoofdcategorieTab2" />
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -116,11 +61,11 @@
         </RelativeLayout>
 
         <TextView
-            android:id="@+id/textView7"
+            android:id="@+id/fragmentStepCatagory_tv_subCatagory"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="5dp"
-            android:text="TextView" />
+            android:text="@string/subcategorieTab2" />
 
         <RelativeLayout
             android:layout_width="match_parent"

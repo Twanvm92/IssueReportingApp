@@ -14,18 +14,21 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 
 import com.example.justin.verbeterjegemeente.R;
+import com.example.justin.verbeterjegemeente.data.DataManager;
 import com.example.justin.verbeterjegemeente.ui.callbacks.OnMainCatagorySelectedCallback;
 import com.example.justin.verbeterjegemeente.app.utils.StringWithTag;
 import com.example.justin.verbeterjegemeente.di.Injectable;
 import com.example.justin.verbeterjegemeente.databinding.FragmentStepCatagoryBinding;
 import com.example.justin.verbeterjegemeente.viewModel.ServiceListViewModel;
+import com.stepstone.stepper.BlockingStep;
 import com.stepstone.stepper.Step;
+import com.stepstone.stepper.StepperLayout;
 import com.stepstone.stepper.VerificationError;
 
 import javax.inject.Inject;
 
 
-public class StepCatagoryFragment extends Fragment implements Step, Injectable {
+public class StepCatagoryFragment extends Fragment implements BlockingStep, Injectable {
     private FragmentStepCatagoryBinding mBinding;
 
     @Inject
@@ -33,6 +36,9 @@ public class StepCatagoryFragment extends Fragment implements Step, Injectable {
 
     private ServiceListViewModel viewModel;
 
+    private DataManager dataManager;
+    private String serviceCode;
+    private final String TAG = "StepCatagoryFragment: ";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -78,6 +84,11 @@ public class StepCatagoryFragment extends Fragment implements Step, Injectable {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        if (context instanceof DataManager) {
+            dataManager = (DataManager) context;
+        } else {
+            throw new IllegalStateException("Activity must implement DataManager interface!");
+        }
     }
 
     @Override
@@ -95,14 +106,32 @@ public class StepCatagoryFragment extends Fragment implements Step, Injectable {
 
     @Override
     public void onSelected() {
-        //update UI when selected
+        // update ui when selected
+    }
+
+    @Override
+    public void onNextClicked(final StepperLayout.OnNextClickedCallback callback) {
+        StringWithTag s = (StringWithTag) mBinding.StepCatagoryFragmentSpSubCatagory.getSelectedItem();
+        String serviceCode = (String) s.tag;
+
+        dataManager.saveData(serviceCode);
+        callback.goToNextStep();
+    }
+
+    @Override
+    public void onCompleteClicked(StepperLayout.OnCompleteClickedCallback callback) {
+        callback.complete();
+    }
+
+    @Override
+    public void onBackClicked(StepperLayout.OnBackClickedCallback callback) {
+        callback.goToPrevStep();
     }
 
     @Override
     public void onError(@NonNull VerificationError error) {
         //handle error inside of the fragment, e.g. show error on EditText
     }
-
 
 
     private final OnMainCatagorySelectedCallback mainCatagorySelectedCallback = new OnMainCatagorySelectedCallback() {

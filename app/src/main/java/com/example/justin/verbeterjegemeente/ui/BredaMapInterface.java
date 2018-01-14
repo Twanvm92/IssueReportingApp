@@ -81,16 +81,16 @@ public class BredaMapInterface {
     }
 
     // TODO: 27-8-2017 add javadoc
-    interface OnCameraChangedListener {
+    public interface OnCameraChangedListener {
         void onListenToCameraChanged(Coordinates CameraCoordinates);
     }
 
     // TODO: 27-8-2017 add javadoc
-    interface OnMarkedLocationListener {
+    public interface OnMarkedLocationListener {
         void onMarkedLocation(LatLng userChosenLocation);
     }
 
-    interface OnPageFullyLoadedListener {
+    public interface OnPageFullyLoadedListener {
         void onPageFullyLoaded();
     }
 

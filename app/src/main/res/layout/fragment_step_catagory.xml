@@ -1,4 +1,4 @@
-<layout xmlns:tools="http://schemas.android.com/tools"
+<layout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
    >
@@ -49,8 +49,8 @@
                 android:gravity="center"
                 android:layout_marginLeft="5dp"
                 android:spinnerMode="dropdown"
-                android:onItemSelected="@{(p, v, pos, id) -> onMainCatagorySelectedCallback.onItemSelected(p, v, pos, id)}"
-                android:entries="@{viewModel.mainCatagories}"/>
+                android:onItemSelected="@{(p, v, pos, id) -> viewModel.onItemSelected(p, v, pos, id)}"
+                android:entries="@{viewModel.mainCatagories}" />
 
             <ImageView
                 android:layout_width="wrap_content"

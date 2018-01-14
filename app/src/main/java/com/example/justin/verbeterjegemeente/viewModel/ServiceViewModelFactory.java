@@ -29,6 +29,7 @@ public class ServiceViewModelFactory implements ViewModelProvider.Factory  {
 
         // View models cannot be injected directly because they won't be bound to the owner's view model scope.
         creators.put(ServiceListViewModel.class, () -> viewModelSubComponent.serviceListViewModel());
+        creators.put(ServiceRequestListViewModel.class, () -> viewModelSubComponent.serviceRequestListViewModel());
     }
 
     @Override

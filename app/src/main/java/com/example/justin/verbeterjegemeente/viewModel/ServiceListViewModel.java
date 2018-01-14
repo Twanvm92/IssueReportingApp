@@ -6,6 +6,7 @@ import android.arch.lifecycle.LiveData;
 import android.databinding.ObservableArrayList;
 import android.databinding.ObservableField;
 import android.support.annotation.NonNull;
+import android.view.View;
 import android.widget.AdapterView;
 
 import com.example.justin.verbeterjegemeente.R;
@@ -13,6 +14,7 @@ import com.example.justin.verbeterjegemeente.app.utils.StringWithTag;
 import com.example.justin.verbeterjegemeente.data.database.ServiceEntry;
 import com.example.justin.verbeterjegemeente.service.model.Service;
 import com.example.justin.verbeterjegemeente.service.repositories.ServicesRepository;
+import com.example.justin.verbeterjegemeente.ui.callbacks.OnMainCatagorySelectedCallback;
 
 import java.util.List;
 
@@ -22,7 +24,7 @@ import javax.inject.Inject;
  * Created by twanv on 26-11-2017.
  */
 
-public class ServiceListViewModel extends AndroidViewModel {
+public class ServiceListViewModel extends AndroidViewModel implements OnMainCatagorySelectedCallback {
     private final LiveData<List<ServiceEntry>> serviceListObservable;
     public final ObservableArrayList<String> mainCatagories = new ObservableArrayList<>();
     public final ObservableArrayList<StringWithTag> subCatagories = new ObservableArrayList<>();
@@ -37,6 +39,7 @@ public class ServiceListViewModel extends AndroidViewModel {
         serviceListObservable = servicesRepository.getCurrentServiceList();
         mainCatagories.add(getApplication().getResources().getString(R.string.kiesSubProblemen));
         subCatagories.add(new StringWithTag(getApplication().getResources().getString(R.string.kiesSubProblemen), null));
+        text.set("hello");
 
     }
 
@@ -79,7 +82,10 @@ public class ServiceListViewModel extends AndroidViewModel {
                 }
             }
         }
+    }
 
-
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        fillSubCategorySpinner(parent);
     }
 }

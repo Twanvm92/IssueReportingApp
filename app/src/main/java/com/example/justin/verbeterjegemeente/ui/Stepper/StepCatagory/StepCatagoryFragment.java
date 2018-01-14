@@ -37,17 +37,14 @@ public class StepCatagoryFragment extends Fragment implements BlockingStep, Inje
     private ServiceListViewModel viewModel;
 
     private DataManager dataManager;
-    private String serviceCode;
     private final String TAG = "StepCatagoryFragment: ";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-//        ButterKnife.bind(this, v);
-
         mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_step_catagory, container, false);
 
-        mBinding.setOnMainCatagorySelectedCallback(mainCatagorySelectedCallback);
+//        mBinding.setOnMainCatagorySelectedCallback(mainCatagorySelectedCallback);
 
         return mBinding.getRoot();
     }
@@ -134,13 +131,13 @@ public class StepCatagoryFragment extends Fragment implements BlockingStep, Inje
     }
 
 
-    private final OnMainCatagorySelectedCallback mainCatagorySelectedCallback = new OnMainCatagorySelectedCallback() {
-        @Override
-        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-            viewModel.fillSubCategorySpinner(parent);
-
-        }
-    };
+//    private final OnMainCatagorySelectedCallback mainCatagorySelectedCallback = new OnMainCatagorySelectedCallback() {
+//        @Override
+//        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+//            viewModel.fillSubCategorySpinner(parent);
+//
+//        }
+//    };
 
 
 }

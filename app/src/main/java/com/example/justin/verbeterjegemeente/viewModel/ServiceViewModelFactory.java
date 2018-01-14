@@ -4,7 +4,7 @@ import android.arch.lifecycle.ViewModel;
 import android.arch.lifecycle.ViewModelProvider;
 import android.support.v4.util.ArrayMap;
 
-import com.example.justin.verbeterjegemeente.dagger2.ViewModelSubComponent;
+import com.example.justin.verbeterjegemeente.di.ViewModelSubComponent;
 
 
 import java.util.Map;

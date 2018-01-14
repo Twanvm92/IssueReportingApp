@@ -3,6 +3,7 @@ package com.example.justin.verbeterjegemeente.service.model;
 import android.util.Log;
 
 import com.example.justin.verbeterjegemeente.app.utils.StringWithTag;
+import com.example.justin.verbeterjegemeente.data.database.ServiceEntry;
 import com.example.justin.verbeterjegemeente.data.network.ServiceClient;
 
 import java.util.ArrayList;
@@ -38,7 +39,7 @@ public class Service {
      *
      * @see Service
      */
-    public static List<String> genMainCategories(List<Service> serviceL) {
+    public static List<String> genMainCategories(List<ServiceEntry> serviceL) {
 
         List<String> catagoryList = new ArrayList<>();
         int x = 1; // set iterable separately for categoryList

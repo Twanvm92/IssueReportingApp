@@ -2,8 +2,7 @@ package com.example.justin.verbeterjegemeente.app;
 import android.app.Activity;
 import android.app.Application;
 
-import com.example.justin.verbeterjegemeente.dagger2.AppInjector;
-import com.example.justin.verbeterjegemeente.dagger2.DaggerAppComponent;
+import com.example.justin.verbeterjegemeente.di.AppInjector;
 
 
 import javax.inject.Inject;
@@ -21,33 +20,11 @@ public class ServiceRequestApplication extends Application implements HasActivit
     @Inject
     DispatchingAndroidInjector<Activity> dispatchingAndroidInjector;
 
-//    private AppComponent appComponent;
-
-//    public static AppComponent getAppComponent(Context context) {
-//
-//        return ((ServiceRequestApplication) context.getApplicationContext()).appComponent;
-//    }
-
-//    protected AppComponent initDagger(ServiceRequestApplication application) {
-//        return DaggerAppComponent.builder()
-//                .appModule(new AppModule(application))
-//                .networkModule(new NetworkModule())
-//                .presenterModule(new PresenterModule())
-//                .build();
-//    }
-
     @Override
     public void onCreate() {
         super.onCreate();
 
         AppInjector.init(this);
-
-//        DaggerAppComponent
-//                .builder()
-//                .application(this)
-//                .build()
-//                .inject(this);
-//        appComponent = initDagger(this);
     }
 
     @Override

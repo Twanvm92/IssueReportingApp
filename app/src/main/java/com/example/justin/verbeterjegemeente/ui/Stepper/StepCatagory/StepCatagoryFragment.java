@@ -4,7 +4,6 @@ import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.databinding.DataBindingUtil;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -13,26 +12,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Spinner;
-import android.widget.TextView;
 
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.ui.callbacks.OnMainCatagorySelectedCallback;
 import com.example.justin.verbeterjegemeente.app.utils.StringWithTag;
-import com.example.justin.verbeterjegemeente.dagger2.Injectable;
+import com.example.justin.verbeterjegemeente.di.Injectable;
 import com.example.justin.verbeterjegemeente.databinding.FragmentStepCatagoryBinding;
-import com.example.justin.verbeterjegemeente.service.model.Service;
 import com.example.justin.verbeterjegemeente.viewModel.ServiceListViewModel;
 import com.stepstone.stepper.Step;
 import com.stepstone.stepper.VerificationError;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.inject.Inject;
-
-import butterknife.BindView;
 
 
 public class StepCatagoryFragment extends Fragment implements Step, Injectable {
@@ -67,9 +57,6 @@ public class StepCatagoryFragment extends Fragment implements Step, Injectable {
 
         mBinding.setViewModel(viewModel);
 
-
-
-//        ServiceRequestApplication.getAppComponent(getActivity()).inject(this);
     }
 
     private void observeViewModel(ServiceListViewModel viewModel) {
@@ -78,11 +65,6 @@ public class StepCatagoryFragment extends Fragment implements Step, Injectable {
             if (services != null) {
 
                 viewModel.setMainCatagories(services);
-
-//                catagoryList = Service.genMainCategories(services);
-//
-//                // let the adapter know that data has changed
-//                catagoryAdapter.notifyDataSetChanged();
 
             }
         });
@@ -101,7 +83,14 @@ public class StepCatagoryFragment extends Fragment implements Step, Injectable {
     @Override
     public VerificationError verifyStep() {
         //return null if the user can go to the next step, create a new VerificationError instance otherwise
-        return null;
+
+        StringWithTag s = (StringWithTag) mBinding.StepCatagoryFragmentSpSubCatagory.getSelectedItem();
+
+        if (s.tag != null) {
+            return null;
+        } else {
+            return new VerificationError("Please select a sub catagory!");
+        }
     }
 
     @Override

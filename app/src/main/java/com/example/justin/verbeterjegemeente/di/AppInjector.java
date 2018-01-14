@@ -1,4 +1,4 @@
-package com.example.justin.verbeterjegemeente.dagger2;
+package com.example.justin.verbeterjegemeente.di;
 
 import android.app.Activity;
 import android.app.Application;
@@ -22,7 +22,10 @@ public class AppInjector {
     private AppInjector() {}
 
     public static void init(ServiceRequestApplication serviceRequestApplication) {
-        DaggerAppComponent.builder().application(serviceRequestApplication)
+        DaggerAppComponent.builder().appModule(new AppModule()).networkModule(new NetworkModule())
+                .roomModule(new RoomModule(serviceRequestApplication))
+                .executorsModule(new ExecutorsModule())
+                .application(serviceRequestApplication)
                 .build().inject(serviceRequestApplication);
 
         serviceRequestApplication

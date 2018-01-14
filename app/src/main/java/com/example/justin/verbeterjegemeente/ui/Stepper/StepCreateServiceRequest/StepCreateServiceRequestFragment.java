@@ -9,7 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.justin.verbeterjegemeente.R;
-import com.example.justin.verbeterjegemeente.dagger2.Injectable;
+import com.example.justin.verbeterjegemeente.di.Injectable;
 import com.stepstone.stepper.Step;
 import com.stepstone.stepper.VerificationError;
 

@@ -1,13 +1,7 @@
-package com.example.justin.verbeterjegemeente.dagger2;
-
-import android.app.Application;
-import android.arch.lifecycle.ViewModelProvider;
-import android.content.Context;
+package com.example.justin.verbeterjegemeente.di;
 
 import com.example.justin.verbeterjegemeente.app.Constants;
-import com.example.justin.verbeterjegemeente.app.ServiceRequestApplication;
 import com.example.justin.verbeterjegemeente.data.network.ServiceClient;
-import com.example.justin.verbeterjegemeente.viewModel.ServiceViewModelFactory;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -19,19 +13,11 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
- * Created by twanv on 16-10-2017.
+ * Created by twanv on 17-12-2017.
  */
-
-@Module(subcomponents = ViewModelSubComponent.class)
-public class AppModule {
-//    private Application application;
-
+@Module
+public class NetworkModule {
     private static final String NAME_BASE_URL = "BREDA_API";
-
-    @Provides
-    Context provideContext(ServiceRequestApplication application) {
-        return application.getApplicationContext();
-    }
 
     @Provides
     @Named(NAME_BASE_URL)
@@ -58,13 +44,5 @@ public class AppModule {
     @Singleton
     ServiceClient provideServiceClient(Retrofit retrofit) {
         return retrofit.create(ServiceClient.class);
-    }
-
-    @Singleton
-    @Provides
-    ViewModelProvider.Factory provideViewModelFactory(
-            ViewModelSubComponent.Builder viewModelSubComponent) {
-
-        return new ServiceViewModelFactory(viewModelSubComponent.build());
     }
 }

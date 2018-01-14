@@ -1,4 +1,4 @@
-package com.example.justin.verbeterjegemeente.dagger2;
+package com.example.justin.verbeterjegemeente.di;
 
 import android.app.Application;
 
@@ -15,15 +15,18 @@ import dagger.android.support.AndroidSupportInjectionModule;
  */
 
 @Singleton
-@Component(modules = {AppModule.class, StepperActivityModule.class, AndroidSupportInjectionModule.class})
+@Component(modules = {AppModule.class, NetworkModule.class, RoomModule.class, StepperActivityModule.class, AndroidSupportInjectionModule.class})
 public interface AppComponent {
-//    void inject(StepCatagoryFragment target);
 
     @Component.Builder
     interface Builder {
         @BindsInstance
         Builder application(Application application);
         AppComponent build();
+        Builder appModule(AppModule appModule);
+        Builder roomModule(RoomModule roomModule);
+        Builder networkModule(NetworkModule networkModule);
+        Builder executorsModule(ExecutorsModule executorsModule);
     }
 
     void inject(ServiceRequestApplication app);

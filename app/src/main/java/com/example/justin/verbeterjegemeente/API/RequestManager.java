@@ -6,6 +6,7 @@ import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.app.Constants;
 import com.example.justin.verbeterjegemeente.R;
+import com.example.justin.verbeterjegemeente.data.database.ServiceEntry;
 import com.example.justin.verbeterjegemeente.service.model.PostServiceRequestResponse;
 import com.example.justin.verbeterjegemeente.service.model.Service;
 import com.example.justin.verbeterjegemeente.service.model.ServiceRequest;
@@ -59,25 +60,25 @@ public class RequestManager {
         try {
             if (ConnectionChecker.isConnected()) { // check if user is actually connected to the internet
                 // create a callback
-                Call<List<Service>> serviceCall = client.getServices(Constants.LANG_EN);
+                Call<List<ServiceEntry>> serviceCall = client.getServices(Constants.LANG_EN);
                 // fire the get request
-                serviceCall.enqueue(new Callback<List<Service>>() {
+                serviceCall.enqueue(new Callback<List<ServiceEntry>>() {
                     @Override
-                    public void onResponse(Call<List<Service>> call, Response<List<Service>> response) {
+                    public void onResponse(Call<List<ServiceEntry>> call, Response<List<ServiceEntry>> response) {
                         if(response.isSuccessful()) {
                             // if a response has been received create a list with Services with the responsebody
-                            List<Service> serviceList = response.body();
+                            List<ServiceEntry> serviceList = response.body();
                             Log.e("empty response: ", response.body().toString());
 
                             // test what services have been caught in the response
                             if (!serviceList.isEmpty()) {
-                                for (Service s : serviceList) {
+                                for (ServiceEntry s : serviceList) {
                                     Log.i("Response: ", "" + s.getService_name());
                                 }
 
                                 // let the activity/fragment that implemented the service callback
                                 // know that the services are ready.
-                                servCallb.servicesReady(serviceList);
+//                                servCallb.servicesReady(serviceList);
                             } else {
                                 Log.i("Response: ", "List was empty");
                             }
@@ -95,7 +96,7 @@ public class RequestManager {
                     }
 
                     @Override
-                    public void onFailure(Call<List<Service>> call, Throwable t) { // something went wrong
+                    public void onFailure(Call<List<ServiceEntry>> call, Throwable t) { // something went wrong
 
                         Toast.makeText(context, t.getMessage(), Toast.LENGTH_SHORT).show();
                     }

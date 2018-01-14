@@ -1,4 +1,4 @@
-package com.example.justin.verbeterjegemeente.dagger2;
+package com.example.justin.verbeterjegemeente.di;
 
 /**
  * Created by twanv on 26-11-2017.

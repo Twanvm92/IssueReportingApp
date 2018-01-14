@@ -1,5 +1,6 @@
 package com.example.justin.verbeterjegemeente.data.network;
 
+import com.example.justin.verbeterjegemeente.data.database.ServiceEntry;
 import com.example.justin.verbeterjegemeente.service.model.PostServiceRequestResponse;
 import com.example.justin.verbeterjegemeente.service.model.Service;
 import com.example.justin.verbeterjegemeente.service.model.ServiceRequest;
@@ -37,7 +38,7 @@ public interface ServiceClient {
 
     @GET ("services.json")
 
-    Call<List<Service>> getServices(@Query("locale") String Language);
+    Call<List<ServiceEntry>> getServices(@Query("locale") String Language);
 
 
 

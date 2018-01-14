@@ -1,4 +1,4 @@
-package com.example.justin.verbeterjegemeente.dagger2;
+package com.example.justin.verbeterjegemeente.di;
 
 import com.example.justin.verbeterjegemeente.ui.Stepper.StepperActivity;
 

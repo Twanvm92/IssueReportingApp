@@ -1,24 +1,27 @@
 package com.example.justin.verbeterjegemeente.ui.Stepper.StepLocation;
 
 import android.Manifest;
+import android.app.Activity;
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.databinding.DataBindingUtil;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
-import android.widget.ProgressBar;
-
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.app.Constants;
 import com.example.justin.verbeterjegemeente.data.DataManager;
@@ -30,16 +33,27 @@ import com.example.justin.verbeterjegemeente.ui.Tab1Fragment;
 import com.example.justin.verbeterjegemeente.viewModel.ServiceListViewModel;
 import com.example.justin.verbeterjegemeente.viewModel.ServiceRequestListViewModel;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResponse;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.stepstone.stepper.BlockingStep;
-import com.stepstone.stepper.Step;
 import com.stepstone.stepper.StepperLayout;
 import com.stepstone.stepper.VerificationError;
 
 import javax.inject.Inject;
+
+import static com.example.justin.verbeterjegemeente.app.Constants.REQUEST_CHECK_SETTINGS;
 
 
 public class StepLocationFragment extends Fragment implements BlockingStep, Injectable, GoogleApiClient.ConnectionCallbacks,
@@ -85,9 +99,23 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
         viewModel = ViewModelProviders.of(this,
                 viewModelFactory).get(ServiceRequestListViewModel.class);
 
+        observeViewModel(viewModel);
 
         mBinding.setViewModel(viewModel);
 
+    }
+
+    private void observeViewModel(ServiceRequestListViewModel viewModel) {
+        // Update the list when the data changes
+        viewModel.getServiceRequestListObservable().observe(this, serviceRequests -> {
+            if (serviceRequests != null) {
+
+                Log.i(TAG, "Service requests: " + serviceRequests.get(0).getDescription());
+
+//                viewModel.setMainCatagories(serviceRequests);
+
+            }
+        });
     }
 
     @Override
@@ -175,13 +203,116 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
         }
     }
 
-    @Override
-    public void onLocationChanged(Location location) {
+    /**
+     * Prompt the location settings of the users' phone.
+     * Will try to resolve the users' location settings if they are not satisfied.
+     * Will try to get users' last location if location settings are satisfied
+     */
+    public void promptLocationSettings() {
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(mLocationRequest);
 
+        SettingsClient client = LocationServices.getSettingsClient(getActivity());
+        Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
+        task.addOnSuccessListener(getActivity(), new OnSuccessListener<LocationSettingsResponse>() {
+            @Override
+            public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
+                getLastLocation();
+            }
+        });
+
+        task.addOnFailureListener(getActivity(), new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                int statusCode = ((ApiException) e).getStatusCode();
+                switch (statusCode) {
+                    case CommonStatusCodes.RESOLUTION_REQUIRED:
+                        // Location settings are not satisfied, but this can be fixed
+                        // by showing the user a dialoggg.
+                        try {
+                            // Show the dialoggg by calling startResolutionForResult(),
+                            // and check the result in onActivityResult().
+                            ResolvableApiException resolvable = (ResolvableApiException) e;
+                            resolvable.startResolutionForResult(getActivity(),
+                                    REQUEST_CHECK_SETTINGS);
+                        } catch (IntentSender.SendIntentException sendEx) {
+                            // Ignore the error.
+                        }
+                        break;
+                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                        // Location settings are not satisfied. However, we have no way
+                        // to fix the settings so we won't show the dialoggg.
+                        break;
+                }
+            }
+        });
     }
 
     @Override
-    public void onListenToCameraChanged(Coordinates CameraCoordinates) {
+    public void onLocationChanged(Location location) {
+        // after updated location is available, make sure that location services does not keep updating locations
+        LocationServices.FusedLocationApi.removeLocationUpdates(mApiClient, this);
+        Log.d(TAG, "updated location: " + location.toString());
+        LatLng locationCoords = new LatLng(location.getLatitude(), location.getLongitude());
+
+//        zoomToLocation(locationCoords);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case Constants.MY_PERMISSIONS_LOCATION: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // received permission from user to access fine location
+                    getLastLocation(); // location settings are already set so jump to getting last location
+                } else {
+                    if (ActivityCompat.shouldShowRequestPermissionRationale(getActivity(),Manifest.permission.ACCESS_FINE_LOCATION)) {
+                        // user has declined permission to access fine location at least once before
+                        new AlertDialog.Builder(getActivity()) // show user why getting access to fine location is important
+                                .setMessage(getResources().getText(R.string.eFineLocationPermissionExplain))
+                                .setCancelable(false)
+                                .setPositiveButton(getResources().getText(R.string.eImSure),
+                                        (dialog, id) -> {
+                                            // user decided not to give permission
+                                        })
+                                .setNegativeButton(getResources().getText(R.string.eRetry), (dialog, which) -> {
+                                    // user wants to try again
+                                    promptLocationSettings();
+                                })
+                                .show();
+                    } else { // user has not declined permission before
+                        Log.i(TAG, "Geen toestemming gekregen, eerste keer dat map geladen wordt default lat/long gepakt");
+                    }
+
+                }
+            }
+        }
+    }
+
+    // gets called after trying to resolve the users' location settings
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case REQUEST_CHECK_SETTINGS:
+                if (resultCode == Activity.RESULT_OK) {
+                    getLastLocation();
+                } else {
+                    new AlertDialog.Builder(this.getContext())
+                            .setTitle(getString(R.string.eFindLocationTitle))
+                            .setMessage(getString(R.string.eFindLocation))
+                            .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+
+                            }).setIcon(android.R.drawable.ic_dialog_alert).show();
+
+                }
+                Log.i(TAG, "Gps aanvraag afgewezen");
+        }
+    }
+
+    @Override
+    public void onListenToCameraChanged(Coordinates cameraCoordinates) {
 
     }
 

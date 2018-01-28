@@ -44,8 +44,6 @@ public class StepCatagoryFragment extends Fragment implements BlockingStep, Inje
 
         mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_step_catagory, container, false);
 
-//        mBinding.setOnMainCatagorySelectedCallback(mainCatagorySelectedCallback);
-
         return mBinding.getRoot();
     }
 
@@ -129,15 +127,6 @@ public class StepCatagoryFragment extends Fragment implements BlockingStep, Inje
     public void onError(@NonNull VerificationError error) {
         //handle error inside of the fragment, e.g. show error on EditText
     }
-
-
-//    private final OnMainCatagorySelectedCallback mainCatagorySelectedCallback = new OnMainCatagorySelectedCallback() {
-//        @Override
-//        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-//            viewModel.fillSubCategorySpinner(parent);
-//
-//        }
-//    };
 
 
 }

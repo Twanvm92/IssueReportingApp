@@ -55,7 +55,7 @@ public class ServicesRepository {
         }));
     }
 
-    public synchronized void initializeData() {
+    private synchronized void initializeData() {
 
         // Only perform initialization once per app lifetime. If initialization has already been
         // performed, we have nothing to do in this method.
@@ -71,7 +71,7 @@ public class ServicesRepository {
 
     }
 
-    void fetchServicesThroughNetwork() {
+    private void fetchServicesThroughNetwork() {
         serviceClient.getServices(Constants.LANG_EN).enqueue(new Callback<List<ServiceEntry>>() {
             @Override
             public void onResponse(Call<List<ServiceEntry>> call, Response<List<ServiceEntry>> response) {

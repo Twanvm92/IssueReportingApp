@@ -1,4 +1,4 @@
-package com.example.justin.verbeterjegemeente.ui.Stepper;
+package com.example.justin.verbeterjegemeente.ui.adapters;
 
 
 import android.content.Context;

@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.data.DataManager;
+import com.example.justin.verbeterjegemeente.ui.adapters.StepperAdapter;
 import com.stepstone.stepper.StepperLayout;
 
 import javax.inject.Inject;

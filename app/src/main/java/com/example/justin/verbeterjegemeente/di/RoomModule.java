@@ -6,6 +6,7 @@ import android.arch.persistence.room.Room;
 import com.example.justin.verbeterjegemeente.data.database.Database;
 import com.example.justin.verbeterjegemeente.data.database.ServiceDao;
 import com.example.justin.verbeterjegemeente.data.network.ServiceClient;
+import com.example.justin.verbeterjegemeente.service.repositories.ServiceRequestsRepository;
 import com.example.justin.verbeterjegemeente.service.repositories.ServicesRepository;
 
 import java.util.concurrent.Executor;
@@ -38,14 +39,21 @@ public class RoomModule {
 
     @Singleton
     @Provides
-    ServiceDao providesProductDao(Database database) {
+    ServiceDao providesServiceDao(Database database) {
         return database.serviceDao();
     }
 
     @Singleton
     @Provides
-    ServicesRepository productRepository(ServiceClient serviceClient, ServiceDao serviceDao,
-                                         Executor diskIO) {
+    ServicesRepository providesServiceRepository(ServiceClient serviceClient, ServiceDao serviceDao,
+                                                 Executor diskIO) {
         return new ServicesRepository(serviceClient, serviceDao, diskIO);
+    }
+
+    @Singleton
+    @Provides
+    ServiceRequestsRepository providesServiceRequestsRepository(ServiceClient serviceClient,
+                                                                Executor diskIO) {
+        return new ServiceRequestsRepository(serviceClient, diskIO);
     }
 }

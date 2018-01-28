@@ -28,18 +28,15 @@ public class ServiceListViewModel extends AndroidViewModel implements OnMainCata
     private final LiveData<List<ServiceEntry>> serviceListObservable;
     public final ObservableArrayList<String> mainCatagories = new ObservableArrayList<>();
     public final ObservableArrayList<StringWithTag> subCatagories = new ObservableArrayList<>();
-    private ObservableField<String> text;
 
     @Inject
     public ServiceListViewModel(@NonNull Application application, @NonNull ServicesRepository servicesRepository) {
         super(application);
 
-        text = new ObservableField<>();
         // If any transformation is needed, this can be simply done by Transformations class ...
         serviceListObservable = servicesRepository.getCurrentServiceList();
         mainCatagories.add(getApplication().getResources().getString(R.string.kiesSubProblemen));
         subCatagories.add(new StringWithTag(getApplication().getResources().getString(R.string.kiesSubProblemen), null));
-        text.set("hello");
 
     }
 
@@ -57,10 +54,6 @@ public class ServiceListViewModel extends AndroidViewModel implements OnMainCata
         }
 
         mainCatagories.addAll(Service.genMainCategories(services));
-    }
-
-    public ObservableField<String> getText() {
-        return text;
     }
 
     /**

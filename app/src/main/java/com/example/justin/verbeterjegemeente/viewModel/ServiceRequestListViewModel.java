@@ -56,7 +56,7 @@ public class ServiceRequestListViewModel extends AndroidViewModel {
     public void setBredaMapInterface() {
         bredaMapInterface.setValue(new BredaMapInterface(CameraCoordinates -> {
             url.postValue("javascript:Geomerk.Map.removeFeatures();");
-            Log.i(TAG, "coordinates: " + CameraCoordinates);
+            Log.i(TAG, "coordinates: " + CameraCoordinates.getLat());
             Log.i(TAG, "Service Requests have been removed from map");
         }));
     }
@@ -86,6 +86,8 @@ public class ServiceRequestListViewModel extends AndroidViewModel {
             }
         });
     }
+
+//    public void
 
     public LiveData<WebViewClient> getWebViewClient() {
         return webViewClient;

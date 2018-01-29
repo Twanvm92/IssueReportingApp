@@ -57,9 +57,8 @@ import static com.example.justin.verbeterjegemeente.app.Constants.REQUEST_CHECK_
 
 
 public class StepLocationFragment extends Fragment implements BlockingStep, Injectable, GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener, BredaMapInterface.OnMarkedLocationListener,
-        com.google.android.gms.location.LocationListener, BredaMapInterface.OnPageFullyLoadedListener,
-        BredaMapInterface.OnCameraChangedListener {
+        GoogleApiClient.OnConnectionFailedListener,
+        com.google.android.gms.location.LocationListener{
 
     @Inject
     ViewModelProvider.Factory viewModelFactory;
@@ -86,10 +85,7 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_step_location, container, false);
-
-
         return mBinding.getRoot();
-
     }
 
     @Override
@@ -100,8 +96,9 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
                 viewModelFactory).get(ServiceRequestListViewModel.class);
 
         observeViewModel(viewModel);
-
         mBinding.setViewModel(viewModel);
+
+        buildGoogleApiClient();
 
     }
 
@@ -116,11 +113,6 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
 
             }
         });
-    }
-
-    @Override
-    public void onPageFullyLoaded() {
-
     }
 
     @Override
@@ -149,7 +141,7 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-//        promptLocationSettings();
+        promptLocationSettings();
     }
 
     @Override
@@ -214,36 +206,28 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
 
         SettingsClient client = LocationServices.getSettingsClient(getActivity());
         Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
-        task.addOnSuccessListener(getActivity(), new OnSuccessListener<LocationSettingsResponse>() {
-            @Override
-            public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
-                getLastLocation();
-            }
-        });
+        task.addOnSuccessListener(getActivity(), locationSettingsResponse -> getLastLocation());
 
-        task.addOnFailureListener(getActivity(), new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                int statusCode = ((ApiException) e).getStatusCode();
-                switch (statusCode) {
-                    case CommonStatusCodes.RESOLUTION_REQUIRED:
-                        // Location settings are not satisfied, but this can be fixed
-                        // by showing the user a dialoggg.
-                        try {
-                            // Show the dialoggg by calling startResolutionForResult(),
-                            // and check the result in onActivityResult().
-                            ResolvableApiException resolvable = (ResolvableApiException) e;
-                            resolvable.startResolutionForResult(getActivity(),
-                                    REQUEST_CHECK_SETTINGS);
-                        } catch (IntentSender.SendIntentException sendEx) {
-                            // Ignore the error.
-                        }
-                        break;
-                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                        // Location settings are not satisfied. However, we have no way
-                        // to fix the settings so we won't show the dialoggg.
-                        break;
-                }
+        task.addOnFailureListener(getActivity(), e -> {
+            int statusCode = ((ApiException) e).getStatusCode();
+            switch (statusCode) {
+                case CommonStatusCodes.RESOLUTION_REQUIRED:
+                    // Location settings are not satisfied, but this can be fixed
+                    // by showing the user a dialoggg.
+                    try {
+                        // Show the dialoggg by calling startResolutionForResult(),
+                        // and check the result in onActivityResult().
+                        ResolvableApiException resolvable = (ResolvableApiException) e;
+                        resolvable.startResolutionForResult(getActivity(),
+                                REQUEST_CHECK_SETTINGS);
+                    } catch (IntentSender.SendIntentException sendEx) {
+                        // Ignore the error.
+                    }
+                    break;
+                case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                    // Location settings are not satisfied. However, we have no way
+                    // to fix the settings so we won't show the dialoggg.
+                    break;
             }
         });
     }
@@ -260,7 +244,7 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
+                                           @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
             case Constants.MY_PERMISSIONS_LOCATION: {
                 if (grantResults.length > 0
@@ -312,11 +296,6 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
     }
 
     @Override
-    public void onListenToCameraChanged(Coordinates cameraCoordinates) {
-
-    }
-
-    @Override
     public VerificationError verifyStep() {
         //return null if the user can go to the next step, create a new VerificationError instance otherwise
         return null;
@@ -345,11 +324,6 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
     @Override
     public void onBackClicked(StepperLayout.OnBackClickedCallback callback) {
         callback.goToPrevStep();
-    }
-
-    @Override
-    public void onMarkedLocation(LatLng userChosenLocation) {
-
     }
 
 }

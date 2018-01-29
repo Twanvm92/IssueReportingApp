@@ -201,11 +201,11 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
 
 
         StringBuilder buf = new StringBuilder();
-        InputStream json= null;
+        InputStream json;
         try {
             json = getActivity().getAssets().open("html/bredaKaart.html");
 
-            BufferedReader in= null;
+            BufferedReader in;
 
             in = new BufferedReader(new InputStreamReader(json, "UTF-8"));
             String str;

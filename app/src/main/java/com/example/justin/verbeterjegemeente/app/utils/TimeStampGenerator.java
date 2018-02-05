@@ -1,4 +1,4 @@
-package com.example.justin.verbeterjegemeente.app;
+package com.example.justin.verbeterjegemeente.app.utils;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;

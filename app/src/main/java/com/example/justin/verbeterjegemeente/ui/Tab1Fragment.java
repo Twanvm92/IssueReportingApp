@@ -32,7 +32,7 @@ import com.example.justin.verbeterjegemeente.API.RequestManager;
 import com.example.justin.verbeterjegemeente.data.network.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.app.BitmapGenerator;
-import com.example.justin.verbeterjegemeente.app.TimeStampGenerator;
+import com.example.justin.verbeterjegemeente.app.utils.TimeStampGenerator;
 import com.example.justin.verbeterjegemeente.app.Constants;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.service.model.Coordinates;

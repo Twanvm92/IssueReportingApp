@@ -1,10 +1,8 @@
 package com.example.justin.verbeterjegemeente.service.repositories;
 
 import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.MutableLiveData;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import com.example.justin.verbeterjegemeente.app.AppExecutors;
 import com.example.justin.verbeterjegemeente.app.Constants;
@@ -13,17 +11,12 @@ import com.example.justin.verbeterjegemeente.data.database.ServiceEntry;
 import com.example.justin.verbeterjegemeente.data.network.ApiResponse;
 import com.example.justin.verbeterjegemeente.data.network.Resource;
 import com.example.justin.verbeterjegemeente.data.network.ServiceClient;
-import com.example.justin.verbeterjegemeente.service.model.Service;
 
 import java.util.List;
-import java.util.concurrent.Executor;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 import timber.log.Timber;
 
 /**
@@ -105,27 +98,34 @@ public class ServicesRepository {
 //        return mDownloadedServices;
 //    }
 
-    public LiveData<Resource<ServiceEntry>> loadUser(String login) {
-        return new NetworkBoundResource<ServiceEntry,ServiceEntry>(appExecutors) {
+    public LiveData<Resource<List<ServiceEntry>>> loadServices() {
+        return new NetworkBoundResource<List<ServiceEntry>,List<ServiceEntry>>(appExecutors) {
             @Override
-            protected void saveCallResult(@NonNull ServiceEntry item) {
-                userDao.insert(item);
+            protected void saveCallResult(@NonNull List<ServiceEntry> item) {
+                Timber.d("Saving result from http request in database");
+                serviceDao.bulkInsert(item);
             }
 
             @Override
-            protected boolean shouldFetch(@Nullable ServiceEntry data) {
-                return data == null;
+            protected boolean shouldFetch(@Nullable List<ServiceEntry> data) {
+                // Only perform initialization once per app lifetime. If initialization has already been
+                // performed, we have nothing to do in this method.
+                if (mInitialized) return false;
+                mInitialized = true;
+                Timber.d("Fetching new services from network");
+                return mInitialized;
+
             }
 
             @NonNull
             @Override
-            protected LiveData<ServiceEntry> loadFromDb() {
-                return userDao.findByLogin(login);
+            protected LiveData<List<ServiceEntry>> loadFromDb() {
+                return serviceDao.getAllServices();
             }
 
             @NonNull
             @Override
-            protected LiveData<ApiResponse<ServiceEntry>> createCall() {
+            protected LiveData<ApiResponse<List<ServiceEntry>>> createCall() {
                 return serviceClient.getServices(Constants.LANG_EN);
             }
         }.asLiveData();

@@ -7,6 +7,7 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +16,7 @@ import android.widget.AdapterView;
 
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.data.DataManager;
+import com.example.justin.verbeterjegemeente.data.network.Status;
 import com.example.justin.verbeterjegemeente.ui.callbacks.OnMainCatagorySelectedCallback;
 import com.example.justin.verbeterjegemeente.app.utils.StringWithTag;
 import com.example.justin.verbeterjegemeente.di.Injectable;
@@ -63,10 +65,13 @@ public class StepCatagoryFragment extends Fragment implements BlockingStep, Inje
     private void observeViewModel(ServiceListViewModel viewModel) {
         // Update the list when the data changes
         viewModel.getServiceListObservable().observe(this, services -> {
-            if (services != null) {
-
-                viewModel.setMainCatagories(services);
-
+            if (services.data != null) {
+                viewModel.setMainCatagories(services.data);
+            }
+            if (services.status == Status.ERROR) {
+                Snackbar.make(mBinding.getRoot(), getString(R.string.noConnection), Snackbar.LENGTH_SHORT);
+            } else {
+                Snackbar.make(mBinding.getRoot(), getString(R.string.categorieën), Snackbar.LENGTH_SHORT);
             }
         });
     }

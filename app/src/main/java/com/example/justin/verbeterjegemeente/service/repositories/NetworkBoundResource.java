@@ -30,6 +30,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
 
+import timber.log.Timber;
+
 /**
  * A generic class that can provide a resource backed by both the sqlite database and the network.
  * <p>
@@ -74,18 +76,21 @@ public abstract class NetworkBoundResource<ResultType, RequestType> {
             result.removeSource(dbSource);
             //noinspection ConstantConditions
             if (response.isSuccessful()) {
+                Timber.d("Retrofit response is successful");
                 appExecutors.diskIO().execute(() -> {
                     saveCallResult(processResponse(response));
+                    Timber.d("Loading new livedata from database with latest results");
                     appExecutors.mainThread().execute(() ->
-                            // we specially request a new live data,
-                            // otherwise we will get immediately last cached value,
-                            // which may not be updated with latest results received from network.
-                            result.addSource(loadFromDb(),
-                                    newData -> setValue(Resource.success(newData)))
+                        // we specially request a new live data,
+                        // otherwise we will get immediately last cached value,
+                        // which may not be updated with latest results received from network.
+                        result.addSource(loadFromDb(),
+                                newData -> setValue(Resource.success(newData)))
                     );
                 });
             } else {
                 onFetchFailed();
+                Timber.d("Retrofit response is unsuccessful");
                 result.addSource(dbSource,
                         newData -> setValue(Resource.error(response.errorMessage, newData)));
             }

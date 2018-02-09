@@ -11,12 +11,12 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 
-import com.example.justin.verbeterjegemeente.API.RequestManager;
+//import com.example.justin.verbeterjegemeente.API.RequestManager;
 import com.example.justin.verbeterjegemeente.ui.adapters.ServiceRequestAdapter;
 import com.example.justin.verbeterjegemeente.app.Constants;
 import com.example.justin.verbeterjegemeente.data.database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.R;
-import com.example.justin.verbeterjegemeente.app.UpdateService;
+//import com.example.justin.verbeterjegemeente.app.UpdateService;
 import com.example.justin.verbeterjegemeente.service.model.ServiceRequest;
 
 import java.text.DateFormat;
@@ -28,7 +28,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Locale;
 
-public class FollowingActivity extends AppCompatActivity implements RequestManager.OnServiceRequestsReady {
+public class FollowingActivity extends AppCompatActivity /*implements RequestManager.OnServiceRequestsReady*/ {
 
     private static final String TAG = "MainActivity";
     ListView meldingListView;
@@ -50,7 +50,7 @@ public class FollowingActivity extends AppCompatActivity implements RequestManag
                 ServiceRequest serviceRequest = srListFinal.get(position);
 
                 // remove this service request as unread if it was unread
-                UpdateService.resetUnreadServiceRequest(serviceRequest);
+//                UpdateService.resetUnreadServiceRequest(serviceRequest);
 
                 i.putExtra("serviceRequest", serviceRequest);
                 i.putExtra("ORIGIN", "FollowActivity");
@@ -73,9 +73,9 @@ public class FollowingActivity extends AppCompatActivity implements RequestManag
         db.close();
 
         String sRequestIDQ = ServiceRequest.genServiceRequestIDQ(idList);
-        RequestManager requestManager = new RequestManager(this);
-        requestManager.setOnServiceReqReadyCallb(this);
-        requestManager.getServiceRequestsByID(sRequestIDQ);
+//        RequestManager requestManager = new RequestManager(this);
+//        requestManager.setOnServiceReqReadyCallb(this);
+//        requestManager.getServiceRequestsByID(sRequestIDQ);
 
         Button terugButton = (Button) findViewById(R.id.activityFollowing_btn_terugBTN_ID);
         terugButton.setOnClickListener(new View.OnClickListener() {
@@ -91,7 +91,7 @@ public class FollowingActivity extends AppCompatActivity implements RequestManag
     protected void onResume() {
         super.onResume();
         // reset the notification counter
-        UpdateService.resetNotificationCounter();
+//        UpdateService.resetNotificationCounter();
 
         // remove the notification on the users phone
         NotificationManager notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
@@ -110,20 +110,20 @@ public class FollowingActivity extends AppCompatActivity implements RequestManag
         startActivity(in);
     }
 
-    @Override
-    public void serviceRequestsReady(ArrayList<ServiceRequest> serviceRequests) {
-        srListFinal.clear();
-
-        ArrayList<ServiceRequest> orderedServiceRequests = orderServiceRequests(serviceRequests);
-
-        if (!serviceRequests.isEmpty()) {
-            for(ServiceRequest s : orderedServiceRequests) {
-                srListFinal.add(s);
-                Log.i("FollowActivity: ", "sr: " + s.getServiceRequestId());
-            }
-        }
-        meldingAdapter.notifyDataSetChanged();
-    }
+//    @Override
+//    public void serviceRequestsReady(ArrayList<ServiceRequest> serviceRequests) {
+//        srListFinal.clear();
+//
+//        ArrayList<ServiceRequest> orderedServiceRequests = orderServiceRequests(serviceRequests);
+//
+//        if (!serviceRequests.isEmpty()) {
+//            for(ServiceRequest s : orderedServiceRequests) {
+//                srListFinal.add(s);
+//                Log.i("FollowActivity: ", "sr: " + s.getServiceRequestId());
+//            }
+//        }
+//        meldingAdapter.notifyDataSetChanged();
+//    }
 
     // TODO: 24-8-2017 Add javadoc
     public ArrayList<ServiceRequest> orderServiceRequests(ArrayList<ServiceRequest> serviceRequests) {

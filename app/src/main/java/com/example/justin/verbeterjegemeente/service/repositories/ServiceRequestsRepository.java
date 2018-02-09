@@ -44,26 +44,26 @@ public class ServiceRequestsRepository {
     }
 
     private void fetchServicesThroughNetwork() {
-        serviceClient.getNearbyServiceRequests("51.570980", "4.768833",
-                "open", "600").enqueue(new Callback<ArrayList<ServiceRequest>>() {
-            @Override
-            public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
-                Log.d(LOG_TAG, "New servicerequests have been downloaded");
-                for (ServiceRequest sr: response.body()
-                     ) {
-                    Log.d(LOG_TAG, "service request: " + sr.getDescription());
-
-                }
-//                mDownloadedServices.setValue(response.body());
-                mDownloadedServiceRequests.postValue(response.body());
-            }
-
-            @Override
-            public void onFailure(Call<ArrayList<ServiceRequest>> call, Throwable t) {
-                // TODO better error handling in part #2 ...
-//                mDownloadedServices.setValue(null);
-            }
-        });
+//        serviceClient.getNearbyServiceRequests("51.570980", "4.768833",
+//                "open", "600").enqueue(new Callback<ArrayList<ServiceRequest>>() {
+//            @Override
+//            public void onResponse(Call<ArrayList<ServiceRequest>> call, Response<ArrayList<ServiceRequest>> response) {
+//                Log.d(LOG_TAG, "New servicerequests have been downloaded");
+//                for (ServiceRequest sr: response.body()
+//                     ) {
+//                    Log.d(LOG_TAG, "service request: " + sr.getDescription());
+//
+//                }
+////                mDownloadedServices.setValue(response.body());
+//                mDownloadedServiceRequests.postValue(response.body());
+//            }
+//
+//            @Override
+//            public void onFailure(Call<ArrayList<ServiceRequest>> call, Throwable t) {
+//                // TODO better error handling in part #2 ...
+////                mDownloadedServices.setValue(null);
+//            }
+//        });
     }
 
     private synchronized void initializeData() {

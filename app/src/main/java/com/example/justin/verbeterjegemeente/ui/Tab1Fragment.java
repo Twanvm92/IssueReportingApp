@@ -28,7 +28,7 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.example.justin.verbeterjegemeente.API.RequestManager;
+//import com.example.justin.verbeterjegemeente.API.RequestManager;
 import com.example.justin.verbeterjegemeente.data.network.ServiceClient;
 import com.example.justin.verbeterjegemeente.API.ServiceGenerator;
 import com.example.justin.verbeterjegemeente.app.BitmapGenerator;
@@ -70,7 +70,7 @@ import static com.example.justin.verbeterjegemeente.app.Constants.STATUS_OPEN;
 public class Tab1Fragment extends Fragment implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         com.google.android.gms.location.LocationListener,
-        RequestManager.OnServiceRequestsReady, BredaMapInterface.OnCameraChangedListener {
+        /*RequestManager.OnServiceRequestsReady,*/ BredaMapInterface.OnCameraChangedListener {
 
     private static final String TAG = "Tab1Fragment: ";
     public GoogleMap mMap;
@@ -431,21 +431,21 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
         String updateDatetime = TimeStampGenerator.genOlderTimestamp();
 
         // from here all the API requests will be handled
-        RequestManager reqManager = new RequestManager(getActivity());
-        // set callback for data passing
-        reqManager.setOnServiceReqReadyCallb(this);
-
-        if (servCodeQ != null && !servCodeQ.equals("")) {
-            // launch Retrofit callback and retrieve services asynchronously
-            reqManager.getServiceRequests(currentLat, currentLng, STATUS_OPEN, currentRadius, servCodeQ);
-            // also request closed service request with an earliest update_datetime included.
-            reqManager.getClosedServiceRequests(currentLat, currentLng, STATUS_OPEN, currentRadius, servCodeQ, updateDatetime);
-        } else {
-            // launch Retrofit callback and retrieve services asynchronously
-            reqManager.getServiceRequests(currentLat, currentLng, STATUS_OPEN, currentRadius);
-            // also request closed service request with an earliest update_datetime included.
-            reqManager.getClosedServiceRequests(currentLat, currentLng, STATUS_OPEN, currentRadius, updateDatetime);
-        }
+//        RequestManager reqManager = new RequestManager(getActivity());
+//        // set callback for data passing
+//        reqManager.setOnServiceReqReadyCallb(this);
+//
+//        if (servCodeQ != null && !servCodeQ.equals("")) {
+//            // launch Retrofit callback and retrieve services asynchronously
+//            reqManager.getServiceRequests(currentLat, currentLng, STATUS_OPEN, currentRadius, servCodeQ);
+//            // also request closed service request with an earliest update_datetime included.
+//            reqManager.getClosedServiceRequests(currentLat, currentLng, STATUS_OPEN, currentRadius, servCodeQ, updateDatetime);
+//        } else {
+//            // launch Retrofit callback and retrieve services asynchronously
+//            reqManager.getServiceRequests(currentLat, currentLng, STATUS_OPEN, currentRadius);
+//            // also request closed service request with an earliest update_datetime included.
+//            reqManager.getClosedServiceRequests(currentLat, currentLng, STATUS_OPEN, currentRadius, updateDatetime);
+//        }
 
     }
 
@@ -484,28 +484,28 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
 
     }
 
-    @Override
-    public void serviceRequestsReady(ArrayList<ServiceRequest> serviceRequests) {
-        // pass received Service Requests to ActivityMain
-        // ActivityMain will then pass the requests to Tab2Fragment
-        sRequestCallback.onServiceRequestsReady(serviceRequests);
-
-        if (!serviceRequests.isEmpty()) {
-            for (ServiceRequest sr : serviceRequests) {
-
-                String lat = String.valueOf(sr.getLat());
-                String lng = String.valueOf(sr.getLong());
-
-                Gson gson = new Gson();
-                String serviceRequestJson = gson.toJson(sr);
-
-                wbMap.loadUrl("javascript:Geomerk.Map.addPngLonLat(" + lng + ", " + lat + "," +
-                        " 0.5, 46, 'http://openlayers.org/en/v3.7.0/examples/data/icon.png'," +
-                        serviceRequestJson + ")");
-                Log.i(TAG, "Service request added to map" );
-            }
-        }
-    }
+//    @Override
+//    public void serviceRequestsReady(ArrayList<ServiceRequest> serviceRequests) {
+//        // pass received Service Requests to ActivityMain
+//        // ActivityMain will then pass the requests to Tab2Fragment
+//        sRequestCallback.onServiceRequestsReady(serviceRequests);
+//
+//        if (!serviceRequests.isEmpty()) {
+//            for (ServiceRequest sr : serviceRequests) {
+//
+//                String lat = String.valueOf(sr.getLat());
+//                String lng = String.valueOf(sr.getLong());
+//
+//                Gson gson = new Gson();
+//                String serviceRequestJson = gson.toJson(sr);
+//
+//                wbMap.loadUrl("javascript:Geomerk.Map.addPngLonLat(" + lng + ", " + lat + "," +
+//                        " 0.5, 46, 'http://openlayers.org/en/v3.7.0/examples/data/icon.png'," +
+//                        serviceRequestJson + ")");
+//                Log.i(TAG, "Service request added to map" );
+//            }
+//        }
+//    }
 
     // TODO: 24-8-2017 add javadoc
     // TODO: 24-9-2017 No special markers for Closed Service Requests yet
@@ -529,23 +529,23 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
         String updateDatetime = TimeStampGenerator.genOlderTimestamp();
 
         // from here all the API requests will be handled
-        RequestManager reqManager = new RequestManager(getActivity());
-        // set callback for data passing
-        reqManager.setOnServiceReqReadyCallb(this);
-
-        Log.i("servCodeq: ", "" + servCodeQ);
-
-        if (servCodeQ != null && !servCodeQ.equals("")) {
-            // launch Retrofit callback and retrieve services asynchronously
-            reqManager.getServiceRequests(camLat, camLng, STATUS_OPEN, currentRadius, servCodeQ);
-            // also request closed service request with an earliest update_datetime included.
-            reqManager.getClosedServiceRequests(camLat, camLng, STATUS_OPEN, currentRadius, servCodeQ, updateDatetime);
-        } else {
-            // launch Retrofit callback and retrieve services asynchronously
-            reqManager.getServiceRequests(camLat, camLng, STATUS_OPEN, currentRadius);
-            // also request closed service request with an earliest update_datetime included.
-            reqManager.getClosedServiceRequests(camLat, camLng, STATUS_OPEN, currentRadius, updateDatetime);
-        }
+//        RequestManager reqManager = new RequestManager(getActivity());
+//        // set callback for data passing
+//        reqManager.setOnServiceReqReadyCallb(this);
+//
+//        Log.i("servCodeq: ", "" + servCodeQ);
+//
+//        if (servCodeQ != null && !servCodeQ.equals("")) {
+//            // launch Retrofit callback and retrieve services asynchronously
+//            reqManager.getServiceRequests(camLat, camLng, STATUS_OPEN, currentRadius, servCodeQ);
+//            // also request closed service request with an earliest update_datetime included.
+//            reqManager.getClosedServiceRequests(camLat, camLng, STATUS_OPEN, currentRadius, servCodeQ, updateDatetime);
+//        } else {
+//            // launch Retrofit callback and retrieve services asynchronously
+//            reqManager.getServiceRequests(camLat, camLng, STATUS_OPEN, currentRadius);
+//            // also request closed service request with an earliest update_datetime included.
+//            reqManager.getClosedServiceRequests(camLat, camLng, STATUS_OPEN, currentRadius, updateDatetime);
+//        }
     }
 
     // TODO: 24-8-2017 add javadoc

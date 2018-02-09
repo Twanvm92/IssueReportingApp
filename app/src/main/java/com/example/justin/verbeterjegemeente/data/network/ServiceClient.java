@@ -40,7 +40,7 @@ public interface ServiceClient {
 
     @GET ("services.json")
     //TODO CALL or Livedata?
-    Call<ApiResponse<List<ServiceEntry>>> getServices(@Query("locale") String Language);
+    LiveData<ApiResponse<List<ServiceEntry>>> getServices(@Query("locale") String Language);
 
 
 
@@ -67,7 +67,7 @@ public interface ServiceClient {
 
     @Multipart
     @POST("requests.json")
-    Call<LiveData<ApiResponse<ArrayList<PostServiceRequestResponse>>>> postServiceRequest(@Part("service_code") RequestBody service_code,
+    LiveData<LiveData<ApiResponse<ArrayList<PostServiceRequestResponse>>>> postServiceRequest(@Part("service_code") RequestBody service_code,
                                                                                          @Part("description") RequestBody description,
                                                                                          @Part("lat") RequestBody lat,
                                                                                          @Part("long") RequestBody lon,
@@ -88,7 +88,7 @@ public interface ServiceClient {
      * @return
      */
     @POST("upvoteRequest.json")
-    Call<ApiResponse<ArrayList>> upvoteRequest(@Query("service_request_id") String serviceRequestID,
+    LiveData<ApiResponse<ArrayList>> upvoteRequest(@Query("service_request_id") String serviceRequestID,
                                   @Query("extraDescription") String extraDescription
     );
 
@@ -105,7 +105,7 @@ public interface ServiceClient {
      */
 
     @GET("requests.json")
-    Call<ApiResponse<ArrayList<ServiceRequest>>> getNearbyServiceRequests(@Query("lat") String lat,
+    LiveData<ApiResponse<ArrayList<ServiceRequest>>> getNearbyServiceRequests(@Query("lat") String lat,
                                                              @Query("long") String lng,
                                                              @Query("status") String status,
                                                              @Query("radius") String meters);
@@ -123,7 +123,7 @@ public interface ServiceClient {
      * @return ArrayList<ServiceRequest> A list of service requests
      */
     @GET("requests.json")
-    Call<ApiResponse<ArrayList<ServiceRequest>>> getNearbyServiceRequests(@Query("lat") String lat,
+    LiveData<ApiResponse<ArrayList<ServiceRequest>>> getNearbyServiceRequests(@Query("lat") String lat,
                                                              @Query("long") String lng,
                                                              @Query("status") String status,
                                                              @Query("radius") String meters,
@@ -142,7 +142,7 @@ public interface ServiceClient {
      */
 
     @GET("requests.json")
-    Call<ApiResponse<ArrayList<ServiceRequest>>> getClosedNearbyServiceRequests(@Query("lat") String lat,
+    LiveData<ApiResponse<ArrayList<ServiceRequest>>> getClosedNearbyServiceRequests(@Query("lat") String lat,
                                                              @Query("long") String lng,
                                                              @Query("status") String status,
                                                              @Query("radius") String meters,
@@ -162,7 +162,7 @@ public interface ServiceClient {
      */
 
     @GET("requests.json")
-    Call<ApiResponse<ArrayList<ServiceRequest>>> getClosedNearbyServiceRequests(@Query("lat") String lat,
+    LiveData<ApiResponse<ArrayList<ServiceRequest>>> getClosedNearbyServiceRequests(@Query("lat") String lat,
                                                                    @Query("long") String lng,
                                                                    @Query("status") String status,
                                                                    @Query("radius") String meters,
@@ -178,7 +178,7 @@ public interface ServiceClient {
      */
 
     @GET ("requests.json")
-    Call<ApiResponse<ArrayList<ServiceRequest>>> getServiceById (@Query("service_request_id") String serviceID,
+    LiveData<ApiResponse<ArrayList<ServiceRequest>>> getServiceById (@Query("service_request_id") String serviceID,
                                          @Query("jurisdiction_id") String jurisdiction_id);
 }
 

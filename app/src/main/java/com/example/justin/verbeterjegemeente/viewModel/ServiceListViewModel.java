@@ -12,6 +12,7 @@ import android.widget.AdapterView;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.app.utils.StringWithTag;
 import com.example.justin.verbeterjegemeente.data.database.ServiceEntry;
+import com.example.justin.verbeterjegemeente.data.network.Resource;
 import com.example.justin.verbeterjegemeente.service.model.Service;
 import com.example.justin.verbeterjegemeente.service.repositories.ServicesRepository;
 import com.example.justin.verbeterjegemeente.ui.callbacks.OnMainCatagorySelectedCallback;
@@ -25,7 +26,7 @@ import javax.inject.Inject;
  */
 
 public class ServiceListViewModel extends AndroidViewModel implements OnMainCatagorySelectedCallback {
-    private final LiveData<List<ServiceEntry>> serviceListObservable;
+    private final LiveData<Resource<List<ServiceEntry>>> serviceListObservable;
     public final ObservableArrayList<String> mainCatagories = new ObservableArrayList<>();
     public final ObservableArrayList<StringWithTag> subCatagories = new ObservableArrayList<>();
 
@@ -34,7 +35,7 @@ public class ServiceListViewModel extends AndroidViewModel implements OnMainCata
         super(application);
 
         // If any transformation is needed, this can be simply done by Transformations class ...
-        serviceListObservable = servicesRepository.getCurrentServiceList();
+        serviceListObservable = servicesRepository.loadServices();
         mainCatagories.add(getApplication().getResources().getString(R.string.kiesSubProblemen));
         subCatagories.add(new StringWithTag(getApplication().getResources().getString(R.string.kiesSubProblemen), null));
 
@@ -43,7 +44,7 @@ public class ServiceListViewModel extends AndroidViewModel implements OnMainCata
     /**
      * Expose the LiveData Projects query so the UI can observe it.
      */
-    public LiveData<List<ServiceEntry>> getServiceListObservable() {
+    public LiveData<Resource<List<ServiceEntry>>> getServiceListObservable() {
         return serviceListObservable;
     }
 
@@ -62,13 +63,13 @@ public class ServiceListViewModel extends AndroidViewModel implements OnMainCata
      * @param parent
      */
     public void fillSubCategorySpinner(AdapterView<?> parent) {
-        if (serviceListObservable.getValue() != null) {
+        if (serviceListObservable.getValue().data != null) {
             if (subCatagories.size() > 1) { // check if list has more than just the default string
                 subCatagories.clear(); // clear ist before filling it again
                 subCatagories.add(new StringWithTag(getApplication().getResources().getString(R.string.kiesSubProblemen), null));
             }
 
-            for (ServiceEntry s : serviceListObservable.getValue()) {
+            for (ServiceEntry s : serviceListObservable.getValue().data) {
                 // check if selected main category is same as main category of service object
                 if (parent.getSelectedItem().toString().equals(s.getGroup())) {
                     subCatagories.add(new StringWithTag(s.getService_name(), s.getService_code())); // add sub category to list

@@ -3,6 +3,7 @@ package com.example.justin.verbeterjegemeente.di;
 import android.app.Application;
 import android.arch.persistence.room.Room;
 
+import com.example.justin.verbeterjegemeente.app.AppExecutors;
 import com.example.justin.verbeterjegemeente.data.database.Database;
 import com.example.justin.verbeterjegemeente.data.database.ServiceDao;
 import com.example.justin.verbeterjegemeente.data.network.ServiceClient;
@@ -46,8 +47,8 @@ public class RoomModule {
     @Singleton
     @Provides
     ServicesRepository providesServiceRepository(ServiceClient serviceClient, ServiceDao serviceDao,
-                                                 Executor diskIO) {
-        return new ServicesRepository(serviceClient, serviceDao, diskIO);
+                                                 AppExecutors executors) {
+        return new ServicesRepository(serviceClient, serviceDao, executors);
     }
 
     @Singleton

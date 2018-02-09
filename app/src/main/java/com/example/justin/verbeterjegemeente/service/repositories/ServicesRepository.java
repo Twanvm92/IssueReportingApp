@@ -30,8 +30,6 @@ public class ServicesRepository {
     private ServiceDao serviceDao;
     private AppExecutors appExecutors;
     private boolean mInitialized = false;
-//    private final MutableLiveData<List<ServiceEntry>> mDownloadedServices;
-    private static final String LOG_TAG = "ServiceRepository: ";
 
     @Inject
     public ServicesRepository(ServiceClient serviceClient, ServiceDao serviceDao,
@@ -102,6 +100,10 @@ public class ServicesRepository {
         return new NetworkBoundResource<List<ServiceEntry>,List<ServiceEntry>>(appExecutors) {
             @Override
             protected void saveCallResult(@NonNull List<ServiceEntry> item) {
+                // Deletes old historical data
+                serviceDao.deleteAllServices();
+                Timber.d("Old services deleted");
+
                 Timber.d("Saving result from http request in database");
                 serviceDao.bulkInsert(item);
             }

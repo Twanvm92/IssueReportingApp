@@ -13,6 +13,7 @@ import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.app.utils.StringWithTag;
 import com.example.justin.verbeterjegemeente.data.database.ServiceEntry;
 import com.example.justin.verbeterjegemeente.data.network.Resource;
+import com.example.justin.verbeterjegemeente.data.network.Status;
 import com.example.justin.verbeterjegemeente.service.model.Service;
 import com.example.justin.verbeterjegemeente.service.repositories.ServicesRepository;
 import com.example.justin.verbeterjegemeente.ui.callbacks.OnMainCatagorySelectedCallback;

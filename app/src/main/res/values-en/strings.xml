@@ -86,4 +86,6 @@
     <string name="nietGeselecteerdeCategorie">Start by swiping left</string>
     <string name="catagory">Catagory</string>
     <string name="request">Request</string>
+    <string name="servicesLoaded">Catagories have been updated</string>
+    <string name="loading">Loading...</string>
 </resources>

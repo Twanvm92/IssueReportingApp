@@ -54,7 +54,7 @@
     <string name="kBeschrijving">Beschrijving moet minimaal 10 karakters bevatten</string>
     <string name="ePostRequest">Kan melding niet versturen. Verbind uw apparaat met het internet en probeer opnieuw.</string>
     <string name="eGetServices">Geen services kunnen vinden die voldoen aan deze criteria</string>
-    <string name="FoutOphalenProblemen">Kan op het moment geen categorieën ophalen. Probeer het later opnieuw.</string>
+    <string name="FoutOphalenProblemen">Categorieën konden niet bijgewerkt worden.</string>
     <string name="errLoadingServiceRequestList">Kan op dit moment geen meldingen ophalen. Locatie niet bekend.</string>
     <string name="eFindLocationTitle">Locatie bepalen mislukt</string>
     <string name="eFindLocation">Het is niet gelukt uw huidige locatie te bepalen. Mogelijk staat locatievoorziening uit of is er geen internetverbinding. Probeer het later opnieuw.</string>
@@ -111,5 +111,7 @@
     </string-array>
     <string name="catagory">Categorie</string>
     <string name="request">Melding</string>
+    <string name="servicesLoaded">Catagorieën zijn bijgewerkt</string>
+    <string name="loading">Laden...</string>
 
 </resources>

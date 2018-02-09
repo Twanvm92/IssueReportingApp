@@ -7,23 +7,20 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
+import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.R;
+import com.example.justin.verbeterjegemeente.app.utils.StringWithTag;
 import com.example.justin.verbeterjegemeente.data.DataManager;
 import com.example.justin.verbeterjegemeente.data.network.Status;
-import com.example.justin.verbeterjegemeente.ui.callbacks.OnMainCatagorySelectedCallback;
-import com.example.justin.verbeterjegemeente.app.utils.StringWithTag;
-import com.example.justin.verbeterjegemeente.di.Injectable;
 import com.example.justin.verbeterjegemeente.databinding.FragmentStepCatagoryBinding;
+import com.example.justin.verbeterjegemeente.di.Injectable;
 import com.example.justin.verbeterjegemeente.viewModel.ServiceListViewModel;
 import com.stepstone.stepper.BlockingStep;
-import com.stepstone.stepper.Step;
 import com.stepstone.stepper.StepperLayout;
 import com.stepstone.stepper.VerificationError;
 
@@ -62,6 +59,7 @@ public class StepCatagoryFragment extends Fragment implements BlockingStep, Inje
 
     }
 
+
     private void observeViewModel(ServiceListViewModel viewModel) {
         // Update the list when the data changes
         viewModel.getServiceListObservable().observe(this, services -> {
@@ -69,9 +67,16 @@ public class StepCatagoryFragment extends Fragment implements BlockingStep, Inje
                 viewModel.setMainCatagories(services.data);
             }
             if (services.status == Status.ERROR) {
-                Snackbar.make(mBinding.getRoot(), getString(R.string.noConnection), Snackbar.LENGTH_SHORT);
-            } else {
-                Snackbar.make(mBinding.getRoot(), getString(R.string.categorieën), Snackbar.LENGTH_SHORT);
+//                Snackbar.make(getView(), getString(R.string.noConnection), Snackbar.LENGTH_SHORT);
+                if (viewModel.mainCatagories.size() == 1) {
+                    Toast.makeText(getContext(), "Retry, no services in db either", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getContext(), getString(R.string.FoutOphalenProblemen), Toast.LENGTH_SHORT).show();
+                }
+            } else if (services.status == Status.SUCCESS) {
+                Toast.makeText(getContext(), getString(R.string.servicesLoaded), Toast.LENGTH_SHORT).show();
+            } else if (services.status == Status.LOADING) {
+                Toast.makeText(getContext(), getString(R.string.loading), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -132,6 +137,5 @@ public class StepCatagoryFragment extends Fragment implements BlockingStep, Inje
     public void onError(@NonNull VerificationError error) {
         //handle error inside of the fragment, e.g. show error on EditText
     }
-
 
 }

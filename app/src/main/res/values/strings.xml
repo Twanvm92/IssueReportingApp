@@ -113,5 +113,6 @@
     <string name="request">Melding</string>
     <string name="servicesLoaded">Catagorieën zijn bijgewerkt</string>
     <string name="loading">Laden...</string>
+    <string name="Retry">Opnieuw proberen</string>
 
 </resources>

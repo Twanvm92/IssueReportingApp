@@ -3,6 +3,8 @@ package com.example.justin.verbeterjegemeente.viewModel;
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.MediatorLiveData;
+import android.arch.lifecycle.MutableLiveData;
 import android.databinding.ObservableArrayList;
 import android.databinding.ObservableField;
 import android.support.annotation.NonNull;
@@ -30,11 +32,12 @@ public class ServiceListViewModel extends AndroidViewModel implements OnMainCata
     private final LiveData<Resource<List<ServiceEntry>>> serviceListObservable;
     public final ObservableArrayList<String> mainCatagories = new ObservableArrayList<>();
     public final ObservableArrayList<StringWithTag> subCatagories = new ObservableArrayList<>();
+    private final ServicesRepository servicesRepository;
 
     @Inject
     public ServiceListViewModel(@NonNull Application application, @NonNull ServicesRepository servicesRepository) {
         super(application);
-
+        this.servicesRepository = servicesRepository;
         // If any transformation is needed, this can be simply done by Transformations class ...
         serviceListObservable = servicesRepository.loadServices();
         mainCatagories.add(getApplication().getResources().getString(R.string.kiesSubProblemen));
@@ -82,5 +85,12 @@ public class ServiceListViewModel extends AndroidViewModel implements OnMainCata
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         fillSubCategorySpinner(parent);
+    }
+
+    public void updateServices() {
+
+        servicesRepository.refreshServices((MediatorLiveData<Resource<List<ServiceEntry>>>) serviceListObservable);
+
+
     }
 }

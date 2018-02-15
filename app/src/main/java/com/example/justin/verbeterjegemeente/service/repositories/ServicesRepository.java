@@ -1,6 +1,8 @@
 package com.example.justin.verbeterjegemeente.service.repositories;
 
 import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.MediatorLiveData;
+import android.arch.lifecycle.MutableLiveData;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -97,7 +99,7 @@ public class ServicesRepository {
 //    }
 
     public LiveData<Resource<List<ServiceEntry>>> loadServices() {
-        return new NetworkBoundResource<List<ServiceEntry>,List<ServiceEntry>>(appExecutors) {
+        return new NetworkBoundResourceRoom<List<ServiceEntry>,List<ServiceEntry>>(appExecutors) {
             @Override
             protected void saveCallResult(@NonNull List<ServiceEntry> item) {
                 // Deletes old historical data
@@ -131,5 +133,38 @@ public class ServicesRepository {
                 return serviceClient.getServices(Constants.LANG_EN);
             }
         }.asLiveData();
+    }
+
+    public void refreshServices(MediatorLiveData<Resource<List<ServiceEntry>>> dataToUpdate) {
+        LiveData<Resource<List<ServiceEntry>>> updatedLivedata =
+                new NetworkBoundResourceRefresh<List<ServiceEntry>, List<ServiceEntry>>(
+                        appExecutors, dataToUpdate) {
+                    @Override
+                    protected void saveCallResult(@NonNull List<ServiceEntry> item) {
+                        // Deletes old historical data
+                        serviceDao.deleteAllServices();
+                        Timber.d("Old services deleted");
+
+                        Timber.d("Saving result from http request in database");
+                        serviceDao.bulkInsert(item);
+                    }
+
+                    @Override
+                    protected boolean shouldFetch(@Nullable List<ServiceEntry> data) {
+                        return data == null || data.isEmpty();
+                    }
+
+                    @NonNull
+                    @Override
+                    protected LiveData<List<ServiceEntry>> loadFromDb() {
+                        return serviceDao.getAllServices();
+                    }
+
+                    @NonNull
+                    @Override
+                    protected LiveData<ApiResponse<List<ServiceEntry>>> createCall() {
+                        return serviceClient.getServices(Constants.LANG_EN);
+                    }
+                }.asLiveData();
     }
 }

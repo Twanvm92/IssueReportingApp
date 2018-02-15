@@ -7,6 +7,7 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -36,7 +37,6 @@ public class StepCatagoryFragment extends Fragment implements BlockingStep, Inje
     private ServiceListViewModel viewModel;
 
     private DataManager dataManager;
-    private final String TAG = "StepCatagoryFragment: ";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -67,9 +67,13 @@ public class StepCatagoryFragment extends Fragment implements BlockingStep, Inje
                 viewModel.setMainCatagories(services.data);
             }
             if (services.status == Status.ERROR) {
-//                Snackbar.make(getView(), getString(R.string.noConnection), Snackbar.LENGTH_SHORT);
+//
                 if (viewModel.mainCatagories.size() == 1) {
-                    Toast.makeText(getContext(), "Retry, no services in db either", Toast.LENGTH_SHORT).show();
+                    View view = mBinding.getRoot().findViewById(R.id.StepCatagoryFragment_l_catagoryLayout);
+
+                    Snackbar snackbar = Snackbar.make(view, getString(R.string.noConnection), Snackbar.LENGTH_INDEFINITE);
+                    snackbar.setAction(R.string.Retry, view1 -> viewModel.updateServices());
+                    snackbar.show();
                 } else {
                     Toast.makeText(getContext(), getString(R.string.FoutOphalenProblemen), Toast.LENGTH_SHORT).show();
                 }

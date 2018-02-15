@@ -1,34 +1,18 @@
-
-
-/*
- * Copyright (C) 2017 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.justin.verbeterjegemeente.service.repositories;
-
-import com.example.justin.verbeterjegemeente.app.AppExecutors;
-import com.example.justin.verbeterjegemeente.app.utils.Objects;
-import com.example.justin.verbeterjegemeente.data.network.ApiResponse;
-import com.example.justin.verbeterjegemeente.data.network.Resource;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MediatorLiveData;
+import android.arch.lifecycle.MutableLiveData;
 import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
+
+import com.example.justin.verbeterjegemeente.app.AppExecutors;
+import com.example.justin.verbeterjegemeente.data.network.ApiResponse;
+import com.example.justin.verbeterjegemeente.data.network.Resource;
+
+import javax.inject.Inject;
 
 import timber.log.Timber;
 
@@ -40,14 +24,14 @@ import timber.log.Timber;
  * @param <ResultType>
  * @param <RequestType>
  */
-public abstract class NetworkBoundResource<ResultType, RequestType> {
-    private final AppExecutors appExecutors;
-
-    private final MediatorLiveData<Resource<ResultType>> result = new MediatorLiveData<>();
+// extended the class with AbstractNetworkBoundResource - T. van Maastricht
+public abstract class NetworkBoundResourceRefresh<ResultType, RequestType>
+        extends AbstractNetworkBoundResource<ResultType, RequestType> {
 
     @MainThread
-    NetworkBoundResource(AppExecutors appExecutors) {
+    NetworkBoundResourceRefresh(AppExecutors appExecutors, final MediatorLiveData<Resource<ResultType>> dataToUpdate) {
         this.appExecutors = appExecutors;
+        result = dataToUpdate;
         result.setValue(Resource.loading(null));
         LiveData<ResultType> dbSource = loadFromDb();
         result.addSource(dbSource, data -> {
@@ -60,17 +44,10 @@ public abstract class NetworkBoundResource<ResultType, RequestType> {
         });
     }
 
-    @MainThread
-    private void setValue(Resource<ResultType> newValue) {
-        if (!Objects.equals(result.getValue(), newValue)) {
-            result.setValue(newValue);
-        }
-    }
-
-    private void fetchFromNetwork(final LiveData<ResultType> dbSource) {
+    protected void fetchFromNetwork(final LiveData<ResultType> dbSource) {
         LiveData<ApiResponse<RequestType>> apiResponse = createCall();
         // we re-attach dbSource as a new source, it will dispatch its latest value quickly
-        result.addSource(dbSource, newData -> setValue(Resource.loading(newData)));
+        result.addSource(dbSource, newData -> setValue(Resource.loading(newData))/*dataToUpdate.setValue(Resource.loading(newData))*/);
         result.addSource(apiResponse, response -> {
             result.removeSource(apiResponse);
             result.removeSource(dbSource);
@@ -81,32 +58,27 @@ public abstract class NetworkBoundResource<ResultType, RequestType> {
                     saveCallResult(processResponse(response));
                     Timber.d("Loading new livedata from database with latest results");
                     appExecutors.mainThread().execute(() ->
-                        // we specially request a new live data,
-                        // otherwise we will get immediately last cached value,
-                        // which may not be updated with latest results received from network.
-                        result.addSource(loadFromDb(),
-                                newData -> setValue(Resource.success(newData)))
+                            // we specially request a new live data,
+                            // otherwise we will get immediately last cached value,
+                            // which may not be updated with latest results received from network.
+                            result.addSource(loadFromDb(),
+                                    newData ->
+                                            setValue(Resource.success(newData)))
                     );
                 });
             } else {
                 onFetchFailed();
                 Timber.d("Retrofit response is unsuccessful");
                 result.addSource(dbSource,
-                        newData -> setValue(Resource.error(response.errorMessage, newData)));
+                        newData -> {
+                            result.removeSource(dbSource);
+                            setValue(Resource.error(response.errorMessage, newData));
+                        });
             }
         });
     }
 
     protected void onFetchFailed() {
-    }
-
-    public LiveData<Resource<ResultType>> asLiveData() {
-        return result;
-    }
-
-    @WorkerThread
-    protected RequestType processResponse(ApiResponse<RequestType> response) {
-        return response.body;
     }
 
     @WorkerThread

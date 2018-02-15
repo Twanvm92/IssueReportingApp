@@ -1,3 +1,4 @@
+
 <layout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -11,100 +12,105 @@
             type="com.example.justin.verbeterjegemeente.viewModel.ServiceListViewModel"/>
     </data>
 
-    <LinearLayout
-        android:focusable="true"
-        android:focusableInTouchMode="true"
+    <android.support.design.widget.CoordinatorLayout
+        android:layout_height="match_parent"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        >
-
-        <TextView
-            android:id="@+id/fragmentStepCatagory_tv_mainCatagory"
+        android:id="@+id/StepCatagoryFragment_l_catagoryLayout">
+        <LinearLayout
+            android:focusable="true"
+            android:focusableInTouchMode="true"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="5dp"
-            android:text="@string/hoofdcategorieTab2"
-            android:layout_marginTop="50dp"
-            android:layout_marginBottom="5dp"/>
+            android:orientation="vertical"
+            >
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:layout_marginLeft="5dp"
-            android:layout_marginRight="5dp"
-            android:layout_marginBottom="5dp"
-            android:background="@drawable/spinner"
-            android:orientation="horizontal">
-
-            <Spinner
-                android:id="@+id/StepCatagoryFragment_sp_MainCatagory"
+            <TextView
+                android:id="@+id/fragmentStepCatagory_tv_mainCatagory"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:textSize="20sp"
-                android:layout_centerVertical="true"
-                android:layout_gravity="center"
-                android:background="@android:color/transparent"
-                android:gravity="center"
                 android:layout_marginLeft="5dp"
-                android:spinnerMode="dropdown"
-                android:onItemSelected="@{(p, v, pos, id) -> viewModel.onItemSelected(p, v, pos, id)}"
-                android:entries="@{viewModel.mainCatagories}" />
+                android:text="@string/hoofdcategorieTab2"
+                android:layout_marginTop="50dp"
+                android:layout_marginBottom="5dp"/>
 
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:layout_centerVertical="true"
-                android:layout_gravity="center"
-                android:src="@mipmap/spinner" />
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:layout_marginBottom="5dp"
+                android:background="@drawable/spinner"
+                android:orientation="horizontal">
 
-        </RelativeLayout>
+                <Spinner
+                    android:id="@+id/StepCatagoryFragment_sp_MainCatagory"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:textSize="20sp"
+                    android:layout_centerVertical="true"
+                    android:layout_gravity="center"
+                    android:background="@android:color/transparent"
+                    android:gravity="center"
+                    android:layout_marginLeft="5dp"
+                    android:spinnerMode="dropdown"
+                    android:onItemSelected="@{(p, v, pos, id) -> viewModel.onItemSelected(p, v, pos, id)}"
+                    android:entries="@{viewModel.mainCatagories}" />
 
-        <TextView
-            android:id="@+id/fragmentStepCatagory_tv_subCatagory"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="5dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="5dp"
-            android:text="@string/subcategorieTab2" />
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerVertical="true"
+                    android:layout_gravity="center"
+                    android:src="@mipmap/spinner" />
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:layout_marginLeft="5dp"
-            android:layout_marginRight="5dp"
+            </RelativeLayout>
 
-            android:background="@drawable/spinner"
-            android:orientation="horizontal">
-
-            <Spinner
-                android:id="@+id/StepCatagoryFragment_sp_SubCatagory"
+            <TextView
+                android:id="@+id/fragmentStepCatagory_tv_subCatagory"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
-                android:layout_gravity="center"
                 android:layout_marginLeft="5dp"
-                android:layout_marginTop="5dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="5dp"
+                android:text="@string/subcategorieTab2" />
 
-                android:background="@android:color/transparent"
-                android:gravity="center"
-                android:spinnerMode="dropdown"
-                android:textSize="20sp"
-                android:entries="@{viewModel.subCatagories}"/>
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
 
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:layout_centerVertical="true"
-                android:layout_gravity="center"
-                android:src="@mipmap/spinner" />
+                android:background="@drawable/spinner"
+                android:orientation="horizontal">
 
-        </RelativeLayout>
-    </LinearLayout>
+                <Spinner
+                    android:id="@+id/StepCatagoryFragment_sp_SubCatagory"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_gravity="center"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginTop="5dp"
+
+                    android:background="@android:color/transparent"
+                    android:gravity="center"
+                    android:spinnerMode="dropdown"
+                    android:textSize="20sp"
+                    android:entries="@{viewModel.subCatagories}"/>
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerVertical="true"
+                    android:layout_gravity="center"
+                    android:src="@mipmap/spinner" />
+
+            </RelativeLayout>
+        </LinearLayout>
+    </android.support.design.widget.CoordinatorLayout>
 
 
 </layout>

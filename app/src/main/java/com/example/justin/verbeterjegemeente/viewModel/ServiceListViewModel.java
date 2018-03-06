@@ -5,6 +5,7 @@ import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MediatorLiveData;
 import android.arch.lifecycle.MutableLiveData;
+import android.content.res.Resources;
 import android.databinding.ObservableArrayList;
 import android.databinding.ObservableField;
 import android.support.annotation.NonNull;
@@ -42,6 +43,7 @@ public class ServiceListViewModel extends AndroidViewModel implements OnMainCata
         serviceListObservable = servicesRepository.loadServices();
         mainCatagories.add(getApplication().getResources().getString(R.string.kiesSubProblemen));
         subCatagories.add(new StringWithTag(getApplication().getResources().getString(R.string.kiesSubProblemen), null));
+//        Resources application1 = getApplication().getResources();
 
     }
 
@@ -88,9 +90,6 @@ public class ServiceListViewModel extends AndroidViewModel implements OnMainCata
     }
 
     public void updateServices() {
-
         servicesRepository.refreshServices((MediatorLiveData<Resource<List<ServiceEntry>>>) serviceListObservable);
-
-
     }
 }

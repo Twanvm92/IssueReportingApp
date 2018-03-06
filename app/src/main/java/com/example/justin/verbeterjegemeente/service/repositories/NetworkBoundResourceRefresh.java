@@ -62,9 +62,12 @@ public abstract class NetworkBoundResourceRefresh<ResultType, RequestType>
                             // otherwise we will get immediately last cached value,
                             // which may not be updated with latest results received from network.
                             result.addSource(loadFromDb(),
-                                    newData ->
-                                            setValue(Resource.success(newData)))
-                    );
+                                    newData -> {
+                                        result.removeSource(loadFromDb());
+                                        setValue(Resource.success(newData));
+                                    }
+
+                    ));
                 });
             } else {
                 onFetchFailed();

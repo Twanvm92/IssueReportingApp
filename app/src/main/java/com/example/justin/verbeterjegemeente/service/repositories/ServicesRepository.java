@@ -135,8 +135,8 @@ public class ServicesRepository {
         }.asLiveData();
     }
 
-    public void refreshServices(MediatorLiveData<Resource<List<ServiceEntry>>> dataToUpdate) {
-        LiveData<Resource<List<ServiceEntry>>> updatedLivedata =
+    public LiveData<Resource<List<ServiceEntry>>> refreshServices(MediatorLiveData<Resource<List<ServiceEntry>>> dataToUpdate) {
+        return
                 new NetworkBoundResourceRefresh<List<ServiceEntry>, List<ServiceEntry>>(
                         appExecutors, dataToUpdate) {
                     @Override

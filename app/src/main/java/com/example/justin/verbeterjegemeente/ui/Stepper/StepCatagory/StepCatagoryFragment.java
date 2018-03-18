@@ -10,6 +10,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -154,6 +155,15 @@ public class StepCatagoryFragment extends Fragment implements BlockingStep, Inje
                 snackbar.setAction(R.string.Retry, view1 -> viewModel.updateServices());
                 snackbar.setActionTextColor(getResources().getColor(R.color.green500));
                 snackbar.show();
+
+                new AlertDialog.Builder(getActivity()) // show user why getting access to fine location is important
+                        .setMessage(getResources().getText(R.string.explanationNoCategories))
+                        .setCancelable(true)
+                        .setPositiveButton(getResources().getText(R.string.OK),
+                                (dialog, id) -> {
+                                    // user decided not to give permission
+                                })
+                        .show();
 
             } else {
                 Toast.makeText(getContext(), getString(R.string.FoutOphalenProblemen), Toast.LENGTH_SHORT).show();

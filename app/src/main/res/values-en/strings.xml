@@ -91,4 +91,6 @@
     <string name="Retry">Retry</string>
     <string name="SelectSubCatagory">Please select a sub catagory!</string>
     <string name="chooseMainCatagory">Choose a main catagory.</string>
+    <string name="explanationNoCategories">The first time this app is opened access to the internet is required to retrieve categories. After the initial retrieval this is not neccessary anymore.</string>
+    <string name="OK">OK</string>
 </resources>

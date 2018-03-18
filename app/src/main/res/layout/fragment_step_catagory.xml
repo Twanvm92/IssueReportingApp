@@ -5,6 +5,7 @@
    >
 
     <data>
+        <import type="android.view.View"/>
         <variable
             name="onMainCatagorySelectedCallback"
             type="com.example.justin.verbeterjegemeente.ui.callbacks.OnMainCatagorySelectedCallback"/>
@@ -22,6 +23,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:visibility="@{viewModel.visible ? View.VISIBLE : View.GONE}"
             >
 
             <TextView
@@ -54,8 +56,9 @@
                     android:gravity="center"
                     android:layout_marginLeft="5dp"
                     android:spinnerMode="dropdown"
-                    android:onItemSelected="@{(p, v, pos, id) -> viewModel.onItemSelected(p, v, pos, id)}"
-                    android:entries="@{viewModel.mainCatagories}" />
+                    android:entries="@{viewModel.mainCatagories}"
+                    android:onItemSelected="@{(p, v, pos, id) -> viewModel.onItemSelected(p, v, pos)}"
+                     />
 
                 <ImageView
                     android:layout_width="wrap_content"
@@ -66,6 +69,17 @@
                     android:src="@mipmap/spinner" />
 
             </RelativeLayout>
+
+            <TextView
+                android:id="@+id/fragmentStepCatagory_tv_mainCatagoryError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="5dp"
+                android:textColor="@color/error"
+                android:text="@string/chooseMainCatagory"
+                android:visibility="@{viewModel.mainError ? View.VISIBLE : View.GONE}"/>
 
             <TextView
                 android:id="@+id/fragmentStepCatagory_tv_subCatagory"
@@ -98,7 +112,9 @@
                     android:gravity="center"
                     android:spinnerMode="dropdown"
                     android:textSize="20sp"
-                    android:entries="@{viewModel.subCatagories}"/>
+                    android:entries="@{viewModel.subCatagories}"
+                    android:onItemSelected="@{(p, v, pos, id) -> viewModel.onItemSelected(p, v, pos, id)}"
+                    />
 
                 <ImageView
                     android:layout_width="wrap_content"
@@ -109,6 +125,17 @@
                     android:src="@mipmap/spinner" />
 
             </RelativeLayout>
+
+            <TextView
+                android:id="@+id/fragmentStepCatagory_tv_subCatagoryError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="5dp"
+                android:textColor="@color/error"
+                android:text="@string/kiesSubCategory"
+                android:visibility="@{viewModel.subError ? View.VISIBLE : View.GONE}"/>
         </LinearLayout>
     </android.support.design.widget.CoordinatorLayout>
 

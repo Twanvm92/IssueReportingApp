@@ -39,9 +39,9 @@
     <string name="mijnMeldingen">Mijn meldingen</string>
     <string name="onthoudGegevens">Onthoud mijn persoonlijke gegevens</string>
 
-    <string name="hoofdcategorieTab2">Hoofdcategorie:</string>
+    <string name="hoofdcategorieTab2">Hoofdcategorie*</string>
     <string name="kiesProblemen">Kies een hoofdcategorie</string>
-    <string name="subcategorieTab2">Sub categorie:</string>
+    <string name="subcategorieTab2">Subcategorie*</string>
     <string name="kiesSubProblemen">Kies een subcategorie</string>
     <string name="update">Houd mij NIET op de hoogte via email</string>
     <string name="laatsteupdateTab2">Laatste update:</string>
@@ -114,5 +114,7 @@
     <string name="servicesLoaded">Catagorieën zijn bijgewerkt</string>
     <string name="loading">Laden...</string>
     <string name="Retry">Opnieuw proberen</string>
+    <string name="SelectSubCatagory">Selecteer een subcategory!</string>
+    <string name="chooseMainCatagory">Kies eerst een hoofdcategorie</string>
 
 </resources>

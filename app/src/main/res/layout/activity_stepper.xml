@@ -9,6 +9,6 @@
     app:ms_showErrorStateEnabled="true"
     app:ms_showErrorMessageEnabled="true"
     app:ms_backButtonColor="@color/green500"
-    app:ms_nextButtonColor="@color/green500"
-    app:ms_completeButtonColor="@color/green500"
+    app:ms_nextButtonColor="@color/ms_disabling_button_text_color_selector"
+    app:ms_completeButtonColor="@color/ms_disabling_button_text_color_selector"
     />

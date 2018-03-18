@@ -18,19 +18,17 @@
 
 package com.example.justin.verbeterjegemeente.service.repositories;
 
-import com.example.justin.verbeterjegemeente.app.AppExecutors;
-import com.example.justin.verbeterjegemeente.app.utils.Objects;
-import com.example.justin.verbeterjegemeente.data.network.ApiResponse;
-import com.example.justin.verbeterjegemeente.data.network.Resource;
-
 import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.MediatorLiveData;
 import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
 
-import javax.inject.Inject;
+import com.example.justin.verbeterjegemeente.app.AppExecutors;
+import com.example.justin.verbeterjegemeente.data.network.ApiResponse;
+import com.example.justin.verbeterjegemeente.data.network.Resource;
+
+import java.util.List;
 
 import timber.log.Timber;
 
@@ -86,7 +84,14 @@ public abstract class NetworkBoundResourceRoom<ResultType, RequestType>
                 onFetchFailed();
                 Timber.d("Retrofit response is unsuccessful");
                 result.addSource(dbSource,
-                        newData -> setValue(Resource.error(response.errorMessage, newData)));
+                        newData -> {
+                            // make sure dbSource is removed as source if no data is in db
+                            // otherwise this will conflict with NetworkBoundResourceRefresh
+                            if (newData instanceof List && ((List) newData).isEmpty()) {
+                                result.removeSource(dbSource);
+                            }
+                            setValue(Resource.error(response.errorMessage, newData));
+                        });
             }
         });
     }

@@ -153,7 +153,7 @@ public class ServiceListViewModelTest {
         AdapterView adapterView = mock(AdapterView.class);
         when(adapterView.getSelectedItem()).thenReturn(new Object());
         when(adapterView.getSelectedItem().toString()).thenReturn("Lanterns");
-        serviceListViewModel.onItemSelected(adapterView, mock(View.class), 2, 0);
+        serviceListViewModel.onItemSelected(adapterView, mock(View.class), 2);
         assertEquals(2 , serviceListViewModel.subCatagories.size());
         assertEquals(serviceEntry.getService_name(), serviceListViewModel.subCatagories.get(1).string);
     }
@@ -170,11 +170,63 @@ public class ServiceListViewModelTest {
         Resource<List<ServiceEntry>> successResource = Resource.success(serviceEntryList);
         serviceListObservable.setValue(successResource);
         serviceListViewModel.setMainCatagories(serviceListObservable.getValue().data);
+
+        assertEquals(1 , serviceListViewModel.subCatagories.size());
+        assertEquals(false , serviceListViewModel.mainError.get());
+
+    }
+
+    @Test
+    public void ShowErrorOnNoMainCatagorySelectedByUserAfterSpinnerInitialised() {
+        Observer<Resource<List<ServiceEntry>>> observer = mock(Observer.class);
+        ServiceEntry serviceEntry = new ServiceEntry(1, "ABCD",
+                "testservice", "This is a test", false, "test",
+                "none", "Lanterns");
+        serviceListObservable.observeForever(observer);
+        List<ServiceEntry> serviceEntryList = new ArrayList<>();
+        serviceEntryList.add(serviceEntry);
+        Resource<List<ServiceEntry>> successResource = Resource.success(serviceEntryList);
+        serviceListObservable.setValue(successResource);
         AdapterView adapterView = mock(AdapterView.class);
         when(adapterView.getSelectedItem()).thenReturn(new Object());
-        when(adapterView.getSelectedItem().toString()).thenReturn("Select a main catagory");
+        String defaultS = "Kies een hoofdcategorie";
+        when(resources.getString(anyInt())).thenReturn(defaultS);
+        when(adapterView.getSelectedItem().toString()).thenReturn(defaultS);
+        serviceListViewModel.onItemSelected(adapterView, mock(View.class), 2);
+        assertEquals(false , serviceListViewModel.mainError.get());
+
+        serviceListViewModel.onItemSelected(adapterView, mock(View.class), 2);
+        assertEquals(true , serviceListViewModel.mainError.get());
+    }
+
+    @Test
+    public void ShowNoErrorOnSubCatagorySelectedByUserAfterSpinnerInitialised() {
+        AdapterView adapterView = mock(AdapterView.class);
+        when(adapterView.getSelectedItem()).thenReturn(new Object());
+        String defaultS = "Kies een subcategorie";
+        when(resources.getString(anyInt())).thenReturn(defaultS);
+        when(adapterView.getSelectedItem().toString()).thenReturn(defaultS);
         serviceListViewModel.onItemSelected(adapterView, mock(View.class), 2, 0);
-        assertEquals(1 , serviceListViewModel.subCatagories.size());
+        assertEquals(false , serviceListViewModel.subError.get());
+
+        String testSubCategory = "TestCategory";
+        when(adapterView.getSelectedItem().toString()).thenReturn(testSubCategory);
+        serviceListViewModel.onItemSelected(adapterView, mock(View.class), 2, 0);
+        assertEquals(false , serviceListViewModel.subError.get());
+    }
+
+    @Test
+    public void ShowErrorOnNoSubCatagorySelectedByUserAfterSpinnerInitialised() {
+        AdapterView adapterView = mock(AdapterView.class);
+        when(adapterView.getSelectedItem()).thenReturn(new Object());
+        String defaultS = "Kies een subcategorie";
+        when(resources.getString(anyInt())).thenReturn(defaultS);
+        when(adapterView.getSelectedItem().toString()).thenReturn(defaultS);
+        serviceListViewModel.onItemSelected(adapterView, mock(View.class), 2, 0);
+        assertEquals(false , serviceListViewModel.subError.get());
+
+        serviceListViewModel.onItemSelected(adapterView, mock(View.class), 2, 0);
+        assertEquals(true , serviceListViewModel.subError.get());
     }
 
     @Test
@@ -190,7 +242,6 @@ public class ServiceListViewModelTest {
         Resource<List<ServiceEntry>> successResource = Resource.success(serviceEntryList);
 
         doAnswer(invocation -> {
-//            serviceListObservable.setValue(successResource);
             MediatorLiveData<Resource<List<ServiceEntry>>> liveDataArgument= invocation.getArgument(0);
             liveDataArgument.setValue(successResource);
             return null;

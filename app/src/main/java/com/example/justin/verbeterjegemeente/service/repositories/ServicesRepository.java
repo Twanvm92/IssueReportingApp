@@ -117,7 +117,7 @@ public class ServicesRepository {
                 if (mInitialized) return false;
                 mInitialized = true;
                 Timber.d("Fetching new services from network");
-                return mInitialized;
+                return data == null || data.isEmpty();
 
             }
 

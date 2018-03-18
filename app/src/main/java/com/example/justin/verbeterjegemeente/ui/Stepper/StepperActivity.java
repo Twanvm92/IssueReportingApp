@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.data.DataManager;
 import com.example.justin.verbeterjegemeente.ui.adapters.StepperAdapter;
+import com.example.justin.verbeterjegemeente.ui.callbacks.OnNavigationBarListener;
 import com.stepstone.stepper.StepperLayout;
 
 import javax.inject.Inject;
@@ -16,7 +17,8 @@ import dagger.android.AndroidInjector;
 import dagger.android.DispatchingAndroidInjector;
 import dagger.android.support.HasSupportFragmentInjector;
 
-public class StepperActivity extends AppCompatActivity implements HasSupportFragmentInjector, DataManager {
+public class StepperActivity extends AppCompatActivity implements HasSupportFragmentInjector,
+        DataManager, OnNavigationBarListener {
 
     @Inject
     DispatchingAndroidInjector<Fragment> fragmentDispatchingAndroidInjector;
@@ -71,5 +73,12 @@ public class StepperActivity extends AppCompatActivity implements HasSupportFrag
     @Override
     public String getData() {
         return mData;
+    }
+
+
+    @Override
+    public void onChangeEndButtonsEnabled(boolean enabled) {
+        mStepperLayout.setNextButtonVerificationFailed(enabled);
+        mStepperLayout.setCompleteButtonVerificationFailed(enabled);
     }
 }

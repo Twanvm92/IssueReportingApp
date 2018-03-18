@@ -26,12 +26,12 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.justin.verbeterjegemeente.API.RequestManager;
+//import com.example.justin.verbeterjegemeente.API.RequestManager;
 import com.example.justin.verbeterjegemeente.ui.adapters.SectionsPageAdapter;
 import com.example.justin.verbeterjegemeente.app.Constants;
 import com.example.justin.verbeterjegemeente.data.database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.R;
-import com.example.justin.verbeterjegemeente.app.UpdateService;
+//import com.example.justin.verbeterjegemeente.app.UpdateService;
 import com.example.justin.verbeterjegemeente.service.model.Coordinates;
 import com.example.justin.verbeterjegemeente.service.model.Service;
 import com.example.justin.verbeterjegemeente.service.model.ServiceRequest;
@@ -45,7 +45,7 @@ import io.github.yavski.fabspeeddial.SimpleMenuListenerAdapter;
 
 
 public class MainActivity extends AppCompatActivity implements
-        RequestManager.OnServicesReady, Tab1Fragment.ServiceRequestsReadyListener {
+       /* RequestManager.OnServicesReady,*/ Tab1Fragment.ServiceRequestsReadyListener {
 
     private static final String TAG = "MainActivity";
     private int rValue;
@@ -63,16 +63,16 @@ public class MainActivity extends AppCompatActivity implements
         setContentView(R.layout.activity_main);
         Log.d(TAG, "onCreate: Starting.");
 
-        // Starting service to run in the background.
-        Intent i = new Intent(getApplicationContext(), UpdateService.class);
-        startService(i);
-
-        // from here all the API requests will be handled
-        RequestManager reqManager = new RequestManager(this);
-        // set callback for data passing
-        reqManager.setOnServicesReadyCallb(this);
-        // launch Retrofit callback and retrieve services asynchronously
-        reqManager.getServices();
+//        // Starting service to run in the background.
+//        Intent i = new Intent(getApplicationContext(), UpdateService.class);
+//        startService(i);
+//
+//        // from here all the API requests will be handled
+//        RequestManager reqManager = new RequestManager(this);
+//        // set callback for data passing
+//        reqManager.setOnServicesReadyCallb(this);
+//        // launch Retrofit callback and retrieve services asynchronously
+//        reqManager.getServices();
         // Set up the custom ViewPager with the sections adapter.
         CustomViewPager mViewPager = (CustomViewPager) findViewById(R.id.container);
         // make sure swiping between tabs is not allowed.
@@ -456,16 +456,16 @@ public class MainActivity extends AppCompatActivity implements
         return currentCoordinates;
     }
 
-    @Override
-    public void servicesReady(List<Service> services) {
-        serviceList = services;
-        // update the catagoryList with main categories generated from the service list
-//        catagoryList = Service.genMainCategories(services);
-
-        // let the adapter know that data has changed
-        catagoryAdapter.notifyDataSetChanged();
-
-    }
+//    @Override
+//    public void servicesReady(List<Service> services) {
+//        serviceList = services;
+//        // update the catagoryList with main categories generated from the service list
+////        catagoryList = Service.genMainCategories(services);
+//
+//        // let the adapter know that data has changed
+//        catagoryAdapter.notifyDataSetChanged();
+//
+//    }
 
     @Override
     public void onServiceRequestsReady(ArrayList<ServiceRequest> srList) {

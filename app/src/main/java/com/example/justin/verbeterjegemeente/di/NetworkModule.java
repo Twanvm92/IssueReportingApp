@@ -1,6 +1,7 @@
 package com.example.justin.verbeterjegemeente.di;
 
 import com.example.justin.verbeterjegemeente.app.Constants;
+import com.example.justin.verbeterjegemeente.app.utils.LiveDataCallAdapterFactory;
 import com.example.justin.verbeterjegemeente.data.network.ServiceClient;
 
 import javax.inject.Named;
@@ -37,6 +38,7 @@ public class NetworkModule {
         return new Retrofit.Builder()
                 .baseUrl(baseUrl)
                 .addConverterFactory(converter)
+                .addCallAdapterFactory(new LiveDataCallAdapterFactory())
                 .build();
     }
 

@@ -39,9 +39,9 @@
     <string name="mijnMeldingen">Mijn meldingen</string>
     <string name="onthoudGegevens">Onthoud mijn persoonlijke gegevens</string>
 
-    <string name="hoofdcategorieTab2">Hoofdcategorie:</string>
+    <string name="hoofdcategorieTab2">Hoofdcategorie*</string>
     <string name="kiesProblemen">Kies een hoofdcategorie</string>
-    <string name="subcategorieTab2">Sub categorie:</string>
+    <string name="subcategorieTab2">Subcategorie*</string>
     <string name="kiesSubProblemen">Kies een subcategorie</string>
     <string name="update">Houd mij NIET op de hoogte via email</string>
     <string name="laatsteupdateTab2">Laatste update:</string>
@@ -54,7 +54,7 @@
     <string name="kBeschrijving">Beschrijving moet minimaal 10 karakters bevatten</string>
     <string name="ePostRequest">Kan melding niet versturen. Verbind uw apparaat met het internet en probeer opnieuw.</string>
     <string name="eGetServices">Geen services kunnen vinden die voldoen aan deze criteria</string>
-    <string name="FoutOphalenProblemen">Kan op het moment geen categorieën ophalen. Probeer het later opnieuw.</string>
+    <string name="FoutOphalenProblemen">Categorieën konden niet bijgewerkt worden.</string>
     <string name="errLoadingServiceRequestList">Kan op dit moment geen meldingen ophalen. Locatie niet bekend.</string>
     <string name="eFindLocationTitle">Locatie bepalen mislukt</string>
     <string name="eFindLocation">Het is niet gelukt uw huidige locatie te bepalen. Mogelijk staat locatievoorziening uit of is er geen internetverbinding. Probeer het later opnieuw.</string>
@@ -111,5 +111,12 @@
     </string-array>
     <string name="catagory">Categorie</string>
     <string name="request">Melding</string>
+    <string name="servicesLoaded">Catagorieën zijn bijgewerkt</string>
+    <string name="loading">Laden...</string>
+    <string name="Retry">Opnieuw proberen</string>
+    <string name="SelectSubCatagory">Selecteer een subcategory!</string>
+    <string name="chooseMainCatagory">Kies eerst een hoofdcategorie</string>
+    <string name="explanationNoCategories">De eerste keer dat u deze app gebruikt, is er toegang tot het internet nodig om categorieën voor u in te laden. Na de eerste keer is dit niet meer nodig</string>
+    <string name="OK">OK</string>
 
 </resources>

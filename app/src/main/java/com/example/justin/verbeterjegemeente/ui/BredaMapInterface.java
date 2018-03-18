@@ -17,12 +17,10 @@ public class BredaMapInterface {
     private OnCameraChangedListener cameraListener;
     private OnMarkedLocationListener locationListener;
     private OnPageFullyLoadedListener pageFullyLoadedListener;
-    private Context context;
     private final String TAG = "BredaMapInterface: ";
 
-    public BredaMapInterface(OnCameraChangedListener cameraListener, Context context) {
+    public BredaMapInterface(OnCameraChangedListener cameraListener) {
         this.cameraListener = cameraListener;
-        this.context = context;
     }
 
     public BredaMapInterface(OnMarkedLocationListener locationListener, OnPageFullyLoadedListener pageFullyLoadedListener) {
@@ -81,16 +79,16 @@ public class BredaMapInterface {
     }
 
     // TODO: 27-8-2017 add javadoc
-    interface OnCameraChangedListener {
-        void onListenToCameraChanged(Coordinates CameraCoordinates);
+    public interface OnCameraChangedListener {
+        void onListenToCameraChanged(Coordinates cameraCoordinates);
     }
 
     // TODO: 27-8-2017 add javadoc
-    interface OnMarkedLocationListener {
+    public interface OnMarkedLocationListener {
         void onMarkedLocation(LatLng userChosenLocation);
     }
 
-    interface OnPageFullyLoadedListener {
+    public interface OnPageFullyLoadedListener {
         void onPageFullyLoaded();
     }
 

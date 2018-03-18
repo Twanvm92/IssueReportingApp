@@ -1,6 +1,7 @@
 package com.example.justin.verbeterjegemeente.di;
 
 import com.example.justin.verbeterjegemeente.viewModel.ServiceListViewModel;
+import com.example.justin.verbeterjegemeente.viewModel.ServiceRequestListViewModel;
 
 import dagger.Subcomponent;
 
@@ -17,4 +18,5 @@ public interface ViewModelSubComponent {
     }
 
     ServiceListViewModel serviceListViewModel();
+    ServiceRequestListViewModel serviceRequestListViewModel();
 }

@@ -12,10 +12,10 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.justin.verbeterjegemeente.API.RequestManager;
+//import com.example.justin.verbeterjegemeente.API.RequestManager;
 import com.example.justin.verbeterjegemeente.data.database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.R;
-import com.example.justin.verbeterjegemeente.app.UpdateService;
+//import com.example.justin.verbeterjegemeente.app.UpdateService;
 import com.example.justin.verbeterjegemeente.service.model.ServiceRequest;
 import com.like.LikeButton;
 import com.like.OnLikeListener;
@@ -116,24 +116,24 @@ public class ServiceRequestAdapter extends ArrayAdapter<ServiceRequest> {
         TextView laastUpdate = (TextView) convertview.findViewById(R.id.activitySRA_tv_laatstUpdateID);
         laastUpdate.setText(serviceRequest.getUpdatedDatetime());
 
-        ArrayList<String> unreadSR = UpdateService.getUnreadServiceRequests();
-        for (String unsr : unreadSR) {
-            Log.i("ServiceRequestAdapter: ", "Unreadsr: " + unsr);
-        }
-        if (!unreadSR.isEmpty()) { // do nothing if there are no unread updated service requests
-            Log.i("ServiceRequestAdapter: ", "amount of unread ids: " + unreadSR.size());
-            for (String uSR : unreadSR) { // loop through ids of unread updated service request
-                if (uSR.equals(serviceRequest.getServiceRequestId())) {
-                    Log.i("ServiceRequestAdapter: ", "Changed color servicerequest: " + serviceRequest.getServiceRequestId());
-
-                    // if unread service request id equals service request id of listview row,
-                    // change the background color of listview row
-                    ConstraintLayout parentLayout = (ConstraintLayout) convertview.findViewById(R.id.tab2fragment_ll_parentLayout);
-                    parentLayout.setBackgroundResource(R.color.colorUnreadServiceRequest);
-                    Log.i("FollowActivity: ", "Looping through list items");
-                }
-            }
-        }
+//        ArrayList<String> unreadSR = UpdateService.getUnreadServiceRequests();
+//        for (String unsr : unreadSR) {
+//            Log.i("ServiceRequestAdapter: ", "Unreadsr: " + unsr);
+//        }
+//        if (!unreadSR.isEmpty()) { // do nothing if there are no unread updated service requests
+//            Log.i("ServiceRequestAdapter: ", "amount of unread ids: " + unreadSR.size());
+//            for (String uSR : unreadSR) { // loop through ids of unread updated service request
+//                if (uSR.equals(serviceRequest.getServiceRequestId())) {
+//                    Log.i("ServiceRequestAdapter: ", "Changed color servicerequest: " + serviceRequest.getServiceRequestId());
+//
+//                    // if unread service request id equals service request id of listview row,
+//                    // change the background color of listview row
+//                    ConstraintLayout parentLayout = (ConstraintLayout) convertview.findViewById(R.id.tab2fragment_ll_parentLayout);
+//                    parentLayout.setBackgroundResource(R.color.colorUnreadServiceRequest);
+//                    Log.i("FollowActivity: ", "Looping through list items");
+//                }
+//            }
+//        }
 
 
         return convertview;
@@ -146,8 +146,8 @@ public class ServiceRequestAdapter extends ArrayAdapter<ServiceRequest> {
      */
     private void sendUpvoteToAPI(String serviceRequestID) {
         String extraDescription = "";
-        RequestManager rManager = new RequestManager(getContext());
-        rManager.upvoteServiceRequest(serviceRequestID, extraDescription);
+//        RequestManager rManager = new RequestManager(getContext());
+//        rManager.upvoteServiceRequest(serviceRequestID, extraDescription);
     }
 
     /**

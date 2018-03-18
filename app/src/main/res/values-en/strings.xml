@@ -26,9 +26,9 @@
     <string name="mijnMeldingen">My notifications</string>
     <string name="onthoudGegevens">Remember my personal data</string>
 
-    <string name="hoofdcategorieTab2">Main category:</string>
+    <string name="hoofdcategorieTab2">Main catagory*</string>
     <string name="kiesProblemen">Choose a main  catagory</string>
-    <string name="subcategorieTab2">Subcategory:</string>
+    <string name="subcategorieTab2">Sub catagory*</string>
     <string name="kiesSubProblemen">Choose a sub catagory</string>
     <string name="update">I do NOT want to be updated by email</string>
     <string name="laatsteupdateTab2">Latest update:</string>
@@ -86,4 +86,11 @@
     <string name="nietGeselecteerdeCategorie">Start by swiping left</string>
     <string name="catagory">Catagory</string>
     <string name="request">Request</string>
+    <string name="servicesLoaded">Catagories have been updated</string>
+    <string name="loading">Loading...</string>
+    <string name="Retry">Retry</string>
+    <string name="SelectSubCatagory">Please select a sub catagory!</string>
+    <string name="chooseMainCatagory">Choose a main catagory.</string>
+    <string name="explanationNoCategories">The first time this app is opened access to the internet is required to retrieve categories. After the initial retrieval this is not neccessary anymore.</string>
+    <string name="OK">OK</string>
 </resources>

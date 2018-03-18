@@ -17,7 +17,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.justin.verbeterjegemeente.API.RequestManager;
+//import com.example.justin.verbeterjegemeente.API.RequestManager;
 import com.example.justin.verbeterjegemeente.data.database.DatabaseHandler;
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.service.model.ServiceRequest;
@@ -134,7 +134,7 @@ public class DetailedMeldingActivity extends FragmentActivity {
                     // add upvote to sqlite database
                     db.addUpvote(serviceRequestID);
                     // add upvote to service request in Gemeente Database
-                    sendUpvoteToAPI(serviceRequestID);
+//                    sendUpvoteToAPI(serviceRequestID);
                     addUpvoteToTextview();
                     // let user know service request is upvoted
                     Toast.makeText(DetailedMeldingActivity.this, getString(R.string.upvoteSucces), Toast.LENGTH_SHORT).show();
@@ -313,11 +313,11 @@ public class DetailedMeldingActivity extends FragmentActivity {
      * has been upvoted.
      * @param serviceRequestID the ID of the service request that just has been upvoted by the user
      */
-    public void sendUpvoteToAPI(String serviceRequestID) {
-        String extraDescription = "";
-        RequestManager rManager = new RequestManager(this);
-        rManager.upvoteServiceRequest(serviceRequestID, extraDescription);
-    }
+//    public void sendUpvoteToAPI(String serviceRequestID) {
+//        String extraDescription = "";
+//        RequestManager rManager = new RequestManager(this);
+//        rManager.upvoteServiceRequest(serviceRequestID, extraDescription);
+//    }
 
     /**
      * Add + 1 to the number of upvotes that are being shown on the UI.

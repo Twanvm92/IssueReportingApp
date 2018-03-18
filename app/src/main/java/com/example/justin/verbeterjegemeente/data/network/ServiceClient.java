@@ -1,5 +1,7 @@
 package com.example.justin.verbeterjegemeente.data.network;
 
+import android.arch.lifecycle.LiveData;
+
 import com.example.justin.verbeterjegemeente.data.database.ServiceEntry;
 import com.example.justin.verbeterjegemeente.service.model.PostServiceRequestResponse;
 import com.example.justin.verbeterjegemeente.service.model.Service;
@@ -37,8 +39,8 @@ public interface ServiceClient {
      */
 
     @GET ("services.json")
-
-    Call<List<ServiceEntry>> getServices(@Query("locale") String Language);
+    //TODO CALL or Livedata?
+    LiveData<ApiResponse<List<ServiceEntry>>> getServices(@Query("locale") String Language);
 
 
 
@@ -65,18 +67,18 @@ public interface ServiceClient {
 
     @Multipart
     @POST("requests.json")
-    Call<ArrayList<PostServiceRequestResponse>> postServiceRequest(@Part("service_code") RequestBody service_code,
-                                                                   @Part("description") RequestBody description,
-                                                                   @Part("lat") RequestBody lat,
-                                                                   @Part("long") RequestBody lon,
-                                                                   @Part("address_string") RequestBody address_string,
-                                                                   @Part("address_id") RequestBody address_id,
+    LiveData<LiveData<ApiResponse<ArrayList<PostServiceRequestResponse>>>> postServiceRequest(@Part("service_code") RequestBody service_code,
+                                                                                         @Part("description") RequestBody description,
+                                                                                         @Part("lat") RequestBody lat,
+                                                                                         @Part("long") RequestBody lon,
+                                                                                         @Part("address_string") RequestBody address_string,
+                                                                                         @Part("address_id") RequestBody address_id,
 //                                                                   @Body String[] attribute,
-                                                                   @Part("jurisdiction_id") RequestBody jurisdiction_id,
-                                                                   @Part("email") RequestBody email,
-                                                                   @Part("first_name") RequestBody first_name,
-                                                                   @Part("last_name") RequestBody last_name,
-                                                                   @Part MultipartBody.Part media_url);
+                                                                                         @Part("jurisdiction_id") RequestBody jurisdiction_id,
+                                                                                         @Part("email") RequestBody email,
+                                                                                         @Part("first_name") RequestBody first_name,
+                                                                                         @Part("last_name") RequestBody last_name,
+                                                                                         @Part MultipartBody.Part media_url);
 
     /**
      * Give priority to a service request. Should only be abe to be done once per user.
@@ -86,7 +88,7 @@ public interface ServiceClient {
      * @return
      */
     @POST("upvoteRequest.json")
-    Call<ArrayList> upvoteRequest(@Query("service_request_id") String serviceRequestID,
+    LiveData<ApiResponse<ArrayList>> upvoteRequest(@Query("service_request_id") String serviceRequestID,
                                   @Query("extraDescription") String extraDescription
     );
 
@@ -103,7 +105,7 @@ public interface ServiceClient {
      */
 
     @GET("requests.json")
-    Call<ArrayList<ServiceRequest>> getNearbyServiceRequests(@Query("lat") String lat,
+    LiveData<ApiResponse<ArrayList<ServiceRequest>>> getNearbyServiceRequests(@Query("lat") String lat,
                                                              @Query("long") String lng,
                                                              @Query("status") String status,
                                                              @Query("radius") String meters);
@@ -121,7 +123,7 @@ public interface ServiceClient {
      * @return ArrayList<ServiceRequest> A list of service requests
      */
     @GET("requests.json")
-    Call<ArrayList<ServiceRequest>> getNearbyServiceRequests(@Query("lat") String lat,
+    LiveData<ApiResponse<ArrayList<ServiceRequest>>> getNearbyServiceRequests(@Query("lat") String lat,
                                                              @Query("long") String lng,
                                                              @Query("status") String status,
                                                              @Query("radius") String meters,
@@ -140,7 +142,7 @@ public interface ServiceClient {
      */
 
     @GET("requests.json")
-    Call<ArrayList<ServiceRequest>> getClosedNearbyServiceRequests(@Query("lat") String lat,
+    LiveData<ApiResponse<ArrayList<ServiceRequest>>> getClosedNearbyServiceRequests(@Query("lat") String lat,
                                                              @Query("long") String lng,
                                                              @Query("status") String status,
                                                              @Query("radius") String meters,
@@ -160,7 +162,7 @@ public interface ServiceClient {
      */
 
     @GET("requests.json")
-    Call<ArrayList<ServiceRequest>> getClosedNearbyServiceRequests(@Query("lat") String lat,
+    LiveData<ApiResponse<ArrayList<ServiceRequest>>> getClosedNearbyServiceRequests(@Query("lat") String lat,
                                                                    @Query("long") String lng,
                                                                    @Query("status") String status,
                                                                    @Query("radius") String meters,
@@ -176,7 +178,7 @@ public interface ServiceClient {
      */
 
     @GET ("requests.json")
-    Call<ArrayList<ServiceRequest>> getServiceById (@Query("service_request_id") String serviceID,
+    LiveData<ApiResponse<ArrayList<ServiceRequest>>> getServiceById (@Query("service_request_id") String serviceID,
                                          @Query("jurisdiction_id") String jurisdiction_id);
 }
 

@@ -8,5 +8,5 @@ import android.widget.AdapterView;
  */
 
 public interface OnMainCatagorySelectedCallback {
-    public void onItemSelected(AdapterView<?> parent, View view, int position, long id);
+    void onItemSelected(AdapterView<?> parent, View view, int position);
 }

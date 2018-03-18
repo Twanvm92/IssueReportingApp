@@ -17,7 +17,6 @@
     <color name="black">#000000</color>
     <color name="grijs">#ECF0F1</color>
     <color name="colorUnreadServiceRequest">#99ff99</color>
-
-
+    <color name="error">#D50000</color>
 
 </resources>

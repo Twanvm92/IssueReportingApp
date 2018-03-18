@@ -30,7 +30,7 @@ import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.example.justin.verbeterjegemeente.API.RequestManager;
+//import com.example.justin.verbeterjegemeente.API.RequestManager;
 import com.example.justin.verbeterjegemeente.ui.adapters.MeldingDialogAdapter;
 import com.example.justin.verbeterjegemeente.app.Constants;
 import com.example.justin.verbeterjegemeente.data.database.DatabaseHandler;
@@ -60,8 +60,8 @@ import okhttp3.RequestBody;
  * @author Thijs van Marle
  * @author Mika Krooswijk
  */
-public class MeldingActivity extends AppCompatActivity implements RequestManager.OnServicesReady,
-        RequestManager.OnServiceRequestsReady, RequestManager.OnServiceRequestPosted {
+public class MeldingActivity extends AppCompatActivity /*implements RequestManager.OnServicesReady,
+        RequestManager.OnServiceRequestsReady, RequestManager.OnServiceRequestPosted*/ {
 
     private static final String TAG = "MeldingActivity";
     private Spinner subCatagorySpinner;
@@ -224,11 +224,11 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
      *
      */
     public void postNotification() {
-        RequestManager requestManager = new RequestManager(this);
-        requestManager.setOnServiceReqPostedCallb(this);
-        // TODO: 21-8-2017 commented Attribute parameter will this be removed?
-        requestManager.postServiceRequest(pSc, pDescr, pLat, pLon, pAddressString,
-                pAddressID, /*attribute,*/ pJurisdictionID, pEmail, pFirstName, pLastName, imgBody);
+//        RequestManager requestManager = new RequestManager(this);
+//        requestManager.setOnServiceReqPostedCallb(this);
+//        // TODO: 21-8-2017 commented Attribute parameter will this be removed?
+//        requestManager.postServiceRequest(pSc, pDescr, pLat, pLon, pAddressString,
+//                pAddressID, /*attribute,*/ pJurisdictionID, pEmail, pFirstName, pLastName, imgBody);
 
     }
 
@@ -547,12 +547,12 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
      * sub categories.
      */
     public void getServicesForSpinner() {
-        // from here all the API requests will be handled
-        final RequestManager reqManager = new RequestManager(this);
-        // set callback for data passing
-        reqManager.setOnServicesReadyCallb(this);
-        // launch Retrofit callback and retrieve services asynchronously
-        reqManager.getServices();
+//        // from here all the API requests will be handled
+//        final RequestManager reqManager = new RequestManager(this);
+//        // set callback for data passing
+//        reqManager.setOnServicesReadyCallb(this);
+//        // launch Retrofit callback and retrieve services asynchronously
+//        reqManager.getServices();
     }
 
     /**
@@ -842,76 +842,76 @@ public class MeldingActivity extends AppCompatActivity implements RequestManager
      * that the user is trying to post. Can be set to find service requests in a given radius.
      */
     public void getSimilarServiceRequests() {
-        RequestManager reqManager = new RequestManager(MeldingActivity.this);
-        reqManager.setOnServiceReqReadyCallb(MeldingActivity.this);
-        reqManager.getServiceRequests(lat.toString(), lon.toString(), "open", "10", sc);
+//        RequestManager reqManager = new RequestManager(MeldingActivity.this);
+//        reqManager.setOnServiceReqReadyCallb(MeldingActivity.this);
+//        reqManager.getServiceRequests(lat.toString(), lon.toString(), "open", "10", sc);
     }
 
-    @Override
-    public void servicesReady(List<Service> services) {
-        serviceList = services;
-        // update the catagoryList with main categories generated from the service list
-//        catagoryList = Service.genMainCategories(services, catagoryList);
-
-        // let the adapter know that data has changed
-        catagoryAdapter.notifyDataSetChanged();
-    }
-
-    @Override
-    public void serviceRequestsReady(final ArrayList<ServiceRequest> serviceRequests) {
-        if (!serviceRequests.isEmpty()) {
-
-            final Dialog dialog = new Dialog(this);
-            dialog.setContentView(R.layout.activity_melding_dialog);
-            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-            ListView meldingDialogListView = (ListView) dialog.findViewById(R.id.activity_melding_dialog_listView);
-            MeldingDialogAdapter meldingDialogAdapter = new MeldingDialogAdapter(getApplicationContext(), serviceRequests);
-            meldingDialogListView.setAdapter(meldingDialogAdapter);
-            meldingDialogListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    Intent myIntent = new Intent(view.getContext(), DetailedMeldingActivity.class);
-                    ServiceRequest serviceRequest = serviceRequests.get(position);
-                    myIntent.putExtra("serviceRequest", serviceRequest);
-                    myIntent.putExtra("ORIGIN", "MeldingActivityDialog");
-                    startActivity(myIntent);
-                }
-            });
-
-            Button closeBtn = (Button) dialog.findViewById(R.id.activity_melding_dialog_btn_terug);
-            closeBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    dialog.dismiss();
-                }
-            });
-
-            Button postBtn = (Button) dialog.findViewById(R.id.activity_melding_dialog_btn_maakMelding);
-            postBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    postNotification();
-                    dialog.dismiss();
-                }
-            });
-
-            dialog.show();
-        } else {
-            postNotification();
-        }
-    }
-
-    @Override
-    public void serviceRequestPosted(ArrayList<PostServiceRequestResponse> pReqRespList) {
-        if(!pReqRespList.isEmpty()) {
-            // show the service code that was found in the respond as a toast
-            for (PostServiceRequestResponse psrr : pReqRespList) {
-                Log.i("Service response: ", psrr.getId());
-                Toast.makeText(getApplicationContext(),
-                        "service request is aangemaakt met id: " + psrr.getId(),
-                        Toast.LENGTH_SHORT).show();
-
-                insertReport(psrr.getId());
-            }
-        }
-    }
+//    @Override
+//    public void servicesReady(List<Service> services) {
+//        serviceList = services;
+//        // update the catagoryList with main categories generated from the service list
+////        catagoryList = Service.genMainCategories(services, catagoryList);
+//
+//        // let the adapter know that data has changed
+//        catagoryAdapter.notifyDataSetChanged();
+//    }
+//
+//    @Override
+//    public void serviceRequestsReady(final ArrayList<ServiceRequest> serviceRequests) {
+//        if (!serviceRequests.isEmpty()) {
+//
+//            final Dialog dialog = new Dialog(this);
+//            dialog.setContentView(R.layout.activity_melding_dialog);
+//            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+//            ListView meldingDialogListView = (ListView) dialog.findViewById(R.id.activity_melding_dialog_listView);
+//            MeldingDialogAdapter meldingDialogAdapter = new MeldingDialogAdapter(getApplicationContext(), serviceRequests);
+//            meldingDialogListView.setAdapter(meldingDialogAdapter);
+//            meldingDialogListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                    Intent myIntent = new Intent(view.getContext(), DetailedMeldingActivity.class);
+//                    ServiceRequest serviceRequest = serviceRequests.get(position);
+//                    myIntent.putExtra("serviceRequest", serviceRequest);
+//                    myIntent.putExtra("ORIGIN", "MeldingActivityDialog");
+//                    startActivity(myIntent);
+//                }
+//            });
+//
+//            Button closeBtn = (Button) dialog.findViewById(R.id.activity_melding_dialog_btn_terug);
+//            closeBtn.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    dialog.dismiss();
+//                }
+//            });
+//
+//            Button postBtn = (Button) dialog.findViewById(R.id.activity_melding_dialog_btn_maakMelding);
+//            postBtn.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    postNotification();
+//                    dialog.dismiss();
+//                }
+//            });
+//
+//            dialog.show();
+//        } else {
+//            postNotification();
+//        }
+//    }
+//
+//    @Override
+//    public void serviceRequestPosted(ArrayList<PostServiceRequestResponse> pReqRespList) {
+//        if(!pReqRespList.isEmpty()) {
+//            // show the service code that was found in the respond as a toast
+//            for (PostServiceRequestResponse psrr : pReqRespList) {
+//                Log.i("Service response: ", psrr.getId());
+//                Toast.makeText(getApplicationContext(),
+//                        "service request is aangemaakt met id: " + psrr.getId(),
+//                        Toast.LENGTH_SHORT).show();
+//
+//                insertReport(psrr.getId());
+//            }
+//        }
+//    }
 }

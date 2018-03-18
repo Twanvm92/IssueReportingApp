@@ -2,6 +2,7 @@ package com.example.justin.verbeterjegemeente.viewModel;
 
 import android.arch.lifecycle.ViewModel;
 import android.arch.lifecycle.ViewModelProvider;
+import android.support.annotation.NonNull;
 import android.support.v4.util.ArrayMap;
 
 import com.example.justin.verbeterjegemeente.di.ViewModelSubComponent;
@@ -28,11 +29,13 @@ public class ServiceViewModelFactory implements ViewModelProvider.Factory  {
         creators = new ArrayMap<>();
 
         // View models cannot be injected directly because they won't be bound to the owner's view model scope.
-        creators.put(ServiceListViewModel.class, () -> viewModelSubComponent.serviceListViewModel());
+        creators.put(ServiceListViewModel.class, viewModelSubComponent::serviceListViewModel);
+        creators.put(ServiceRequestListViewModel.class, viewModelSubComponent::serviceRequestListViewModel);
     }
 
+    @NonNull
     @Override
-    public <T extends ViewModel> T create(Class<T> modelClass) {
+    public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
         Callable<? extends ViewModel> creator = creators.get(modelClass);
         if (creator == null) {
             for (Map.Entry<Class, Callable<? extends ViewModel>> entry : creators.entrySet()) {

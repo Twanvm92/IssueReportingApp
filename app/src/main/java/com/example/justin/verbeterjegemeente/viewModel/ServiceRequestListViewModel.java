@@ -40,7 +40,7 @@ public class ServiceRequestListViewModel extends AndroidViewModel {
         bredaMapInterface = new MutableLiveData<>();
         webViewClient = new MutableLiveData<>();
         visible = new MutableLiveData<>();
-        setBredaMapInterface();
+//        setBredaMapInterface();
         setWebViewClient();
 
         serviceRequestListObservable = serviceRequestsRepository.getCurrentServiceRequestList();

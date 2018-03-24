@@ -118,5 +118,6 @@
     <string name="chooseMainCatagory">Kies eerst een hoofdcategorie</string>
     <string name="explanationNoCategories">De eerste keer dat u deze app gebruikt, is er toegang tot het internet nodig om categorieën voor u in te laden. Na de eerste keer is dit niet meer nodig</string>
     <string name="OK">OK</string>
+    <string name="errLoadingMap">Kaart kon niet geladen worden.</string>
 
 </resources>

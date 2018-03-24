@@ -62,6 +62,7 @@ public class StepCatagoryFragment extends Fragment implements BlockingStep, Inje
         viewModel = ViewModelProviders.of(this,
                 viewModelFactory).get(ServiceListViewModel.class);
 
+        mBinding.setLifecycleOwner(this);
         observeViewModel(viewModel);
 
         mBinding.setViewModel(viewModel);

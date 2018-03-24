@@ -47,7 +47,6 @@ public class ServiceListViewModel extends AndroidViewModel implements OnMainCata
         serviceListObservable = servicesRepository.loadServices();
         mainCatagories.add(getApplication().getResources().getString(R.string.kiesProblemen));
         subCatagories.add(new StringWithTag(getApplication().getResources().getString(R.string.kiesSubProblemen), null));
-//        Resources application1 = getApplication().getResources();
 
     }
 

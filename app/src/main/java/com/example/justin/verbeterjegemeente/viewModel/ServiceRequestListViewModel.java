@@ -40,7 +40,6 @@ public class ServiceRequestListViewModel extends AndroidViewModel {
         bredaMapInterface = new MutableLiveData<>();
         webViewClient = new MutableLiveData<>();
         visible = new MutableLiveData<>();
-//        setBredaMapInterface();
         setWebViewClient();
 
         serviceRequestListObservable = serviceRequestsRepository.getCurrentServiceRequestList();
@@ -78,16 +77,11 @@ public class ServiceRequestListViewModel extends AndroidViewModel {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
 
-//                progress.setVisibility(View.GONE);
-//                wbMap.setVisibility(View.VISIBLE);
-
                 visible.postValue(true);
                 Log.i(TAG, "kaart is geladen");
             }
         });
     }
-
-//    public void
 
     public LiveData<WebViewClient> getWebViewClient() {
         return webViewClient;

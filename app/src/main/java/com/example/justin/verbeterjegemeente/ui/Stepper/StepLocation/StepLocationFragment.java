@@ -13,6 +13,7 @@ import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -22,15 +23,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
+import android.widget.Toast;
+
 import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.app.Constants;
 import com.example.justin.verbeterjegemeente.data.DataManager;
+import com.example.justin.verbeterjegemeente.data.network.ConnectionChecker;
 import com.example.justin.verbeterjegemeente.databinding.FragmentStepLocationBinding;
 import com.example.justin.verbeterjegemeente.di.Injectable;
 import com.example.justin.verbeterjegemeente.service.model.Coordinates;
-import com.example.justin.verbeterjegemeente.ui.BredaMapInterface;
 import com.example.justin.verbeterjegemeente.ui.Tab1Fragment;
-import com.example.justin.verbeterjegemeente.viewModel.ServiceListViewModel;
 import com.example.justin.verbeterjegemeente.viewModel.ServiceRequestListViewModel;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.ApiException;
@@ -44,12 +46,12 @@ import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.stepstone.stepper.BlockingStep;
 import com.stepstone.stepper.StepperLayout;
 import com.stepstone.stepper.VerificationError;
+
+import java.io.IOException;
 
 import javax.inject.Inject;
 
@@ -73,6 +75,7 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
     private GoogleApiClient mApiClient;
     private LocationRequest mLocationRequest;
     private Coordinates currentCoordinates;
+    private Boolean FirstTime = true;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -95,10 +98,12 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
         viewModel = ViewModelProviders.of(this,
                 viewModelFactory).get(ServiceRequestListViewModel.class);
 
+        mBinding.setLifecycleOwner(this);
         observeViewModel(viewModel);
         mBinding.setViewModel(viewModel);
 
-        buildGoogleApiClient();
+
+//        buildGoogleApiClient();
 
     }
 
@@ -303,6 +308,16 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
 
     @Override
     public void onSelected() {
+        if (FirstTime) {
+            buildGoogleApiClient();
+
+            if(!setupBredaMapInterface()) {
+                showSnackbar();
+            }
+
+        } else {
+            FirstTime = false;
+        }
         Log.i(TAG, "service_code: " + dataManager.getData());
     }
 
@@ -324,6 +339,34 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
     @Override
     public void onBackClicked(StepperLayout.OnBackClickedCallback callback) {
         callback.goToPrevStep();
+    }
+
+    public boolean setupBredaMapInterface () {
+        try {
+            if (ConnectionChecker.isConnected()) {
+                viewModel.setBredaMapInterface();
+                return true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public void showSnackbar () {
+        View view = mBinding.getRoot().findViewById(R.id.StepLocationFragment_l_relativeLayout);
+
+        Toast.makeText(getContext(), getString(R.string.errLoadingMap), Toast.LENGTH_SHORT).show();
+        Snackbar snackbar = Snackbar.make(view, getString(R.string.noConnection), Snackbar.LENGTH_INDEFINITE);
+        snackbar.setAction(R.string.Retry, view1 -> {
+            if (!setupBredaMapInterface()) {
+                showSnackbar();
+            }
+        });
+        snackbar.setActionTextColor(getResources().getColor(R.color.green500));
+        snackbar.show();
     }
 
 }

@@ -21,13 +21,10 @@ import java.io.InputStreamReader;
 
 public class WebviewBindingAdapter {
     @SuppressLint("AddJavascriptInterface")
-    @BindingAdapter({"javascriptInterface", "webviewClient"})
-    public static void bindJavascriptInterface(WebView webview, BredaMapInterface bredaMapInterface,
-                                               WebViewClient webViewClient) {
+    @BindingAdapter("webviewClient")
+    public static void bindJavascriptInterface1(WebView webview, WebViewClient webViewClient) {
 
-        if (bredaMapInterface != null) {
-            webview.addJavascriptInterface(bredaMapInterface, "Android");
-        }
+
         if (webViewClient != null) {
             webview.setWebViewClient(webViewClient);
         }
@@ -40,15 +37,16 @@ public class WebviewBindingAdapter {
         webview.getSettings().setDomStorageEnabled(true);
         webview.getSettings().setAllowFileAccess( true );
 
-        loadMapUrl(webview);
     }
 
-    @BindingAdapter({"loadUrl"})
-    public static void bindLoadingJavascriptUrl(WebView webview, String url) {
+    @BindingAdapter("javascriptInterface")
+    public static void bindJavascriptInterface(WebView webview, BredaMapInterface bredaMapInterface) {
 
-        if (url != null && !url.equals("")) {
-            webview.loadUrl(url);
+        if (bredaMapInterface != null) {// only load map URL if Javascript Interface was initialized
+            webview.addJavascriptInterface(bredaMapInterface, "Android");
+            loadMapUrl(webview);
         }
+
     }
 
     private static void loadMapUrl(WebView webView) {
@@ -69,8 +67,6 @@ public class WebviewBindingAdapter {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
         webView.loadDataWithBaseURL("file:///android_asset/", buf.toString(), "text/html", "utf-8", null);
     }
 }

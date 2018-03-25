@@ -71,15 +71,12 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
     ViewModelProvider.Factory viewModelFactory;
 
     private ServiceRequestListViewModel viewModel;
-
     private FragmentStepLocationBinding mBinding;
     private DataManager dataManager;
-    private String serviceCode;
     private final String TAG = "StepLocationFragment: ";
     private WebView wbMap;
     private GoogleApiClient mApiClient;
     private LocationRequest mLocationRequest;
-    private Coordinates currentCoordinates;
     private Boolean FirstTime = true;
     private FusedLocationProviderClient mFusedLocationClient;
     private LocationCallback mLocationCallback;
@@ -171,7 +168,7 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-//        promptLocationSettings();
+        // only do something when current fragment is visible to user
     }
 
     @Override
@@ -215,26 +212,10 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
                                     location.getLongitude());
                             zoomToLocation(locationCoords);
                         } else {
-                            // something went wrong. Try to get a location update.
-//                            LocationServices.FusedLocationApi.requestLocationUpdates(mApiClient,
-//                                    mLocationRequest,
-//                                    this);
                             mFusedLocationClient.requestLocationUpdates(mLocationRequest,
                                     mLocationCallback, null);
                         }
                     });
-//            // try to retrieve users' last location.
-//            Location location = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
-//            if (location == null) {
-//                // something went wrong. Try to get a location update.
-//                LocationServices.FusedLocationApi.requestLocationUpdates(mApiClient, mLocationRequest,
-//                        this);
-//            } else { // location was successfully retrieved
-//                Log.d(TAG, location.toString());
-//
-//                LatLng locationCoords = new LatLng(location.getLatitude(), location.getLongitude());
-//                zoomToLocation(locationCoords);
-//            }
         } else {
             // request the user for permission.
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},

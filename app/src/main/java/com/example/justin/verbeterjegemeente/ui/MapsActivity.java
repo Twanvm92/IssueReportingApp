@@ -92,6 +92,7 @@ public class MapsActivity extends AppCompatActivity implements GoogleApiClient.C
         gpsButton.setOnClickListener(v -> promptLocationSettings());
 
 
+
     }
 
 

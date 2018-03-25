@@ -39,7 +39,10 @@ import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResolvableApiException;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResponse;
@@ -54,6 +57,8 @@ import com.stepstone.stepper.VerificationError;
 import java.io.IOException;
 
 import javax.inject.Inject;
+
+import timber.log.Timber;
 
 import static com.example.justin.verbeterjegemeente.app.Constants.REQUEST_CHECK_SETTINGS;
 
@@ -76,18 +81,41 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
     private LocationRequest mLocationRequest;
     private Coordinates currentCoordinates;
     private Boolean FirstTime = true;
+    private FusedLocationProviderClient mFusedLocationClient;
+    private LocationCallback mLocationCallback;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        mLocationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if(locationResult == null) {
+                    return;
+                }
+                Location lastLocation = locationResult.getLastLocation();
+                if (lastLocation != null) {
+                    Timber.d("Location updated!");
+                    zoomToLocation(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()));
+                }
+            }
+        };
+
         createLocationRequest();
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(getActivity());
+        buildGoogleApiClient();
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
 
-        mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_step_location, container, false);
+        mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_step_location, container,
+                false);
+
+        mBinding.aStepCatagoryFragmentFbtnGps.setOnClickListener(v -> promptLocationSettings());
+        wbMap = mBinding.StepCatagoryFragmentWvMap;
         return mBinding.getRoot();
     }
 
@@ -101,9 +129,6 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
         mBinding.setLifecycleOwner(this);
         observeViewModel(viewModel);
         mBinding.setViewModel(viewModel);
-
-
-//        buildGoogleApiClient();
 
     }
 
@@ -146,7 +171,7 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        promptLocationSettings();
+//        promptLocationSettings();
     }
 
     @Override
@@ -180,19 +205,36 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
         if (ContextCompat.checkSelfPermission(getActivity(),
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
-            // try to retrieve users' last location.
-            Location location = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
-            if (location == null) {
-                // something went wrong. Try to get a location update.
-                LocationServices.FusedLocationApi.requestLocationUpdates(mApiClient, mLocationRequest, this);
-            } else { // location was successfully retrieved
-                Log.d(TAG, location.toString());
 
-                LatLng locationCoords = new LatLng(location.getLatitude(), location.getLongitude());
+            mFusedLocationClient.getLastLocation()
+                    .addOnSuccessListener((location) -> {
+                        if (location != null) {// location was successfully retrieved
+                            Timber.d(location.toString());
 
-                //todo DO SOMETHING WITH LOCATION
+                            LatLng locationCoords = new LatLng(location.getLatitude(),
+                                    location.getLongitude());
+                            zoomToLocation(locationCoords);
+                        } else {
+                            // something went wrong. Try to get a location update.
+//                            LocationServices.FusedLocationApi.requestLocationUpdates(mApiClient,
+//                                    mLocationRequest,
+//                                    this);
+                            mFusedLocationClient.requestLocationUpdates(mLocationRequest,
+                                    mLocationCallback, null);
+                        }
+                    });
+//            // try to retrieve users' last location.
+//            Location location = LocationServices.FusedLocationApi.getLastLocation(mApiClient);
+//            if (location == null) {
+//                // something went wrong. Try to get a location update.
+//                LocationServices.FusedLocationApi.requestLocationUpdates(mApiClient, mLocationRequest,
+//                        this);
+//            } else { // location was successfully retrieved
+//                Log.d(TAG, location.toString());
+//
+//                LatLng locationCoords = new LatLng(location.getLatitude(), location.getLongitude());
 //                zoomToLocation(locationCoords);
-            }
+//            }
         } else {
             // request the user for permission.
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
@@ -242,9 +284,10 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
         // after updated location is available, make sure that location services does not keep updating locations
         LocationServices.FusedLocationApi.removeLocationUpdates(mApiClient, this);
         Log.d(TAG, "updated location: " + location.toString());
+        Timber.d("onLocationChangedFired");
         LatLng locationCoords = new LatLng(location.getLatitude(), location.getLongitude());
 
-//        zoomToLocation(locationCoords);
+        zoomToLocation(locationCoords);
     }
 
     @Override
@@ -309,7 +352,6 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
     @Override
     public void onSelected() {
         if (FirstTime) {
-            buildGoogleApiClient();
 
             if(!setupBredaMapInterface()) {
                 showSnackbar();
@@ -345,6 +387,9 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
         try {
             if (ConnectionChecker.isConnected()) {
                 viewModel.setBredaMapInterface();
+                if (mApiClient.isConnected()) {
+                    promptLocationSettings();
+                }
                 return true;
             }
         } catch (IOException e) {
@@ -353,6 +398,15 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
             e.printStackTrace();
         }
         return false;
+    }
+
+    // TODO: 24-8-2017 add javadoc
+    public void zoomToLocation(LatLng currentLatLng){
+        String lat = String.valueOf(currentLatLng.latitude);
+        String lng = String.valueOf(currentLatLng.longitude);
+
+        // TODO Change this to databinding?
+        wbMap.loadUrl("javascript:Geomerk.Map.zoomToLonLat(" + lng + "," + lat + ",16)");
     }
 
     public void showSnackbar () {

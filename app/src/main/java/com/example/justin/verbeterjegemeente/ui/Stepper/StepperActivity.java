@@ -1,13 +1,16 @@
 package com.example.justin.verbeterjegemeente.ui.Stepper;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 
 import com.example.justin.verbeterjegemeente.R;
+import com.example.justin.verbeterjegemeente.app.Constants;
 import com.example.justin.verbeterjegemeente.data.DataManager;
 import com.example.justin.verbeterjegemeente.ui.adapters.StepperAdapter;
 import com.example.justin.verbeterjegemeente.ui.callbacks.OnNavigationBarListener;
+import com.stepstone.stepper.Step;
 import com.stepstone.stepper.StepperLayout;
 
 import javax.inject.Inject;
@@ -48,6 +51,17 @@ public class StepperActivity extends AppCompatActivity implements HasSupportFrag
         outState.putInt(CURRENT_STEP_POSITION_KEY, mStepperLayout.getCurrentStepPosition());
         outState.putString(DATA, mData);
         super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Fragment step = (Fragment) mStepperLayout.getAdapter().findStep(1);
+
+
+        switch (requestCode) {
+            case Constants.REQUEST_CHECK_SETTINGS:
+                step.onActivityResult(requestCode, resultCode, data);
+        }
     }
 
     @Override

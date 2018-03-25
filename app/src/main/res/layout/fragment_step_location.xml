@@ -7,53 +7,57 @@
             type="com.example.justin.verbeterjegemeente.viewModel.ServiceRequestListViewModel"/>
     </data>
 
-
-    <!-- TODO: Update blank fragment layout -->
-    <RelativeLayout
-        android:orientation="vertical" android:layout_width="match_parent"
+    <android.support.design.widget.CoordinatorLayout
         android:layout_height="match_parent"
-        android:id="@+id/StepLocationFragment_l_relativeLayout">
-
-        <WebView
-            android:id="@+id/StepCatagoryFragment_wv_Map"
-            android:layout_width="match_parent"
+        android:layout_width="match_parent"
+        android:id="@+id/StepLocationFragment_l_catagoryLayout">
+        <RelativeLayout
+            android:orientation="vertical" android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentBottom="true"
-            app:javascriptInterface="@{viewModel.bredaMapInterface}"
-            app:webviewClient="@{viewModel.webViewClient}">
+            android:id="@+id/StepLocationFragment_l_relativeLayout">
+
+            <WebView
+                android:id="@+id/StepCatagoryFragment_wv_Map"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentBottom="true"
+                app:javascriptInterface="@{viewModel.bredaMapInterface}"
+                app:webviewClient="@{viewModel.webViewClient}">
 
 
-        </WebView>
-        <ProgressBar
-            android:id="@+id/StepCatagoryFragment_pb_webviewProgressbar"
-            style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Inverse"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:visibility="@{viewModel.visible ? View.GONE : View.VISIBLE}"
-            android:layout_centerVertical="true"/>
+            </WebView>
+            <ProgressBar
+                android:id="@+id/StepCatagoryFragment_pb_webviewProgressbar"
+                style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Inverse"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:theme="@style/AppTheme.GreenAccent"
+                android:visibility="@{viewModel.visible ? View.GONE : View.VISIBLE}"
+                android:layout_centerVertical="true"/>
 
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/aStepCatagoryFragment_Fbtn_gps"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentEnd="true"
-            android:layout_gravity="bottom|end"
-            android:layout_marginBottom="16dp"
-            android:layout_marginEnd="16dp"
-            android:clickable="true"
-            android:focusable="true"
-            app:backgroundTint="@color/mooiGroen"
-            app:fabSize="normal"
-            app:srcCompat="@drawable/ic_gps_fixed_white_48dp"
-            android:layout_alignParentRight="true"
-            android:layout_marginRight="11dp"
-            />
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/aStepCatagoryFragment_Fbtn_gps"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentEnd="true"
+                android:layout_gravity="bottom|end"
+                android:layout_marginBottom="16dp"
+                android:layout_marginEnd="16dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:backgroundTint="@color/mooiGroen"
+                app:fabSize="normal"
+                app:srcCompat="@drawable/ic_gps_fixed_white_48dp"
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="11dp"
+                />
 
-    </RelativeLayout>
+        </RelativeLayout>
+    </android.support.design.widget.CoordinatorLayout>
 
 </layout>

@@ -391,7 +391,7 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
     }
 
     public void showSnackbar () {
-        View view = mBinding.getRoot().findViewById(R.id.StepLocationFragment_l_relativeLayout);
+        View view = mBinding.getRoot().findViewById(R.id.StepLocationFragment_l_catagoryLayout);
 
         Toast.makeText(getContext(), getString(R.string.errLoadingMap), Toast.LENGTH_SHORT).show();
         Snackbar snackbar = Snackbar.make(view, getString(R.string.noConnection), Snackbar.LENGTH_INDEFINITE);

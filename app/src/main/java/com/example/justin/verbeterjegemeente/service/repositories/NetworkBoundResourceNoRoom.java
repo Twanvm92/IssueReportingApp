@@ -2,17 +2,17 @@ package com.example.justin.verbeterjegemeente.service.repositories;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MediatorLiveData;
-import android.arch.lifecycle.MutableLiveData;
 import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
 
 import com.example.justin.verbeterjegemeente.app.AppExecutors;
+import com.example.justin.verbeterjegemeente.data.database.ServiceEntry;
 import com.example.justin.verbeterjegemeente.data.network.ApiResponse;
 import com.example.justin.verbeterjegemeente.data.network.Resource;
 
-import javax.inject.Inject;
+import java.util.List;
 
 import timber.log.Timber;
 
@@ -25,33 +25,23 @@ import timber.log.Timber;
  * @param <RequestType>
  */
 // extended the class with AbstractNetworkBoundResource - T. van Maastricht
-public abstract class NetworkBoundResourceRefresh<ResultType, RequestType>
+public abstract class NetworkBoundResourceNoRoom<ResultType, RequestType>
         extends AbstractNetworkBoundResource<ResultType, RequestType> {
 
     @MainThread
-    NetworkBoundResourceRefresh(AppExecutors appExecutors, final MediatorLiveData<Resource<ResultType>> dataToUpdate) {
+    NetworkBoundResourceNoRoom(AppExecutors appExecutors,
+                               final MediatorLiveData<Resource<ResultType>> dataToUpdate) {
         this.appExecutors = appExecutors;
         result = dataToUpdate;
-
         result.setValue(Resource.loading(null));
-        LiveData<ResultType> dbSource = loadFromDb();
-        result.addSource(dbSource, data -> {
-            result.removeSource(dbSource);
-            if (shouldFetch(data)) {
-                fetchFromNetwork(dbSource);
-            } else {
-                result.addSource(dbSource, newData -> setValue(Resource.success(newData)));
-            }
-        });
+        fetchFromNetwork();
     }
 
-    protected void fetchFromNetwork(final LiveData<ResultType> dbSource) {
+    protected void fetchFromNetwork() {
         LiveData<ApiResponse<RequestType>> apiResponse = createCall();
         // we re-attach dbSource as a new source, it will dispatch its latest value quickly
-        result.addSource(dbSource, newData -> setValue(Resource.loading(newData)));
         result.addSource(apiResponse, response -> {
             result.removeSource(apiResponse);
-            result.removeSource(dbSource);
             //noinspection ConstantConditions
             if (response.isSuccessful()) {
                 Timber.d("Retrofit response is successful");
@@ -62,32 +52,42 @@ public abstract class NetworkBoundResourceRefresh<ResultType, RequestType>
                             // we specially request a new live data,
                             // otherwise we will get immediately last cached value,
                             // which may not be updated with latest results received from network.
-                            result.addSource(loadFromDb(),
-                                    newData -> setValue(Resource.success(newData))
-
-                    ));
+                            setValue(Resource.success(processResponseResultType(response)))
+                            );
                 });
             } else {
                 onFetchFailed();
                 Timber.d("Retrofit response is unsuccessful");
-                result.addSource(dbSource,
-                        newData -> setValue(Resource.error(response.errorMessage, newData)));
+                setValue(Resource.error(response.errorMessage, null));
             }
         });
+    }
+
+    @Override
+    protected void fetchFromNetwork(LiveData<ResultType> dbSource) {
+        // not used
     }
 
     protected void onFetchFailed() {
     }
 
     @WorkerThread
-    protected abstract void saveCallResult(@NonNull RequestType item);
+    protected void saveCallResult(@NonNull RequestType item) {
+        // not used
+    }
 
     @MainThread
-    protected abstract boolean shouldFetch(@Nullable ResultType data);
+    protected boolean shouldFetch(@Nullable ResultType data) {
+        // not used
+        return false;
+    }
 
     @NonNull
     @MainThread
-    protected abstract LiveData<ResultType> loadFromDb();
+    protected LiveData<ResultType> loadFromDb() {
+        //not used
+        return null;
+    }
 
     @NonNull
     @MainThread

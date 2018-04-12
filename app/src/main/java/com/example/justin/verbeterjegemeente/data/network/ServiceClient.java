@@ -92,25 +92,6 @@ public interface ServiceClient {
                                   @Query("extraDescription") String extraDescription
     );
 
-
-    /**
-     * Get nearby service requests based on a radius with meters and lat and long that
-     * were given as parameters.
-     *
-     * @param lat    the lattitude of the location.
-     * @param lng    the longtitude of the location.
-     * @param status the status of a service request. Can be open or closed
-     * @param meters the meters for the radius search
-     * @return ArrayList<ServiceRequest> A list of service requests
-     */
-
-    @GET("requests.json")
-    LiveData<ApiResponse<ArrayList<ServiceRequest>>> getNearbyServiceRequests(@Query("lat") String lat,
-                                                             @Query("long") String lng,
-                                                             @Query("status") String status,
-                                                             @Query("radius") String meters);
-
-
     /**
      * Get nearby service requests based on a radius with meters and lat and long that
      * were given as parameters and a category.
@@ -123,7 +104,7 @@ public interface ServiceClient {
      * @return ArrayList<ServiceRequest> A list of service requests
      */
     @GET("requests.json")
-    LiveData<ApiResponse<ArrayList<ServiceRequest>>> getNearbyServiceRequests(@Query("lat") String lat,
+    LiveData<ApiResponse<List<ServiceRequest>>> getNearbyServiceRequests(@Query("lat") String lat,
                                                              @Query("long") String lng,
                                                              @Query("status") String status,
                                                              @Query("radius") String meters,

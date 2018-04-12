@@ -29,6 +29,7 @@ import com.example.justin.verbeterjegemeente.data.network.ApiResponse;
 import com.example.justin.verbeterjegemeente.data.network.Resource;
 
 import javax.inject.Inject;
+import javax.xml.transform.Result;
 
 import timber.log.Timber;
 
@@ -67,6 +68,11 @@ public abstract class AbstractNetworkBoundResource<ResultType, RequestType> {
     @WorkerThread
     protected RequestType processResponse(ApiResponse<RequestType> response) {
         return response.body;
+    }
+
+    @WorkerThread
+    protected ResultType processResponseResultType(ApiResponse<RequestType> response) {
+        return (ResultType) response.body;
     }
 
     @WorkerThread

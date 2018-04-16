@@ -94550,8 +94550,18 @@ var Geomerk = (function (e) {
                 var latlon = Geomerk.Map.convertRDtoLonLat(e.frameState.focus[0], e.frameState.focus[1]);
                 var position = { rx_x: e.frameState.focus[0], rx_y: e.frameState.focus[1], lat: latlon[1], lon: latlon[0] }
 
+                // NEW
+                var currZoomLevel = Geomerk.Map.getMap().getView().getZoom();
+                console.log(currZoomLevel);
+                var minZoomlevel = 15;
+                if (currZoomLevel >= minZoomlevel) {
+                    _moveEndCallback(position);
+                } else {
+                  Geomerk.Map.removeFeatures();
+                }
 
-                _moveEndCallback(position);
+                // OLD
+                // _moveEndCallback(position);
             });
 
 

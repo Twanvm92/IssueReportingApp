@@ -95,7 +95,7 @@ public class ServiceRequestsRepository {
 
     public LiveData<Resource<List<ServiceRequest>>> refreshServiceRequests(
             @NonNull MediatorLiveData<Resource<List<ServiceRequest>>> dataToUpdate,
-            @NonNull String lng, @NonNull String lat, @NonNull String status,
+            @NonNull String lat, @NonNull String lng, @NonNull String status,
             @NonNull String meters, @NonNull String serviceCode) {
         return
                 new NetworkBoundResourceNoRoom<List<ServiceRequest>, List<ServiceRequest>>(

@@ -32,6 +32,7 @@ import com.example.justin.verbeterjegemeente.data.network.ConnectionChecker;
 import com.example.justin.verbeterjegemeente.databinding.FragmentStepLocationBinding;
 import com.example.justin.verbeterjegemeente.di.Injectable;
 import com.example.justin.verbeterjegemeente.service.model.Coordinates;
+import com.example.justin.verbeterjegemeente.service.model.ServiceRequest;
 import com.example.justin.verbeterjegemeente.ui.Tab1Fragment;
 import com.example.justin.verbeterjegemeente.viewModel.ServiceRequestListViewModel;
 import com.google.android.gms.common.ConnectionResult;
@@ -50,6 +51,7 @@ import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.Task;
+import com.google.gson.Gson;
 import com.stepstone.stepper.BlockingStep;
 import com.stepstone.stepper.StepperLayout;
 import com.stepstone.stepper.VerificationError;
@@ -125,6 +127,8 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
 
         mBinding.setLifecycleOwner(this);
         observeViewModel(viewModel);
+
+
         mBinding.setViewModel(viewModel);
 
     }
@@ -133,10 +137,23 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
         // Update the list when the data changes
         viewModel.getServiceRequestListObservable().observe(this, serviceRequests -> {
             if (serviceRequests != null) {
+                if (serviceRequests.data != null) {
+                    for (ServiceRequest sr: serviceRequests.data) {
+                        Timber.d("Service requests: " + sr.getDescription());
 
-                Log.i(TAG, "Service requests: " + serviceRequests.get(0).getDescription());
+                        String lat = String.valueOf(sr.getLat());
+                        String lng = String.valueOf(sr.getLong());
 
-//                viewModel.setMainCatagories(serviceRequests);
+                        Gson gson = new Gson();
+                        String serviceRequestJson = gson.toJson(sr);
+
+                        wbMap.loadUrl("javascript:Geomerk.Map.addPngLonLat(" + lng + ", " + lat + "," +
+                                " 0.5, 46, 'http://openlayers.org/en/v3.7.0/examples/data/icon.png'," +
+                                serviceRequestJson + ")");
+                        Timber.d("Service request added to map" );
+                    }
+
+                }
 
             }
         });
@@ -342,6 +359,7 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
             FirstTime = false;
         }
         Log.i(TAG, "service_code: " + dataManager.getData());
+
     }
 
     @Override
@@ -387,7 +405,7 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
         String lng = String.valueOf(currentLatLng.longitude);
 
         // TODO Change this to databinding?
-        wbMap.loadUrl("javascript:Geomerk.Map.zoomToLonLat(" + lng + "," + lat + ",16)");
+        wbMap.loadUrl("javascript:Geomerk.Map.zoomToLonLat(" + lng + "," + lat + ",20)");
     }
 
     public void showSnackbar () {

@@ -31,6 +31,7 @@ import com.stepstone.stepper.StepperLayout;
 import com.stepstone.stepper.VerificationError;
 
 import java.util.List;
+import java.util.Objects;
 
 import javax.inject.Inject;
 
@@ -73,7 +74,7 @@ public class StepCatagoryFragment extends Fragment implements BlockingStep, Inje
     private void observeViewModel(ServiceListViewModel viewModel) {
         // Update the list when the data changes
         viewModel.getServiceListObservable().observe(this, services -> {
-            if (services.data != null && !services.data.isEmpty()) {
+            if (Objects.requireNonNull(services).data != null && !services.data.isEmpty()) {
                 viewModel.visible.set(true);
                 viewModel.setMainCatagories(services.data);
                 updateNavigationBar(false);

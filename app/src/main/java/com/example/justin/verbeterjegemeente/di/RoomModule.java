@@ -54,7 +54,7 @@ public class RoomModule {
     @Singleton
     @Provides
     ServiceRequestsRepository providesServiceRequestsRepository(ServiceClient serviceClient,
-                                                                Executor diskIO) {
-        return new ServiceRequestsRepository(serviceClient, diskIO);
+                                                                AppExecutors appExecutors) {
+        return new ServiceRequestsRepository(serviceClient, appExecutors);
     }
 }

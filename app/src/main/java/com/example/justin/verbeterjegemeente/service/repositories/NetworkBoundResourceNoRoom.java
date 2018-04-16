@@ -33,7 +33,7 @@ public abstract class NetworkBoundResourceNoRoom<ResultType, RequestType>
                                final MediatorLiveData<Resource<ResultType>> dataToUpdate) {
         this.appExecutors = appExecutors;
         result = dataToUpdate;
-        result.setValue(Resource.loading(null));
+        result.postValue(Resource.loading(null));
         fetchFromNetwork();
     }
 

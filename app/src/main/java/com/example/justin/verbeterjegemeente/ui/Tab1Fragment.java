@@ -162,7 +162,7 @@ public class Tab1Fragment extends Fragment implements GoogleApiClient.Connection
         //setup map settings
         wbMap.setVerticalScrollBarEnabled(false);
         wbMap.setHorizontalScrollBarEnabled(false);
-        wbMap.addJavascriptInterface(new BredaMapInterface(this), "Android");
+//        wbMap.addJavascriptInterface(new BredaMapInterface(this), "Android");
         wbMap.getSettings().setJavaScriptEnabled(true);
         wbMap.getSettings().setAllowFileAccessFromFileURLs(true);
         wbMap.getSettings().setAllowUniversalAccessFromFileURLs(true);

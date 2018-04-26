@@ -75406,7 +75406,6 @@ goog.require('ol.source.Vector');
  * @api
  */
 ol.source.Cluster = function(options) {
-    console.log("cluster got called");
   ol.source.Vector.call(this, {
     attributions: options.attributions,
     extent: options.extent,
@@ -75508,7 +75507,7 @@ ol.source.Cluster.prototype.setDistance = function(distance) {
  * @override
  */
 ol.source.Cluster.prototype.refresh = function() {
-//  this.clear();
+  this.clear();
   this.cluster();
   this.addFeatures(this.features);
   ol.source.Vector.prototype.refresh.call(this);
@@ -75519,7 +75518,6 @@ ol.source.Cluster.prototype.refresh = function() {
  * @protected
  */
 ol.source.Cluster.prototype.cluster = function() {
-console.log("prototype.cluster got called");
   if (this.resolution === undefined) {
     return;
   }
@@ -75565,7 +75563,6 @@ console.log("prototype.cluster got called");
  * @protected
  */
 ol.source.Cluster.prototype.createCluster = function(features) {
-console.log("Cluster gets created");
   var centroid = [0, 0];
   for (var i = features.length - 1; i >= 0; --i) {
     var geometry = this.geometryFunction(features[i]);
@@ -95018,12 +95015,90 @@ var Geomerk = (function (e) {
                     _olmap.removeLayer(_vectorLayer);
                     _olmap.addLayer(_vectorLayer);
                 }
+        },
+        addCluster: function(anchorX, anchorY, pngLoc, objects) {
+          var features = [];
+          objects.forEach(object => {
+            console.log("lon: " + object.long + ", lat: " + object.lat);
+            // console.log(JSON.stringify(object));
+            var coords = Geomerk.Map.convertLonLatToRD(object.long, object.lat);
+            var feature = new ol.Feature({
+              geometry: new ol.geom.Point(coords)
+            });
+            feature.setProperties(object);
 
-                ol.source.Cluster({source: vectorSource,
-                                  distance: 25});
-                ol.source.Cluster.cluster();
+            var iconStyle = new ol.style.Style({
+                image: new ol.style.Icon(/** @type {olx.style.IconOptions} */({
+                    anchor: [anchorX, anchorY],
+                    anchorXUnits: 'fraction',
+                    anchorYUnits: 'pixels',
+                    opacity: 0.75,
+                    src: pngLoc
+                }))
+            });
+            feature.setStyle(iconStyle)
+            features.push(feature);
+          });
+
+          if (_vectorLayer == null) {
+            var vectorSource = new ol.source.Vector({
+                features: features
+            });
+
+            vectorSource.on('addfeature', function () {
+                if (_WfsLoaded != null) {
+                    _WfsLoaded('VectorAdded', 'VectorAddedObjects');
+                }
+            });
+
+            var clusterSource = new ol.source.Cluster({
+              distance: parseInt(20, 10),
+              source: vectorSource
+            });
+
+            var styleCache = {};
+
+            _vectorLayer = new ol.layer.Vector({
+                source: clusterSource,
+                style: function(feature) {
+                  var size = feature.get('features').length;
+                  var style = styleCache[size];
+                  if (!style) {
+                    style = new ol.style.Style({
+                      image: new ol.style.Circle({
+                        radius: 10,
+                        stroke: new ol.style.Stroke({
+                          color: '#fff'
+                        }),
+                        fill: new ol.style.Fill({
+                          color: '#3399CC'
+                        })
+                      }),
+                      text: new ol.style.Text({
+                        text: size.toString(),
+                        fill: new ol.style.Fill({
+                          color: '#fff'
+                        })
+                      })
+                    });
+                    styleCache[size] = style;
+                  }
+                  return style;
+                }
+            });
 
 
+            _olmap.addLayer(_vectorLayer);
+          } else {
+              var vectorSource = _vectorLayer.getSource();
+              vectorSource.addFeatures(features);
+              var features = vectorSource.getFeatures();
+          }
+
+          if (_vectorLayer != null) {
+              _olmap.removeLayer(_vectorLayer);
+              _olmap.addLayer(_vectorLayer);
+          }
         },
         addWKTPng: function (wkt, anchorX, anchorY,pngLoc,object) {
             var format = new ol.format.WKT();

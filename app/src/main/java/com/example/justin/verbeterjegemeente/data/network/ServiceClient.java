@@ -111,6 +111,17 @@ public interface ServiceClient {
                                                              @Query("service_code") String serviceCode);
 
     /**
+     * Get nearby service requests based on a category.
+     *
+     * @param status      the status of a service request. Can be open or closed.
+     * @param serviceCode the service code of the category that is used as a filter
+     * @return ArrayList<ServiceRequest> A list of service requests
+     */
+    @GET("requests.json")
+    LiveData<ApiResponse<List<ServiceRequest>>> getNearbyServiceRequests(@Query("status") String status,
+                                                                         @Query("service_code") String serviceCode);
+
+    /**
      * Get nearby service requests based on a radius with meters and lat and long that
      * were given as parameters and earliest updated_datetime to include in the search.
      *

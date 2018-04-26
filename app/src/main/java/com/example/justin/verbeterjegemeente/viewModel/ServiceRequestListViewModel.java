@@ -8,8 +8,6 @@ import android.arch.lifecycle.MutableLiveData;
 import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
 import android.util.Log;
-import android.view.View;
-import android.webkit.ConsoleMessage;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -23,6 +21,8 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import timber.log.Timber;
+
 /**
  * Created by twanv on 14-1-2018.
  */
@@ -32,21 +32,22 @@ public class ServiceRequestListViewModel extends AndroidViewModel {
     private ServiceRequestsRepository serviceRequestsRepository;
     private MutableLiveData<BredaMapInterface> bredaMapInterface;
     private MutableLiveData<WebViewClient> webViewClient;
-    private MutableLiveData<String> url;
     private MutableLiveData<Boolean> visible;
     private LiveData<String> serviceCode;
-    private final String TAG = "ServiceRequestListVM: ";
+    private MutableLiveData<Boolean> mapLoaded;
 
     @Inject
-    public ServiceRequestListViewModel(@NonNull Application application, @NonNull ServiceRequestsRepository serviceRequestsRepository) {
+    public ServiceRequestListViewModel(@NonNull Application application,
+                                       @NonNull ServiceRequestsRepository serviceRequestsRepository) {
         super(application);
         this.serviceRequestsRepository = serviceRequestsRepository;
-        url = new MutableLiveData<>();
         bredaMapInterface = new MutableLiveData<>();
         webViewClient = new MutableLiveData<>();
         visible = new MutableLiveData<>();
         serviceRequestListObservable = new MediatorLiveData<>();
-        serviceCode = new MutableLiveData<>();
+        mapLoaded = new MutableLiveData<>();
+        mapLoaded.setValue(false);
+//        serviceRequestListObservable = updateServiceRequests("open", "RB");
         setWebViewClient();
     }
 
@@ -57,16 +58,22 @@ public class ServiceRequestListViewModel extends AndroidViewModel {
         return serviceRequestListObservable;
     }
 
+    public LiveData<Boolean> getMapLoaded() {
+        return mapLoaded;
+    }
+
     public void setBredaMapInterface() {
-        bredaMapInterface.setValue(new BredaMapInterface(CameraCoordinates -> {
-            url.postValue("javascript:Geomerk.Map.removeFeatures();");
+        bredaMapInterface.setValue(new BredaMapInterface((BredaMapInterface.OnCameraChangedListener) CameraCoordinates -> {
+//            url.postValue("javascript:Geomerk.Map.removeFeatures();");
             String lat = Double.toString(CameraCoordinates.getLat());
             String lng = Double.toString(CameraCoordinates.getLon());
-            updateServiceRequests(lat, lng, "open",
-                    "200", serviceCode.getValue());
+//            updateServiceRequests(lat, lng, "open",
+//                    "200", serviceCode.getValue());
 
-            Log.i(TAG, "coordinates: " + CameraCoordinates.getLat());
-            Log.i(TAG, "Service Requests have been removed from map");
+            Timber.d("coordinates: " + CameraCoordinates.getLat());
+//            Timber.d("Service Requests have been removed from map");
+        }, () -> {
+            mapLoaded.postValue(true);
         }));
     }
 
@@ -79,18 +86,18 @@ public class ServiceRequestListViewModel extends AndroidViewModel {
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 super.onPageStarted(view, url, favicon);
-//                wbMap.setVisibility(View.INVISIBLE);
-                visible.postValue(false);
             }
 
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
 
-                visible.postValue(true);
-                Log.i(TAG, "kaart is geladen");
             }
         });
+    }
+
+    public void setPageVisibility(Boolean status) {
+        visible.postValue(status);
     }
 
     public LiveData<WebViewClient> getWebViewClient() {
@@ -106,5 +113,12 @@ public class ServiceRequestListViewModel extends AndroidViewModel {
         serviceRequestsRepository.refreshServiceRequests(
                 (MediatorLiveData<Resource<List<ServiceRequest>>>) serviceRequestListObservable, lat,
                 lng, status, meters, serviceCode);
+    }
+
+    public LiveData<Resource<List<ServiceRequest>>> updateServiceRequests(String status,
+                                                                          String serviceCode) {
+        return serviceRequestsRepository.refreshServiceRequests(
+                (MediatorLiveData<Resource<List<ServiceRequest>>>) serviceRequestListObservable,
+                status, serviceCode);
     }
 }

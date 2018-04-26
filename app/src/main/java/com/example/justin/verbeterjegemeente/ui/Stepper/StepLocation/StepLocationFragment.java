@@ -75,7 +75,6 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
     private ServiceRequestListViewModel viewModel;
     private FragmentStepLocationBinding mBinding;
     private DataManager dataManager;
-    private final String TAG = "StepLocationFragment: ";
     private WebView wbMap;
     private GoogleApiClient mApiClient;
     private LocationRequest mLocationRequest;
@@ -138,23 +137,35 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
         viewModel.getServiceRequestListObservable().observe(this, serviceRequests -> {
             if (serviceRequests != null) {
                 if (serviceRequests.data != null) {
-                    for (ServiceRequest sr: serviceRequests.data) {
-                        Timber.d("Service requests: " + sr.getDescription());
-
-                        String lat = String.valueOf(sr.getLat());
-                        String lng = String.valueOf(sr.getLong());
-
-                        Gson gson = new Gson();
-                        String serviceRequestJson = gson.toJson(sr);
-
-                        wbMap.loadUrl("javascript:Geomerk.Map.addPngLonLat(" + lng + ", " + lat + "," +
-                                " 0.5, 46, 'http://openlayers.org/en/v3.7.0/examples/data/icon.png'," +
-                                serviceRequestJson + ")");
-                        Timber.d("Service request added to map" );
-                    }
+//                    for (ServiceRequest sr: serviceRequests.data) {
+//                        Timber.d("Service requests: " + sr.getDescription());
+//
+//                        String lat = String.valueOf(sr.getLat());
+//                        String lng = String.valueOf(sr.getLong());
+//
+//                        Gson gson = new Gson();
+//                        String serviceRequestJson = gson.toJson(sr);
+//
+//                        wbMap.loadUrl("javascript:Geomerk.Map.addPngLonLat(" + lng + ", " + lat + "," +
+//                                " 0.5, 46, 'http://openlayers.org/en/v3.7.0/examples/data/icon.png'," +
+//                                serviceRequestJson + ")");
+//                        Timber.d("Service request added to map" );
+//                    }
+                    Gson gson = new Gson();
+                    String serviceRequestJson = gson.toJson(serviceRequests.data);
+                    wbMap.loadUrl("javascript:Geomerk.Map.addCluster(0.5, 46, 'http://openlayers.org/en/v3.7.0/examples/data/icon.png'," +
+                            serviceRequestJson + ")");
+                    Timber.d("Service request added to map" );
 
                 }
 
+            }
+        });
+        viewModel.getMapLoaded().observe(this, mapLoaded -> {
+            if (mapLoaded != null && mapLoaded) {
+                Timber.d("Map is loaded");
+                viewModel.setPageVisibility(true);
+                viewModel.updateServiceRequests("open", "RB");
             }
         });
     }
@@ -173,7 +184,7 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
      * Build the Google API Client that will be used to access Google Play Services
      */
     protected synchronized void buildGoogleApiClient() {
-        Log.i(TAG, "Building GoogleApiClient");
+        Timber.d("Building GoogleApiClient");
 
         mApiClient = new GoogleApiClient.Builder(getActivity())
                 .addApi(LocationServices.API)
@@ -281,7 +292,6 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
     public void onLocationChanged(Location location) {
         // after updated location is available, make sure that location services does not keep updating locations
         LocationServices.FusedLocationApi.removeLocationUpdates(mApiClient, this);
-        Log.d(TAG, "updated location: " + location.toString());
         Timber.d("onLocationChangedFired");
         LatLng locationCoords = new LatLng(location.getLatitude(), location.getLongitude());
 
@@ -313,7 +323,7 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
                                 })
                                 .show();
                     } else { // user has not declined permission before
-                        Log.i(TAG, "Geen toestemming gekregen, eerste keer dat map geladen wordt default lat/long gepakt");
+                        Timber.d("User did not give permission");
                     }
 
                 }
@@ -337,7 +347,7 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
                             }).setIcon(android.R.drawable.ic_dialog_alert).show();
 
                 }
-                Log.i(TAG, "Gps aanvraag afgewezen");
+                Timber.d("Gps aanvraag afgewezen");
         }
     }
 
@@ -358,7 +368,7 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
         } else {
             FirstTime = false;
         }
-        Log.i(TAG, "service_code: " + dataManager.getData());
+        Timber.d("service_code: " + dataManager.getData());
 
     }
 

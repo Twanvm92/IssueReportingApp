@@ -8,6 +8,8 @@ import com.example.justin.verbeterjegemeente.service.model.Coordinates;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
 
+import timber.log.Timber;
+
 /**
  * Created by twanv on 16-8-2017.
  */
@@ -19,8 +21,10 @@ public class BredaMapInterface {
     private OnPageFullyLoadedListener pageFullyLoadedListener;
     private final String TAG = "BredaMapInterface: ";
 
-    public BredaMapInterface(OnCameraChangedListener cameraListener) {
+    public BredaMapInterface(OnCameraChangedListener cameraListener,
+                             OnPageFullyLoadedListener pageFullyLoadedListener) {
         this.cameraListener = cameraListener;
+        this.pageFullyLoadedListener = pageFullyLoadedListener;
     }
 
     public BredaMapInterface(OnMarkedLocationListener locationListener, OnPageFullyLoadedListener pageFullyLoadedListener) {
@@ -63,6 +67,7 @@ public class BredaMapInterface {
 
     @JavascriptInterface
     public void pageIsReady() {
+        Timber.d("Page is fully loaded");
         pageFullyLoadedListener.onPageFullyLoaded();
     }
 

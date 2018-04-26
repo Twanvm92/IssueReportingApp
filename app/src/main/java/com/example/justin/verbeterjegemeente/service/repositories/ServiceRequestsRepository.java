@@ -110,4 +110,19 @@ public class ServiceRequestsRepository {
                 }.asLiveData();
     }
 
+    public LiveData<Resource<List<ServiceRequest>>> refreshServiceRequests(
+            @NonNull MediatorLiveData<Resource<List<ServiceRequest>>> dataToUpdate,
+            @NonNull String status, @NonNull String serviceCode) {
+        return
+                new NetworkBoundResourceNoRoom<List<ServiceRequest>, List<ServiceRequest>>(
+                        appExecutors, dataToUpdate) {
+
+                    @NonNull
+                    @Override
+                    protected LiveData<ApiResponse<List<ServiceRequest>>> createCall() {
+                        return serviceClient.getNearbyServiceRequests(status, serviceCode);
+                    }
+                }.asLiveData();
+    }
+
 }

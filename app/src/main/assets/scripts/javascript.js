@@ -32400,6 +32400,8 @@ ol.Map.prototype.addInteraction = function(interaction) {
 ol.Map.prototype.addLayer = function(layer) {
   var layers = this.getLayerGroup().getLayers();
   layers.push(layer);
+
+  console.log("layer got added")
 };
 
 
@@ -75404,6 +75406,7 @@ goog.require('ol.source.Vector');
  * @api
  */
 ol.source.Cluster = function(options) {
+    console.log("cluster got called");
   ol.source.Vector.call(this, {
     attributions: options.attributions,
     extent: options.extent,
@@ -75505,7 +75508,7 @@ ol.source.Cluster.prototype.setDistance = function(distance) {
  * @override
  */
 ol.source.Cluster.prototype.refresh = function() {
-  this.clear();
+//  this.clear();
   this.cluster();
   this.addFeatures(this.features);
   ol.source.Vector.prototype.refresh.call(this);
@@ -75516,6 +75519,7 @@ ol.source.Cluster.prototype.refresh = function() {
  * @protected
  */
 ol.source.Cluster.prototype.cluster = function() {
+console.log("prototype.cluster got called");
   if (this.resolution === undefined) {
     return;
   }
@@ -75561,6 +75565,7 @@ ol.source.Cluster.prototype.cluster = function() {
  * @protected
  */
 ol.source.Cluster.prototype.createCluster = function(features) {
+console.log("Cluster gets created");
   var centroid = [0, 0];
   for (var i = features.length - 1; i >= 0; --i) {
     var geometry = this.geometryFunction(features[i]);
@@ -94551,17 +94556,17 @@ var Geomerk = (function (e) {
                 var position = { rx_x: e.frameState.focus[0], rx_y: e.frameState.focus[1], lat: latlon[1], lon: latlon[0] }
 
                 // NEW
-                var currZoomLevel = Geomerk.Map.getMap().getView().getZoom();
-                console.log(currZoomLevel);
-                var minZoomlevel = 15;
-                if (currZoomLevel >= minZoomlevel) {
-                    _moveEndCallback(position);
-                } else {
-                  Geomerk.Map.removeFeatures();
-                }
+//                var currZoomLevel = Geomerk.Map.getMap().getView().getZoom();
+//                console.log(currZoomLevel);
+//                var minZoomlevel = 15;
+//                if (currZoomLevel >= minZoomlevel) {
+//                    _moveEndCallback(position);
+//                } else {
+//                  Geomerk.Map.removeFeatures();
+//                }
 
                 // OLD
-                // _moveEndCallback(position);
+                 _moveEndCallback(position);
             });
 
 
@@ -95013,6 +95018,10 @@ var Geomerk = (function (e) {
                     _olmap.removeLayer(_vectorLayer);
                     _olmap.addLayer(_vectorLayer);
                 }
+
+                ol.source.Cluster({source: vectorSource,
+                                  distance: 25});
+                ol.source.Cluster.cluster();
 
 
         },

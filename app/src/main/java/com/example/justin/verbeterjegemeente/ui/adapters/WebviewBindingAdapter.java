@@ -29,13 +29,15 @@ public class WebviewBindingAdapter {
             webview.setWebViewClient(webViewClient);
         }
 
-        webview.setVerticalScrollBarEnabled(false);
-        webview.setHorizontalScrollBarEnabled(false);
+//        webview.setVerticalScrollBarEnabled(false);
+//        webview.setHorizontalScrollBarEnabled(false);
         webview.getSettings().setJavaScriptEnabled(true);
         webview.getSettings().setAllowFileAccessFromFileURLs(true);
         webview.getSettings().setAllowUniversalAccessFromFileURLs(true);
         webview.getSettings().setDomStorageEnabled(true);
         webview.getSettings().setAllowFileAccess( true );
+        webview.setScrollbarFadingEnabled(true);
+        webview.setScrollBarStyle(WebView.SCROLLBARS_INSIDE_OVERLAY);
 
     }
 

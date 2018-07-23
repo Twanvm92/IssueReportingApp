@@ -55,6 +55,88 @@
             .ol-popup-closer:after {
                 content: "✖";
             }
+
+        .ol-popup-content {
+            max-height: 200px;
+            overflow: auto;
+        }
+
+        span.left {
+            font-weight: bold;
+        }
+
+        span.right {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        /* 
+        ##Device = Tablets, Ipads (portrait)
+        ##Screen = B/w 768px to 1024px
+        */
+
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .ol-popup {
+                min-width: 400px;
+            }
+
+            .ol-popup-content {
+                max-height: 400px;
+            } 
+        }
+
+        /* 
+        ##Device = Tablets, Ipads (landscape)
+        ##Screen = B/w 768px to 1024px
+        */
+
+        @media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+            .ol-popup {
+                min-width: 400px;
+            }
+
+            .ol-popup-content {
+                max-height: 400px;
+            } 
+        }
+
+        /* 
+        ##Device = Low Resolution Tablets, Mobiles (Landscape)
+        ##Screen = B/w 481px to 767px
+        */
+
+        @media (min-width: 481px) and (max-width: 767px) {
+            p span.left {
+                margin-bottom: 2px;
+            }
+
+            p span.right {
+                margin-bottom: 3px;
+            }
+
+            .ol-popup {
+                min-width: 300px;
+            }
+
+            .ol-popup-content {
+                max-height: 200px;
+            } 
+        }
+
+        /* 
+        ##Device = Most of the Smartphones Mobiles (Portrait)
+        ##Screen = B/w 320px to 479px
+        */
+
+        @media (min-width: 320px) and (max-width: 480px) {
+            .ol-popup {
+                min-width: 150px;
+            }
+            .ol-popup-content {
+                max-height: 200px;
+            } 
+        }
+
     </style>
     <script src="scripts/javascript.js"></script>
     <link rel="stylesheet" href="css/stylesheet.css">
@@ -108,7 +190,7 @@
 
 <div id="popup" class="ol-popup">
     <a href="#" id="popup-closer" class="ol-popup-closer"></a>
-    <div id="popup-content">
+    <div id="popup-content" class="ol-popup-content">
     </div>
 </div>
 <script type="text/javascript">
@@ -163,14 +245,29 @@
                 var coordinate = evt.coordinate;
                 var feature = map.forEachFeatureAtPixel(evt.pixel,
                     function (feature) {
-
-
-
-                            content.innerHTML = "<p>" + feature.values_.description + "</p>";
-                            overlay.setPosition(coordinate);
-                            console.log(feature.values_.description);
-
+                        return feature;
                     });
+                    if (feature) {
+                        var features = feature.get('features');
+                        var innerHtml = "";
+                        var i;
+                        for (i = 0; i < features.length; ++i) {
+                            var mFeature = features[i];
+                            innerHtml += "<p><span class=\"left\">Id: </span></p>";
+                            innerHtml += "<p><span class=\"right\">" + mFeature.get('service_request_id') + "</span></p>";
+                            innerHtml += "<p><span class=\"left\">Adres: </span></p>";
+                            innerHtml += "<p><span class=\"right\">" + mFeature.get('address') + ", " + mFeature.get('zipcode') + "</span></p>";
+                            innerHtml += "<p><span class=\"left\">Status:</span></p>";
+                            innerHtml += "<p><span class=\"right\">" + mFeature.get('status') + "</span></p>";
+                            innerHtml += "<p><span class=\"left\">Geüpdatet: </span></p>";
+                            innerHtml += "<p><span class=\"right\">" + mFeature.get('updated_datetime') + "</span></p>";
+                            innerHtml += "<hr>";
+                            
+                            console.log(features[i].get('description'));
+                        }
+                        content.innerHTML = innerHtml;
+                        overlay.setPosition(coordinate);
+                    }
             });
         }
 

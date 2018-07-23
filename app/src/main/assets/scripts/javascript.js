@@ -94525,11 +94525,11 @@ var Geomerk = (function (e) {
                     new ol.control.Zoom({
                         className: 'custom-zoom'
                     }),
-                    new ol.control.MousePosition({
-                        coordinateFormat: ol.coordinate.createStringXY(2),
-                        projection: 'EPSG:28992',
-                        className: 'custom-mouseposition'
-                    })
+                    // new ol.control.MousePosition({
+                    //     coordinateFormat: ol.coordinate.createStringXY(2),
+                    //     projection: 'EPSG:28992',
+                    //     className: 'custom-mouseposition'
+                    // })
                 ]
             });
             var intialLocation = [112604,400507];

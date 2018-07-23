@@ -16,7 +16,6 @@ import java.util.List;
  * by a gson converter in the <code>Retrofit</code> class
  *
  * @author Twan van Maastricht
- * @see ServiceClient#getNearbyServiceRequests(String, String, String, String)
  * @see retrofit2.Retrofit
  */
 public class ServiceRequest implements Serializable {

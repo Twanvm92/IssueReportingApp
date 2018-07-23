@@ -139,17 +139,19 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
                 if (serviceRequests.data != null) {
 //                    for (ServiceRequest sr: serviceRequests.data) {
 //                        Timber.d("Service requests: " + sr.getDescription());
+//                        Timber.d("lat " + sr.getLat());
+//                        Timber.d("long " + sr.getLong());
 //
-//                        String lat = String.valueOf(sr.getLat());
-//                        String lng = String.valueOf(sr.getLong());
-//
-//                        Gson gson = new Gson();
-//                        String serviceRequestJson = gson.toJson(sr);
-//
-//                        wbMap.loadUrl("javascript:Geomerk.Map.addPngLonLat(" + lng + ", " + lat + "," +
-//                                " 0.5, 46, 'http://openlayers.org/en/v3.7.0/examples/data/icon.png'," +
-//                                serviceRequestJson + ")");
-//                        Timber.d("Service request added to map" );
+////                        String lat = String.valueOf(sr.getLat());
+////                        String lng = String.valueOf(sr.getLong());
+////
+////                        Gson gson = new Gson();
+////                        String serviceRequestJson = gson.toJson(sr);
+////
+////                        wbMap.loadUrl("javascript:Geomerk.Map.addPngLonLat(" + lng + ", " + lat + "," +
+////                                " 0.5, 46, 'http://openlayers.org/en/v3.7.0/examples/data/icon.png'," +
+////                                serviceRequestJson + ")");
+////                        Timber.d("Service request added to map" );
 //                    }
                     Gson gson = new Gson();
                     String serviceRequestJson = gson.toJson(serviceRequests.data);

@@ -64,7 +64,8 @@ dependencies {
 
     //kotlin
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    testCompile "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+//    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
 
 
     // Retrofit & OkHttp
@@ -79,11 +80,11 @@ dependencies {
     compile 'com.android.support:design:26.1.0'
 
     // google play services
-    compile 'com.google.android.gms:play-services-maps:11.8.0'
-    compile 'com.google.android.gms:play-services-location:11.8.0'
+    compile 'com.google.android.gms:play-services-maps:15.0.1'
+    compile 'com.google.android.gms:play-services-location:15.0.1'
 
     // Layouts
-    compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    compile 'com.android.support.constraint:constraint-layout:1.1.2'
 
     // Picasso
     compile 'com.squareup.picasso:picasso:2.5.2'
@@ -102,16 +103,12 @@ dependencies {
     //android apt plugin for Mockery
     testCompile 'junit:junit:4.12'
 
-
     testCompile 'org.powermock:powermock-module-junit4:1.7.0RC4',
             'org.powermock:powermock-api-mockito2:1.7.0RC4'
     testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
-    testImplementation "io.mockk:mockk:$mockk_version"
-
-
-
-    compile 'io.reactivex:rxandroid:1.2.1'
-    compile 'com.github.VictorAlbertos.Mockery:extension_rx2_retrofit:1.0.2'
+//    testImplementation "io.mockk:mockk:$mockk_version"
+    testCompile "com.nhaarman:mockito-kotlin:1.1.0"
+    testCompile 'org.amshove.kluent:kluent:1.14'
 
     provided 'org.glassfish:javax.annotation:10.0-b28'
     compile 'com.gordonwong:material-sheet-fab:1.2.1'
@@ -137,16 +134,17 @@ dependencies {
 
 
     // Room
-    compile "android.arch.persistence.room:runtime:1.0.0"
-    annotationProcessor "android.arch.persistence.room:compiler:1.0.0"
+    compile "android.arch.persistence.room:runtime:1.1.1"
+    annotationProcessor "android.arch.persistence.room:compiler:1.1.1"
 
     // LifeCycle
-    compile "android.arch.lifecycle:runtime:1.1.0"
-    compile "android.arch.lifecycle:extensions:1.1.0"
-    annotationProcessor "android.arch.lifecycle:compiler:1.1.0"
+    compile "android.arch.lifecycle:runtime:1.1.1"
+    compile "android.arch.lifecycle:extensions:1.1.1"
+    annotationProcessor "android.arch.lifecycle:compiler:1.1.1"
 
     // For Test Rules
-    testImplementation 'android.arch.core:core-testing:1.1.0'
+    testImplementation 'android.arch.core:core-testing:1.1.1'
+
 
     //Timber logger
     implementation 'com.jakewharton.timber:timber:4.6.0'

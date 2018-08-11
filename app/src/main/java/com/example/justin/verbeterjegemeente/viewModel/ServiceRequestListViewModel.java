@@ -33,7 +33,6 @@ public class ServiceRequestListViewModel extends AndroidViewModel {
     private MutableLiveData<BredaMapInterface> bredaMapInterface;
     private MutableLiveData<WebViewClient> webViewClient;
     private MutableLiveData<Boolean> visible;
-    private LiveData<String> serviceCode;
     private MutableLiveData<Boolean> mapLoaded;
 
     @Inject
@@ -64,24 +63,18 @@ public class ServiceRequestListViewModel extends AndroidViewModel {
 
     public void setBredaMapInterface() {
         bredaMapInterface.setValue(new BredaMapInterface((BredaMapInterface.OnCameraChangedListener) CameraCoordinates -> {
-//            url.postValue("javascript:Geomerk.Map.removeFeatures();");
             String lat = Double.toString(CameraCoordinates.getLat());
             String lng = Double.toString(CameraCoordinates.getLon());
-//            updateServiceRequests(lat, lng, "open",
-//                    "200", serviceCode.getValue());
 
             Timber.d("coordinates: " + CameraCoordinates.getLat());
-//            Timber.d("Service Requests have been removed from map");
-        }, () -> {
-            mapLoaded.postValue(true);
-        }));
+        }, () -> mapLoaded.postValue(true)));
     }
 
     public MutableLiveData<BredaMapInterface> getBredaMapInterface() {
         return bredaMapInterface;
     }
 
-    public void setWebViewClient() {
+    private void setWebViewClient() {
         webViewClient.setValue(new WebViewClient() {
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
@@ -106,13 +99,6 @@ public class ServiceRequestListViewModel extends AndroidViewModel {
 
     public LiveData<Boolean> getVisible() {
         return visible;
-    }
-
-    public void updateServiceRequests(String lat, String lng, String status, String meters,
-                                      String serviceCode) {
-        serviceRequestsRepository.refreshServiceRequests(
-                (MediatorLiveData<Resource<List<ServiceRequest>>>) serviceRequestListObservable, lat,
-                lng, status, meters, serviceCode);
     }
 
     public LiveData<Resource<List<ServiceRequest>>> updateServiceRequests(String status,

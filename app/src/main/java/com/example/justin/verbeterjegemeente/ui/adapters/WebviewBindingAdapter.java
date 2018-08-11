@@ -29,8 +29,6 @@ public class WebviewBindingAdapter {
             webview.setWebViewClient(webViewClient);
         }
 
-//        webview.setVerticalScrollBarEnabled(false);
-//        webview.setHorizontalScrollBarEnabled(false);
         webview.getSettings().setJavaScriptEnabled(true);
         webview.getSettings().setAllowFileAccessFromFileURLs(true);
         webview.getSettings().setAllowUniversalAccessFromFileURLs(true);

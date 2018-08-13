@@ -249,24 +249,26 @@
                     });
                     if (feature) {
                         var features = feature.get('features');
-                        var innerHtml = "";
-                        var i;
-                        for (i = 0; i < features.length; ++i) {
-                            var mFeature = features[i];
+                       
+                        if (features.length == 1) {
+                            var innerHtml = "";
+                            var mFeature = features[0];
                             innerHtml += "<p><span class=\"left\">Id: </span></p>";
                             innerHtml += "<p><span class=\"right\">" + mFeature.get('service_request_id') + "</span></p>";
                             innerHtml += "<p><span class=\"left\">Adres: </span></p>";
                             innerHtml += "<p><span class=\"right\">" + mFeature.get('address') + ", " + mFeature.get('zipcode') + "</span></p>";
                             innerHtml += "<p><span class=\"left\">Status:</span></p>";
                             innerHtml += "<p><span class=\"right\">" + mFeature.get('status') + "</span></p>";
-                            innerHtml += "<p><span class=\"left\">Geüpdatet: </span></p>";
-                            innerHtml += "<p><span class=\"right\">" + mFeature.get('updated_datetime') + "</span></p>";
                             innerHtml += "<hr>";
                             
-                            console.log(features[i].get('description'));
-                        }
-                        content.innerHTML = innerHtml;
-                        overlay.setPosition(coordinate);
+                            console.log(features[0].get('description'));
+
+                            content.innerHTML = innerHtml;
+                            overlay.setPosition(coordinate);
+                        } else {
+                            Geomerk.Map.zoomToCluster(feature, 17)
+                        }  
+                       
                     }
             });
         }

@@ -95148,6 +95148,16 @@ var Geomerk = (function (e) {
                 zoom: zoomLevel //here you define the levelof zoom
             }));
         },
+        zoomToCluster: function(feature, zoomLevel)
+        {
+            var ext=feature.getGeometry().getExtent();
+            var center=ol.extent.getCenter(ext);
+            _olmap.setView(new ol.View({
+                projection: 'EPSG:28992',//or any projection you are using
+                center: [center[0] , center[1]],//zoom to the center of your feature
+                zoom: zoomLevel //here you define the levelof zoom
+            }));
+        },
         zoomToLonLat: function(lon,lat,zoomLevel)
         {
             var coords = Geomerk.Map.convertLonLatToRD(lon,lat);

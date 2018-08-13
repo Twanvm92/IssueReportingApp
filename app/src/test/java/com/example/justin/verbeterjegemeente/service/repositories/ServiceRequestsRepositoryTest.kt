@@ -1,11 +1,8 @@
 package com.example.justin.verbeterjegemeente.service.repositories
 
 import android.arch.core.executor.testing.InstantTaskExecutorRule
-import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MediatorLiveData
 import android.arch.lifecycle.Observer
-import android.provider.MediaStore
-import com.example.justin.verbeterjegemeente.data.network.ApiResponse
 import com.example.justin.verbeterjegemeente.data.network.Resource
 import com.example.justin.verbeterjegemeente.data.network.ServiceClient
 import com.example.justin.verbeterjegemeente.service.model.ServiceRequest

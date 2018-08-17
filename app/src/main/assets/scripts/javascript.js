@@ -95052,7 +95052,7 @@ var Geomerk = (function (e) {
             });
 
             var clusterSource = new ol.source.Cluster({
-              distance: parseInt(20, 10),
+              distance: parseInt(25, 10),
               source: vectorSource
             });
 
@@ -95066,12 +95066,12 @@ var Geomerk = (function (e) {
                   if (!style) {
                     style = new ol.style.Style({
                       image: new ol.style.Circle({
-                        radius: 10,
+                        radius: 15,
                         stroke: new ol.style.Stroke({
                           color: '#fff'
                         }),
                         fill: new ol.style.Fill({
-                          color: '#3399CC'
+                          color: '#4CAF50'
                         })
                       }),
                       text: new ol.style.Text({

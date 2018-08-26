@@ -19,12 +19,15 @@ public class BredaMapInterface {
     private OnCameraChangedListener cameraListener;
     private OnMarkedLocationListener locationListener;
     private OnPageFullyLoadedListener pageFullyLoadedListener;
+    private OnShowSnackbarListener snackbarListener;
     private final String TAG = "BredaMapInterface: ";
 
     public BredaMapInterface(OnCameraChangedListener cameraListener,
-                             OnPageFullyLoadedListener pageFullyLoadedListener) {
+                             OnPageFullyLoadedListener pageFullyLoadedListener,
+                             OnShowSnackbarListener snackbarListener) {
         this.cameraListener = cameraListener;
         this.pageFullyLoadedListener = pageFullyLoadedListener;
+        this.snackbarListener = snackbarListener;
     }
 
     public BredaMapInterface(OnMarkedLocationListener locationListener, OnPageFullyLoadedListener pageFullyLoadedListener) {
@@ -71,6 +74,12 @@ public class BredaMapInterface {
         pageFullyLoadedListener.onPageFullyLoaded();
     }
 
+    @JavascriptInterface
+    public void showSnackbar(String message) {
+        Timber.d("Snackbar being build");
+        snackbarListener.onShowSnackbar(message);
+    }
+
 
     // TODO: 27-8-2017 add javadoc
     private LatLng parseJsonCoordsToLatLng(String json) {
@@ -95,6 +104,10 @@ public class BredaMapInterface {
 
     public interface OnPageFullyLoadedListener {
         void onPageFullyLoaded();
+    }
+
+    public interface OnShowSnackbarListener {
+        void onShowSnackbar(String message);
     }
 
 }

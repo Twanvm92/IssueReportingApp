@@ -137,22 +137,6 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
         viewModel.getServiceRequestListObservable().observe(this, serviceRequests -> {
             if (serviceRequests != null) {
                 if (serviceRequests.data != null) {
-//                    for (ServiceRequest sr: serviceRequests.data) {
-//                        Timber.d("Service requests: " + sr.getDescription());
-//                        Timber.d("lat " + sr.getLat());
-//                        Timber.d("long " + sr.getLong());
-//
-////                        String lat = String.valueOf(sr.getLat());
-////                        String lng = String.valueOf(sr.getLong());
-////
-////                        Gson gson = new Gson();
-////                        String serviceRequestJson = gson.toJson(sr);
-////
-////                        wbMap.loadUrl("javascript:Geomerk.Map.addPngLonLat(" + lng + ", " + lat + "," +
-////                                " 0.5, 46, 'http://openlayers.org/en/v3.7.0/examples/data/icon.png'," +
-////                                serviceRequestJson + ")");
-////                        Timber.d("Service request added to map" );
-//                    }
                     Gson gson = new Gson();
                     String serviceRequestJson = gson.toJson(serviceRequests.data);
                     wbMap.loadUrl("javascript:Geomerk.Map.addCluster(0.5, 46, 'http://openlayers.org/en/v3.7.0/examples/data/icon.png'," +
@@ -169,6 +153,15 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
                 viewModel.setPageVisibility(true);
                 viewModel.updateServiceRequests("open", "RB");
             }
+        });
+        viewModel.getShowSnackbar().observe(this, message -> {
+            if (message != null) {
+                View view = mBinding.getRoot().findViewById(R.id.StepLocationFragment_l_catagoryLayout);
+                Snackbar snackbar = Snackbar.make(view, message, Snackbar.LENGTH_SHORT);
+                snackbar.show();
+            }
+
+
         });
     }
 

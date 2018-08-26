@@ -7,10 +7,12 @@ import android.arch.lifecycle.MediatorLiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
 import android.util.Log;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.example.justin.verbeterjegemeente.R;
 import com.example.justin.verbeterjegemeente.data.network.Resource;
 import com.example.justin.verbeterjegemeente.service.model.Coordinates;
 import com.example.justin.verbeterjegemeente.service.model.ServiceRequest;
@@ -34,6 +36,7 @@ public class ServiceRequestListViewModel extends AndroidViewModel {
     private MutableLiveData<WebViewClient> webViewClient;
     private MutableLiveData<Boolean> visible;
     private MutableLiveData<Boolean> mapLoaded;
+    private MutableLiveData<String> showSnackbar;
 
     @Inject
     public ServiceRequestListViewModel(@NonNull Application application,
@@ -46,6 +49,7 @@ public class ServiceRequestListViewModel extends AndroidViewModel {
         serviceRequestListObservable = new MediatorLiveData<>();
         mapLoaded = new MutableLiveData<>();
         mapLoaded.setValue(false);
+        showSnackbar = new MutableLiveData<>();
 //        serviceRequestListObservable = updateServiceRequests("open", "RB");
         setWebViewClient();
     }
@@ -62,12 +66,12 @@ public class ServiceRequestListViewModel extends AndroidViewModel {
     }
 
     public void setBredaMapInterface() {
-        bredaMapInterface.setValue(new BredaMapInterface((BredaMapInterface.OnCameraChangedListener) CameraCoordinates -> {
+        bredaMapInterface.setValue(new BredaMapInterface(CameraCoordinates -> {
             String lat = Double.toString(CameraCoordinates.getLat());
             String lng = Double.toString(CameraCoordinates.getLon());
 
             Timber.d("coordinates: " + CameraCoordinates.getLat());
-        }, () -> mapLoaded.postValue(true)));
+        }, () -> mapLoaded.postValue(true), this::showSnackbar));
     }
 
     public MutableLiveData<BredaMapInterface> getBredaMapInterface() {
@@ -89,6 +93,10 @@ public class ServiceRequestListViewModel extends AndroidViewModel {
         });
     }
 
+    private void showSnackbar(String message) {
+        showSnackbar.postValue(message);
+    }
+
     public void setPageVisibility(Boolean status) {
         visible.postValue(status);
     }
@@ -99,6 +107,10 @@ public class ServiceRequestListViewModel extends AndroidViewModel {
 
     public LiveData<Boolean> getVisible() {
         return visible;
+    }
+
+    public LiveData<String> getShowSnackbar() {
+        return showSnackbar;
     }
 
     public LiveData<Resource<List<ServiceRequest>>> updateServiceRequests(String status,

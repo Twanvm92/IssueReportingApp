@@ -225,6 +225,7 @@
 
         var drawing = false;
         Geomerk.Map.setMoveEndCallback(moveEnd);
+        Geomerk.Map.setSnackbarCallback(showSnackbar);
         function featureClick(feature,layer) {
             var object = feature.getProperties();
             console.log(object);
@@ -233,6 +234,10 @@
          function mapLoaded(layer, description) {
             console.log('mapLoaded'+layer + ':' + description);
             Android.pageIsReady();
+        }
+
+        function showSnackbar(message) {
+            Android.showSnackbar(message);
         }
 
         function loaded() {

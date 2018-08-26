@@ -20766,6 +20766,7 @@ ol.interaction.defaults = function(opt_options) {
       duration: options.zoomDuration
     }));
   }
+  console.log("ConstraintOptions: " + options.constrainResolution)
 
   var keyboard = options.keyboard !== undefined ? options.keyboard : true;
   if (keyboard) {
@@ -94204,12 +94205,12 @@ var Geomerk = (function (e) {
      * collection of map properties and functions
      */
     var _loadedCallback, _mapLoaded, _WfsLoaded, _WmsLoaded;
-    var _featureClick, _onClickTouch, _onMoveEnd, _moveEndCallback;
+    var _featureClick, _onClickTouch, _onMoveEnd, _moveEndCallback, _snackbarCallback;
     var _olmap;
     var _dateFilter;
     var _mapParam;
     var _geolocation;
-
+    var _ExtentTest;
 
     var _wktFormat = new ol.format.WKT();
     var vDrawLocation = null;
@@ -94306,9 +94307,11 @@ var Geomerk = (function (e) {
                                 return parseFloat(el);
                             });
                         }
+                        console.log("fit triggered")
                         extent = ol.extent.applyTransform(extent, ol.proj.getTransform("EPSG:4326", "EPSG:3857"));
                         map.getView().fit(extent, map.getSize());
                     } else {
+                        console.log("ZoomToWTK triggered")
                         var x = Number(item.getAttribute('data-x'));
                         var y = Number(item.getAttribute('data-y'));
                         var wkt= 'POINT('+x+' '+y+')';
@@ -94439,6 +94442,9 @@ var Geomerk = (function (e) {
             _moveEndCallback = callback;
 
         },
+        setSnackbarCallback: function(callback) {
+          _snackbarCallback = callback
+        },
         setFeatureClickCallback: function (callback) {
             _featureClick = callback;
         },
@@ -94497,43 +94503,76 @@ var Geomerk = (function (e) {
             }
         },
         setMapObject: function (layerProperties) {
+          var coords = Geomerk.Map.convertLonLatToRD(4.768120, 51.570011);
+          console.log("coords: " + coords)
 
             _olmap = new ol.Map({
                 interactions: ol.interaction.defaults({
                     doubleClickZoom: false,
                     mouseWheelZoom: _mapParam.type == 'basic' ? false : true
+                    
                 }),
                 layers: e.Map.addMapLayers(layerProperties),
                 loadTilesWhileAnimating: true,
                 loadTilesWhileInteracting: true,
                 target: _mapParam.div,
                 view: new ol.View({
-                    //maxResolution: 300,
-                    //minResolution: 0.01,
-                    minZoom: 5,
-                    maxZoom: 25,
-                    center: [111005,400551],
-                    zoom:8,
-                    projection: new ol.proj.Projection({
-                        code: 'EPSG:28992',
-                        units: 'm'
-                    }),
-                    //zoom: Geomerk.loginDetails.Organisation.MapConfig.Level
-
-                }),
-                controls: [
-                    new ol.control.Zoom({
-                        className: 'custom-zoom'
-                    }),
-                    // new ol.control.MousePosition({
-                    //     coordinateFormat: ol.coordinate.createStringXY(2),
-                    //     projection: 'EPSG:28992',
-                    //     className: 'custom-mouseposition'
-                    // })
-                ]
+                  //maxResolution: 300,
+                  //minResolution: 0.01,
+                  // center: [111005,400551],
+                  center: [coords[0],coords[1]],
+                  zoom:11,
+                  projection: new ol.proj.Projection({
+                      code: 'EPSG:28992',
+                      units: 'm'
+                  })
+                  //zoom: Geomerk.loginDetails.Organisation.MapConfig.Level
+                })
             });
-            var intialLocation = [112604,400507];
-            Geomerk.Map.interactions.zoomToCenter(intialLocation, 14);
+            
+            
+            
+            // var intialLocation = [112604,400507];
+            // Geomerk.Map.interactions.zoomToCenter(intialLocation, 12.5);
+            
+            _ExtentTest = _olmap.getView().calculateExtent()
+            // set view again to be able to get the extent and set it to the view
+            _olmap.setView(new ol.View({
+              minZoom: 12.5,
+              maxZoom: 22,
+              center: [112604,400507],
+              zoom:12.5,
+              projection: new ol.proj.Projection({
+                  code: 'EPSG:28992',
+                  units: 'm'
+              }),
+              extent: _ExtentTest
+            }))
+
+
+            // var view = _olmap.getView()
+            // var centerZoom = view.getZoom()
+            // // var centerZoom = view.getCenter();
+            
+            // _olmap.getView().on('change:center', function(evt) {
+            //   console.log("change center")
+            //   var view = _olmap.getView()
+            //   var zoom = view.getZoom();
+            //   var center = view.getCenter();
+
+            //   _olmap.setView(new ol.View({
+            //     minZoom: 12.5,
+            //     maxZoom: 22,
+            //     center: view.getCenter(),
+            //     zoom:view.getZoom(),
+            //     projection: new ol.proj.Projection({
+            //         code: 'EPSG:28992',
+            //         units: 'm'
+            //     }),
+            //     extent: _ExtentTest
+            //   }))
+              
+            // })
 
             _onClick = _olmap.on('singleclick', function (e) {
                 if (_olmap.getTargetElement().style.cursor == 'pointer') {
@@ -95143,9 +95182,12 @@ var Geomerk = (function (e) {
             var ext=feature.getGeometry().getExtent();
             var center=ol.extent.getCenter(ext);
             _olmap.setView(new ol.View({
+                minZoom: 12.5,
+                maxZoom: 22,
                 projection: 'EPSG:28992',//or any projection you are using
                 center: [center[0] , center[1]],//zoom to the center of your feature
-                zoom: zoomLevel //here you define the levelof zoom
+                zoom: zoomLevel, //here you define the levelof zoom
+                extent: _ExtentTest
             }));
         },
         zoomToCluster: function(feature, zoomLevel)
@@ -95153,19 +95195,32 @@ var Geomerk = (function (e) {
             var ext=feature.getGeometry().getExtent();
             var center=ol.extent.getCenter(ext);
             _olmap.setView(new ol.View({
-                projection: 'EPSG:28992',//or any projection you are using
-                center: [center[0] , center[1]],//zoom to the center of your feature
-                zoom: zoomLevel //here you define the levelof zoom
+              projection: 'EPSG:28992',//or any projection you are using
+              minZoom: 12.5,
+              maxZoom: 22,
+              center: [center[0] , center[1]],//zoom to the center of your feature
+              zoom: zoomLevel, //here you define the levelof zoom
+              extent: _ExtentTest
             }));
         },
         zoomToLonLat: function(lon,lat,zoomLevel)
-        {
+        {   
             var coords = Geomerk.Map.convertLonLatToRD(lon,lat);
-            _olmap.setView(new ol.View({
+            if(ol.extent.containsXY(_ExtentTest, coords[0], coords[1])) {
+              _olmap.setView(new ol.View({
+                minZoom: 12.5,
+                maxZoom: 22,
+                extent: _ExtentTest,
                 projection: 'EPSG:28992',//or any projection you are using
                 center: [coords[0], coords[1]],//zoom to the center of your feature
                 zoom: zoomLevel //here you define the levelof zoom
+                
             }));
+            } else {
+              console.log("Coordinates outside of extent")
+              _snackbarCallback("U bevindt zich niet in Breda!")
+            }
+            
         },
         styleFunction: function (feature) {
                 return styles[feature.getGeometry().getType()];

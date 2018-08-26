@@ -94,4 +94,9 @@
     <string name="explanationNoCategories">The first time this app is opened access to the internet is required to retrieve categories. After the initial retrieval this is not neccessary anymore.</string>
     <string name="OK">OK</string>
     <string name="errLoadingMap">Error loading the map</string>
+    <string name="selectLocation">First select a location for your request by zooming in further</string>
+    <string name="createOrFollowRequest">Select a location or follow a request</string>
+    <string name="chooseLocation">Choose location</string>
+    <string name="clickOnMap">Click on the map to select a location</string>
+    <string name="clickNext">Location chosen. Click next</string>
 </resources>

@@ -10,6 +10,7 @@ import com.example.justin.verbeterjegemeente.app.Constants;
 import com.example.justin.verbeterjegemeente.data.DataManager;
 import com.example.justin.verbeterjegemeente.ui.adapters.StepperAdapter;
 import com.example.justin.verbeterjegemeente.ui.callbacks.OnNavigationBarListener;
+import com.google.android.gms.maps.model.LatLng;
 import com.stepstone.stepper.Step;
 import com.stepstone.stepper.StepperLayout;
 
@@ -32,6 +33,7 @@ public class StepperActivity extends AppCompatActivity implements HasSupportFrag
     private static final String DATA = "data";
 
     private String mData;
+    private LatLng mLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,8 +87,18 @@ public class StepperActivity extends AppCompatActivity implements HasSupportFrag
     }
 
     @Override
+    public void saveData(LatLng location) {
+        mLocation = location;
+    }
+
+    @Override
     public String getData() {
         return mData;
+    }
+
+    @Override
+    public LatLng getLocation() {
+        return mLocation;
     }
 
 

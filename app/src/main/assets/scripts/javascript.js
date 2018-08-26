@@ -94205,7 +94205,7 @@ var Geomerk = (function (e) {
      * collection of map properties and functions
      */
     var _loadedCallback, _mapLoaded, _WfsLoaded, _WmsLoaded;
-    var _featureClick, _onClickTouch, _onMoveEnd, _moveEndCallback, _snackbarCallback;
+    var _featureClick, _onClickTouch, _onMoveEnd, _moveEndCallback, _snackbarCallback, _onZoom, _zoomCallback;
     var _olmap;
     var _dateFilter;
     var _mapParam;
@@ -94315,7 +94315,7 @@ var Geomerk = (function (e) {
                         var x = Number(item.getAttribute('data-x'));
                         var y = Number(item.getAttribute('data-y'));
                         var wkt= 'POINT('+x+' '+y+')';
-                        Geomerk.Map.zoomToWKT(wkt, 20)
+                        Geomerk.Map.zoomToWKT(wkt, 19)
 
                     }
                 }
@@ -94442,8 +94442,11 @@ var Geomerk = (function (e) {
             _moveEndCallback = callback;
 
         },
+        setZoomCallback: function(callback){
+          _zoomCallback = callback;
+        },
         setSnackbarCallback: function(callback) {
-          _snackbarCallback = callback
+          _snackbarCallback = callback;
         },
         setFeatureClickCallback: function (callback) {
             _featureClick = callback;
@@ -94530,13 +94533,13 @@ var Geomerk = (function (e) {
                 })
             });
             
-            
-            
             // var intialLocation = [112604,400507];
             // Geomerk.Map.interactions.zoomToCenter(intialLocation, 12.5);
             
             _ExtentTest = _olmap.getView().calculateExtent()
             // set view again to be able to get the extent and set it to the view
+            // _ExtentTest also has to be added everytime there is a new view added when zooming to a location
+            // see zoomToLonLat, zoomToWKT and zoomToCluster
             _olmap.setView(new ol.View({
               minZoom: 12.5,
               maxZoom: 22,
@@ -94585,6 +94588,22 @@ var Geomerk = (function (e) {
                     }
                 }
 
+            });
+            
+            // also has to be added everytime there is a new view added when zooming to a location
+            // see zoomToLonLat, zoomToWKT and zoomToCluster
+            _onZoom = _olmap.getView().on('change:resolution', function (e) {
+              var zoom = _olmap.getView().getZoom();
+              if(zoom >= 19.8) {
+                if (_drawInteraction == null) {
+                  console.log('drawinteraction is null but zoom >=')
+                  _zoomCallback(true);
+                } 
+              } else {
+                console.log('zoom is lower than allowed for drawgeo')
+                Geomerk.Map.disableControls();
+                _zoomCallback(false);
+              }
             });
 
             _onMoveEnd = _olmap.on('moveend', function (e) {
@@ -95189,6 +95208,19 @@ var Geomerk = (function (e) {
                 zoom: zoomLevel, //here you define the levelof zoom
                 extent: _ExtentTest
             }));
+            _onZoom = _olmap.getView().on('change:resolution', function (e) {
+              var zoom = _olmap.getView().getZoom();
+              if(zoom >= 20) {
+                if (_drawInteraction == null) {
+                  console.log('drawinteraction is null but zoom >=')
+                  _zoomCallback(true);
+                } 
+              } else {
+                console.log('zoom is lower than allowed for drawgeo')
+                Geomerk.Map.disableControls();
+                _zoomCallback(false);
+              }
+            });
         },
         zoomToCluster: function(feature, zoomLevel)
         {
@@ -95202,6 +95234,19 @@ var Geomerk = (function (e) {
               zoom: zoomLevel, //here you define the levelof zoom
               extent: _ExtentTest
             }));
+            _onZoom = _olmap.getView().on('change:resolution', function (e) {
+              var zoom = _olmap.getView().getZoom();
+              if(zoom >= 20) {
+                if (_drawInteraction == null) {
+                  console.log('drawinteraction is null but zoom >=')
+                  _zoomCallback(true);
+                } 
+              } else {
+                console.log('zoom is lower than allowed for drawgeo')
+                Geomerk.Map.disableControls();
+                _zoomCallback(false);
+              }
+            });
         },
         zoomToLonLat: function(lon,lat,zoomLevel)
         {   
@@ -95214,8 +95259,21 @@ var Geomerk = (function (e) {
                 projection: 'EPSG:28992',//or any projection you are using
                 center: [coords[0], coords[1]],//zoom to the center of your feature
                 zoom: zoomLevel //here you define the levelof zoom
-                
-            }));
+              }));
+
+              _onZoom = _olmap.getView().on('change:resolution', function (e) {
+                var zoom = _olmap.getView().getZoom();
+                if(zoom >= 20) {
+                  if (_drawInteraction == null) {
+                    console.log('drawinteraction is null but zoom >=')
+                    _zoomCallback(true);
+                  } 
+                } else {
+                  console.log('zoom is lower than allowed for drawgeo')
+                  Geomerk.Map.disableControls();
+                  _zoomCallback(false);
+                }
+              });
             } else {
               console.log("Coordinates outside of extent")
               _snackbarCallback("U bevindt zich niet in Breda!")

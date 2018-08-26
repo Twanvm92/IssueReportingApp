@@ -23,6 +23,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.justin.verbeterjegemeente.R;
@@ -33,6 +34,7 @@ import com.example.justin.verbeterjegemeente.databinding.FragmentStepLocationBin
 import com.example.justin.verbeterjegemeente.di.Injectable;
 import com.example.justin.verbeterjegemeente.service.model.Coordinates;
 import com.example.justin.verbeterjegemeente.service.model.ServiceRequest;
+import com.example.justin.verbeterjegemeente.ui.MeldingActivity;
 import com.example.justin.verbeterjegemeente.ui.Tab1Fragment;
 import com.example.justin.verbeterjegemeente.viewModel.ServiceRequestListViewModel;
 import com.google.android.gms.common.ConnectionResult;
@@ -81,6 +83,9 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
     private Boolean FirstTime = true;
     private FusedLocationProviderClient mFusedLocationClient;
     private LocationCallback mLocationCallback;
+    private LatLng locationSelected;
+    private Snackbar zoomReadySnackbar;
+    private Snackbar locationSelectedSnackbar;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -127,8 +132,17 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
         mBinding.setLifecycleOwner(this);
         observeViewModel(viewModel);
 
-
         mBinding.setViewModel(viewModel);
+
+        // create Snackbar for future use when observing zoomReady LiveData
+        View view = mBinding.getRoot().findViewById(R.id.StepLocationFragment_l_catagoryLayout);
+        locationSelectedSnackbar = Snackbar.make(view, getString(R.string.clickOnMap), Snackbar.LENGTH_INDEFINITE);
+        zoomReadySnackbar = Snackbar.make(view, getString(R.string.createOrFollowRequest), Snackbar.LENGTH_INDEFINITE);
+        zoomReadySnackbar.setAction(R.string.chooseLocation, view1 -> {
+            wbMap.loadUrl("javascript:Geomerk.Map.drawGeo('Point', callbackGeom);");
+            locationSelectedSnackbar.show();
+        });
+        zoomReadySnackbar.setActionTextColor(getResources().getColor(R.color.green500));
 
     }
 
@@ -141,7 +155,7 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
                     String serviceRequestJson = gson.toJson(serviceRequests.data);
                     wbMap.loadUrl("javascript:Geomerk.Map.addCluster(0.5, 46, 'http://openlayers.org/en/v3.7.0/examples/data/icon.png'," +
                             serviceRequestJson + ")");
-                    Timber.d("Service request added to map" );
+                    Timber.d("Service request added to map");
 
                 }
 
@@ -160,10 +174,25 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
                 Snackbar snackbar = Snackbar.make(view, message, Snackbar.LENGTH_SHORT);
                 snackbar.show();
             }
+        });
+        viewModel.getLocationSelected().observe(this, (LatLng location) -> {
 
-
+            if (location != null) {
+                Timber.d("Location selected");
+                onMarkedLocation(location);
+            }
+        });
+        viewModel.getZoomReadyLive().observe(this, (status) -> {
+            if (status != null) {
+                if (status) {
+                    zoomReadySnackbar.show();
+                } else {
+                    zoomReadySnackbar.dismiss();
+                }
+            }
         });
     }
+
 
     @Override
     public void onAttach(Context context) {
@@ -349,7 +378,11 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
     @Override
     public VerificationError verifyStep() {
         //return null if the user can go to the next step, create a new VerificationError instance otherwise
-        return null;
+        if (locationSelected != null) {
+            return null;
+        } else {
+            return new VerificationError(getString(R.string.selectLocation));
+        }
     }
 
     @Override
@@ -375,6 +408,9 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
     @Override
     public void onNextClicked(StepperLayout.OnNextClickedCallback callback) {
         // stuff to do before going to next step like sending data async or to next step
+        dataManager.saveData(locationSelected);
+        Timber.d(String.format("On next clicked: %s, %s", locationSelected.latitude, locationSelected.longitude));
+        callback.goToNextStep();
     }
 
     @Override
@@ -425,6 +461,31 @@ public class StepLocationFragment extends Fragment implements BlockingStep, Inje
         });
         snackbar.setActionTextColor(getResources().getColor(R.color.green500));
         snackbar.show();
+    }
+
+    private void onMarkedLocation(LatLng location) {
+        //create a new custom dialog
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(getActivity());
+        View mView = getLayoutInflater().inflate(R.layout.activity_maps_dialog, null);
+
+        mBuilder.setView(mView);
+
+        final TextView tvLocation = mView.findViewById(R.id.activityMapsDialog_tv_location);
+        tvLocation.setText(String.format("%s, %s", location.latitude, location.longitude));
+
+        mBuilder.setTitle(getString(R.string.activityMain_item_gps));
+        mBuilder.setPositiveButton(getString(R.string.eImSure), (dialog, which) -> {
+
+            locationSelected = location;
+            zoomReadySnackbar.setText(R.string.clickNext);
+            zoomReadySnackbar.show();
+        });
+        mBuilder.setNegativeButton(getString(R.string.eRetry), (dialog, which) -> dialog.dismiss());
+
+        mBuilder.setOnDismissListener(dialog -> wbMap.post(() -> wbMap.loadUrl("javascript:Geomerk.Map.drawGeo('Point', callbackGeom);")));
+
+        final AlertDialog dialog = mBuilder.create();
+        dialog.show();
     }
 
 }

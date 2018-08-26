@@ -119,5 +119,10 @@
     <string name="explanationNoCategories">De eerste keer dat u deze app gebruikt, is er toegang tot het internet nodig om categorieën voor u in te laden. Na de eerste keer is dit niet meer nodig</string>
     <string name="OK">OK</string>
     <string name="errLoadingMap">Kaart kon niet geladen worden.</string>
+    <string name="selectLocation">Selecteer eerst een locatie voor uw melding door verder in te zoomen</string>
+    <string name="createOrFollowRequest">Kies een locatie voor je melding of volg een melding</string>
+    <string name="chooseLocation">Kies locatie</string>
+    <string name="clickOnMap">Klik op de kaart om een locatie te kiezen</string>
+    <string name="clickNext">Locatie is gekozen. Klik op next.</string>
 
 </resources>

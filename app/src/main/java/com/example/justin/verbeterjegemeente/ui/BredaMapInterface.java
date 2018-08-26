@@ -20,14 +20,19 @@ public class BredaMapInterface {
     private OnMarkedLocationListener locationListener;
     private OnPageFullyLoadedListener pageFullyLoadedListener;
     private OnShowSnackbarListener snackbarListener;
+    private OnZoomReadyListener zoomReadyListener;
     private final String TAG = "BredaMapInterface: ";
 
     public BredaMapInterface(OnCameraChangedListener cameraListener,
                              OnPageFullyLoadedListener pageFullyLoadedListener,
-                             OnShowSnackbarListener snackbarListener) {
+                             OnShowSnackbarListener snackbarListener,
+                             OnMarkedLocationListener locationListener,
+                             OnZoomReadyListener zoomReadyListener) {
         this.cameraListener = cameraListener;
         this.pageFullyLoadedListener = pageFullyLoadedListener;
         this.snackbarListener = snackbarListener;
+        this.locationListener = locationListener;
+        this.zoomReadyListener = zoomReadyListener;
     }
 
     public BredaMapInterface(OnMarkedLocationListener locationListener, OnPageFullyLoadedListener pageFullyLoadedListener) {
@@ -63,9 +68,9 @@ public class BredaMapInterface {
     public void getMarkedLocation(String latLong) {
         Log.i("JavascriptInterface: ", latLong);
 
-//        LatLng latLng = parseJsonCoordsToLatLng(latLong);
+        LatLng latLng = parseJsonCoordsToLatLng(latLong);
 
-//        locationListener.onMarkedLocation(latLng);
+        locationListener.onMarkedLocation(latLng);
     }
 
     @JavascriptInterface
@@ -78,6 +83,16 @@ public class BredaMapInterface {
     public void showSnackbar(String message) {
         Timber.d("Snackbar being build");
         snackbarListener.onShowSnackbar(message);
+    }
+
+    @JavascriptInterface
+    public void zoomIsReady(String status) {
+        Boolean bool = false;
+        if (status.equals("true")) {
+            bool = true;
+        }
+        Timber.d("zoom is " + status);
+        zoomReadyListener.onZoomReady(bool);
     }
 
 
@@ -108,6 +123,10 @@ public class BredaMapInterface {
 
     public interface OnShowSnackbarListener {
         void onShowSnackbar(String message);
+    }
+
+    public interface OnZoomReadyListener {
+        void onZoomReady(Boolean status);
     }
 
 }

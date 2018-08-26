@@ -18,6 +18,7 @@ import com.example.justin.verbeterjegemeente.service.model.Coordinates;
 import com.example.justin.verbeterjegemeente.service.model.ServiceRequest;
 import com.example.justin.verbeterjegemeente.service.repositories.ServiceRequestsRepository;
 import com.example.justin.verbeterjegemeente.ui.BredaMapInterface;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.util.List;
 
@@ -37,6 +38,8 @@ public class ServiceRequestListViewModel extends AndroidViewModel {
     private MutableLiveData<Boolean> visible;
     private MutableLiveData<Boolean> mapLoaded;
     private MutableLiveData<String> showSnackbar;
+    private MutableLiveData<LatLng> locationSelected;
+    private MutableLiveData<Boolean> zoomReadyLive;
 
     @Inject
     public ServiceRequestListViewModel(@NonNull Application application,
@@ -50,6 +53,8 @@ public class ServiceRequestListViewModel extends AndroidViewModel {
         mapLoaded = new MutableLiveData<>();
         mapLoaded.setValue(false);
         showSnackbar = new MutableLiveData<>();
+        locationSelected = new MutableLiveData<>();
+        this.zoomReadyLive = new MutableLiveData<>();
 //        serviceRequestListObservable = updateServiceRequests("open", "RB");
         setWebViewClient();
     }
@@ -71,7 +76,8 @@ public class ServiceRequestListViewModel extends AndroidViewModel {
             String lng = Double.toString(CameraCoordinates.getLon());
 
             Timber.d("coordinates: " + CameraCoordinates.getLat());
-        }, () -> mapLoaded.postValue(true), this::showSnackbar));
+        }, () -> mapLoaded.postValue(true), this::showSnackbar, this::setLocationSelected,
+                this::zoomReady));
     }
 
     public MutableLiveData<BredaMapInterface> getBredaMapInterface() {
@@ -97,8 +103,17 @@ public class ServiceRequestListViewModel extends AndroidViewModel {
         showSnackbar.postValue(message);
     }
 
+    private void zoomReady(Boolean status) {
+        zoomReadyLive.postValue(status);
+    }
+
     public void setPageVisibility(Boolean status) {
         visible.postValue(status);
+    }
+
+    public void setLocationSelected(LatLng location) {
+        Timber.d("Location selected");
+        locationSelected.postValue(location);
     }
 
     public LiveData<WebViewClient> getWebViewClient() {
@@ -111,6 +126,14 @@ public class ServiceRequestListViewModel extends AndroidViewModel {
 
     public LiveData<String> getShowSnackbar() {
         return showSnackbar;
+    }
+
+    public LiveData<LatLng> getLocationSelected() {
+        return locationSelected;
+    }
+
+    public LiveData<Boolean> getZoomReadyLive() {
+        return zoomReadyLive;
     }
 
     public LiveData<Resource<List<ServiceRequest>>> updateServiceRequests(String status,

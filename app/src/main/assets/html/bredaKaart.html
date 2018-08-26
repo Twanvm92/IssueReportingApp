@@ -222,6 +222,7 @@
 
         Geomerk.Map.setMapLoadedCallback(mapLoaded);
         Geomerk.Map.setLoadedCallback(loaded);
+        Geomerk.Map.setZoomCallback(zoom);
 
         var drawing = false;
         Geomerk.Map.setMoveEndCallback(moveEnd);
@@ -244,6 +245,7 @@
             Geomerk.Map.initSearchRD('places-search');
 
             var map = Geomerk.Map.getMap();
+
             var geojsonFormat = new ol.format.GeoJSON();
             map.addOverlay(overlay);
             map.on('click', function (evt) {
@@ -279,16 +281,20 @@
             Android.onCameraChanged(jsonPositionData);
         };
 
+        function zoom(boolean) {
+            console.log('ZoomReady triggered');
+            Android.zoomIsReady(boolean);
+        };
+
         function callbackGeom(data) {
 
+            var map = Geomerk.Map.getMap();
             var coords = data.flatCoordinates;
+            var lonlat = Geomerk.Map.convertRDtoLonLat(coords[0], coords[1]);
+            var jsonDataPointClicked = JSON.stringify(lonlat);
 
-				var lonlat = Geomerk.Map.convertRDtoLonLat(coords[0], coords[1]);
-				var jsonDataPointClicked = JSON.stringify(lonlat);
-
-
-
-            console.log(Geomerk.Map.geometryToWkt(data));
+            Android.getMarkedLocation(jsonDataPointClicked);
+            console.log(jsonDataPointClicked);
         }
 
 

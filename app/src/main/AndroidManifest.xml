@@ -61,7 +61,8 @@
         <activity
             android:name=".ui.Stepper.StepperActivity"
             android:label="@string/title_activity_stepper"
-            android:theme="@style/AppTheme.Stepper"/>
+            android:theme="@style/AppTheme.Stepper"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"/>
     </application>
 
 </manifest>
